@@ -1,0 +1,53 @@
+{
+    "name": "Penguin City",
+    "tree": {
+        "$className": "DataModel",
+
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "$ignoreUnknownInstances": true,
+
+            "Modules": {
+                "$className": "Folder",
+                "$path": "src/Shared"
+            }
+
+        },
+
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "$ignoreUnknownInstances": true,
+            "$path": "src/Server"
+
+        },
+
+        "ServerStorage": {
+            "$className": "ServerStorage",
+            "$ignoreUnknownInstances": true,
+            "$path": "src/ServerStorage",
+
+            "VoldexAnalytics" : {
+              "$path" : "roblox-analytics-service/src/ServerStorage/Analytics"
+            }
+        },
+
+        "StarterPlayer": {
+            "$className": "StarterPlayer",
+            "$ignoreUnknownInstances": true,
+
+            "StarterPlayerScripts": {
+                "$className": "StarterPlayerScripts",
+                "$ignoreUnknownInstances": true,
+                "$path": "src/Client",
+
+                "VoldexAnalytics" : {
+                    "$path": "roblox-analytics-service/src/StarterPlayer/StarterPlayerScripts/AnalyticsClientInit.client.lua"
+                  }
+
+            }
+
+        }
+
+    }
+
+}

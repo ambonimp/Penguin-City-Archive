@@ -1,0 +1,3 @@
+[submodule "roblox-analytics-service"]
+	path = roblox-analytics-service
+	url = https://github.com/voldexroblox/roblox-analytics-service.git
