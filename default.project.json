@@ -3,6 +3,12 @@
     "tree": {
         "$className": "DataModel",
 
+        "ReplicatedFirst": {
+            "$className": "ReplicatedFirst",
+            "$ignoreUnknownInstances": true,
+            "$path": "src/ReplicatedFirst"
+        },
+
         "ReplicatedStorage": {
             "$className": "ReplicatedStorage",
             "$ignoreUnknownInstances": true,
@@ -29,6 +35,12 @@
             "VoldexAnalytics" : {
               "$path" : "roblox-analytics-service/src/ServerStorage/Analytics"
             }
+        },
+
+        "StarterGui": {
+            "$className": "StarterGui",
+            "$ignoreUnknownInstances": true,
+            "$path": "src/StarterGui"
         },
 
         "StarterPlayer": {

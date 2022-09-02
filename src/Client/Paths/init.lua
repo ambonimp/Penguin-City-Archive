@@ -2,27 +2,32 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Paths = {}
 Paths.Modules = {}
+Paths.UI = game.Players.LocalPlayer.PlayerGui
 Paths.Initialized = false
 
 
 local shared = ReplicatedStorage.Modules
 local enums = shared.Enums
 
+
 function Paths.initialize()
+    local ModuleLoader = require(script.ModuleLoader)
+
     -- Enums
-    Paths.Modules["GameEnums"] = require(enums.Game)
+    ModuleLoader.register("GameEnums", enums.Game)
 
     -- Shared
-    Paths.Modules["Promise"] = require(shared.Promise)
-    Paths.Modules["Remotes"] = require(shared.Remotes)
-    Paths.Modules["Signal"] = require(shared.Signal)
+    ModuleLoader.register("Promise", shared.Promise)
+    ModuleLoader.register("Remotes", shared.Remotes)
+    ModuleLoader.register("Signal", shared.Signal)
     -- Utils
-    Paths.Modules["TableUtil"] = require(shared.TableUtil)
-    Paths.Modules["DataUtil"] = require(shared.DataUtil)
+    ModuleLoader.register("TableUtil", shared.TableUtil)
+    ModuleLoader.register("DataUtil", shared.DataUtil)
 
     --
-    Paths.Modules["PlayerData"] = require(script.PlayerData)
+    ModuleLoader.register("PlayerData", script.PlayerData)
 
+    ModuleLoader.load()
     Paths.Initialized = true
 
 end
