@@ -1,1 +1,1 @@
-print("Client")
+require(script.Parent.Paths).initialize()
