@@ -18,7 +18,7 @@ local FULL = 1.1 -- Gradient has 0.1 ease thing
 local player = Players.LocalPlayer
 local char, hrp
 
-local screen = ui.LoadingScreen
+local screen = ui:WaitForChild("LoadingScreen")
 local gradient = screen.Logo.Colored.UIGradient
 
 local skipBtn = screen.Skip

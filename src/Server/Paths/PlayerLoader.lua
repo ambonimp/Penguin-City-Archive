@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local Paths = require(script.Parent)
 local modules = Paths.Modules
 
-local PlayerLoader = {}
+
 
 Players.PlayerAdded:Connect(function(player)
     modules["PlayerData"].loadPlayer(player)
@@ -15,4 +15,4 @@ Players.PlayerRemoving:Connect(function(player)
     modules["PlayerData"].unloadPlayer(player)
 end)
 
-return PlayerLoader
+return {}

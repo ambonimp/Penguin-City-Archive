@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
-local module = {}
+local Remotes = {}
 
 local Promise = require(script.Parent.Promise)
 
@@ -116,7 +116,7 @@ local function getEventHandler(name)
 end
 
 -- Bindings, pass a dictionary of remotes to create / connect to
-function module.bindFunctions(callbacks)
+function Remotes.bindFunctions(callbacks)
     for name, callback in pairs(callbacks) do
         assert(callback, name)
         assert(typeof(callback) == "function", name)
@@ -130,7 +130,7 @@ function module.bindFunctions(callbacks)
 
 end
 
-function module.bindEvents(callbacks)
+function Remotes.bindEvents(callbacks)
     for name, callback in pairs(callbacks) do
         assert(callback, name)
         assert(typeof(callback) == "function", name)
@@ -144,7 +144,7 @@ function module.bindEvents(callbacks)
 
 end
 
-function module.bindEventTemp(name, callback) -- SYNCROHOUNOUS
+function Remotes.bindEventTemp(name, callback) -- SYNCROHOUNOUS
     local handler = getEventHandler(name)
     local disconnect = handler.registerCallback(callback, true)
 
@@ -164,7 +164,7 @@ if isServer then
     eventFolder = instance("Folder", "Events", communication)
 
 
-    function module.invokeClient(client, name, ...)
+    function Remotes.invokeClient(client, name, ...)
         assert(client.Parent == Players, "Can't fire to non-existent player " .. client.Name)
 
         local handler = getFunctionHandler(name)
@@ -173,19 +173,19 @@ if isServer then
         return remote:InvokeClient(client, ...)
     end
 
-    function module.invokeClients(clients, ...)
+    function Remotes.invokeClients(clients, ...)
         local returning = {}
         for _, player in ipairs(clients) do
-            returning[player] = table.pack(module.invokeClient(player, ...))
+            returning[player] = table.pack(Remotes.invokeClient(player, ...))
         end
         return returning
     end
 
-    function module.invokeAllClients(...)
-        return module.invokeClients(Players:GetPlayers(), ...)
+    function Remotes.invokeAllClients(...)
+        return Remotes.invokeClients(Players:GetPlayers(), ...)
     end
 
-    function module.fireClient(client, name, ...)
+    function Remotes.fireClient(client, name, ...)
         task.spawn(function(...)
             assert(client.Parent == Players, "Can't fire to non-existent player " .. client.Name)
 
@@ -197,20 +197,20 @@ if isServer then
 
     end
 
-    function module.fireClients(clients, ...)
+    function Remotes.fireClients(clients, ...)
         for _, player in ipairs(clients) do
-            module.fireClient(player, ...)
+            Remotes.fireClient(player, ...)
         end
     end
 
-    function module.fireAllClients(...)
-        module.fireClients(Players:GetPlayers(), ...)
+    function Remotes.fireAllClients(...)
+        Remotes.fireClients(Players:GetPlayers(), ...)
     end
 
-    function module.fireAllOtherClients(ignore, ...)
+    function Remotes.fireAllOtherClients(ignore, ...)
         for _, player in ipairs(Players:GetPlayers()) do
             if player ~= ignore then
-                module.fireClient(player, ...)
+                Remotes.fireClient(player, ...)
             end
         end
     end
@@ -221,7 +221,7 @@ else
     eventFolder = communication:WaitForChild("Events")
 
 
-    function module.fireServer(name, ...)
+    function Remotes.fireServer(name, ...)
         task.spawn(function(...)
             local handler = getEventHandler(name)
             local remote = assert(handler.Remote, name)
@@ -230,7 +230,7 @@ else
         end, ...)
     end
 
-    function module.invokeServer(name, ...)
+    function Remotes.invokeServer(name, ...)
         local handler = getFunctionHandler(name)
         local remote = assert(handler.Remote, name)
 
@@ -239,4 +239,4 @@ else
 
 end
 
-return module
+return Remotes
