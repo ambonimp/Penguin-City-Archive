@@ -23,10 +23,11 @@ task.delay(0, function()
     local requiredModulesInOrder = {
         -- Systems
         require(server.PlayerData),
-        require(server.PlayerLoader),
         require(server.AnalyticsTracking),
         require(server.Vehicles),
         require(server.Cmdr.CmdrService),
+        require(server.Characters),
+        require(server.PlayerLoader),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
