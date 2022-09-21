@@ -11,42 +11,51 @@ Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 Paths.Modules = {}
 
--- Init Modules
-do
-    -- Loader
-    Paths.Modules["Loader"] = require(script.ModuleLoader)
+function Paths.initialize()
+    -- Init Modules
+    local ping = tick()
+    do
+        -- Loader
+        Paths.Modules["Loader"] = require(script.Loader)
 
-    -- Constants
-    Paths.Modules["GameConstants"] = require(Constants.GameConstants)
-    Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
+        -- Constants
+        Paths.Modules["GameConstants"] = require(Constants.GameConstants)
+        Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
+        Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
 
-    -- Packages
-    Paths.Modules["Promise"] = require(Packages.promise)
-    Paths.Modules["Maid"] = require(Packages.maid)
+        -- Packages
+        Paths.Modules["Promise"] = require(Packages.promise)
+        Paths.Modules["Maid"] = require(Packages.maid)
 
-    -- Shared
-    Paths.Modules["Remotes"] = require(Shared.Remotes)
-    Paths.Modules["Signal"] = require(Shared.Signal)
-    Paths.Modules["Spring"] = require(Shared.Spring)
+        -- Shared
+        Paths.Modules["Remotes"] = require(Shared.Remotes)
+        Paths.Modules["Signal"] = require(Shared.Signal)
+        Paths.Modules["Spring"] = require(Shared.Spring)
 
-    -- Utils
-    Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
-    Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
-    Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
-    Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
+        -- Utils
+        Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
+        Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
+        Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
+        Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
 
-    -- Interface
-    Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
-    Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
+        -- Interface
+        Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
+        Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
 
-    --
-    Paths.Modules["PlayerData"] = require(script.PlayerData)
-    Paths.Modules["Character"] = require(script.Character)
-    Paths.Modules["Vehicles"] = require(script.Vehicles)
+        --
+        Paths.Modules["PlayerData"] = require(script.PlayerData)
+        Paths.Modules["Vehicles"] = require(script.Vehicles)
+        Paths.Modules["Character"] = require(script.Character)
+    end
+
+    local pong = tick()
+    if Paths.Modules.FrameworkConstants.DisplayPingPong then
+        print(("Required all Client Modules in %.4fs"):format(pong - ping))
+    end
+
+    -- Logic
+    Paths.Modules.Loader.load()
+    Paths.Initialized = true
 end
-
--- Logic
-Paths.Modules.Loader.load()
-Paths.Initialized = true
 
 return Paths
