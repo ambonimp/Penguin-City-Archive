@@ -1,44 +1,32 @@
+--[[
+    Client/Server Networking
+]]
 local Remotes = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local Promise = require(ReplicatedStorage.Packages.promise)
+local InstanceUtil = require(ReplicatedStorage.Modules.Utils.InstanceUtil)
 
-local eventHandlers = {}
-local functionHandlers = {}
+type FunctionCallback = (any) -> (any)
+type FunctionHandler = {
+    Remote: RemoteFunction,
+    registerCallback: (callback: FunctionCallback) -> (),
+}
+type EventCallback = (any) -> (nil)
+type EventHandler = {
+    Remote: RemoteEvent,
+    registerCallback: (callback: EventCallback, dontCascade: boolean?) -> (() -> ()),
+}
 
-local isStudio = RunService:IsStudio()
-local isServer = RunService:IsServer()
+local IS_STUDIO = RunService:IsStudio()
+local IS_SERVER = RunService:IsServer()
 
-local communication, functionFolder, eventFolder
+local eventHandlers: { [string]: EventHandler } = {}
+local functionHandlers: { [string]: FunctionHandler } = {}
+local communicationFolder: Folder, functionFolder: Folder, eventFolder: Folder
 
--- Unessecary, i just like one liners
-local function instance(class, name, parent)
-    local creating = Instance.new(class)
-    creating.Name = name
-    creating.Parent = parent
-
-    return creating
-end
-
-local function waitForChild(parent, awaiting)
-    local returning = parent:FindFirstChild(awaiting)
-
-    if not returning then
-        Promise.fromEvent(parent.ChildAdded, function(added)
-            if added.Name == awaiting then
-                returning = added
-                return true
-            end
-            return false
-        end):await()
-    end
-
-    return returning
-end
-
-local function getFunctionHandler(name)
+local function getFunctionHandler(name: string): FunctionHandler
     assert(typeof(name) == "string", "Remote name is not a string -> " .. name)
 
     local handler = functionHandlers[name]
@@ -47,26 +35,26 @@ local function getFunctionHandler(name)
     end
 
     handler = {}
-    handler.Remote = isServer and instance("RemoteFunction", tostring(name), functionFolder) or waitForChild(functionFolder, name)
-    if isStudio and not isServer then -- anti hack
+    handler.Remote = IS_SERVER and InstanceUtil.new("RemoteFunction", tostring(name), functionFolder) or functionFolder:WaitForChild(name)
+    if IS_STUDIO and not IS_SERVER then -- anti hack
         handler.Remote.Name = "NO WAY JOSE"
     end
 
-    local set = false
-    function handler.registerCallback(callback)
-        if set then
+    local callbackIsSet = false
+    function handler.registerCallback(callback: FunctionCallback)
+        if callbackIsSet then
             error(string.format("Attempt to overwrite callback: %s", name))
         end
 
-        set = true
-        handler.Remote[isServer and "OnServerInvoke" or "OnClientInvoke"] = callback
+        callbackIsSet = true
+        handler.Remote[IS_SERVER and "OnServerInvoke" or "OnClientInvoke"] = callback
     end
 
     functionHandlers[name] = handler
     return handler
 end
 
-local function getEventHandler(name)
+local function getEventHandler(name: string): EventHandler
     assert(typeof(name) == "string", "Remote name is not a string -> " .. name)
 
     local handler = eventHandlers[name]
@@ -75,30 +63,39 @@ local function getEventHandler(name)
     end
 
     handler = {}
-    handler.Remote = isServer and instance("RemoteEvent", name, eventFolder) or waitForChild(eventFolder, name)
-    if isStudio and not isServer then -- anti hack
+    handler.Remote = IS_SERVER and InstanceUtil.new("RemoteEvent", name, eventFolder) or eventFolder:WaitForChild(name)
+    if IS_STUDIO and not IS_SERVER then -- anti hack
         handler.Remote.Name = "YOUR MOM"
     end
 
-    local callbacks = {}
+    local callbacks: { EventCallback } = {}
     local history = {}
 
-    function handler.registerCallback(callback, temp)
-        if not temp then
+    --[[ 
+        - dontCascade: Whenever an event is fired, we record it. If we connect a callback after the event has been fired, it will call that
+        callback with the previous firings. This will *not* be the case if `dontCascade=true`.
+        - Returns a function that will internally remove the passed callback when invoked
+    --]]
+    function handler.registerCallback(callback: EventCallback, dontCascade: boolean?)
+        dontCascade = dontCascade and true or false
+
+        if not dontCascade then
             for _, fire in ipairs(history) do
                 task.spawn(callback, table.unpack(fire))
             end
         end
 
-        local i = #callbacks + 1
-        callbacks[i] = callback
+        table.insert(callbacks, callback)
 
         return function()
-            table.remove(callbacks, i)
+            local index = table.find(callbacks, callback)
+            if index then
+                table.remove(callbacks, index)
+            end
         end
     end
 
-    handler.Remote[isServer and "OnServerEvent" or "OnClientEvent"]:Connect(function(...)
+    handler.Remote[IS_SERVER and "OnServerEvent" or "OnClientEvent"]:Connect(function(...)
         table.insert(history, table.pack(...))
         for _, callback in ipairs(callbacks) do
             task.spawn(callback, ...)
@@ -110,10 +107,9 @@ local function getEventHandler(name)
 end
 
 -- Bindings, pass a dictionary of remotes to create / connect to
-function Remotes.bindFunctions(callbacks)
+function Remotes.bindFunctions(callbacks: { [string]: FunctionCallback })
     for name, callback in pairs(callbacks) do
-        assert(callback, name)
-        assert(typeof(callback) == "function", name)
+        assert(callback and typeof(callback) == "function", ("%s has no valid callback function assigned"):format(name))
 
         task.spawn(function()
             local handler = getFunctionHandler(name)
@@ -122,10 +118,9 @@ function Remotes.bindFunctions(callbacks)
     end
 end
 
-function Remotes.bindEvents(callbacks)
+function Remotes.bindEvents(callbacks: { [string]: EventCallback })
     for name, callback in pairs(callbacks) do
-        assert(callback, name)
-        assert(typeof(callback) == "function", name)
+        assert(callback and typeof(callback) == "function", ("%s has no valid callback function assigned"):format(name))
 
         task.spawn(function()
             local handler = getEventHandler(name)
@@ -134,89 +129,57 @@ function Remotes.bindEvents(callbacks)
     end
 end
 
-function Remotes.bindEventTemp(name, callback) -- SYNCROHOUNOUS
+-- Returns a function that when invoked will remove the passed callback from existence
+function Remotes.bindEventTemp(name: string, callback: EventCallback)
     local handler = getEventHandler(name)
-    local disconnect = handler.registerCallback(callback, true)
-
-    local returning = {}
-    returning.Disconnect = disconnect
-    returning.Destroy = disconnect
-
-    return returning
+    return handler.registerCallback(callback, true)
 end
 
-if isServer then
-    communication = instance("Folder", "Communication", ReplicatedStorage)
-    functionFolder = instance("Folder", "Functions", communication)
-    eventFolder = instance("Folder", "Events", communication)
+if IS_SERVER then
+    communicationFolder = InstanceUtil.new("Folder", "Communication", ReplicatedStorage)
+    functionFolder = InstanceUtil.new("Folder", "Functions", communicationFolder)
+    eventFolder = InstanceUtil.new("Folder", "Events", communicationFolder)
 
-    function Remotes.invokeClient(client, name, ...)
-        assert(client.Parent == Players, "Can't fire to non-existent player " .. client.Name)
-
-        local handler = getFunctionHandler(name)
-        local remote = assert(handler.Remote, name)
-
-        return remote:InvokeClient(client, ...)
-    end
-
-    function Remotes.invokeClients(clients, ...)
-        local returning = {}
-        for _, player in ipairs(clients) do
-            returning[player] = table.pack(Remotes.invokeClient(player, ...))
-        end
-        return returning
-    end
-
-    function Remotes.invokeAllClients(...)
-        return Remotes.invokeClients(Players:GetPlayers(), ...)
-    end
-
-    function Remotes.fireClient(client, name, ...)
+    function Remotes.fireClient(client: Player, eventName: string, ...: any)
         task.spawn(function(...)
-            assert(client.Parent == Players, "Can't fire to non-existent player " .. client.Name)
+            if not client.Parent == Players then
+                error(("Can't fire to non-existent player %q"):format(tostring(client.Name)))
+            end
 
-            local handler = getEventHandler(name)
-            local remote = assert(handler.Remote, name)
-            remote:FireClient(client, ...)
+            getEventHandler(eventName).Remote:FireClient(client, ...)
         end, ...)
     end
 
-    function Remotes.fireClients(clients, ...)
+    function Remotes.fireClients(clients: { Player }, eventName: string, ...: any)
         for _, player in ipairs(clients) do
-            Remotes.fireClient(player, ...)
+            Remotes.fireClient(player, eventName, ...)
         end
     end
 
-    function Remotes.fireAllClients(...)
-        Remotes.fireClients(Players:GetPlayers(), ...)
+    function Remotes.fireAllClients(eventName: string, ...: any)
+        Remotes.fireClients(Players:GetPlayers(), eventName, ...)
     end
 
-    function Remotes.fireAllOtherClients(ignore, ...)
+    function Remotes.fireAllOtherClients(ignoreClient: Player, eventName: string, ...: any)
         for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= ignore then
-                Remotes.fireClient(player, ...)
+            if player ~= ignoreClient then
+                Remotes.fireClient(player, eventName, ...)
             end
         end
     end
 else
-    communication = ReplicatedStorage:WaitForChild("Communication")
-    functionFolder = communication:WaitForChild("Functions")
-    eventFolder = communication:WaitForChild("Events")
+    communicationFolder = ReplicatedStorage:WaitForChild("Communication")
+    functionFolder = communicationFolder:WaitForChild("Functions")
+    eventFolder = communicationFolder:WaitForChild("Events")
 
-    function Remotes.fireServer(name, ...)
+    function Remotes.fireServer(eventName: string, ...: any)
         task.spawn(function(...)
-            local handler = getEventHandler(name)
-            local remote = assert(handler.Remote, name)
-
-            remote:FireServer(...)
+            getEventHandler(eventName).Remote:FireServer(...)
         end, ...)
     end
 
-    function Remotes.invokeServer(name, ...)
-        local handler = getFunctionHandler(name)
-        local remote = assert(handler.Remote, name)
-
-        return remote:InvokeServer(...)
+    function Remotes.invokeServer(functionName: string, ...: any)
+        return getFunctionHandler(functionName).Remote:InvokeServer(...)
     end
 end
 
