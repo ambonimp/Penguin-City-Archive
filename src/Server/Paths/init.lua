@@ -8,7 +8,8 @@ local Constants = Shared.Constants
 Paths.Modules = {}
 Paths.Initialized = false
 
-function Paths.initialize()
+-- Init Modules
+do
     -- Constants
     Paths.Modules["GameConstants"] = require(Constants.GameConstants)
     Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
@@ -32,8 +33,9 @@ function Paths.initialize()
     Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
     Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
     Paths.Modules["Vehicles"] = require(script.Vehicles)
-
-    Paths.Initialized = true
 end
+
+-- Logic
+Paths.Initialized = true
 
 return Paths
