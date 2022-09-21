@@ -1,1 +1,1 @@
-require(script.Parent:WaitForChild("Paths"))
+require(script.Parent:WaitForChild("Paths")).initialize()

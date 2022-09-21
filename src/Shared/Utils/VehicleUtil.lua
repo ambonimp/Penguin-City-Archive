@@ -2,7 +2,7 @@ local VehicleUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
-local VehicleConstants = require(ReplicatedStorage.Modules.Enums.Vehicles)
+local VehicleConstants = require(ReplicatedStorage.Modules.Constants.VehicleConstants)
 
 -- Float Spring
 local FLOAT_STRENGTH = 350
