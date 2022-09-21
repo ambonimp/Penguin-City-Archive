@@ -8,7 +8,7 @@ local Paths = require(script.Parent)
 
 local modules = Paths.Modules
 local Remotes = modules.Remotes
-local VehicleEnums = modules.VehicleEnums
+local VehicleConstants = modules.VehicleConstants
 local Interactionutil = modules.InteractionUtil
 local VehicleUtil = modules.VehicleUtil
 
@@ -70,7 +70,7 @@ Remotes.bindEvents({
             Remotes.fireClient(client, "VehicleDestroyed")
         end
 
-        if VehicleEnums[vehicle] then
+        if VehicleConstants[vehicle] then
             local model = ServerStorage.Vehicles[vehicle]:Clone()
             model.Parent = workspace
             spawnedVehicles[client] = model

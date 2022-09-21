@@ -3,15 +3,15 @@ local Paths = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Modules
 local Packages = ReplicatedStorage.Packages
-local Enums = Shared.Enums
+local Constants = Shared.Constants
 
 Paths.Modules = {}
 Paths.Initialized = false
 
 function Paths.initialize()
-    -- Enums
-    Paths.Modules["GameEnums"] = require(Enums.Game)
-    Paths.Modules["VehicleEnums"] = require(Enums.Vehicles)
+    -- Constants
+    Paths.Modules["GameConstants"] = require(Constants.GameConstants)
+    Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
 
     -- Packages
     Paths.Modules["Promise"] = require(Packages.promise)
