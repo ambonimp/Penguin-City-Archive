@@ -26,7 +26,6 @@ task.delay(0, function()
         require(server.AnalyticsTracking),
         require(server.Vehicles),
         require(server.Cmdr.CmdrService),
-        require(server.Characters),
         require(server.PlayerLoader),
     }
 

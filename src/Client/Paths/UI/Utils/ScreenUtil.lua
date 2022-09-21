@@ -12,7 +12,7 @@ local Toggle = require(Paths.Shared.Toggle)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local Binder = require(Paths.Shared.Binder)
 local TweenableValue = require(Paths.Shared.TweenableValue)
-local Camera = require(Paths.Client.Camera)
+local CameraController = require(Paths.Client.CameraController)
 
 local BINDING_KEY = "ScreenOpenAnimations"
 local ANIMATION_LENGTH = 0.3
@@ -22,7 +22,7 @@ local COSMETICS = {
     CameraFOV = 40,
 }
 
-local blurSize = TweenableValue.new("IntValue", 0, ANIMATION_LENGTH * 0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+local blurSize = TweenableValue.new("IntValue", 0, IN_TWEEN_INFO)
 local blurEffect = Instance.new("BlurEffect")
 blurEffect.Parent = Lighting
 blurSize:BindToProperty(blurEffect, "Size")
@@ -31,10 +31,10 @@ blurSize:BindToProperty(blurEffect, "Size")
 local cosmeticsEnabled = Toggle.new(false, function(value)
     if value then
         blurSize:Set(COSMETICS.BlurSize)
-        Camera.FOV:Set(COSMETICS.CameraFOV, ANIMATION_LENGTH)
+        CameraController.FOV:Set(COSMETICS.CameraFOV, IN_TWEEN_INFO)
     else
         blurSize:Reset()
-        Camera.FOV:Reset(ANIMATION_LENGTH)
+        CameraController.FOV:Reset(IN_TWEEN_INFO)
     end
 end)
 

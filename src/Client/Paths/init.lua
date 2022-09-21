@@ -31,12 +31,14 @@ task.delay(0, function()
         -- Systems
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
+        require(client.CameraController),
         require(client.PlayerData),
-        require(client.Character),
+        require(client.CharacterController),
         require(client.Vehicles),
 
         -- UI
         require(client.UI.Screens.VehiclesScreen),
+        require(client.UI.Screens.CharacterEditorScreen),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
