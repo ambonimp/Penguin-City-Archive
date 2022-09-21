@@ -103,6 +103,7 @@ Remotes.bindEvents({
                 end
             end)
 
+            local interaction
             for _, seat in model.Seats:GetChildren() do
                 if seat.Name == "Driver" then
                     interaction = Interactionutil.createInteraction(seat, { ObjectText = "DriverSeat", ActionText = "Drive" })
