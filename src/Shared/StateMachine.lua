@@ -230,42 +230,42 @@ end
 --[[
     Pushes a state onto the stack. In other words, puts a state at the top of this state machine.
 ]]
-function StateMachine:Push(state: string, data: table)
+function StateMachine:Push(state: string, data: table?)
     self:_RunOperation(OPERATION_PUSH, state, data)
 end
 
 --[[
     Replaces a state from the top of the stack.
 ]]
-function StateMachine:Replace(state: string, data: table)
+function StateMachine:Replace(state: string, data: table?)
     self:_RunOperation(OPERATION_REPLACE, state, data)
 end
 
 --[[
     Pops a state from the stack. In other words, removes the state at the top of this state machine.
 ]]
-function StateMachine:Pop(data: table)
+function StateMachine:Pop(data: table?)
     self:_RunOperation(OPERATION_POP, nil, data)
 end
 
 --[[
     Pops states from the stack until the given state is found.
 ]]
-function StateMachine:PopTo(state: string, data: table)
+function StateMachine:PopTo(state: string, data: table?)
     self:_RunOperation(OPERATION_POP_TO, state, data)
 end
 
 --[[
     Similar to PopTo, but the state is pushed in case it's not present in the stack.
 ]]
-function StateMachine:PopToAndPush(state: string, data: table)
+function StateMachine:PopToAndPush(state: string, data: table?)
     self:_RunOperation(OPERATION_POP_TO_AND_PUSH, state, data)
 end
 
 --[[
     Pops all states and pushes / replaces the last one.
 ]]
-function StateMachine:ClearAndPush(state: string, data: table)
+function StateMachine:ClearAndPush(state: string, data: table?)
     self:_RunOperation(OPERATION_CLEAR_AND_PUSH, state, data)
 end
 
@@ -285,9 +285,6 @@ function StateMachine:IsStateValid(state: string): boolean
         return false
     end
 
-    -- To upper case
-    state = state:upper()
-
     -- Check registered states
     for _, registeredState in pairs(self.registeredStates) do
         if registeredState == state then
@@ -304,6 +301,15 @@ end
 ]]
 function StateMachine:GetState(): string
     return self.stateStack[#self.stateStack]
+end
+
+--[[
+    Pops the state machine if the passed state is on the top of the stack
+]]
+function StateMachine:PopIfStateOnTop(state: string, data: table?)
+    if self:GetState() == state then
+        self:Pop(data)
+    end
 end
 
 --[[
@@ -343,7 +349,7 @@ end
 --[[
     Adds a callback function that's called every time this machine changes its state.
 ]]
-function StateMachine:RegisterGlobalCallback(callback: (fromState: string, toState: string, data: table) -> ()): RBXScriptConnection
+function StateMachine:RegisterGlobalCallback(callback: (fromState: string, toState: string, data: table?) -> ()): RBXScriptConnection
     return self.eventGlobal.Event:Connect(callback)
 end
 
@@ -353,8 +359,8 @@ end
 ]]
 function StateMachine:RegisterStateCallbacks(
     state: string,
-    enterCallback: (data: table) -> (),
-    exitCallback: (data: table) -> (),
+    enterCallback: (data: table?) -> (),
+    exitCallback: (data: table?) -> (),
     callNow: boolean | nil,
     callNowData: table | nil
 ): RBXScriptConnection

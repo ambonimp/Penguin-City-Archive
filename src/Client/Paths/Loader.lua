@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(script.Parent)
 local Ui = Paths.UI
-local Transitions = require(script.Parent.UI.SpecialEffects.Transitions)
 
 type Task = {
     Scope: string,
@@ -33,7 +32,7 @@ local function close()
 
     playing = false
 
-    Transitions.blink(function()
+    Paths.Modules.TransitionFX.blink(function()
         humanoidRootPart.Anchored = false
         screen:Destroy()
     end)

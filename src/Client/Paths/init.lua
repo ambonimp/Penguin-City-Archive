@@ -30,6 +30,8 @@ if false then
     Paths.Modules["Remotes"] = require(Shared.Remotes)
     Paths.Modules["Signal"] = require(Shared.Signal)
     Paths.Modules["Spring"] = require(Shared.Spring)
+    Paths.Modules["StateMachine"] = require(Shared.StateMachine)
+    Paths.Modules["Limiter"] = require(Shared.Limiter)
 
     -- Utils
     Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -41,6 +43,10 @@ if false then
     -- Interface
     Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
     Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
+
+    -- UI
+    Paths.Modules["UIConstants"] = require(script.UI.UIConstants)
+    Paths.Modules["UIController"] = require(script.UI.UIController)
 
     --
     Paths.Modules["PlayerData"] = require(script.PlayerData)
@@ -68,6 +74,8 @@ function Paths.initialize()
         Paths.Modules["Remotes"] = require(Shared.Remotes)
         Paths.Modules["Signal"] = require(Shared.Signal)
         Paths.Modules["Spring"] = require(Shared.Spring)
+        Paths.Modules["StateMachine"] = require(Shared.StateMachine)
+        Paths.Modules["Limiter"] = require(Shared.Limiter)
 
         -- Utils
         Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -76,9 +84,11 @@ function Paths.initialize()
         Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
         Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
 
-        -- Interface
-        Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
-        Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
+        -- UI
+        Paths.Modules["UIConstants"] = require(Ui.UIConstants)
+        Paths.Modules["UIController"] = require(Ui.UIController)
+        Paths.Modules["TransitionFX"] = require(Ui.Screens.SpecialEffects.Transitions)
+        Paths.Modules["VehicleUI"] = require(Ui.Screens.Vehicles.VehiclesUI)
 
         --
         Paths.Modules["PlayerData"] = require(script.PlayerData)
