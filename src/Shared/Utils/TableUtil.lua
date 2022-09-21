@@ -1,27 +1,27 @@
 local TableUtil = {}
 
-function TableUtil.clone(t)
+function TableUtil.clone(tbl)
     local clone = {}
 
-    for i, v in pairs(t) do
+    for i, v in pairs(tbl) do
         clone[i] = typeof(v) == "table" and TableUtil.clone(v) or v
     end
 
     return clone
 end
 
-function TableUtil.merge(t1, t2)
-    for i, v in pairs(t2) do
-        t1[i] = v
+function TableUtil.merge(tbl1: table, tbl2: table)
+    for i, v in pairs(tbl2) do
+        tbl1[i] = v
     end
 
-    return t1
+    return tbl1
 end
 
 -- table.length doesn't work for dictionaries, this does
-function TableUtil.length(t)
+function TableUtil.length(tbl: table)
     local length = 0
-    for _, _ in pairs(t) do
+    for _, _ in pairs(tbl) do
         length += 1
     end
 
@@ -29,11 +29,11 @@ function TableUtil.length(t)
 end
 
 -- Returns a random value in a table
-function TableUtil.getRandom(t)
-    local selection = math.random(1, TableUtil.length(t))
+function TableUtil.getRandom(tbl: table)
+    local selection = math.random(1, TableUtil.length(tbl))
     local index = 1
 
-    for k, v in pairs(t) do
+    for k, v in pairs(tbl) do
         if index == selection then
             return v, k
         else
@@ -43,10 +43,10 @@ function TableUtil.getRandom(t)
 end
 
 -- Returns an array of dictionary keys
-function TableUtil.getKeys(t)
+function TableUtil.getKeys(tbl: table)
     local returning = {}
 
-    for k, _ in pairs(t) do
+    for k, _ in pairs(tbl) do
         table.insert(returning, k)
     end
 
@@ -54,10 +54,10 @@ function TableUtil.getKeys(t)
 end
 
 -- Returns an array of dictionary values
-function TableUtil.getValues(t, k)
+function TableUtil.getValues(tbl: table, k: any)
     local returning = {}
 
-    for i, v in pairs(t) do
+    for i, v in pairs(tbl) do
         returning[i] = v[k]
     end
 
@@ -65,10 +65,10 @@ function TableUtil.getValues(t, k)
 end
 
 -- Fips key, value pairs. Keys become values and values become keys
-function TableUtil.valuesToKeys(t, key)
+function TableUtil.valuesToKeys(tbl: table, key: any)
     local returning = {}
 
-    for _, v in ipairs(t) do
+    for _, v in ipairs(tbl) do
         if key then
             returning[v[key]] = v
         else
@@ -80,8 +80,8 @@ function TableUtil.valuesToKeys(t, key)
 end
 
 -- table.find doesn't work for dictionaries
-function TableUtil.find(t, needle)
-    for k, value in pairs(t) do
+function TableUtil.find(tbl: table, needle: any)
+    for k, value in pairs(tbl) do
         if needle == value then
             return k
         end
@@ -90,10 +90,10 @@ function TableUtil.find(t, needle)
     return nil
 end
 
--- Counts how many instances of a value (needle) appears in an table
-function TableUtil.tally(t, needle)
+-- Counts how many instances of a value (needle: any) appears in an table
+function TableUtil.tally(tbl: table, needle: any)
     local count = 0
-    for _, value in pairs(t) do
+    for _, value in pairs(tbl) do
         if needle == value then
             count += 1
         end
@@ -101,11 +101,11 @@ function TableUtil.tally(t, needle)
     return count
 end
 
--- Returns an array of keys belonging to each instance of a value(needle) that appears appears in a table
-function TableUtil.findAll(t, needle)
+-- Returns an array of keys belonging to each instance of a value(needle: any) that appears appears in a table
+function TableUtil.findAll(tbl: table, needle: any)
     local returning = {}
 
-    for k, value in pairs(t) do
+    for k, value in pairs(tbl) do
         if needle == value then
             table.insert(returning, k)
         end
@@ -114,22 +114,30 @@ function TableUtil.findAll(t, needle)
     return returning
 end
 
-function TableUtil.findFromProperty(t, property, identifier)
-    for i, v in pairs(t) do
+function TableUtil.findFromProperty(tbl: table, property: string, identifier: any)
+    for i, v in pairs(tbl) do
         if v[property] == identifier then
             return i
         end
     end
 end
 
-function TableUtil.toArray(t)
+function TableUtil.toArray(tbl: table)
     local returning = {}
 
-    for _, v in pairs(t) do
+    for _, v in pairs(tbl) do
         table.insert(returning, v)
     end
 
     return returning
+end
+
+function TableUtil.isEmpty(tbl: table)
+    for _, _ in pairs(tbl) do
+        return false
+    end
+
+    return true
 end
 
 return TableUtil
