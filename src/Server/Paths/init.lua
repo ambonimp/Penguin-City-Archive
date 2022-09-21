@@ -23,6 +23,8 @@ if false then
     -- Shared
     Paths.Modules["Remotes"] = require(Shared.Remotes)
     Paths.Modules["Signal"] = require(Shared.Signal)
+    Paths.Modules["StateMachine"] = require(Shared.StateMachine)
+    Paths.Modules["Limiter"] = require(Shared.Limiter)
 
     -- Utils
     Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -54,6 +56,8 @@ function Paths.initialize()
         -- Shared
         Paths.Modules["Remotes"] = require(Shared.Remotes)
         Paths.Modules["Signal"] = require(Shared.Signal)
+        Paths.Modules["StateMachine"] = require(Shared.StateMachine)
+        Paths.Modules["Limiter"] = require(Shared.Limiter)
 
         -- Utils
         Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
