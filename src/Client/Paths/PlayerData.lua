@@ -8,8 +8,6 @@ local Promise = modules.Promise
 local Remotes = modules.Remotes
 local DataUtil = modules.DataUtil
 
-
-
 local bank = {}
 PlayerData.Updated = Signal.new()
 
@@ -23,7 +21,7 @@ local loader = Promise.new(function(resolve)
         DataInitialized = function(data)
             bank = data
             resolve()
-        end
+        end,
     })
 end)
 
@@ -35,9 +33,7 @@ Remotes.bindEvents({
                 PlayerData.Updated:Fire(event, newValue)
             end
         end)
-
-    end
-
+    end,
 })
 
 -- No other PlayerData is initialized until data is received.

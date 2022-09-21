@@ -1,4 +1,3 @@
-
 local DataUtil = {}
 
 local TableUtil = require(script.Parent.TableUtil)

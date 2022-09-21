@@ -1,16 +1,12 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
-
-
 local Loader = {}
 
 local Paths = require(script.Parent)
 local modules = Paths.Modules
 local ui = Paths.UI
 local Transitions = require(script.Parent.UI.SpecialEffects.Transitions)
-
-
 
 local LENGTH = 8
 local FULL = 1.1 -- Gradient has 0.1 ease thing
@@ -29,8 +25,6 @@ local tween
 local playing = true
 local queue = {}
 
-
-
 local function close()
     repeat
         task.wait()
@@ -42,11 +36,10 @@ local function close()
         hrp.Anchored = false
         screen:Destroy()
     end)
-
 end
 
 function Loader.register(name, module)
-    table.insert(queue, {name, module})
+    table.insert(queue, { name, module })
 end
 
 function Loader.load()
@@ -68,9 +61,7 @@ function Loader.load()
             if playing then
                 close()
             end
-
         end)
-
     end)
 
     for i, loading in ipairs(queue) do
@@ -83,8 +74,8 @@ function Loader.load()
             end
 
             local progress = (loaded / count) * FULL - 0.1
-            local speed = ((progress - gradient.Offset.X) / FULL) * ((LENGTH/count)/(1/count)) -- Contant speed
-            tween = TweenService:Create(gradient, TweenInfo.new(speed, Enum.EasingStyle.Linear), {Offset = Vector2.new(progress, 0)})
+            local speed = ((progress - gradient.Offset.X) / FULL) * ((LENGTH / count) / (1 / count)) -- Contant speed
+            tween = TweenService:Create(gradient, TweenInfo.new(speed, Enum.EasingStyle.Linear), { Offset = Vector2.new(progress, 0) })
 
             tween.Completed:Connect(function()
                 if i == count and playing then
@@ -95,17 +86,11 @@ function Loader.load()
                 end
 
                 tween = nil
-
             end)
 
             tween:Play()
-
         end
-
     end
-
-
 end
-
 
 return Loader

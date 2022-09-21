@@ -10,15 +10,14 @@ function InteractionUtil.createInteraction(interactable, props)
     proximityPrompt.RequiresLineOfSight = false
 
     for prop, value in props do
-        proximityPrompt[prop] = value 
+        proximityPrompt[prop] = value
     end
-    
+
     proximityPrompt.Parent = interactable
     return proximityPrompt
 end
 
 if RunService:IsClient() then
-
     -- Disbales proximity prompt
     -- Keeps track of requests so that there is no conflicts between scripts when re-enabling
     local disableRequests = {}
@@ -33,12 +32,8 @@ if RunService:IsClient() then
                 table.insert(disableRequests, request)
                 ProximityPromptService.Enabled = false
             end
-
         end
-
     end
-
-
 end
 
 return InteractionUtil

@@ -17,7 +17,6 @@ eventHandler.Event:Connect(function(event, player, payload)
     if not success then
         warn(message)
     end
-
 end)
 
 return AnalyticsTracking

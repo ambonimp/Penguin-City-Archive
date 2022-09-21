@@ -16,9 +16,6 @@ local VehicleUtil = modules.VehicleUtil
 
 local Vehicles = {}
 
-
-
-
 local camera = workspace.CurrentCamera
 
 local player = Players.LocalPlayer
@@ -27,7 +24,6 @@ local controls = require(player.PlayerScripts:WaitForChild("PlayerModule")):GetC
 local char
 
 local togglePPConn -- Proxmity prompts
-
 
 local function normalizeAngle(x)
     return x % (2 * math.pi)
@@ -38,7 +34,6 @@ local function minRot(x)
     local x2 = x - (2 * math.pi)
     return if math.abs(x) < math.abs(x2) then x else x2
 end
-
 
 local function drive(model)
     if char then
@@ -57,18 +52,16 @@ local function drive(model)
             local deltaYaw = 0
             if VehicleUtil.getThrottle() ~= 0 then
                 _, y, _ = camera.CFrame:ToEulerAnglesYXZ()
-                local goalDir = y + math.atan2(-move.Z, move.X) - math.pi/2
+                local goalDir = y + math.atan2(-move.Z, move.X) - math.pi / 2
 
                 deltaYaw = minRot(goalDir - yaw)
                 yaw = yaw + deltaYaw * dt * 1.8
-
             end
 
             VehicleUtil.updateLook(dt, yaw, deltaYaw)
 
             VehicleUtil.applyFloatForce(dt)
             VehicleUtil.applyMoveFoce(dt)
-
         end))
 
         Vehicles.DrivingSession:GiveTask(function()
@@ -78,15 +71,9 @@ local function drive(model)
             if char.Humanoid.SeatPart then
                 Remotes.fireServer("UnmountFromVehicle")
             end
-
         end)
-
     end
-
 end
-
-
-
 
 Vehicles.DrivingSession = Maid.new()
 
@@ -99,14 +86,12 @@ function Vehicles.loadCharacter(character)
         local seatPart = hum.SeatPart
         if seatPart then
             if CollectionService:HasTag(hum.SeatPart.Parent.Parent, "Vehicle") then
-                InteractionUtil.toggleVisible(script.Name, seatPart == nil )
+                InteractionUtil.toggleVisible(script.Name, seatPart == nil)
             end
         else
             InteractionUtil.toggleVisible(script.Name, true)
         end
-
     end)
-
 end
 
 function Vehicles.unloadCharacter()
@@ -116,10 +101,7 @@ function Vehicles.unloadCharacter()
     ProximityPromptService.Enabled = false
 
     InteractionUtil.toggleVisible(script.Name, true)
-
 end
-
-
 
 Remotes.bindEvents({
     OnVehicleSpawned = function(owner, vehicle)
@@ -141,16 +123,11 @@ Remotes.bindEvents({
                 else
                     Vehicles.DrivingSession:Destroy()
                 end
-
             end)
-
         else
             driverSeat:FindFirstChildOfClass("ProximityPrompt"):Destroy()
-
         end
-
-    end
-
+    end,
 })
 
 return Vehicles

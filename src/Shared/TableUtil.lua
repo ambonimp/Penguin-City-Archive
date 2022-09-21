@@ -22,7 +22,7 @@ end
 function TableUtil.length(t)
     local length = 0
     for _, _ in pairs(t) do
-        length+= 1;
+        length += 1
     end
 
     return length
@@ -39,9 +39,7 @@ function TableUtil.getRandom(t)
         else
             index += 1
         end
-
     end
-
 end
 
 -- Returns an array of dictionary keys
