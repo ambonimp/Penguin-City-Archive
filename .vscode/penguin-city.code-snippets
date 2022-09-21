@@ -1,0 +1,9 @@
+{
+	"Nothing": {
+		"prefix":[ "nothing", "nthng"],
+		"description": "Nothing",
+		"body": [
+            "",
+		]
+	},
+}
