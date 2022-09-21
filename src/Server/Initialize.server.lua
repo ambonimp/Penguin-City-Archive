@@ -1,1 +1,1 @@
-require(script.Parent.Paths).initialize()
+require(script.Parent.Paths)
