@@ -16,7 +16,7 @@ type FunctionHandler = {
 type EventCallback = (any) -> (nil)
 type EventHandler = {
     Remote: RemoteEvent,
-    registerCallback: (callback: EventCallback, dontCascade: boolean?) -> (() -> ()),
+    registerCallback: (callback: EventCallback, dontCascade: boolean?) -> (() -> nil),
 }
 
 local IS_STUDIO = RunService:IsStudio()
