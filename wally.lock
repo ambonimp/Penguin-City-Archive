@@ -3,6 +3,11 @@
 registry = "test"
 
 [[package]]
+name = "evaera/cmdr"
+version = "1.9.0"
+dependencies = []
+
+[[package]]
 name = "evaera/promise"
 version = "4.0.0"
 dependencies = []
@@ -15,4 +20,4 @@ dependencies = []
 [[package]]
 name = "voldex/penguincity"
 version = "0.1.0"
-dependencies = [["maid", "flamenco687/maid@3.2.2"], ["promise", "evaera/promise@4.0.0"]]
+dependencies = [["cmdr", "evaera/cmdr@1.9.0"], ["maid", "flamenco687/maid@3.2.2"], ["promise", "evaera/promise@4.0.0"]]
