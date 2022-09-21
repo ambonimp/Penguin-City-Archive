@@ -1,29 +1,31 @@
 local Players = game:GetService("Players")
-
 local Paths = require(script.Parent)
-local modules = Paths.Modules
+local Modules = Paths.Modules
+local Vehicles = Modules.Vehicles
 
-local player = Players.LocalPlayer
+local localPlayer = Players.LocalPlayer
 
 local function unloadCharacter()
-    modules.Vehicles.unloadCharacter()
+    Vehicles.unloadCharacter()
 end
 
-local function loadCharacter(char)
-    if char then
+local function loadCharacter(character: Model)
+    if character then
         task.defer(function() -- Everything inside the character should be loaded
-            modules.Vehicles.loadCharacter(char)
+            Vehicles.loadCharacter(character)
         end)
 
         local conn
-        conn = char.Humanoid.Died:Connect(function()
+        conn = character.Humanoid.Died:Connect(function()
             conn:Disconnect()
             unloadCharacter()
         end)
     end
 end
 
-loadCharacter(player.Character)
-player.CharacterAdded:Connect(loadCharacter)
+Paths.Modules.Loader.giveTask("Character", "LoadCharacter", function()
+    loadCharacter(localPlayer.Character)
+end)
+localPlayer.CharacterAdded:Connect(loadCharacter)
 
 return {}
