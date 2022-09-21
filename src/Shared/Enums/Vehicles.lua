@@ -5,7 +5,7 @@ enums.Hoverboard = {
     MaxSpeed = 60,
     Acceleration = 8,
     MaxForce = 500,
-    InclineHeight = 2
+    InclineHeight = 2,
 }
 
 return enums

@@ -16,16 +16,16 @@ function Spring.new(pos, mass, force, damping, speed)
     self.Position = pos
     self.Velocity = Vector3.new()
 
-    self.Mass = mass or 1;
-    self.Force = force or 50;
-    self.Damping = damping or 2;
-    self.Speed = speed or 1;
+    self.Mass = mass or 1
+    self.Force = force or 50
+    self.Damping = damping or 2
+    self.Speed = speed or 1
 
     return self
 end
 
 function Spring:Shove(force)
-    local x, y, z    = force.X, force.Y, force.Z
+    local x, y, z = force.X, force.Y, force.Z
     if x ~= x or x == math.huge or x == -math.huge then
         x = 0
     end
@@ -51,7 +51,6 @@ function Spring:Update(target, dt)
     self.Position = self.Position + self.Velocity * scaledDeltaTime
 
     return self.Position
-
 end
 
 return Spring

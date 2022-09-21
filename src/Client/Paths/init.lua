@@ -6,11 +6,9 @@ Paths.UI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
 Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
-
 local shared = ReplicatedStorage.Modules
 local enums = shared.Enums
 local ui = script.UI
-
 
 function Paths.initialize()
     local ModuleLoader = require(script.ModuleLoader)
@@ -43,7 +41,6 @@ function Paths.initialize()
 
     ModuleLoader.load()
     Paths.Initialized = true
-
 end
 
 return Paths

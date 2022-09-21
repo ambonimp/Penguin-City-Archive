@@ -4,7 +4,6 @@ local VehicleUtil = {}
 
 local VehicleEnums = require(script.Parent.Enums.Vehicles)
 
-
 -- Float Spring
 local FLOAT_STRENGTH = 350
 local FLOAT_DAMPING = 2500
@@ -19,18 +18,13 @@ local PLATFORM_CORNERS = {
     Vector3.new(0.5, 0, 0.5),
     Vector3.new(0.5, 0, -0.5),
     Vector3.new(-0.5, 0, 0.5),
-    Vector3.new(-0.5, 0, -0.5)
+    Vector3.new(-0.5, 0, -0.5),
 }
-
-
 
 local move
 
 local et, moveVel, rot, raycastParams, platform, platformSize
 local hoverHeight, accel, maxSpeed, maxForce
-
-
-
 
 local function nanLess(x)
     return if x == x then x else Vector3.new()
@@ -39,7 +33,7 @@ end
 -- 0 <= x <= 1. smaller x's are made amplified
 local function magnify(x)
     local b = -0.01
-    return math.sign(x) * (1/math.log((b-1)/b) * math.log((b-math.abs(x))/b))
+    return math.sign(x) * (1 / math.log((b - 1) / b) * math.log((b - math.abs(x)) / b))
 end
 
 local function getSlope(axis, magnitude)
@@ -53,13 +47,7 @@ local function getSlope(axis, magnitude)
     if r1 and r2 then
         return r1.Position - r2.Position
     end
-
 end
-
-
-
-
-
 
 function VehicleUtil.new(player, model)
     et = 0
@@ -68,10 +56,10 @@ function VehicleUtil.new(player, model)
     platformSize = platform.Size / 2
 
     moveVel = Vector3.new()
-    rot = {X = CFrame.new(), Z = CFrame.new()}
+    rot = { X = CFrame.new(), Z = CFrame.new() }
 
     raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {player.Character, platform.Parent}
+    raycastParams.FilterDescendantsInstances = { player.Character, platform.Parent }
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
     local enums = VehicleEnums[platform.Parent.Name]
@@ -79,7 +67,6 @@ function VehicleUtil.new(player, model)
     maxSpeed = enums.MaxSpeed
     maxForce = enums.MaxForce
     hoverHeight = enums.HoverHeight
-
 end
 
 -- Mostly for garbage collection
@@ -89,9 +76,7 @@ function VehicleUtil.destroy()
     raycastParams = nil
 
     rot = nil
-
 end
-
 
 function VehicleUtil.updateMove(input)
     move = input
@@ -101,24 +86,26 @@ function VehicleUtil.getThrottle()
     return math.sign(move.Magnitude)
 end
 
-
 function VehicleUtil.applyFloatForce(dt)
     -- Only play slight bouncing animation when not moving
     if VehicleUtil.getThrottle() == 0 then
         et += dt
     end
 
-    local bouyancyOffset = math.sin(et/(math.rad(BUOYANCY_RATE)/math.pi)) * BUOYANCY_HEIGHT
+    local bouyancyOffset = math.sin(et / (math.rad(BUOYANCY_RATE) / math.pi)) * BUOYANCY_HEIGHT
 
     local cf = platform.CFrame
     local tallestSurface = -math.huge
     for _, corner in PLATFORM_CORNERS do
-        tallestSurface = math.max(tallestSurface, Workspace:Raycast(cf:PointToWorldSpace(platformSize * corner), Vector3.new(0, -100, 0), raycastParams).Position.Y)
+        tallestSurface = math.max(
+            tallestSurface,
+            Workspace:Raycast(cf:PointToWorldSpace(platformSize * corner), Vector3.new(0, -100, 0), raycastParams).Position.Y
+        )
     end
 
     local offset = math.max(-2.8, (tallestSurface + hoverHeight + bouyancyOffset) - cf.Position.Y)
-    platform.Float.Force = Vector3.new(0, (offset * FLOAT_STRENGTH) - (platform.AssemblyLinearVelocity.Y * dt * FLOAT_DAMPING), 0) * platform.AssemblyMass
-
+    platform.Float.Force = Vector3.new(0, (offset * FLOAT_STRENGTH) - (platform.AssemblyLinearVelocity.Y * dt * FLOAT_DAMPING), 0)
+        * platform.AssemblyMass
 end
 
 function VehicleUtil.applyMoveFoce(dt)
@@ -130,24 +117,22 @@ function VehicleUtil.applyMoveFoce(dt)
     dA = nanLess(dA.Unit * math.min(dA.Magnitude, maxForce))
 
     platform.Move.Force = dA * platform.AssemblyMass
-
 end
 
 function VehicleUtil.updateLook(dt, yaw, delyaYaw)
     -- Roll
-    rot.Z = rot.Z:Lerp(CFrame.fromEulerAnglesYXZ(0, 0, magnify(delyaYaw/math.pi) * math.rad(35)), dt * 2)
+    rot.Z = rot.Z:Lerp(CFrame.fromEulerAnglesYXZ(0, 0, magnify(delyaYaw / math.pi) * math.rad(35)), dt * 2)
 
     -- Pitch
     local slope = getSlope(Vector3.new(0, 0, 1), 15)
     if slope then
-        local thetha = math.atan(math.max(slope.Y, -2)/-slope.Z)
+        local thetha = math.atan(math.max(slope.Y, -2) / -slope.Z)
         thetha = math.sign(thetha) * (if math.abs(thetha) < math.rad(hoverHeight * 4) then 0 else thetha)
 
         rot.X = rot.X:Lerp(CFrame.fromEulerAnglesXYZ(thetha, 0, 0), dt * (if thetha == 0 then 1 else 3.5))
     end
 
     platform.Look.CFrame = rot.X * CFrame.fromEulerAnglesYXZ(0, yaw, 0) * rot.Z
-
 end
 
 return VehicleUtil

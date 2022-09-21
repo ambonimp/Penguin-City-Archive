@@ -12,12 +12,9 @@ local VehicleEnums = modules.VehicleEnums
 local Interactionutil = modules.InteractionUtil
 local VehicleUtil = modules.VehicleUtil
 
-
 local Vehicles = {}
 
-
 local spawnedVehicles = {}
-
 
 local function attachment(platform)
     local att = Instance.new("Attachment")
@@ -42,7 +39,7 @@ local function alignOrientation(platform, name)
     local actuator = Instance.new("AlignOrientation")
     actuator.Name = name
     actuator.Mode = Enum.OrientationAlignmentMode.OneAttachment
-    actuator.Attachment0 =  platform:FindFirstChildOfClass("Attachment")
+    actuator.Attachment0 = platform:FindFirstChildOfClass("Attachment")
     actuator.RigidityEnabled = true
     actuator.Parent = platform
 
@@ -55,7 +52,6 @@ local function setNetworkOwner(model, owner)
             basePart:SetNetworkOwner(owner)
         end
     end
-
 end
 
 Remotes.bindEvents({
@@ -65,7 +61,6 @@ Remotes.bindEvents({
         seat.Disabled = true
         task.wait()
         seat.Disabled = false
-
     end,
 
     OnVehicleSpawned = function(client, vehicle)
@@ -89,19 +84,16 @@ Remotes.bindEvents({
             vectorForce(platform, "Move")
             vectorForce(platform, "Float")
 
-
-
             local simulating, simulation, yaw
             simulation = RunService.Heartbeat:Connect(function(dt)
                 local currentVehicle = spawnedVehicles[client]
-                if  currentVehicle == model then
+                if currentVehicle == model then
                     if simulating then
                         VehicleUtil.updateLook(dt, yaw, 0)
 
                         VehicleUtil.applyFloatForce(dt)
                         VehicleUtil.applyMoveFoce(dt)
                     end
-
                 else
                     if not currentVehicle then
                         VehicleUtil.destroy()
@@ -109,12 +101,11 @@ Remotes.bindEvents({
 
                     simulation:Disconnect()
                 end
-
             end)
 
             for _, seat in model.Seats:GetChildren() do
                 if seat.Name == "Driver" then
-                    interaction = Interactionutil.createInteraction(seat, {ObjectText = "DriverSeat", ActionText = "Drive"})
+                    interaction = Interactionutil.createInteraction(seat, { ObjectText = "DriverSeat", ActionText = "Drive" })
 
                     local char = client.Character
                     local hum = char.Humanoid
@@ -130,7 +121,6 @@ Remotes.bindEvents({
                                 setNetworkOwner(model, client)
                                 simulating = false
                             end
-
                         else
                             setNetworkOwner(model)
 
@@ -140,9 +130,7 @@ Remotes.bindEvents({
                             _, yaw, _ = platform.CFrame:ToEulerAnglesYXZ()
 
                             simulating = true
-
                         end
-
                     end)
 
                     -- Vehicle spawns at character
@@ -152,9 +140,8 @@ Remotes.bindEvents({
 
                     seat:Sit(hum)
                     Remotes.fireAllClients("OnVehicleSpawned", client, model)
-
                 else
-                    interaction = Interactionutil.createInteraction(seat, {ObjectText = "PassengerSeat", ActionText = "Enter"})
+                    interaction = Interactionutil.createInteraction(seat, { ObjectText = "PassengerSeat", ActionText = "Enter" })
                 end
 
                 seat.CanCollide = false
@@ -165,15 +152,10 @@ Remotes.bindEvents({
                     if not seat.Occupant then
                         seat:Sit(player.Character.Humanoid)
                     end
-
                 end)
-
             end
-
         end
-
-    end
-
+    end,
 })
 
 return Vehicles

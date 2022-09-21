@@ -3,9 +3,6 @@ local Players = game:GetService("Players")
 local Paths = require(script.Parent)
 local modules = Paths.Modules
 
-
-
-
 local player = Players.LocalPlayer
 
 local function unloadCharacter()
@@ -24,7 +21,6 @@ local function loadCharacter(char)
             unloadCharacter()
         end)
     end
-
 end
 
 loadCharacter(player.Character)

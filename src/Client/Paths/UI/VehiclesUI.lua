@@ -8,7 +8,6 @@ local modules = Paths.Modules
 local Remotes = modules.Remotes
 local VehicleEnums = modules.VehicleEnums
 
-
 local VehiclesUI = {}
 
 local screenGui = ui.Vehicles
@@ -22,7 +21,6 @@ function VehiclesUI.openMenu()
     -- TODO: Screengui opener
     screenGui.Enabled = true
     menu.Visible = true
-
 end
 
 function VehiclesUI.openDashboard()
@@ -31,7 +29,6 @@ function VehiclesUI.openDashboard()
         dashboard.Visible = false
     end)
 end
-
 
 -- Load list
 local spawnDb
@@ -49,11 +46,8 @@ for vehicle in VehicleEnums do
 
             task.wait(0.2)
             spawnDb = false
-
         end
-
     end)
-
 end
 
 -- Menu
@@ -69,11 +63,9 @@ UserInputService.InputBegan:Connect(function(input)
     end
 end)
 
-
 -- Dashboard
 dismountBtn.MouseButton1Down:Connect(function()
     modules.Vehicles.DrivingSession:Destroy()
 end)
-
 
 return VehiclesUI

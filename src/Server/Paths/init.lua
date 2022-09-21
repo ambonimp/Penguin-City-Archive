@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-
 local Paths = {}
 Paths.Modules = {}
 Paths.Initialized = false
@@ -25,13 +24,11 @@ function Paths.initialize()
     Paths.Modules["InteractionUtil"] = require(shared.InteractionUtil)
     Paths.Modules["VehicleUtil"] = require(shared.VehicleUtil)
 
-
     --
     Paths.Modules["PlayerData"] = require(script.PlayerData)
     Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
     Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
     Paths.Modules["Vehicles"] = require(script.Vehicles)
-
 
     Paths.Initialized = true
 end

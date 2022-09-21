@@ -14,16 +14,14 @@ end
 
 Connection.Destroy = Connection.Disconnect
 
-
-
 -- Signal
 local Signal = {}
 Signal.__index = Signal
 
 function Signal.new()
     return setmetatable({
-        Connections = {};
-        Yields = {};
+        Connections = {},
+        Yields = {},
     }, Signal)
 end
 
@@ -40,19 +38,17 @@ function Signal:Fire(...)
     end
 
     self.Yields = {}
-
 end
 
 function Signal:Connect(handler)
     local connection = setmetatable({
-        Handler = handler;
-        _Self = self;
+        Handler = handler,
+        _Self = self,
     }, Connection)
 
     table.insert(self.Connections, connection)
     return connection
 end
-
 
 function Signal:Wait()
     table.insert(self.Yields, coroutine.running())

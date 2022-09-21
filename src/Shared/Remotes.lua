@@ -6,7 +6,6 @@ local Remotes = {}
 
 local Promise = require(script.Parent.Promise)
 
-
 local eventHandlers = {}
 local functionHandlers = {}
 
@@ -34,26 +33,25 @@ local function waitForChild(parent, awaiting)
                 return true
             end
             return false
-        end)
-        :await()
+        end):await()
     end
 
     return returning
 end
 
-
 local function getFunctionHandler(name)
     assert(typeof(name) == "string", "Remote name is not a string -> " .. name)
 
     local handler = functionHandlers[name]
-    if handler then return handler end
+    if handler then
+        return handler
+    end
 
     handler = {}
     handler.Remote = isServer and instance("RemoteFunction", tostring(name), functionFolder) or waitForChild(functionFolder, name)
     if isStudio and not isServer then -- anti hack
         handler.Remote.Name = "NO WAY JOSE"
     end
-
 
     local set = false
     function handler.registerCallback(callback)
@@ -63,20 +61,19 @@ local function getFunctionHandler(name)
 
         set = true
         handler.Remote[isServer and "OnServerInvoke" or "OnClientInvoke"] = callback
-
     end
-
 
     functionHandlers[name] = handler
     return handler
-
 end
 
 local function getEventHandler(name)
     assert(typeof(name) == "string", "Remote name is not a string -> " .. name)
 
     local handler = eventHandlers[name]
-    if handler then return handler end
+    if handler then
+        return handler
+    end
 
     handler = {}
     handler.Remote = isServer and instance("RemoteEvent", name, eventFolder) or waitForChild(eventFolder, name)
@@ -100,7 +97,6 @@ local function getEventHandler(name)
         return function()
             table.remove(callbacks, i)
         end
-
     end
 
     handler.Remote[isServer and "OnServerEvent" or "OnClientEvent"]:Connect(function(...)
@@ -112,7 +108,6 @@ local function getEventHandler(name)
 
     eventHandlers[name] = handler
     return handler
-
 end
 
 -- Bindings, pass a dictionary of remotes to create / connect to
@@ -124,10 +119,8 @@ function Remotes.bindFunctions(callbacks)
         task.spawn(function()
             local handler = getFunctionHandler(name)
             handler.registerCallback(callback)
-
         end)
     end
-
 end
 
 function Remotes.bindEvents(callbacks)
@@ -139,9 +132,7 @@ function Remotes.bindEvents(callbacks)
             local handler = getEventHandler(name)
             handler.registerCallback(callback)
         end)
-
     end
-
 end
 
 function Remotes.bindEventTemp(name, callback) -- SYNCROHOUNOUS
@@ -153,16 +144,12 @@ function Remotes.bindEventTemp(name, callback) -- SYNCROHOUNOUS
     returning.Destroy = disconnect
 
     return returning
-
 end
-
-
 
 if isServer then
     communication = instance("Folder", "Communication", ReplicatedStorage)
     functionFolder = instance("Folder", "Functions", communication)
     eventFolder = instance("Folder", "Events", communication)
-
 
     function Remotes.invokeClient(client, name, ...)
         assert(client.Parent == Players, "Can't fire to non-existent player " .. client.Name)
@@ -192,9 +179,7 @@ if isServer then
             local handler = getEventHandler(name)
             local remote = assert(handler.Remote, name)
             remote:FireClient(client, ...)
-
         end, ...)
-
     end
 
     function Remotes.fireClients(clients, ...)
@@ -214,12 +199,10 @@ if isServer then
             end
         end
     end
-
 else
     communication = ReplicatedStorage:WaitForChild("Communication")
     functionFolder = communication:WaitForChild("Functions")
     eventFolder = communication:WaitForChild("Events")
-
 
     function Remotes.fireServer(name, ...)
         task.spawn(function(...)
@@ -236,7 +219,6 @@ else
 
         return remote:InvokeServer(...)
     end
-
 end
 
 return Remotes
