@@ -1,39 +1,39 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-
 local Paths = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage.Modules
+local Packages = ReplicatedStorage.Packages
+local Enums = Shared.Enums
+
 Paths.Modules = {}
 Paths.Initialized = false
 
-local shared = ReplicatedStorage.Modules
-local enums = shared.Enums
-
 function Paths.initialize()
-    -- Enums
-    Paths.Modules["GameEnums"] = require(enums.Game)
-    Paths.Modules["VehicleEnums"] = require(enums.Vehicles)
+	-- Enums
+	Paths.Modules["GameEnums"] = require(Enums.Game)
+	Paths.Modules["VehicleEnums"] = require(Enums.Vehicles)
 
-    -- Shared
-    Paths.Modules["Promise"] = require(shared.Promise)
-    Paths.Modules["Remotes"] = require(shared.Remotes)
-    Paths.Modules["Signal"] = require(shared.Signal)
-    Paths.Modules["Maid"] = require(shared.Maid)
+	-- Packages
+	Paths.Modules["Promise"] = require(Packages.promise)
+	Paths.Modules["Maid"] = require(Packages.maid)
 
-    -- Utils
-    Paths.Modules["TableUtil"] = require(shared.TableUtil)
-    Paths.Modules["DataUtil"] = require(shared.DataUtil)
-    Paths.Modules["InteractionUtil"] = require(shared.InteractionUtil)
-    Paths.Modules["VehicleUtil"] = require(shared.VehicleUtil)
+	-- Shared
+	Paths.Modules["Remotes"] = require(Shared.Remotes)
+	Paths.Modules["Signal"] = require(Shared.Signal)
 
+	-- Utils
+	Paths.Modules["TableUtil"] = require(Shared.TableUtil)
+	Paths.Modules["DataUtil"] = require(Shared.DataUtil)
+	Paths.Modules["InteractionUtil"] = require(Shared.InteractionUtil)
+	Paths.Modules["VehicleUtil"] = require(Shared.VehicleUtil)
 
-    --
-    Paths.Modules["PlayerData"] = require(script.PlayerData)
-    Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
-    Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
-    Paths.Modules["Vehicles"] = require(script.Vehicles)
+	--
+	Paths.Modules["PlayerData"] = require(script.PlayerData)
+	Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
+	Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
+	Paths.Modules["Vehicles"] = require(script.Vehicles)
 
-
-    Paths.Initialized = true
+	Paths.Initialized = true
 end
 
 return Paths

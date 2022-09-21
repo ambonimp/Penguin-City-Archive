@@ -1,0 +1,9 @@
+[package]
+name = "voldex/penguincity"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "dev"
+
+[dependencies]
+promise = "evaera/promise@4.0.0"
+maid = "flamenco687/maid@3.2.2"

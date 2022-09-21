@@ -1,49 +1,49 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local Paths = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage.Modules
+local Packages = ReplicatedStorage.Packages
+local Enums = Shared.Enums
+local Ui = script.UI
+
 Paths.Modules = {}
 Paths.UI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
 Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
-
-local shared = ReplicatedStorage.Modules
-local enums = shared.Enums
-local ui = script.UI
-
-
 function Paths.initialize()
-    local ModuleLoader = require(script.ModuleLoader)
+	local ModuleLoader = require(script.ModuleLoader)
 
-    -- Enums
-    ModuleLoader.register("GameEnums", enums.Game)
-    ModuleLoader.register("VehicleEnums", enums.Vehicles)
+	-- Enums
+	ModuleLoader.register("GameEnums", Enums.Game)
+	ModuleLoader.register("VehicleEnums", Enums.Vehicles)
 
-    -- Shared
-    ModuleLoader.register("Promise", shared.Promise)
-    ModuleLoader.register("Remotes", shared.Remotes)
-    ModuleLoader.register("Signal", shared.Signal)
-    ModuleLoader.register("Maid", shared.Maid)
-    ModuleLoader.register("Spring", shared.Spring)
+	-- Packages
+	ModuleLoader.register("Promise", Packages.promise)
+	ModuleLoader.register("Maid", Packages.maid)
 
-    -- Utils
-    ModuleLoader.register("TableUtil", shared.TableUtil)
-    ModuleLoader.register("DataUtil", shared.DataUtil)
-    ModuleLoader.register("InteractionUtil", shared.InteractionUtil)
-    ModuleLoader.register("VehicleUtil", shared.VehicleUtil)
+	-- Shared
+	ModuleLoader.register("Remotes", Shared.Remotes)
+	ModuleLoader.register("Signal", Shared.Signal)
+	ModuleLoader.register("Spring", Shared.Spring)
 
-    -- Interface
-    ModuleLoader.register("TransitionFX", ui.SpecialEffects.Transitions)
-    ModuleLoader.register("VehicleUI", ui.VehiclesUI)
+	-- Utils
+	ModuleLoader.register("TableUtil", Shared.TableUtil)
+	ModuleLoader.register("DataUtil", Shared.DataUtil)
+	ModuleLoader.register("InteractionUtil", Shared.InteractionUtil)
+	ModuleLoader.register("VehicleUtil", Shared.VehicleUtil)
 
-    --
-    ModuleLoader.register("PlayerData", script.PlayerData)
-    ModuleLoader.register("Character", script.Character)
-    ModuleLoader.register("Vehicles", script.Vehicles)
+	-- Interface
+	ModuleLoader.register("TransitionFX", Ui.SpecialEffects.Transitions)
+	ModuleLoader.register("VehicleUI", Ui.VehiclesUI)
 
-    ModuleLoader.load()
-    Paths.Initialized = true
+	--
+	ModuleLoader.register("PlayerData", script.PlayerData)
+	ModuleLoader.register("Character", script.Character)
+	ModuleLoader.register("Vehicles", script.Vehicles)
 
+	ModuleLoader.load()
+	Paths.Initialized = true
 end
 
 return Paths
