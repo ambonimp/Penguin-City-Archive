@@ -11,6 +11,43 @@ Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 Paths.Modules = {}
 
+-- Intellisense
+if false then
+    -- Loader
+    Paths.Modules["Loader"] = require(script.Loader)
+
+    -- Constants
+    Paths.Modules["GameConstants"] = require(Constants.GameConstants)
+    Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
+    Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
+
+    -- Packages
+    Paths.Modules["Promise"] = require(Packages.promise)
+    Paths.Modules["Maid"] = require(Packages.maid)
+    Paths.Modules["Cmdr"] = require(Packages.cmdr)
+
+    -- Shared
+    Paths.Modules["Remotes"] = require(Shared.Remotes)
+    Paths.Modules["Signal"] = require(Shared.Signal)
+    Paths.Modules["Spring"] = require(Shared.Spring)
+
+    -- Utils
+    Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
+    Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
+    Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
+    Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
+    Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
+
+    -- Interface
+    Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
+    Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
+
+    --
+    Paths.Modules["PlayerData"] = require(script.PlayerData)
+    Paths.Modules["Vehicles"] = require(script.Vehicles)
+    Paths.Modules["Character"] = require(script.Character)
+end
+
 function Paths.initialize()
     -- Init Modules
     local ping = tick()
@@ -37,6 +74,7 @@ function Paths.initialize()
         Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
         Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
         Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
+        Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
 
         -- Interface
         Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
@@ -46,6 +84,7 @@ function Paths.initialize()
         Paths.Modules["PlayerData"] = require(script.PlayerData)
         Paths.Modules["Vehicles"] = require(script.Vehicles)
         Paths.Modules["Character"] = require(script.Character)
+        Paths.Modules["CmdrController"] = require(script.Cmdr.CmdrController)
     end
 
     local pong = tick()
