@@ -22,10 +22,10 @@ function Paths.initialize()
     Paths.Modules["Signal"] = require(Shared.Signal)
 
     -- Utils
-    Paths.Modules["TableUtil"] = require(Shared.TableUtil)
-    Paths.Modules["DataUtil"] = require(Shared.DataUtil)
-    Paths.Modules["InteractionUtil"] = require(Shared.InteractionUtil)
-    Paths.Modules["VehicleUtil"] = require(Shared.VehicleUtil)
+    Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
+    Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
+    Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
+    Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
 
     --
     Paths.Modules["PlayerData"] = require(script.PlayerData)

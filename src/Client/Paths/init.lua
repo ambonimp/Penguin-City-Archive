@@ -28,10 +28,10 @@ function Paths.initialize()
     ModuleLoader.register("Spring", Shared.Spring)
 
     -- Utils
-    ModuleLoader.register("TableUtil", Shared.TableUtil)
-    ModuleLoader.register("DataUtil", Shared.DataUtil)
-    ModuleLoader.register("InteractionUtil", Shared.InteractionUtil)
-    ModuleLoader.register("VehicleUtil", Shared.VehicleUtil)
+    ModuleLoader.register("TableUtil", Shared.Utils.TableUtil)
+    ModuleLoader.register("DataUtil", Shared.Utils.DataUtil)
+    ModuleLoader.register("InteractionUtil", Shared.Utils.InteractionUtil)
+    ModuleLoader.register("VehicleUtil", Shared.Utils.VehicleUtil)
 
     -- Interface
     ModuleLoader.register("TransitionFX", Ui.SpecialEffects.Transitions)
