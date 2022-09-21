@@ -7,7 +7,7 @@ local Paths = require(script.Parent)
 
 local modules = Paths.Modules
 local Remotes = modules.Remotes
-local VehicleEnums = modules.VehicleEnums
+local VehicleConstants = modules.VehicleConstants
 local InteractionUtil = modules.InteractionUtil
 local Maid = modules.Maid
 

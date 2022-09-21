@@ -6,7 +6,7 @@ local templates = Paths.Templates.Vehicles
 
 local modules = Paths.Modules
 local Remotes = modules.Remotes
-local VehicleEnums = modules.VehicleEnums
+local VehicleConstants = modules.VehicleConstants
 
 local VehiclesUI = {}
 
@@ -32,7 +32,7 @@ end
 
 -- Load list
 local spawnDb
-for vehicle in VehicleEnums do
+for vehicle in VehicleConstants do
     local item = templates.ListItem:Clone()
     item.Name = vehicle
     item:FindFirstChild("Name").Text = vehicle

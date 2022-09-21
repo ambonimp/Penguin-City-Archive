@@ -2,7 +2,7 @@ local VehicleUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
-local VehicleEnums = require(ReplicatedStorage.Modules.Enums.Vehicles)
+local VehicleConstants = require(ReplicatedStorage.Modules.Enums.Vehicles)
 
 -- Float Spring
 local FLOAT_STRENGTH = 350
@@ -60,7 +60,7 @@ function VehicleUtil.new(player, model)
     raycastParams.FilterDescendantsInstances = { player.Character, platform.Parent }
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
-    local enums = VehicleEnums[platform.Parent.Name]
+    local enums = VehicleConstants[platform.Parent.Name]
     accel = enums.Acceleration
     maxSpeed = enums.MaxSpeed
     maxForce = enums.MaxForce

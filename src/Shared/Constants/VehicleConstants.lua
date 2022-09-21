@@ -1,6 +1,6 @@
-local enums = {}
+local VehicleConstants = {}
 
-enums.Hoverboard = {
+VehicleConstants.Hoverboard = {
     HoverHeight = 4,
     MaxSpeed = 60,
     Acceleration = 8,
@@ -8,4 +8,4 @@ enums.Hoverboard = {
     InclineHeight = 2,
 }
 
-return enums
+return VehicleConstants
