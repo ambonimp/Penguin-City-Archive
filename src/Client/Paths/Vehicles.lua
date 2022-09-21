@@ -104,7 +104,7 @@ function Vehicles.unloadCharacter()
 end
 
 Remotes.bindEvents({
-    OnVehicleSpawned = function(owner, vehicle)
+    MountVehicle = function(owner, vehicle)
         local driverSeat = vehicle.Seats.Driver
 
         if owner == player then
@@ -121,7 +121,7 @@ Remotes.bindEvents({
                 if driverSeat.Occupant then
                     drive(vehicle)
                 else
-                    Vehicles.DrivingSession:Destroy()
+                    Vehicles.DrivingSession:Cleanup()
                 end
             end)
         else

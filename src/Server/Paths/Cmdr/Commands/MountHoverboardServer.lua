@@ -1,9 +1,10 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
+local Vehicles = Paths.Modules.Vehicles
 
 return function(_context, players: { Player })
     for _, player in pairs(players) do
-        --todo mount
+        Vehicles.mountVehicle(player, "Hoverboard")
     end
 
     return "Mounted Players"

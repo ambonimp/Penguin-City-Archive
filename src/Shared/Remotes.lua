@@ -8,12 +8,12 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local InstanceUtil = require(ReplicatedStorage.Modules.Utils.InstanceUtil)
 
-type FunctionCallback = (any) -> (any)
+type FunctionCallback = (...any) -> (...any)
 type FunctionHandler = {
     Remote: RemoteFunction,
     registerCallback: (callback: FunctionCallback) -> (),
 }
-type EventCallback = (any) -> (nil)
+type EventCallback = (...any) -> (nil)
 type EventHandler = {
     Remote: RemoteEvent,
     registerCallback: (callback: EventCallback, dontCascade: boolean?) -> (() -> nil),

@@ -42,7 +42,7 @@ for vehicle in VehicleConstants do
         if not spawnDb then
             spawnDb = true
 
-            Remotes.fireServer("OnVehicleSpawned", vehicle)
+            Remotes.fireServer("MountVehicle", vehicle)
 
             task.wait(0.2)
             spawnDb = false
@@ -65,7 +65,7 @@ end)
 
 -- Dashboard
 dismountBtn.MouseButton1Down:Connect(function()
-    modules.Vehicles.DrivingSession:Destroy()
+    modules.Vehicles.DrivingSession:Cleanup()
 end)
 
 return VehiclesUI
