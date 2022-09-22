@@ -1,6 +1,6 @@
 local Binder = {}
 
-Binder.Store = {}
+Binder.Store = {} :: { [Instance]: { [string]: any } }
 
 --[[
     Registers an instance that stuff can be binded to
@@ -9,6 +9,14 @@ function Binder.addInstance(scope: Instance)
     if not Binder.Store[scope] then
         Binder.Store[scope] = Binder.Store[scope] or {}
     end
+
+    local destroyedConn
+    destroyedConn = scope.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            destroyedConn:Disconnect()
+            Binder.removeInstance(scope)
+        end
+    end)
 
     return Binder.Store[scope]
 end

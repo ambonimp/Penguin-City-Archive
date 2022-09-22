@@ -1,9 +1,8 @@
+local TweenableValue = {}
+
 local TweenService = game:GetService("TweenService")
 
-local Class = {}
-Class.__index = Class
-
-function Class.new(
+function TweenableValue.new(
     valueType: string,
     goal: any,
     length: (number | (old: any, new: any) -> number),
@@ -13,7 +12,7 @@ function Class.new(
     local self = {}
 
     local initialValue = goal
-    local tween
+    local tween: Tween?
 
     local valueInstance = Instance.new(valueType)
     valueInstance.Value = goal
@@ -69,4 +68,4 @@ function Class.new(
     return self
 end
 
-return Class
+return TweenableValue

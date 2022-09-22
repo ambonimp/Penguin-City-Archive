@@ -1,11 +1,10 @@
+local Camera = {}
+
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
 local TweenableValue = Modules.TweenableValue
-
-local Camera = {}
 
 local camera = Workspace.CurrentCamera
 

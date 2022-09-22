@@ -2,15 +2,15 @@
     Wrapper for a boolean variable that manages potentially conflicting value changes
 ]]
 
-local Class = {}
-Class.__index = Class
+local Toggle = {}
+Toggle.__index = Toggle
 
-function Class.new(value: boolean, onToggled: (boolean) -> ())
+function Toggle.new(value: boolean, onToggled: (boolean) -> ())
     local self = {}
     local jobs = {}
 
     --[[
-        Set the toggles value. If setting to fall, all jobs must agree
+        Set the toggles value. If setting to false, all jobs must agree
     ]]
     function self:Set(newValue: boolean, job: any)
         if newValue then
@@ -38,4 +38,4 @@ function Class.new(value: boolean, onToggled: (boolean) -> ())
     return self
 end
 
-return Class
+return Toggle

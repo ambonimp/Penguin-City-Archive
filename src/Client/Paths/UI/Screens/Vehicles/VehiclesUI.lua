@@ -90,7 +90,7 @@ do
         item.Parent = menuList
 
         item.MouseButton1Down:Connect(function()
-            exitMenu()
+            VehiclesUI.exitMenu()
 
             -- RETURN: Not free
             local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key, DEBOUNCE_MOUNT.Timeframe)
