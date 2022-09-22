@@ -32,6 +32,7 @@ if false then
     Paths.Modules["Spring"] = require(Shared.Spring)
     Paths.Modules["StateMachine"] = require(Shared.StateMachine)
     Paths.Modules["Limiter"] = require(Shared.Limiter)
+    Paths.Modules["Sound"] = require(Shared.Sound)
 
     -- Utils
     Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -39,6 +40,7 @@ if false then
     Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
     Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
     Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
+    Paths.Modules["TweenUntil"] = require(Shared.Utils.TweenUtil)
 
     -- Interface
     Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
@@ -47,6 +49,8 @@ if false then
     -- UI
     Paths.Modules["UIConstants"] = require(script.UI.UIConstants)
     Paths.Modules["UIController"] = require(script.UI.UIController)
+    Paths.Modules["UIElement"] = require(Ui.Elements.UIElement)
+    Paths.Modules["Button"] = require(Ui.Elements.Button)
 
     --
     Paths.Modules["PlayerData"] = require(script.PlayerData)
@@ -76,6 +80,7 @@ function Paths.initialize()
         Paths.Modules["Spring"] = require(Shared.Spring)
         Paths.Modules["StateMachine"] = require(Shared.StateMachine)
         Paths.Modules["Limiter"] = require(Shared.Limiter)
+        Paths.Modules["Sound"] = require(Shared.Sound)
 
         -- Utils
         Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -83,12 +88,15 @@ function Paths.initialize()
         Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
         Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
         Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
+        Paths.Modules["TweenUntil"] = require(Shared.Utils.TweenUtil)
 
         -- UI
         Paths.Modules["UIConstants"] = require(Ui.UIConstants)
         Paths.Modules["UIController"] = require(Ui.UIController)
         Paths.Modules["TransitionFX"] = require(Ui.Screens.SpecialEffects.Transitions)
         Paths.Modules["VehicleUI"] = require(Ui.Screens.Vehicles.VehiclesUI)
+        Paths.Modules["UIElement"] = require(Ui.Elements.UIElement)
+        Paths.Modules["Button"] = require(Ui.Elements.Button)
 
         --
         Paths.Modules["PlayerData"] = require(script.PlayerData)
