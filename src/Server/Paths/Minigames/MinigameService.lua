@@ -1,0 +1,3 @@
+local MinigameService = {}
+
+return MinigameService
