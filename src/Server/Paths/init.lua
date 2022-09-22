@@ -27,9 +27,16 @@ end
 Paths.Modules = modules
 
 -- Loading Coroutine
-task.spawn(function()
+task.delay(0, function()
     -- Require necessary files
-    local requiredModules = {}
+    local requiredModules = {
+        -- Systems
+        require(modules.PlayerData),
+        require(modules.PlayerLoader),
+        require(modules.AnalyticsTracking),
+        require(modules.Vehicles),
+        require(modules.Cmdr.CmdrService),
+    }
 
     -- Sort by load order
     table.sort(requiredModules, function(tbl1, tbl2)

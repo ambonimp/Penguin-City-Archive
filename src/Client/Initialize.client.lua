@@ -1,1 +1,2 @@
-require(script.Parent:WaitForChild("Paths")).initialize()
+local Players = game:GetService("Players")
+require(Players.LocalPlayer.PlayerScripts:WaitForChild("Paths"))

@@ -1,9 +1,12 @@
 local Paths = {}
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Modules
 local Packages = ReplicatedStorage.Packages
 
+Paths.UI = Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
+Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
 -- Curate Modules
@@ -27,9 +30,23 @@ end
 Paths.Modules = modules
 
 -- Loading Coroutine
-task.spawn(function()
+task.delay(0, function()
     -- Require necessary files
-    local requiredModules = {}
+    local Loader = require(modules.Loader)
+    local requiredModules = {
+        -- Loader
+        Loader,
+
+        -- Systems
+        require(modules.Cmdr.CmdrController),
+        require(modules.UI.UIController),
+        require(modules.PlayerData),
+        require(modules.Character),
+        require(modules.Vehicles),
+
+        -- UI
+        require(modules.UI.Screens.Vehicles.VehiclesUI),
+    }
 
     -- Sort by load order
     table.sort(requiredModules, function(tbl1, tbl2)
@@ -56,6 +73,9 @@ task.spawn(function()
             task.spawn(tbl.Start)
         end
     end
+
+    -- Run Loader
+    Loader.load()
 end)
 
 return Paths

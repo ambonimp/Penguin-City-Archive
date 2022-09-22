@@ -6,12 +6,13 @@ local UIController = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local UIConstants = Paths.Modules.UIConstants
-local TableUtil = Paths.Modules.TableUtil
+local UIConstants = require(Paths.Modules.UI.UIConstants)
+local TableUtil = require(Paths.Modules.Utils.TableUtil)
+local StateMachine = require(Paths.Modules.StateMachine)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
-local stateMachine = Paths.Modules.StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
+local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
 
 -- Init
 do

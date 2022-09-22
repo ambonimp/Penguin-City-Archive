@@ -1,28 +1,21 @@
+local Vehicles = {}
+
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
-local Paths = require(script.Parent)
-
-local modules = Paths.Modules
-local Remotes = modules.Remotes
-local VehicleConstants = modules.VehicleConstants
-local InteractionUtil = modules.InteractionUtil
-local Maid = modules.Maid
-
-local VehicleUI = modules.VehicleUI
-local VehicleUtil = modules.VehicleUtil
-
-local Vehicles = {}
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Modules = Paths.Modules
+local Remotes = require(Modules.Remotes)
+local InteractionUtil = require(Modules.Utils.InteractionUtil)
+local Maid = require(Modules.maid)
+local VehicleUI = require(Modules.UI.Screens.Vehicles.VehiclesUI)
+local VehicleUtil = require(Modules.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera
-
 local player = Players.LocalPlayer
 local controls = require(player.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
-
 local char
-
 local togglePPConn -- Proxmity prompts
 
 local function normalizeAngle(x)

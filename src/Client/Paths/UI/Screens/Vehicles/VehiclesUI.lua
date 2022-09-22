@@ -4,11 +4,12 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
-local Remotes = Modules.Remotes
-local VehicleConstants = Modules.VehicleConstants
-local UIController = Modules.UIController
-local UIConstants = Modules.UIConstants
-local Limiter = Modules.Limiter
+local Remotes = require(Modules.Remotes)
+local VehicleConstants = require(Modules.Constants.VehicleConstants)
+local UIController = require(Modules.UI.UIController)
+local UIConstants = require(Modules.UI.UIConstants)
+local Limiter = require(Modules.Limiter)
+local Vehicles = true or require(Modules.Vehicles)
 
 local DEBOUNCE_SCOPE = "VehiclesUI"
 local DEBOUNCE_MOUNT = {
@@ -26,6 +27,10 @@ local dismountButton: ImageButton = dashboard.Dismount
 local closeButton: ImageButton = menu.Header.Close
 local uiStateMachine = UIController.getStateMachine()
 
+function VehiclesUI.Init()
+    Vehicles = require(Modules.Vehicles)
+end
+
 function VehiclesUI.openMenu()
     -- TODO: Screengui opener
     menu.Visible = true
@@ -37,7 +42,7 @@ end
 
 function VehiclesUI.openDashboard()
     dashboard.Visible = true
-    Modules.Vehicles.DrivingSession:GiveTask(function()
+    Vehicles.DrivingSession:GiveTask(function()
         dashboard.Visible = false
     end)
 end
@@ -108,7 +113,7 @@ end
 -- Dismounting
 do
     dismountButton.MouseButton1Down:Connect(function()
-        Modules.Vehicles.DrivingSession:Cleanup()
+        Vehicles.DrivingSession:Cleanup()
     end)
 end
 

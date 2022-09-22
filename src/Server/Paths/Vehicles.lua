@@ -1,18 +1,15 @@
-local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ServerStorage = game:GetService("ServerStorage")
-local Workspace = game:GetService("Workspace")
-
-local Paths = require(script.Parent)
-
-local modules = Paths.Modules
-local Remotes = modules.Remotes
-local VehicleConstants = modules.VehicleConstants
-local Interactionutil = modules.InteractionUtil
-local VehicleUtil = modules.VehicleUtil
-
 local Vehicles = {}
+
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+local Paths = require(ServerScriptService.Paths)
+local Modules = Paths.Modules
+local Remotes = require(Modules.Remotes)
+local VehicleConstants = require(Modules.Constants.VehicleConstants)
+local Interactionutil = require(Modules.Utils.InteractionUtil)
+local VehicleUtil = require(Modules.Utils.VehicleUtil)
 
 local spawnedVehicles = {}
 
