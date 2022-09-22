@@ -32,6 +32,9 @@ if false then
     Paths.Modules["Spring"] = require(Shared.Spring)
     Paths.Modules["StateMachine"] = require(Shared.StateMachine)
     Paths.Modules["Limiter"] = require(Shared.Limiter)
+    Paths.Modules["Binder"] = require(Shared.Binder)
+    Paths.Modules["TweenableValue"] = require(Shared.TweenableValue)
+    Paths.Modules["Toggle"] = require(Shared.Toggle)
 
     -- Utils
     Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -39,10 +42,13 @@ if false then
     Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
     Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
     Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
+    Paths.Modules["TweenUtil"] = require(Shared.Utils.TweenUtil)
 
     -- Interface
     Paths.Modules["TransitionFX"] = require(Ui.SpecialEffects.Transitions)
     Paths.Modules["VehicleUI"] = require(Ui.VehiclesUI)
+
+    Paths.Modules["ScreenUtil"] = require(Ui.Utils.ScreenUtil)
 
     -- UI
     Paths.Modules["UIConstants"] = require(script.UI.UIConstants)
@@ -52,6 +58,7 @@ if false then
     Paths.Modules["PlayerData"] = require(script.PlayerData)
     Paths.Modules["Vehicles"] = require(script.Vehicles)
     Paths.Modules["Character"] = require(script.Character)
+    Paths.Modules["Camera"] = require(script.Camera)
 end
 
 function Paths.initialize()
@@ -76,6 +83,9 @@ function Paths.initialize()
         Paths.Modules["Spring"] = require(Shared.Spring)
         Paths.Modules["StateMachine"] = require(Shared.StateMachine)
         Paths.Modules["Limiter"] = require(Shared.Limiter)
+        Paths.Modules["Binder"] = require(Shared.Binder)
+        Paths.Modules["TweenableValue"] = require(Shared.TweenableValue)
+        Paths.Modules["Toggle"] = require(Shared.Toggle)
 
         -- Utils
         Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -83,18 +93,21 @@ function Paths.initialize()
         Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
         Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
         Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
+        Paths.Modules["TweenUtil"] = require(Shared.Utils.TweenUtil)
 
         -- UI
+        Paths.Modules["ScreenUtil"] = require(Ui.Utils.ScreenUtil)
+
         Paths.Modules["UIConstants"] = require(Ui.UIConstants)
         Paths.Modules["UIController"] = require(Ui.UIController)
         Paths.Modules["TransitionFX"] = require(Ui.Screens.SpecialEffects.Transitions)
         Paths.Modules["VehicleUI"] = require(Ui.Screens.Vehicles.VehiclesUI)
-
         --
         Paths.Modules["PlayerData"] = require(script.PlayerData)
         Paths.Modules["Vehicles"] = require(script.Vehicles)
         Paths.Modules["Character"] = require(script.Character)
         Paths.Modules["CmdrController"] = require(script.Cmdr.CmdrController)
+        Paths.Modules["Camera"] = require(script.Camera)
     end
 
     local pong = tick()
