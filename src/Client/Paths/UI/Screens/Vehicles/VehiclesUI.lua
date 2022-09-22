@@ -1,6 +1,7 @@
 local VehiclesUI = {}
 
 local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
@@ -9,6 +10,7 @@ local VehicleConstants = Modules.VehicleConstants
 local UIController = Modules.UIController
 local UIConstants = Modules.UIConstants
 local Limiter = Modules.Limiter
+local ScreenUtil = Modules.ScreenUtil
 
 local DEBOUNCE_SCOPE = "VehiclesUI"
 local DEBOUNCE_MOUNT = {
@@ -26,20 +28,19 @@ local dismountButton: ImageButton = dashboard.Dismount
 local closeButton: ImageButton = menu.Header.Close
 local uiStateMachine = UIController.getStateMachine()
 
-function VehiclesUI.openMenu()
-    -- TODO: Screengui opener
-    menu.Visible = true
-end
-
-function VehiclesUI.closeMenu()
-    menu.Visible = false
-end
-
 function VehiclesUI.openDashboard()
     dashboard.Visible = true
     Modules.Vehicles.DrivingSession:GiveTask(function()
         dashboard.Visible = false
     end)
+end
+
+function VehiclesUI.openMenu()
+    ScreenUtil.inUp(menu)
+end
+
+function VehiclesUI.exitMenu()
+    ScreenUtil.out(menu)
 end
 
 -- Register UIState
@@ -49,7 +50,7 @@ do
     end
 
     local function exit()
-        VehiclesUI.closeMenu()
+        VehiclesUI.exitMenu()
     end
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.Vehicles, enter, exit)
@@ -89,6 +90,8 @@ do
         item.Parent = menuList
 
         item.MouseButton1Down:Connect(function()
+            VehiclesUI.exitMenu()
+
             -- RETURN: Not free
             local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key, DEBOUNCE_MOUNT.Timeframe)
             if not isFree then
