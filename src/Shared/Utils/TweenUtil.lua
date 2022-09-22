@@ -1,13 +1,20 @@
+local TweenUtil = {}
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local shared = ReplicatedStorage.Modules
 local Binder = require(shared.Binder)
-
 local packages = ReplicatedStorage.Packages
 local Promise = require(packages.promise)
 
-local TweenUtil = {}
+-- Creates a tween, and automatically plays it
+function TweenUtil.tween(instance: Instance, tweenInfo: TweenInfo, propertyTable: { [string]: any })
+    local tween = TweenService:Create(instance, tweenInfo, propertyTable)
+    tween:Play()
+
+    return tween
+end
 
 --[[
     Cancels any existing tweens binded to an instance, creates a new one, plays it and then binds it to said instance

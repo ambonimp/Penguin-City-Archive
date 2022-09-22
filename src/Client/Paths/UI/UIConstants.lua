@@ -16,4 +16,6 @@ UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Nothing,
 }
 
+UIConstants.Font = Enum.Font.GothamBold
+
 return UIConstants
