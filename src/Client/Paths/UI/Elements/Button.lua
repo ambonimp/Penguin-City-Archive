@@ -12,7 +12,7 @@ local SELECT_COLOR_FACTOR = 0.9 -- How the color of the button changes when sele
 local PRESS_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local RELEASE_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local COLOR_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Linear)
-local TEXT_TWEEN_INFO = TweenInfo.new(0.05, Enum.EasingStyle.Linear)
+local TEXT_TWEEN_INFO = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 local INSTANT_TWEEN = TweenInfo.new(0)
 
 Button.Defaults = {
@@ -36,7 +36,7 @@ function Button.new()
     local button = UIElement.new()
 
     -------------------------------------------------------------------------------
-    -- Members
+    -- Private Members
     -------------------------------------------------------------------------------
 
     local isSelected = false
@@ -71,7 +71,12 @@ function Button.new()
     textLabel.TextColor3 = textColor
     textLabel.Font = UIConstants.Font
     textLabel.TextScaled = true
-    textLabel.Parent = imageButtonUICorner
+    textLabel.Size = UDim2.fromScale(0.9, 0.9)
+    textLabel.Parent = imageButton
+
+    -------------------------------------------------------------------------------
+    -- Public Members
+    -------------------------------------------------------------------------------
 
     button.Pressed = Paths.Modules.Signal.new()
 
