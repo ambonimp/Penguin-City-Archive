@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIElement = Paths.Modules.UIElement
 local TweenUtil = Paths.Modules.TweenUntil
+local UIConstants = Paths.Modules.UIConstants
 
 local BACK_COLOR_FACTOR = 0.75 -- How the color of the back is calculated; lower = more obvious
 local SELECT_COLOR_MIN_SAT = 0.05 -- If the saturation value is lower than this, we will manipulate its val instead
@@ -11,13 +12,15 @@ local SELECT_COLOR_FACTOR = 0.9 -- How the color of the button changes when sele
 local PRESS_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local RELEASE_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local COLOR_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Linear)
+local TEXT_TWEEN_INFO = TweenInfo.new(0.05, Enum.EasingStyle.Linear)
 local INSTANT_TWEEN = TweenInfo.new(0)
 
 Button.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the button
     HeightPressed = 0.04, -- Perceived height when the button is visually pressed
     CornerRadius = 0.3, -- Severity of corners (0.5 creates circular sides)
-    Color = Color3.fromRGB(255, 255, 255),
+    Color = Color3.fromRGB(230, 156, 21),
+    TextColor = Color3.fromRGB(255, 255, 255),
 }
 
 -- Applies a UICorner to the passed Instance with the default CornerRadius
@@ -43,6 +46,8 @@ function Button.new()
     local cornerRadius = Button.Defaults.CornerRadius
     local height = Button.Defaults.Height
     local heightPressed = Button.Defaults.HeightPressed
+    local text = ""
+    local textColor = Button.Defaults.TextColor
 
     local imageButton = Instance.new("ImageButton")
     imageButton.AnchorPoint = Vector2.new(0.5, 0)
@@ -58,10 +63,20 @@ function Button.new()
     local backUICorner = mountUICorner(back)
     button:GetMaid():GiveTask(back)
 
+    local textLabel = Instance.new("TextLabel")
+    textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    textLabel.Position = UDim2.fromScale(0.5, 0.5)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text
+    textLabel.TextColor3 = textColor
+    textLabel.Font = UIConstants.Font
+    textLabel.TextScaled = true
+    textLabel.Parent = imageButtonUICorner
+
     button.Pressed = Paths.Modules.Signal.new()
 
     -------------------------------------------------------------------------------
-    -- Methods
+    -- Private Methods
     -------------------------------------------------------------------------------
 
     local function selectButton(skipTween: boolean?)
@@ -170,6 +185,22 @@ function Button.new()
         mouseUp()
     end
 
+    -------------------------------------------------------------------------------
+    -- Public Methods
+    -------------------------------------------------------------------------------
+
+    function button:GetImageButton()
+        return imageButton
+    end
+
+    function button:GetBackgroundFrame()
+        return back
+    end
+
+    function button:GetTextLabel()
+        return textLabel
+    end
+
     function button:IsPressed()
         return isPressed
     end
@@ -178,7 +209,7 @@ function Button.new()
         return isSelected
     end
 
-    function button:SetColor(newColor: Color3, skipTween: boolean)
+    function button:SetColor(newColor: Color3, skipTween: boolean?)
         color = newColor
 
         if isSelected then
@@ -231,6 +262,55 @@ function Button.new()
         if hideInstance then
             parent.Transparency = 1
         end
+
+        return self
+    end
+
+    -- Nicely changes the text displayed on this button. Supports UIStroke!
+    function button:SetText(newText: string, skipTween: boolean?)
+        text = newText
+
+        if skipTween then
+            textLabel.Text = text
+            return self
+        end
+
+        local textTransparency = textLabel.TextTransparency
+        local textStrokeTransparency = textLabel.TextStrokeTransparency
+        local uiStroke = textLabel:FindFirstChildOfClass("UIStroke")
+        local uiStrokeTransparency = uiStroke and uiStroke.Transparency
+
+        -- Hide the text changing by fading out/in the text transparency
+        local fadeOutTween = TweenUtil.tween(textLabel, TEXT_TWEEN_INFO, { TextTransparency = 1, TextStrokeTransparency = 1 })
+        if uiStroke then
+            TweenUtil.tween(uiStroke, TEXT_TWEEN_INFO, { Transparency = 1 })
+        end
+
+        task.spawn(function()
+            if fadeOutTween.PlaybackState == Enum.PlaybackState.Playing then
+                fadeOutTween.Completed:Wait()
+            end
+
+            textLabel.Text = text
+
+            TweenUtil.tween(
+                textLabel,
+                TEXT_TWEEN_INFO,
+                { TextTransparency = textTransparency, TextStrokeTransparency = textStrokeTransparency }
+            )
+            if uiStroke then
+                TweenUtil.tween(uiStroke, TEXT_TWEEN_INFO, { Transparency = uiStrokeTransparency })
+            end
+        end)
+
+        return self
+    end
+
+    function button:SetTextColor(newColor: Color3, skipTween: boolean?)
+        textColor = newColor
+
+        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+        TweenUtil.tween(textLabel, tweenInfo, { TextColor = textColor })
 
         return self
     end
