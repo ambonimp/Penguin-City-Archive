@@ -1,0 +1,16 @@
+{
+	"recommendations": [
+		// Required
+		"Kampfkarren.selene-vscode",
+		"Nightrains.robloxlsp",
+		"JohnnyMorganz.stylua",
+		"evaera.vscode-rojo",
+
+		// Optional
+		"aaron-bond.better-comments",
+		"GitHub.vscode-pull-request-github",
+		"eamodio.gitlens",
+		"PKief.material-icon-theme",
+		"2gua.rainbow-brackets",
+	]
+}

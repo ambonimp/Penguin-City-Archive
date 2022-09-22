@@ -1,19 +1,17 @@
-local Workspace = game:GetService("Workspace")
-
 local VehicleUtil = {}
 
-local VehicleEnums = require(script.Parent.Enums.Vehicles)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local VehicleConstants = require(ReplicatedStorage.Modules.Constants.VehicleConstants)
 
 -- Float Spring
 local FLOAT_STRENGTH = 350
 local FLOAT_DAMPING = 2500
-
 -- Little sine wave
 local BUOYANCY_HEIGHT = 0.5
 local BUOYANCY_RATE = 60 -- Every x secs, sine wave returns to 0
-
-local RAYCAST_HEIGHT = Vector3.new(0, 2, 0) -- Distance above platform to cast raycasts from
-
+-- Distance above platform to cast raycasts from
+local RAYCAST_HEIGHT = Vector3.new(0, 2, 0)
 local PLATFORM_CORNERS = {
     Vector3.new(0.5, 0, 0.5),
     Vector3.new(0.5, 0, -0.5),
@@ -62,7 +60,7 @@ function VehicleUtil.new(player, model)
     raycastParams.FilterDescendantsInstances = { player.Character, platform.Parent }
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
-    local enums = VehicleEnums[platform.Parent.Name]
+    local enums = VehicleConstants[platform.Parent.Name]
     accel = enums.Acceleration
     maxSpeed = enums.MaxSpeed
     maxForce = enums.MaxForce
