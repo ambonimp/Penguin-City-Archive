@@ -1,7 +1,7 @@
+local InteractionUtil = {}
+
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
-
-local InteractionUtil = {}
 
 function InteractionUtil.createInteraction(interactable, props)
     local proximityPrompt = Instance.new("ProximityPrompt")
