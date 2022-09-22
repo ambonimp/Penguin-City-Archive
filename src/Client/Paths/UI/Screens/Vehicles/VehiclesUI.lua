@@ -9,7 +9,7 @@ local VehicleConstants = require(Modules.Constants.VehicleConstants)
 local UIController = require(Modules.UI.UIController)
 local UIConstants = require(Modules.UI.UIConstants)
 local Limiter = require(Modules.Limiter)
-local Vehicles = true or require(Modules.Vehicles)
+local Vehicles: typeof(require(Modules.Vehicles))
 
 local DEBOUNCE_SCOPE = "VehiclesUI"
 local DEBOUNCE_MOUNT = {
