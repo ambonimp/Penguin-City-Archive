@@ -37,7 +37,28 @@
 
             "VoldexAnalytics" : {
               "$path" : "roblox-analytics-service/src/ServerStorage/Analytics"
-            }
+            },
+
+            "SocketPlugin": {
+                "$ignoreUnknownInstances": true,
+                "$className": "Configuration",
+                "Macros": {
+                  "$className": "Folder",
+                  "$ignoreUnknownInstances": true,
+                  "CarGame": {
+                    "$className": "Folder",
+                    "$path": "src/SocketPlugin/Macros"
+                  }
+                },
+                "Utils": {
+                  "$className": "Folder",
+                  "$ignoreUnknownInstances": true,
+                  "CarGame": {
+                    "$className": "Folder",
+                    "$path": "src/SocketPlugin/Utils"
+                  }
+                }
+              }
         },
 
         "StarterPlayer": {
