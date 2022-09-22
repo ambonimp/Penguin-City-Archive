@@ -1,0 +1,11 @@
+{
+    "editor.defaultFormatter": "JohnnyMorganz.stylua",
+    "editor.semanticHighlighting.enabled": true,
+    "editor.formatOnSave": true,
+    "robloxLsp.suggestedImports.importScriptChildren": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "robloxLsp.typeChecking.mode": "Strict",
+    "robloxLsp.typeChecking.options": {   
+        "infer-instance-from-unknown": true,
+    }
+}
