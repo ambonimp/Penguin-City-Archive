@@ -2,7 +2,7 @@ return {
     Name = "mountHoverboard",
     Aliases = { "mh" },
     Description = "Mounts the passed players to a hoverboard",
-    Group = "Admin",
+    Group = "zAdmin",
     Args = {
         {
             Type = "players",
