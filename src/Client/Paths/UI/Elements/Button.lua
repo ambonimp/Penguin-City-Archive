@@ -64,49 +64,67 @@ function Button.new()
     -- Methods
     -------------------------------------------------------------------------------
 
-    -- Visually selects the button
     local function selectButton(skipTween: boolean?)
-        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+        -- Visual Feedback
+        do
+            local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
 
-        -- Change color of just imageButton
-        local currentColor = imageButton.BackgroundColor3
-        local h, s, v = currentColor:ToHSV()
+            -- Change color of just imageButton
+            local currentColor = imageButton.BackgroundColor3
+            local h, s, v = currentColor:ToHSV()
 
-        if s >= SELECT_COLOR_MIN_SAT then
-            s = s * SELECT_COLOR_FACTOR
-        else
-            v = v * SELECT_COLOR_FACTOR
+            if s >= SELECT_COLOR_MIN_SAT then
+                s = s * SELECT_COLOR_FACTOR
+            else
+                v = v * SELECT_COLOR_FACTOR
+            end
+            local newColor = Color3.fromHSV(h, s, v)
+
+            TweenUtil.tween(imageButton, tweenInfo, { BackgroundColor3 = newColor })
         end
-        local newColor = Color3.fromHSV(h, s, v)
 
-        TweenUtil.tween(imageButton, tweenInfo, { BackgroundColor3 = newColor })
+        -- Audio Feedback
+        do
+            Paths.Modules.Sound.play("ButtonHover")
+        end
     end
 
-    -- Inverse of selectButton()
     local function deselectButton(skipTween: boolean?)
-        -- Cheeky way to revert back to original color
-        local oldIsSelected = isSelected
-        isSelected = false
+        -- Visual Feedback
+        do
+            -- Cheeky way to revert back to original color
+            local oldIsSelected = isSelected
+            isSelected = false
 
-        button:SetColor(color, skipTween)
+            button:SetColor(color, skipTween)
 
-        isSelected = oldIsSelected
+            isSelected = oldIsSelected
+        end
     end
 
-    -- Visually presses the button
     local function pressButton(skipTween: boolean?)
-        local tweenInfo = skipTween and INSTANT_TWEEN or PRESS_TWEEN_INFO
+        -- Visual Feedback
+        do
+            local tweenInfo = skipTween and INSTANT_TWEEN or PRESS_TWEEN_INFO
 
-        local goalPosition = UDim2.fromScale(0.5, height - heightPressed)
-        TweenUtil.tween(imageButton, tweenInfo, { Position = goalPosition })
+            local goalPosition = UDim2.fromScale(0.5, height - heightPressed)
+            TweenUtil.tween(imageButton, tweenInfo, { Position = goalPosition })
+        end
+
+        -- Audio Feedback
+        do
+            Paths.Modules.Sound.play("ButtonClick")
+        end
     end
 
-    -- Inverse of pressButton()
     local function releaseButton(skipTween: boolean?)
-        local tweenInfo = skipTween and INSTANT_TWEEN or RELEASE_TWEEN_INFO
+        -- Visual Feedback
+        do
+            local tweenInfo = skipTween and INSTANT_TWEEN or RELEASE_TWEEN_INFO
 
-        local goalPosition = UDim2.fromScale(0.5, 0)
-        TweenUtil.tween(imageButton, tweenInfo, { Position = goalPosition })
+            local goalPosition = UDim2.fromScale(0.5, 0)
+            TweenUtil.tween(imageButton, tweenInfo, { Position = goalPosition })
+        end
     end
 
     local function mouseDown()

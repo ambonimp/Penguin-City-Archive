@@ -32,6 +32,7 @@ if false then
     Paths.Modules["Spring"] = require(Shared.Spring)
     Paths.Modules["StateMachine"] = require(Shared.StateMachine)
     Paths.Modules["Limiter"] = require(Shared.Limiter)
+    Paths.Modules["Sound"] = require(Shared.Sound)
 
     -- Utils
     Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
@@ -79,6 +80,7 @@ function Paths.initialize()
         Paths.Modules["Spring"] = require(Shared.Spring)
         Paths.Modules["StateMachine"] = require(Shared.StateMachine)
         Paths.Modules["Limiter"] = require(Shared.Limiter)
+        Paths.Modules["Sound"] = require(Shared.Sound)
 
         -- Utils
         Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
