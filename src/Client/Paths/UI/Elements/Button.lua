@@ -2,9 +2,11 @@ local Button = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local UIElement = Paths.Modules.UIElement
-local TweenUtil = Paths.Modules.TweenUntil
-local UIConstants = Paths.Modules.UIConstants
+local Modules = Paths.Modules
+local UIElement = require(Modules.UI.Elements.UIElement)
+local TweenUtil = require(Modules.Utils.TweenUtil)
+local UIConstants = require(Modules.UI.UIConstants)
+local Sound = require(Modules.Sound)
 
 local BACK_COLOR_FACTOR = 0.75 -- How the color of the back is calculated; lower = more obvious
 local SELECT_COLOR_MIN_SAT = 0.05 -- If the saturation value is lower than this, we will manipulate its val instead
@@ -105,7 +107,7 @@ function Button.new()
 
         -- Audio Feedback
         do
-            Paths.Modules.Sound.play("ButtonHover")
+            Sound.play("ButtonHover")
         end
     end
 
@@ -133,7 +135,7 @@ function Button.new()
 
         -- Audio Feedback
         do
-            Paths.Modules.Sound.play("ButtonClick")
+            Sound.play("ButtonClick")
         end
     end
 
