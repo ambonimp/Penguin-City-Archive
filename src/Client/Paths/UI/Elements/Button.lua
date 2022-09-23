@@ -7,6 +7,7 @@ local UIElement = require(Modules.UI.Elements.UIElement)
 local TweenUtil = require(Modules.Utils.TweenUtil)
 local UIConstants = require(Modules.UI.UIConstants)
 local Sound = require(Modules.Sound)
+local Signal = require(Modules.Signal)
 
 local BACK_COLOR_FACTOR = 0.75 -- How the color of the back is calculated; lower = more obvious
 local SELECT_COLOR_MIN_SAT = 0.05 -- If the saturation value is lower than this, we will manipulate its val instead
@@ -80,7 +81,7 @@ function Button.new()
     -- Public Members
     -------------------------------------------------------------------------------
 
-    button.Pressed = Paths.Modules.Signal.new()
+    button.Pressed = Signal.new()
 
     -------------------------------------------------------------------------------
     -- Private Methods
