@@ -6,13 +6,13 @@ local Toggle = {}
 Toggle.__index = Toggle
 
 function Toggle.new(value: boolean, onToggled: (boolean) -> ())
-    local self = {}
+    local toggle = {}
     local jobs = {}
 
     --[[
         Set the toggles value. If setting to false, all jobs must agree
     ]]
-    function self:Set(newValue: boolean, job: any)
+    function toggle:Set(newValue: boolean, job: any)
         if newValue then
             if not table.find(jobs, job) then
                 if value ~= newValue then
@@ -35,7 +35,7 @@ function Toggle.new(value: boolean, onToggled: (boolean) -> ())
         end
     end
 
-    return self
+    return toggle
 end
 
 return Toggle
