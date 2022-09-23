@@ -53,7 +53,7 @@ end
 
 function Vehicles.unmountFromVehicle(player: Player)
     -- RETURN: No seat part found
-    local seat: Seat = player.Character.Humanoid:FindFirstChild("SeatPart")
+    local seat: (BasePart | Seat)? = player.Character.Humanoid.SeatPart
     if not seat then
         return
     end
