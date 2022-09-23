@@ -26,12 +26,12 @@ task.delay(0, function()
 
         -- Systems
         require(modules.Cmdr.CmdrController),
-        require(modules.UI.UIController),
         require(modules.PlayerData),
         require(modules.Character),
         require(modules.Vehicles),
 
         -- UI
+        require(modules.UI.UIController), -- Load any UI Screens in here please!
         require(modules.UI.Screens.Vehicles.VehiclesUI),
     }
 

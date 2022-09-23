@@ -26,8 +26,6 @@ function PathsUtil.createModules(directories: { Instance })
         populate(modules, directory)
     end
 
-    print(modules)
-
     return modules
 end
 
