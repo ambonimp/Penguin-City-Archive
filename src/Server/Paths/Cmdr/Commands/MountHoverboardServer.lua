@@ -1,6 +1,6 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local Vehicles = require(Paths.Modules.Vehicles)
+local Vehicles = require(Paths.Server.Vehicles)
 
 return function(_context, players: { Player })
     for _, player in pairs(players) do

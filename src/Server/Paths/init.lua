@@ -1,11 +1,11 @@
 local Paths = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Modules = ReplicatedStorage.Modules
+local Modules = ReplicatedStorage.Shared
 local PathsUtil = require(Modules.Utils.PathsUtil)
 
 -- File Directories
-local shared = ReplicatedStorage.Modules
+local shared = ReplicatedStorage.Shared
 Paths.Shared = shared
 
 local packages = ReplicatedStorage.Packages

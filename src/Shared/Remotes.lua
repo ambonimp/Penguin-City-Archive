@@ -6,7 +6,7 @@ local Remotes = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local InstanceUtil = require(ReplicatedStorage.Modules.Utils.InstanceUtil)
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
 type FunctionCallback = (...any) -> (...any)
 type FunctionHandler = {

@@ -3,8 +3,7 @@ local PlayerLoader = {}
 
 local Players = game:GetService("Players")
 local Paths = require(script.Parent)
-local Modules = Paths.Modules
-local PlayerData = require(Modules.PlayerData)
+local PlayerData = require(Paths.Server.PlayerData)
 
 Players.PlayerAdded:Connect(function(player)
     PlayerData.loadPlayer(player)

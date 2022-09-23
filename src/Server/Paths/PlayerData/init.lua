@@ -8,10 +8,9 @@ local PlayerData = {}
 
 local Players = game:GetService("Players")
 local Paths = require(script.Parent)
-local Modules = Paths.Modules
-local Remotes = require(Modules.Remotes)
-local Signal = require(Modules.Signal)
-local DataUtil = require(Modules.Utils.DataUtil)
+local Remotes = require(Paths.Shared.Remotes)
+local Signal = require(Paths.Shared.Signal)
+local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(script.ProfileService)
 local Config = require(script.Config)
 

@@ -6,9 +6,9 @@ local UIController = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local UIConstants = require(Paths.Modules.UI.UIConstants)
-local TableUtil = require(Paths.Modules.Utils.TableUtil)
-local StateMachine = require(Paths.Modules.StateMachine)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local StateMachine = require(Paths.Shared.StateMachine)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
