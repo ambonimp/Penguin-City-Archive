@@ -1,1 +1,2 @@
-require(script.Parent.Paths).initialize()
+local ServerScriptService = game:GetService("ServerScriptService")
+require(ServerScriptService.Paths)

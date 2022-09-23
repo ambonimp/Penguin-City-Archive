@@ -1,7 +1,6 @@
-local ServerStorage = game:GetService("ServerStorage")
-
 local AnalyticsTracking = {}
 
+local ServerStorage = game:GetService("ServerStorage")
 local VoldexAnalytics = require(ServerStorage.VoldexAnalytics)
 
 local eventHandler = Instance.new("BindableEvent")

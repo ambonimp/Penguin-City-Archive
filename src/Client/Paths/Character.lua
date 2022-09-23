@@ -1,7 +1,10 @@
+local Character = {}
+
 local Players = game:GetService("Players")
-local Paths = require(script.Parent)
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
-local Vehicles = Modules.Vehicles
+local Vehicles = require(Modules.Vehicles)
+local Loader = require(Modules.Loader)
 
 local localPlayer = Players.LocalPlayer
 
@@ -23,9 +26,9 @@ local function loadCharacter(character: Model)
     end
 end
 
-Paths.Modules.Loader.giveTask("Character", "LoadCharacter", function()
+Loader.giveTask("Character", "LoadCharacter", function()
     loadCharacter(localPlayer.Character)
 end)
 localPlayer.CharacterAdded:Connect(loadCharacter)
 
-return {}
+return Character

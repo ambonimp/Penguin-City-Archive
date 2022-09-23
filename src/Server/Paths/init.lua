@@ -3,84 +3,54 @@ local Paths = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Modules
 local Packages = ReplicatedStorage.Packages
-local Constants = Shared.Constants
 
-Paths.Modules = {}
 Paths.Initialized = false
 
--- Intellisense
-if false then
-    -- Constants
-    Paths.Modules["GameConstants"] = require(Constants.GameConstants)
-    Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
-    Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
+-- Curate Modules
+-- `Modules` has intellisense + actual access to files under: Shared, Packages, Paths
+local directories: { Instance } = { Shared, Packages, script }
+local modules: typeof(Shared) & typeof(Packages) & typeof(script) = {}
 
-    -- Packages
-    Paths.Modules["Promise"] = require(Packages.promise)
-    Paths.Modules["Maid"] = require(Packages.maid)
-    Paths.Modules["Cmdr"] = require(Packages.cmdr)
+for _, directory in pairs(directories) do
+    for _, child in pairs(directory:GetChildren()) do
+        -- ERROR: Duplicate name
+        local childName = child.Name
+        local duplicateChild = modules[childName]
+        if duplicateChild then
+            error(("Duplicate named modules (%s) (%s)"):format(duplicateChild:GetFullName(), child:GetFullName()))
+        end
 
-    -- Shared
-    Paths.Modules["Remotes"] = require(Shared.Remotes)
-    Paths.Modules["Signal"] = require(Shared.Signal)
-    Paths.Modules["StateMachine"] = require(Shared.StateMachine)
-    Paths.Modules["Limiter"] = require(Shared.Limiter)
-
-    -- Utils
-    Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
-    Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
-    Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
-    Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
-    Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
-
-    --
-    Paths.Modules["PlayerData"] = require(script.PlayerData)
-    Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
-    Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
-    Paths.Modules["Vehicles"] = require(script.Vehicles)
+        modules[childName] = child
+    end
 end
 
-function Paths.initialize()
-    -- Init Modules
-    local ping = tick()
-    do
-        -- Constants
-        Paths.Modules["GameConstants"] = require(Constants.GameConstants)
-        Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
-        Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
+Paths.Modules = modules
 
-        -- Packages
-        Paths.Modules["Promise"] = require(Packages.promise)
-        Paths.Modules["Maid"] = require(Packages.maid)
+-- Loading Coroutine
+task.delay(0, function()
+    -- Require necessary files
+    local requiredModulesInOrder = {
+        -- Systems
+        require(modules.PlayerData),
+        require(modules.PlayerLoader),
+        require(modules.AnalyticsTracking),
+        require(modules.Vehicles),
+        require(modules.Cmdr.CmdrService),
+    }
 
-        -- Shared
-        Paths.Modules["Remotes"] = require(Shared.Remotes)
-        Paths.Modules["Signal"] = require(Shared.Signal)
-        Paths.Modules["StateMachine"] = require(Shared.StateMachine)
-        Paths.Modules["Limiter"] = require(Shared.Limiter)
-
-        -- Utils
-        Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
-        Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
-        Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
-        Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
-        Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
-
-        --
-        Paths.Modules["PlayerData"] = require(script.PlayerData)
-        Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
-        Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
-        Paths.Modules["Vehicles"] = require(script.Vehicles)
-        Paths.Modules["CmdrService"] = require(script.Cmdr.CmdrService)
+    -- Run Init (Syncchronous)
+    for _, tbl in pairs(requiredModulesInOrder) do
+        if tbl.Init then
+            tbl.Init()
+        end
     end
 
-    local pong = tick()
-    if Paths.Modules.FrameworkConstants.DisplayPingPong then
-        print(("Required all Server Modules in %.4fs"):format(pong - ping))
+    -- Run Start
+    for _, tbl in pairs(requiredModulesInOrder) do
+        if tbl.Start then
+            task.spawn(tbl.Start)
+        end
     end
-
-    -- Logic
-    Paths.Initialized = true
-end
+end)
 
 return Paths
