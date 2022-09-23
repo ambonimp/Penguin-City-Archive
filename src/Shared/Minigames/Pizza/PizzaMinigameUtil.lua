@@ -7,8 +7,8 @@ local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
 
 local TOTAL_TOPPINGS = TableUtil.length(PizzaMinigameConstants.Ingredients.Toppings)
 
-function PizzaMinigameUtil.rollRecipe(pizzasCompleted: number)
-    local alpha = pizzasCompleted / PizzaMinigameConstants.MaxPizzas
+function PizzaMinigameUtil.rollRecipe(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
     for recipeLabel, weightEquation in pairs(PizzaMinigameConstants.RecipeWeightEquations) do
@@ -22,8 +22,8 @@ function PizzaMinigameUtil.rollRecipe(pizzasCompleted: number)
     return recipe
 end
 
-function PizzaMinigameUtil.rollToppings(pizzasCompleted: number, toppingsNeeded: number)
-    local alpha = pizzasCompleted / PizzaMinigameConstants.MaxPizzas
+function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: number)
+    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
     -- ERROR: Too many toppings!
     if toppingsNeeded > TOTAL_TOPPINGS then
@@ -46,8 +46,8 @@ function PizzaMinigameUtil.rollToppings(pizzasCompleted: number, toppingsNeeded:
     return toppings
 end
 
-function PizzaMinigameUtil.rollSauce(pizzasCompleted: number)
-    local alpha = pizzasCompleted / PizzaMinigameConstants.MaxPizzas
+function PizzaMinigameUtil.rollSauce(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
     for sauce, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Sauces) do
@@ -58,8 +58,8 @@ function PizzaMinigameUtil.rollSauce(pizzasCompleted: number)
     return MathUtil.selectKeyFromValueWeights(weightTable) :: string
 end
 
-function PizzaMinigameUtil.rollBase(pizzasCompleted: number)
-    local alpha = pizzasCompleted / PizzaMinigameConstants.MaxPizzas
+function PizzaMinigameUtil.rollBase(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
     for base, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Bases) do
@@ -68,6 +68,12 @@ function PizzaMinigameUtil.rollBase(pizzasCompleted: number)
     end
 
     return MathUtil.selectKeyFromValueWeights(weightTable) :: string
+end
+
+-- Gives the reward for completing this specific pizza number
+function PizzaMinigameUtil.calculatePizzaReward(pizzaNumber: number)
+    local increaseCount = math.floor((pizzaNumber - 1) / PizzaMinigameConstants.Reward.IncreaseEvery)
+    return PizzaMinigameConstants.Reward.Base + increaseCount * PizzaMinigameConstants.Reward.IncreaseBy
 end
 
 return PizzaMinigameUtil

@@ -10,7 +10,7 @@ type WeightEquation = (alpha: number) -> number
 
 PizzaMinigameConstants.Reward = {
     Base = 5, -- Base coins to reward for 1 correct pizza
-    IncreaseEvery = 5, -- Increase the coin reward every x correct pizzas
+    IncreaseEvery = 5, -- Increase the coin reward every x pizzas
     IncreaseBy = 5, -- How much to increase the coin reward by
 }
 
@@ -80,9 +80,9 @@ PizzaMinigameConstants.IngredientWeightEquations = {
 
 PizzaMinigameConstants.Recipes = {
     A = { Bases = 1, Sauces = 1 },
-    B = { Bases = 1, Sauces = 1, Toppings = { 5 } },
-    C = { Bases = 1, Sauces = 1, Toppings = { 2, 2 } },
-    D = { Bases = 1, Sauces = 1, Toppings = { 1, 1, 1, 1 } },
+    B = { Bases = 1, Sauces = 1, Toppings = { 2, 2 } },
+    C = { Bases = 1, Sauces = 1, Toppings = { 1, 1, 1, 1 } },
+    D = { Bases = 1, Sauces = 1, Toppings = { 5 } },
 } :: { [string]: Recipe }
 
 PizzaMinigameConstants.RecipeWeightEquations = {
@@ -96,13 +96,13 @@ PizzaMinigameConstants.RecipeWeightEquations = {
         return -1.3 * alpha + 1
     end,
     B = function(alpha: number)
-        return alpha ^ 4
-    end,
-    C = function(alpha: number)
         return -(2.5 * alpha - 1) ^ 2 + 0.5
     end,
-    D = function(alpha: number)
+    C = function(alpha: number)
         return -(2.8 * alpha - 1.5) ^ 2 + 0.6
+    end,
+    D = function(alpha: number)
+        return alpha ^ 4
     end,
 } :: { [string]: WeightEquation }
 
