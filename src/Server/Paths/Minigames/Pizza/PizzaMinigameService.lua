@@ -4,4 +4,12 @@
 ]]
 local PizzaMinigameService = {}
 
+function PizzaMinigameService.startMinigame(player: Player)
+    --todo
+end
+
+function PizzaMinigameService.stopMinigame(player: Player)
+    --todo
+end
+
 return PizzaMinigameService
