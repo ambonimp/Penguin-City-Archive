@@ -1,20 +1,32 @@
 local PathsUtil = {}
 
 function PathsUtil.createModules(directories: { Instance })
-    local modules = {}
-
-    for _, directory in pairs(directories) do
-        for _, child in pairs(directory:GetChildren()) do
-            -- ERROR: Duplicate name
+    local function populate(instanceTable: { [string]: Instance | table }, instance: Instance)
+        for _, child in pairs(instance:GetChildren()) do
             local childName = child.Name
-            local duplicateChild = modules[childName]
-            if duplicateChild then
-                error(("Duplicate named modules (%s) (%s)"):format(duplicateChild:GetFullName(), child:GetFullName()))
+            local duplicateChild: Instance = instanceTable[childName]
+            if duplicateChild and duplicateChild.IsA then
+                -- Special treatment for duplicates
+                if duplicateChild:IsA("Folder") then
+                    instanceTable[childName] = {}
+                    populate(instanceTable[childName], child)
+                    populate(instanceTable[childName], duplicateChild)
+                else
+                    error(("Duplicate non-Folders (%s) (%s)"):format(duplicateChild:GetFullName(), child:GetFullName()))
+                end
+            else
+                -- Populate table
+                instanceTable[childName] = child
             end
-
-            modules[childName] = child
         end
     end
+
+    local modules = {}
+    for _, directory in pairs(directories) do
+        populate(modules, directory)
+    end
+
+    print(modules)
 
     return modules
 end
