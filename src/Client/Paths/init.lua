@@ -3,39 +3,50 @@ local Paths = {}
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Modules = ReplicatedStorage.Modules
-local Packages = ReplicatedStorage.Packages
 local PathsUtil = require(Modules.Utils.PathsUtil)
 
+-- File Directories
+local shared = ReplicatedStorage.Modules
+Paths.Shared = shared
+
+local packages = ReplicatedStorage.Packages
+Paths.Packages = packages
+
+local client = script
+Paths.Client = client
+
+-- Misc
 Paths.UI = Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
 Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
--- Curate Modules
--- `Modules` has intellisense + actual access to files under: Modules, Packages, Paths
-local directories: { Instance } = { Modules, Packages, script }
-local modules: (typeof(Modules) & typeof(Packages) & typeof(script)) | table = PathsUtil.createModules(directories)
-Paths.Modules = modules
-
 -- Loading Coroutine
 task.delay(0, function()
     -- Require necessary files
-    local Loader = require(modules.Loader)
+    local Loader = require(client.Loader)
     local requiredModulesInOrder = {
         -- Loader
         Loader,
 
         -- Systems
-        require(modules.Cmdr.CmdrController),
-        require(modules.UI.UIController),
-        require(modules.PlayerData),
-        require(modules.Character),
-        require(modules.Vehicles),
+        require(client.Cmdr.CmdrController),
+        require(client.UI.UIController),
+        require(client.PlayerData),
+        require(client.Character),
+        require(client.Vehicles),
 
         -- UI
-        require(modules.UI.Screens.Vehicles.VehiclesUI),
+        require(client.UI.Screens.Vehicles.VehiclesUI),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
 end)
+
+-- Detect deprecated framework usage
+Paths.__index = function(_, index)
+    if index == "Modules" then
+        error("Paths.Modules is deprecated! Use (1) Paths.Shared (2) Paths.Packages (3) Paths.Client")
+    end
+end
 
 return Paths

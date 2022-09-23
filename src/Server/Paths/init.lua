@@ -2,30 +2,41 @@ local Paths = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Modules = ReplicatedStorage.Modules
-local Packages = ReplicatedStorage.Packages
 local PathsUtil = require(Modules.Utils.PathsUtil)
 
-Paths.Initialized = false
+-- File Directories
+local shared = ReplicatedStorage.Modules
+Paths.Shared = shared
 
--- Curate Modules
--- `Modules` has intellisense + actual access to files under: Modules, Packages, Paths
-local directories: { Instance } = { Modules, Packages, script }
-local modules: (typeof(Modules) & typeof(Packages) & typeof(script)) | table = PathsUtil.createModules(directories)
-Paths.Modules = modules
+local packages = ReplicatedStorage.Packages
+Paths.Packages = packages
+
+local server = script
+Paths.Server = server
+
+-- Misc
+Paths.Initialized = false
 
 -- Loading Coroutine
 task.delay(0, function()
     -- Require necessary files
     local requiredModulesInOrder = {
         -- Systems
-        require(modules.PlayerData),
-        require(modules.PlayerLoader),
-        require(modules.AnalyticsTracking),
-        require(modules.Vehicles),
-        require(modules.Cmdr.CmdrService),
+        require(server.PlayerData),
+        require(server.PlayerLoader),
+        require(server.AnalyticsTracking),
+        require(server.Vehicles),
+        require(server.Cmdr.CmdrService),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
 end)
+
+-- Detect deprecated framework usage
+Paths.__index = function(_, index)
+    if index == "Modules" then
+        error("Paths.Modules is deprecated! Use (1) Paths.Shared (2) Paths.Packages (3) Paths.Server")
+    end
+end
 
 return Paths
