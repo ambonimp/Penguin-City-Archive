@@ -53,7 +53,7 @@ function Loader.giveTask(scope: string, name: string, task: () -> nil)
     table.insert(taskQueue, newTask)
 end
 
-function Loader.Init()
+function Loader.Start()
     -- ERROR: Already loading
     if hasStartedLoading then
         error(".load has already been called!")
