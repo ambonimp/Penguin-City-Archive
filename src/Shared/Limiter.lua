@@ -1,6 +1,7 @@
 local Limiter = {}
 
-local TableUtil = require(script.Parent.Utils.TableUtil)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
 
 local debounces: { [any]: { [any]: number | nil } | nil } = {}
 

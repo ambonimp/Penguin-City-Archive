@@ -2,7 +2,7 @@ local CmdrService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local CmdrUtil = Paths.Modules.CmdrUtil
+local CmdrUtil = require(Paths.Modules.Utils.CmdrUtil)
 
 -- Takes a while to load, so put on a separate thread
 task.spawn(function()

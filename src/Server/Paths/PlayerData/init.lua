@@ -4,21 +4,17 @@
         Why: We use paths, no way to tell if you want to use a number as an index or a key from the path alone
     - No spaces in keys, use underscores or preferably just camel case instead
 ]]
---
+local PlayerData = {}
 
 local Players = game:GetService("Players")
-
 local Paths = require(script.Parent)
-local modules = Paths.Modules
-
-local Remotes = modules.Remotes
-local Signal = modules.Signal
-local DataUtil = modules.DataUtil
-
+local Modules = Paths.Modules
+local Remotes = require(Modules.Remotes)
+local Signal = require(Modules.Signal)
+local DataUtil = require(Modules.Utils.DataUtil)
 local ProfileService = require(script.ProfileService)
-local config = require(script.Config)
+local Config = require(script.Config)
 
-local PlayerData = {}
 PlayerData.Profiles = {}
 PlayerData.Updated = Signal.new()
 
@@ -86,7 +82,7 @@ function PlayerData.wipe(player)
 end
 
 function PlayerData.loadPlayer(player)
-    local profile = ProfileService.GetProfileStore(config.DataKey, config.getDefaults(player))
+    local profile = ProfileService.GetProfileStore(Config.DataKey, Config.getDefaults(player))
         :LoadProfileAsync(tostring(player.UserId), "ForceLoad")
 
     if profile then

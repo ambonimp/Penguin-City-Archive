@@ -9,10 +9,10 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
-local Toggle = Modules.Toggle
-local TweenUtil = Modules.TweenUtil
-local Binder = Modules.Binder
-local TweenableValue = Modules.TweenableValue
+local Toggle = require(Modules.Toggle)
+local TweenUtil = require(Modules.Utils.TweenUtil)
+local Binder = require(Modules.Binder)
+local TweenableValue = require(Modules.TweenableValue)
 
 local BINDING_KEY = "ScreenOpenAnimations"
 local ANIMATION_LENGTH = 0.3
@@ -23,7 +23,9 @@ local COSMETICS = {
 }
 
 local blurSize = TweenableValue.new("IntValue", 0, ANIMATION_LENGTH * 0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-blurSize:BindToProperty(Instance.new("BlurEffect", Lighting), "Size")
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Parent = Lighting
+blurSize:BindToProperty(blurEffect, "Size")
 
 -- Whether or not special effects like blackground blur are enabled when a frame is opened
 local cosmeticsEnabled = Toggle.new(false, function(value)

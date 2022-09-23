@@ -1,86 +1,31 @@
 local Paths = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Shared = ReplicatedStorage.Modules
+local Modules = ReplicatedStorage.Modules
 local Packages = ReplicatedStorage.Packages
-local Constants = Shared.Constants
+local PathsUtil = require(Modules.Utils.PathsUtil)
 
-Paths.Modules = {}
 Paths.Initialized = false
 
--- Intellisense
-if false then
-    -- Constants
-    Paths.Modules["GameConstants"] = require(Constants.GameConstants)
-    Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
-    Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
+-- Curate Modules
+-- `Modules` has intellisense + actual access to files under: Modules, Packages, Paths
+local directories: { Instance } = { Modules, Packages, script }
+local modules: (typeof(Modules) & typeof(Packages) & typeof(script)) | table = PathsUtil.createModules(directories)
+Paths.Modules = modules
 
-    -- Packages
-    Paths.Modules["Promise"] = require(Packages.promise)
-    Paths.Modules["Maid"] = require(Packages.maid)
-    Paths.Modules["Cmdr"] = require(Packages.cmdr)
+-- Loading Coroutine
+task.delay(0, function()
+    -- Require necessary files
+    local requiredModulesInOrder = {
+        -- Systems
+        require(modules.PlayerData),
+        require(modules.PlayerLoader),
+        require(modules.AnalyticsTracking),
+        require(modules.Vehicles),
+        require(modules.Cmdr.CmdrService),
+    }
 
-    -- Shared
-    Paths.Modules["Remotes"] = require(Shared.Remotes)
-    Paths.Modules["Signal"] = require(Shared.Signal)
-    Paths.Modules["StateMachine"] = require(Shared.StateMachine)
-    Paths.Modules["Limiter"] = require(Shared.Limiter)
-
-    -- Utils
-    Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
-    Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
-    Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
-    Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
-    Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
-
-    --
-    Paths.Modules["PlayerData"] = require(script.PlayerData)
-    Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
-    Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
-    Paths.Modules["Vehicles"] = require(script.Vehicles)
-end
-
-function Paths.initialize()
-    -- Init Modules
-    local ping = tick()
-    do
-        -- Constants
-        Paths.Modules["GameConstants"] = require(Constants.GameConstants)
-        Paths.Modules["VehicleConstants"] = require(Constants.VehicleConstants)
-        Paths.Modules["FrameworkConstants"] = require(Constants.FrameworkConstants)
-
-        -- Packages
-        Paths.Modules["Promise"] = require(Packages.promise)
-        Paths.Modules["Maid"] = require(Packages.maid)
-
-        -- Shared
-        Paths.Modules["Remotes"] = require(Shared.Remotes)
-        Paths.Modules["Signal"] = require(Shared.Signal)
-        Paths.Modules["StateMachine"] = require(Shared.StateMachine)
-        Paths.Modules["Limiter"] = require(Shared.Limiter)
-
-        -- Utils
-        Paths.Modules["TableUtil"] = require(Shared.Utils.TableUtil)
-        Paths.Modules["DataUtil"] = require(Shared.Utils.DataUtil)
-        Paths.Modules["InteractionUtil"] = require(Shared.Utils.InteractionUtil)
-        Paths.Modules["VehicleUtil"] = require(Shared.Utils.VehicleUtil)
-        Paths.Modules["CmdrUtil"] = require(Shared.Utils.CmdrUtil)
-
-        --
-        Paths.Modules["PlayerData"] = require(script.PlayerData)
-        Paths.Modules["AnalyticsTracking"] = require(script.AnalyticsTracking)
-        Paths.Modules["PlayerLoader"] = require(script.PlayerLoader)
-        Paths.Modules["Vehicles"] = require(script.Vehicles)
-        Paths.Modules["CmdrService"] = require(script.Cmdr.CmdrService)
-    end
-
-    local pong = tick()
-    if Paths.Modules.FrameworkConstants.DisplayPingPong then
-        print(("Required all Server Modules in %.4fs"):format(pong - ping))
-    end
-
-    -- Logic
-    Paths.Initialized = true
-end
+    PathsUtil.runInitAndStart(requiredModulesInOrder)
+end)
 
 return Paths

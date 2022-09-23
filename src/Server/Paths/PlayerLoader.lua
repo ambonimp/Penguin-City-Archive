@@ -1,16 +1,20 @@
 -- Just a nice way to load an unload everything regarding a player in one place
+local PlayerLoader = {}
 
 local Players = game:GetService("Players")
-
 local Paths = require(script.Parent)
-local modules = Paths.Modules
+local Modules = Paths.Modules
+local PlayerData = require(Modules.PlayerData)
 
 Players.PlayerAdded:Connect(function(player)
-    modules["PlayerData"].loadPlayer(player)
+    PlayerData.loadPlayer(player)
 end)
+for _, player in pairs(Players:GetPlayers()) do
+    PlayerData.loadPlayer(player)
+end
 
 Players.PlayerRemoving:Connect(function(player)
-    modules["PlayerData"].unloadPlayer(player)
+    PlayerData.unloadPlayer(player)
 end)
 
-return {}
+return PlayerLoader

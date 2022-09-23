@@ -11,7 +11,7 @@ local specialFx = ui:WaitForChild("SpecialEffects")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
-function Transitions.blink(onHalfPoint: (...any) -> nil, alignCamera: boolean)
+function Transitions.blink(onHalfPoint: (...any) -> nil, alignCamera: boolean?)
     -- Tween In
     do
         local inTween = TweenService:Create(specialFx.Bloom, BLINK_TWEEN_INFO, { BackgroundTransparency = 0 })
