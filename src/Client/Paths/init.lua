@@ -33,7 +33,7 @@ Paths.Modules = modules
 task.delay(0, function()
     -- Require necessary files
     local Loader = require(modules.Loader)
-    local requiredModules = {
+    local requiredModulesInOrder = {
         -- Loader
         Loader,
 
@@ -48,27 +48,15 @@ task.delay(0, function()
         require(modules.UI.Screens.Vehicles.VehiclesUI),
     }
 
-    -- Sort by load order
-    table.sort(requiredModules, function(tbl1, tbl2)
-        local loadOrder1 = tbl1._loadOrder or 0
-        local loadOrder2 = tbl2._loadOrder or 0
-
-        if loadOrder1 ~= loadOrder2 then
-            return loadOrder1 < loadOrder2
-        end
-
-        return tostring(tbl1) < tostring(tbl2)
-    end)
-
     -- Run Init (Syncchronous)
-    for _, tbl in pairs(requiredModules) do
+    for _, tbl in pairs(requiredModulesInOrder) do
         if tbl.Init then
             tbl.Init()
         end
     end
 
     -- Run Start
-    for _, tbl in pairs(requiredModules) do
+    for _, tbl in pairs(requiredModulesInOrder) do
         if tbl.Start then
             task.spawn(tbl.Start)
         end
