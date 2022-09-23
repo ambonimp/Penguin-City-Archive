@@ -9,10 +9,10 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules
-local Toggle = Modules.Toggle
-local TweenUtil = Modules.TweenUtil
-local Binder = Modules.Binder
-local TweenableValue = Modules.TweenableValue
+local Toggle = require(Modules.Toggle)
+local TweenUtil = require(Modules.Utils.TweenUtil)
+local Binder = require(Modules.Binder)
+local TweenableValue = require(Modules.TweenableValue)
 
 local BINDING_KEY = "ScreenOpenAnimations"
 local ANIMATION_LENGTH = 0.3
