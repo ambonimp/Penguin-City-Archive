@@ -1,7 +1,6 @@
 local VehiclesUI = {}
 
 local Players = game:GetService("Players")
-local ServerScriptService = game:GetService("ServerScriptService")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Modules = Paths.Modules

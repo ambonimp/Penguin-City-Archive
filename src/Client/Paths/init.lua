@@ -12,7 +12,7 @@ Paths.Initialized = false
 -- Curate Modules
 -- `Modules` has intellisense + actual access to files under: Shared, Packages, Paths
 local directories: { Instance } = { Shared, Packages, script }
-local modules: typeof(Shared) & typeof(Packages) & typeof(script) = {}
+local modules: (typeof(Shared) & typeof(Packages) & typeof(script)) | table = {}
 
 for _, directory in pairs(directories) do
     for _, child in pairs(directory:GetChildren()) do
