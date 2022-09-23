@@ -13,6 +13,7 @@ local StateMachine = require(Paths.Shared.StateMachine)
 local SHOW_STATE_MACHINE_DEBUG = true
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
+local ui: PlayerGui = game:GetService("Players").LocalPlayer.PlayerGui
 
 -- Init
 do
@@ -36,6 +37,10 @@ end
 
 function UIController.getStateMachine()
     return stateMachine
+end
+
+function UIController.getScreen(screen: string): ScreenGui
+    return ui:WaitForChild(screen)
 end
 
 return UIController

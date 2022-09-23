@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
-local Ui = Paths.UI
+local UIController = require(Paths.Client.UI.UIController)
 
 type Task = {
     Scope: string,
@@ -17,7 +17,7 @@ local FULL = 1.1 -- Gradient has 0.1 ease thing
 
 local localPlayer = Players.LocalPlayer
 local character: Model, humanoidRootPart: Part
-local screen: ScreenGui = Ui:WaitForChild("LoadingScreen")
+local screen: ScreenGui = UIController.getScreen("LoadingScreen")
 local gradient: UIGradient = screen.Logo.Colored.UIGradient
 local skipBtn: ImageButton = screen.Skip
 local skipConn: RBXScriptConnection?

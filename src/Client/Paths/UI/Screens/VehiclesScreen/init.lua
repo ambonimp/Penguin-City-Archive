@@ -11,15 +11,14 @@ local Limiter = require(Paths.Shared.Limiter)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Vehicles: typeof(require(Paths.Client.Vehicles))
 
-local DEBOUNCE_SCOPE = "VehiclesUI"
+local DEBOUNCE_SCOPE = "VehiclesScreen"
 local DEBOUNCE_MOUNT = {
     Key = "MountVehicle",
     Timeframe = 0.5,
 }
 
-local ui = Paths.UI
 local templates = Paths.Templates.Vehicles
-local screenGui: ScreenGui = ui.Vehicles
+local screenGui: ScreenGui = UIController.getScreen("Vehicles")
 local menu: Frame = screenGui.Menu
 local menuList: ScrollingFrame = menu.List
 local dashboard: Frame = screenGui.Dashboard

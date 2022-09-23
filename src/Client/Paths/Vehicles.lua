@@ -8,7 +8,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local Maid = require(Paths.Packages.maid)
-local VehicleUI = require(Paths.Client.UI.Screens.Vehicles.VehiclesUI)
+local VehiclesScreen = require(Paths.Client.UI.Screens.VehiclesScreen)
 local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera
@@ -29,7 +29,7 @@ end
 
 local function drive(model)
     if char then
-        VehicleUI.openDashboard()
+        VehiclesScreen.openDashboard()
 
         VehicleUtil.new(player, model)
 

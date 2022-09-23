@@ -16,7 +16,7 @@ local client = script
 Paths.Client = client
 
 -- Misc
-Paths.UI = Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
+Paths.UI = Players.LocalPlayer.PlayerGui
 Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
@@ -36,7 +36,7 @@ task.delay(0, function()
         require(client.Vehicles),
 
         -- UI
-        require(client.UI.Screens.Vehicles.VehiclesUI),
+        require(client.UI.Screens.VehiclesScreen),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
