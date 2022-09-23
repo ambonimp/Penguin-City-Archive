@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DataUtil = {}
 
-local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 -- Splits a string or path and generates, all non-alphanumeric characters are delimiters except for underscores
 function DataUtil.keysFromPath(path)

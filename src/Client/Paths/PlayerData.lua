@@ -2,11 +2,10 @@ local PlayerData = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Signal = require(Modules.Signal)
-local Promise = require(Modules.promise)
-local Remotes = require(Modules.Remotes)
-local DataUtil = require(Modules.Utils.DataUtil)
+local Signal = require(Paths.Shared.Signal)
+local Promise = require(Paths.Packages.promise)
+local Remotes = require(Paths.Shared.Remotes)
+local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 local bank = {}
 PlayerData.Updated = Signal.new()

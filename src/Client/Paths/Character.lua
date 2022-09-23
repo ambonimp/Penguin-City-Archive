@@ -2,9 +2,8 @@ local Character = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Vehicles = require(Modules.Vehicles)
-local Loader = require(Modules.Loader)
+local Vehicles = require(Paths.Client.Vehicles)
+local Loader = require(Paths.Client.Loader)
 
 local localPlayer = Players.LocalPlayer
 

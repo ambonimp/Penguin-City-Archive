@@ -3,8 +3,8 @@ local Loader = {}
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local Ui = Paths.UI
-local TransitionFX = require(Paths.Modules.UI.Screens.SpecialEffects.Transitions)
 
 type Task = {
     Scope: string,

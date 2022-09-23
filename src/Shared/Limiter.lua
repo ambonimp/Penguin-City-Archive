@@ -1,7 +1,7 @@
 local Limiter = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 local debounces: { [any]: { [any]: number | nil } | nil } = {}
 
