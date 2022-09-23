@@ -40,7 +40,6 @@ function UIController.getStateMachine()
 end
 
 function UIController.Start()
-    print("START UICONTROLLER")
     -- Init Screens (any ModuleScript inside Screens with "Screen" in its name)
     do
         local screens = Modules.UI.Screens

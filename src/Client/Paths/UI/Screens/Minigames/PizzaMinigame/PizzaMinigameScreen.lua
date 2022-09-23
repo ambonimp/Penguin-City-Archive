@@ -20,11 +20,11 @@ function PizzaMinigameScreen.Init()
     do
         playButton:SetColor(UIConstants.Colors.Buttons.PlayGreen, true)
         playButton:SetText(PLAY_BUTTON_TEXT, true)
-        playButton:Mount(buttonsFrame.Play)
+        playButton:Mount(buttonsFrame.Play, true)
 
         instructionsButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
         instructionsButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
-        instructionsButton:Mount(buttonsFrame.Instructions)
+        instructionsButton:Mount(buttonsFrame.Instructions, true)
     end
 end
 

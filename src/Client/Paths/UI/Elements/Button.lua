@@ -136,7 +136,7 @@ function Button.new()
 
         -- Audio Feedback
         do
-            Sound.play("ButtonClick")
+            Sound.play("ButtonPress")
         end
     end
 
@@ -147,6 +147,11 @@ function Button.new()
 
             local goalPosition = UDim2.fromScale(0.5, 0)
             TweenUtil.tween(imageButton, tweenInfo, { Position = goalPosition })
+        end
+
+        -- Audio Feedback
+        do
+            Sound.play("ButtonRelease")
         end
     end
 
