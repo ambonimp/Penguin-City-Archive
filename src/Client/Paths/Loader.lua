@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 type Task = {
     Scope: string,
@@ -25,6 +26,7 @@ local tween: Tween?
 local playing = true
 local taskQueue: { Task } = {}
 local hasStartedLoading = false
+local uiStateMachine = UIController.getStateMachine()
 
 local function close()
     repeat
@@ -34,6 +36,8 @@ local function close()
     playing = false
 
     TransitionFX.blink(function()
+        uiStateMachine:Pop()
+
         humanoidRootPart.Anchored = false
         screen:Destroy()
     end)
@@ -59,6 +63,7 @@ function Loader.Start()
         error(".load has already been called!")
     end
     hasStartedLoading = true
+    uiStateMachine:Push(UIConstants.States.Loading)
 
     local totalTasks = #taskQueue
     local tasksCompleted = 0

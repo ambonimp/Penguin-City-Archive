@@ -2,6 +2,7 @@ local UIConstants = {}
 
 UIConstants.States = {
     Nothing = "Nothing",
+    Loading = "Loading",
     Vehicles = "Vehicles",
 }
 
@@ -14,6 +15,7 @@ UIConstants.Keybinds = {
 
 UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Nothing,
+    UIConstants.States.Loading,
 }
 
 UIConstants.Font = Enum.Font.GothamBold
