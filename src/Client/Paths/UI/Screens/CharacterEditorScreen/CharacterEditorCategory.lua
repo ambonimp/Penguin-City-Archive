@@ -23,6 +23,7 @@ function CharacterEditorCategory.new(categoryName: string)
     page.Parent = menu.Items
 
     local itemConstants = require(Paths.Shared.Constants.CharacterItems[categoryName .. "Constants"])
+    local canUnequip = itemConstants.All.None ~= nil
     local itemCount = TableUtil.length(itemConstants.All)
     local itemsOwned = DataController.get("Inventory." .. itemConstants.Path)
     local equippedItem: string?
@@ -88,11 +89,11 @@ function CharacterEditorCategory.new(categoryName: string)
         itemButton.MouseButton1Down:Connect(function()
             if isItemOwned(itemName) then
                 local itemIsEquipped = itemName == equippedItem
-                if categoryConstants.CanUnequip and itemIsEquipped then
+                if canUnequip and itemIsEquipped then
                     equippedItem = nil
                     itemButton.Equipped.Visible = false
 
-                    CharacterEditorScreen.saveAppearanceChange(categoryName, "None") --*
+                    CharacterEditorScreen.saveAppearanceChange(categoryName, "None")
                 end
 
                 if not itemIsEquipped then
