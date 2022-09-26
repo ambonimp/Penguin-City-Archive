@@ -5,7 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Assume = require(Paths.Shared.Assume)
-local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
+local Logger = require(Paths.Shared.Logger)
 
 type MinigameController = {
     startMinigame: (...any) -> nil,
@@ -19,7 +19,7 @@ local minigameToController: { [string]: MinigameController } = {
 
 -- Yields Server
 function MinigameController.play(minigame: string)
-    DebugUtil.debug(MinigameConstants.DoDebug, "MinigameController.play", minigame)
+    Logger.doDebug(MinigameConstants.DoDebug, "MinigameController.play", minigame)
 
     -- ERROR: No linked controller
     local minigameController = MinigameController.getControllerFromMinigame(minigame)
@@ -35,7 +35,7 @@ function MinigameController.play(minigame: string)
     -- Assume server response
     local assume = Assume.new(function()
         local serverResponse = Remotes.invokeServer("RequestToPlayMinigame", minigame)
-        DebugUtil.debug(MinigameConstants.DoDebug, ".play Assume", serverResponse)
+        Logger.doDebug(MinigameConstants.DoDebug, ".play Assume", serverResponse)
         return serverResponse
     end)
     assume:Check(function(scopeServerResponse: MinigameConstants.PlayRequest)
@@ -64,7 +64,7 @@ function MinigameController.getControllerFromMinigame(minigame: string)
 end
 
 function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
-    DebugUtil.debug(MinigameConstants.DoDebug, "MinigameController.stopPlaying")
+    Logger.doDebug(MinigameConstants.DoDebug, "MinigameController.stopPlaying")
 
     -- WARN: Not playing!
     if not currentSession then
