@@ -7,6 +7,7 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Sound = require(Paths.Shared.Sound)
 local Signal = require(Paths.Shared.Signal)
+local Limiter = require(Paths.Shared.Limiter)
 
 local BACK_COLOR_FACTOR = 0.75 -- How the color of the back is calculated; lower = more obvious
 local SELECT_COLOR_MIN_SAT = 0.05 -- If the saturation value is lower than this, we will manipulate its val instead
@@ -24,6 +25,8 @@ Button.Defaults = {
     Color = Color3.fromRGB(230, 156, 21),
     TextColor = Color3.fromRGB(255, 255, 255),
 }
+
+local idCounter = 0
 
 -- Applies a UICorner to the passed Instance with the default CornerRadius
 local function mountUICorner(instance: GuiObject)
@@ -43,6 +46,9 @@ function Button.new()
 
     local isSelected = false
     local isPressed = false
+    local pressedDebounce = 0
+    local id = idCounter
+    idCounter += 1
 
     local color = Button.Defaults.Color
     local cornerRadius = Button.Defaults.CornerRadius
@@ -327,6 +333,10 @@ function Button.new()
         return self
     end
 
+    function button:SetPressedDebounce(debounceTime: number)
+        pressedDebounce = debounceTime
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
@@ -343,7 +353,10 @@ function Button.new()
     button:GetMaid():GiveTask(imageButton.MouseButton1Up:Connect(function()
         -- Check before firing, as edge cases can exist (see mouseLeave())
         if isPressed then
-            button.Pressed:Fire()
+            local isFree = Limiter.debounce("Button", id, pressedDebounce)
+            if isFree then
+                button.Pressed:Fire()
+            end
         end
 
         mouseUp()
