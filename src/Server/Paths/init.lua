@@ -27,6 +27,7 @@ task.delay(0, function()
         require(server.AnalyticsTracking),
         require(server.Vehicles),
         require(server.Cmdr.CmdrService),
+        require(server.Minigames.MinigameService),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)

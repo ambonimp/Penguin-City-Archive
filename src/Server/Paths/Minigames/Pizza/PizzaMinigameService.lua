@@ -8,8 +8,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
+local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 
 type RecipeRecord = {
     WasCorrect: boolean,
@@ -38,6 +40,8 @@ local MIN_RECIPE_TIMES = {
 local playerDatas: { [Player]: PlayerData } = {}
 
 function PizzaMinigameService.startMinigame(player: Player)
+    DebugUtil.debug(MinigameConstants.DoDebug, "PizzaMinigameService.startMinigame", player)
+
     -- Init PlayerData
     local playerData: PlayerData = {
         RecipeOrder = {},
@@ -56,6 +60,8 @@ function PizzaMinigameService.startMinigame(player: Player)
 end
 
 function PizzaMinigameService.stopMinigame(player: Player)
+    DebugUtil.debug(MinigameConstants.DoDebug, "PizzaMinigameService.stopMinigame", player)
+
     -- Get PlayerData
     local playerData = playerDatas[player]
 

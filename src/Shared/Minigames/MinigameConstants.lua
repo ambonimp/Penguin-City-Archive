@@ -11,4 +11,6 @@ MinigameConstants.Minigames = {
     Pizza = "Pizza",
 }
 
+MinigameConstants.DoDebug = true
+
 return MinigameConstants

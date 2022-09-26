@@ -9,6 +9,7 @@ local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 type MinigameService = {
@@ -23,6 +24,8 @@ local minigameToService: { [string]: MinigameService } = {
 }
 
 function MinigameService.requestToPlay(player: Player, minigame: string): MinigameConstants.PlayRequest
+    DebugUtil.debug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", player)
+
     -- ERROR: No linked service
     local minigameService = MinigameService.getServiceFromMinigame(minigame)
     if not minigameService then
@@ -31,7 +34,9 @@ function MinigameService.requestToPlay(player: Player, minigame: string): Miniga
 
     local existingSession = playSessions[player]
     if existingSession then
-        return { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
+        local playRequest = { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
+        DebugUtil.debug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", playRequest.Error)
+        return playRequest
     end
 
     -- Create MinigameConstants.Session
@@ -59,9 +64,13 @@ function MinigameService.getServiceFromMinigame(minigame: string)
 end
 
 function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequest
+    DebugUtil.debug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", player)
+
     -- WARN: Not playing!
     if not playSessions[player] then
-        return { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
+        local playRequest = { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
+        DebugUtil.debug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", playRequest.Error)
+        return playRequest
     end
 
     -- Stop Minigame
