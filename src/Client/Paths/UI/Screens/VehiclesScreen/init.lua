@@ -18,7 +18,7 @@ local DEBOUNCE_MOUNT = {
 }
 
 local templates = Paths.Templates.Vehicles
-local screenGui: ScreenGui = UIController.getScreen("Vehicles")
+local screenGui: ScreenGui = Paths.UI.Vehicles
 local menu: Frame = screenGui.Menu
 local menuList: ScrollingFrame = menu.List
 local dashboard: Frame = screenGui.Dashboard

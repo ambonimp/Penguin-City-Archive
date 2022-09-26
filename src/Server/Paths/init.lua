@@ -1,8 +1,8 @@
 local Paths = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Modules = ReplicatedStorage.Shared
-local PathsUtil = require(Modules.Utils.PathsUtil)
+local Shared = ReplicatedStorage.Shared
+local PathsUtil = require(Shared.Utils.PathsUtil)
 
 -- File Directories
 local shared = ReplicatedStorage.Shared
@@ -34,8 +34,8 @@ end)
 
 -- Detect deprecated framework usage
 Paths.__index = function(_, index)
-    if index == "Modules" then
-        error("Paths.Modules is deprecated! Use (1) Paths.Shared (2) Paths.Packages (3) Paths.Server")
+    if index == "Shared" then
+        error("Paths.Shared is deprecated! Use (1) Paths.Shared (2) Paths.Packages (3) Paths.Server")
     end
 end
 

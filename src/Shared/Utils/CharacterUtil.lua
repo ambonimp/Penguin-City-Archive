@@ -20,8 +20,24 @@ local HIDEABLE_CLASSES = {
     BillboardGui = { Property = "Enabled", HideValue = false },
 }
 
-local session = Maid.new()
+local hidingSession = Maid.new()
 local hidden: { [Instance]: { Property: string, UnhideValue: any } }?
+local areCharactersHidden = Toggle.new(false, function(value)
+    if value then
+        hidden = {}
+        hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
+        for _, player in Players:GetPlayers() do
+            hidePlayer(player)
+        end
+    else
+        for instance, instructions in hidden do
+            instance[instructions.Property] = instructions.UnhideValue
+        end
+
+        hidden = nil
+        hidingSession:Cleanup()
+    end
+end)
 
 function hideInstance(instance: Instance)
     -- Iterate through the classes rather than use ClassName in order to account for parent classes
@@ -37,7 +53,7 @@ end
 
 function hideCharacter(char: Model)
     if char then
-        session:GiveTask(char.DescendantAdded:Connect(hideInstance))
+        hidingSession:GiveTask(char.DescendantAdded:Connect(hideInstance))
         for _, descendant in pairs(char:GetDescendants()) do
             hideInstance(descendant)
         end
@@ -46,25 +62,16 @@ end
 
 function hidePlayer(player: Player)
     hideCharacter(player.Character)
-    session:GiveTask(player.CharacterAdded:Connect(hideCharacter))
+    hidingSession:GiveTask(player.CharacterAdded:Connect(hideCharacter))
 end
 
-CharacterUtil.AreCharactersHidden = Toggle.new(false, function(value)
-    if value then
-        hidden = {}
-        session:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
-        for _, player in Players:GetPlayers() do
-            hidePlayer(player)
-        end
-    else
-        for instance, instructions in hidden do
-            instance[instructions.Property] = instructions.UnhideValue
-        end
+function CharacterUtil.hideCharacters(requester: string)
+    areCharactersHidden:Set(true, requester)
+end
 
-        hidden = nil
-        session:Cleanup()
-    end
-end)
+function CharacterUtil.showCharacters(requester: string)
+    areCharactersHidden:Set(false, requester)
+end
 
 --[[
     Modifies a character's appearance based on their appearance description

@@ -31,10 +31,10 @@ blurSize:BindToProperty(blurEffect, "Size")
 local cosmeticsEnabled = Toggle.new(false, function(value)
     if value then
         blurSize:Set(COSMETICS.BlurSize)
-        CameraController.FOV:Set(COSMETICS.CameraFOV, IN_TWEEN_INFO)
+        CameraController.setFov(COSMETICS.CameraFOV, ANIMATION_LENGTH)
     else
         blurSize:Reset()
-        CameraController.FOV:Reset(IN_TWEEN_INFO)
+        CameraController.resetFov(ANIMATION_LENGTH)
     end
 end)
 

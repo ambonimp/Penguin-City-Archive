@@ -23,7 +23,7 @@ local CAM_OFFSET = 0
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 
 -- Members
-local screen: ScreenGui = UIController.getScreen("CharacterEditor")
+local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Appearance
 local categoryPages: Frame = menu.Items
 local uiStateMachine = UIController.getStateMachine()
@@ -89,7 +89,7 @@ function CharacterEditorScreen.openMenu(category: string?)
         CharacterEditorScreen.openCategory(category)
     end
 
-    CharacterUtil.AreCharactersHidden:Set(true, script.Name)
+    CharacterUtil.hideCharacters(script.Name)
     CameraController.lookAt(character, Vector3.new(0, 0, CAM_OFFSET))
     ScreenUtil.inLeft(menu)
 end
@@ -108,8 +108,8 @@ function CharacterEditorScreen.exitMenu()
         character.HumanoidRootPart.Anchored = false
     end
 
-    CharacterUtil.AreCharactersHidden:Set(false, script.Name)
-    CameraController.reset()
+    CharacterUtil.showCharacters(script.Name)
+    CameraController.setPlayerControl()
     ScreenUtil.out(menu)
 end
 

@@ -9,8 +9,8 @@ local CharacterEditorScreen = require(Paths.Client.UI.Screens.CharacterEditorScr
 local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditorScreen.CharacterEditorConstants)
 local DataController = require(Paths.Client.DataController)
 
-local templates: Folder = ReplicatedStorage.Templates.CharacterEditor
-local screen: ScreenGui = UIController.getScreen("CharacterEditor")
+local templates: Folder = Paths.Templates.CharacterEditor
+local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Appearance
 
 function CharacterEditorCategory.new(categoryName: string)
