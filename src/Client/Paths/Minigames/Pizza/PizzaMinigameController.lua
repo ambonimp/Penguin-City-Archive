@@ -6,11 +6,11 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Output = require(Paths.Shared.Output)
 
 function PizzaMinigameController.startMinigame()
-    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameController.startMinigame")
+    Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 end
 
 function PizzaMinigameController.stopMinigame()
-    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameController.stopMinigame")
+    Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 end
 
 return PizzaMinigameController

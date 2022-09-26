@@ -19,7 +19,7 @@ local minigameToController: { [string]: MinigameController } = {
 
 -- Yields Server
 function MinigameController.play(minigame: string)
-    Output.doDebug(MinigameConstants.DoDebug, "MinigameController.play", minigame)
+    Output.doDebug(MinigameConstants.DoDebug, "play", minigame)
 
     -- ERROR: No linked controller
     local minigameController = MinigameController.getControllerFromMinigame(minigame)
@@ -64,7 +64,7 @@ function MinigameController.getControllerFromMinigame(minigame: string)
 end
 
 function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
-    Output.doDebug(MinigameConstants.DoDebug, "MinigameController.stopPlaying")
+    Output.doDebug(MinigameConstants.DoDebug, "stopPlaying")
 
     -- WARN: Not playing!
     if not currentSession then

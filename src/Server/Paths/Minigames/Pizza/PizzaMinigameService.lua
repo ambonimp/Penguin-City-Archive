@@ -40,7 +40,7 @@ local MIN_RECIPE_TIMES = {
 local playerDatas: { [Player]: PlayerData } = {}
 
 function PizzaMinigameService.startMinigame(player: Player)
-    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.startMinigame", player)
+    Output.doDebug(MinigameConstants.DoDebug, "startMinigame", player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
@@ -60,7 +60,7 @@ function PizzaMinigameService.startMinigame(player: Player)
 end
 
 function PizzaMinigameService.stopMinigame(player: Player)
-    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.stopMinigame", player)
+    Output.doDebug(MinigameConstants.DoDebug, "stopMinigame", player)
 
     -- Get PlayerData
     local playerData = playerDatas[player]
