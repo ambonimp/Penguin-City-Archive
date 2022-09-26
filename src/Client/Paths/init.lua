@@ -32,9 +32,9 @@ task.delay(0, function()
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
         require(client.CameraController),
-        require(client.PlayerData),
+        require(client.DataController),
         require(client.CharacterController),
-        require(client.Vehicles),
+        require(client.VehicleController),
 
         -- UI
         require(client.UI.Screens.VehiclesScreen),

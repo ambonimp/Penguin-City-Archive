@@ -1,4 +1,4 @@
-local PlayerData = {}
+local DataController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -8,10 +8,10 @@ local Remotes = require(Paths.Shared.Remotes)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 local bank = {}
-PlayerData.Updated = Signal.new()
+DataController.Updated = Signal.new()
 
 -- We use paths on client too only bc it's convinient to copy same paths as client
-function PlayerData.get(path)
+function DataController.get(path)
     return DataUtil.getFromPath(bank, path)
 end
 
@@ -29,13 +29,13 @@ Remotes.bindEvents({
         loader:andThen(function() --- Ensures data has loaded before any changes are made, just in case
             DataUtil.setFromPath(bank, DataUtil.keysFromPath(path), newValue)
             if event then
-                PlayerData.Updated:Fire(event, newValue)
+                DataController.Updated:Fire(event, newValue)
             end
         end)
     end,
 })
 
--- No other PlayerData is initialized until data is received.
+-- No other module is initialized until data is received.
 loader:await()
 
-return PlayerData
+return DataController

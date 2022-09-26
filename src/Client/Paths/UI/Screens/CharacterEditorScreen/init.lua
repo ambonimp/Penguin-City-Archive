@@ -13,7 +13,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local PlayerData = require(Paths.Client.PlayerData)
+local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
 local CharacterEditorConstants = require(script.CharacterEditorConstants)
 local CharacterEditorCategory = typeof(script.CharacterEditorCategory)
@@ -70,7 +70,7 @@ function CharacterEditorScreen.openMenu(category: string?)
 
     appearanceChanges = {}
 
-    local appearanceDescription = PlayerData.get("Appearance")
+    local appearanceDescription = DataController.get("Appearance")
     for categoryName in CharacterEditorConstants do
         categories[categoryName]:EquipItem(appearanceDescription[categoryName])
     end

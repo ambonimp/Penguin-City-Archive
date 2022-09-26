@@ -1,4 +1,4 @@
-local Camera = {}
+local CameraController = {}
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -9,14 +9,14 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 
-Camera.FOV = TweenableValue.new("NumberValue", 70, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
-Camera.FOV:BindToProperty(camera, "FieldOfView")
+CameraController.FOV = TweenableValue.new("NumberValue", 70, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+CameraController.FOV:BindToProperty(camera, "FieldOfView")
 
 --[[
     Lock the player camera and it over so the subject is in view
 ]]
-function Camera.lookAt(subject: BasePart | Model, offset: Vector3, fov: number?): (Tween, CFrame)
-    fov = fov or Camera.FOV:GetGoal()
+function CameraController.lookAt(subject: BasePart | Model, offset: Vector3, fov: number?): (Tween, CFrame)
+    fov = fov or CameraController.FOV:GetGoal()
     local _, size
     if typeof(subject == "Model") then
         _, size = subject:GetBoundingBox()
@@ -35,7 +35,7 @@ end
 --[[
     Unlock the player camera and have it follow the character
 ]]
-function Camera.reset()
+function CameraController.reset()
     local character = player.Character
     if character then
         camera.CameraType = Enum.CameraType.Custom
@@ -43,4 +43,4 @@ function Camera.reset()
     end
 end
 
-return Camera
+return CameraController

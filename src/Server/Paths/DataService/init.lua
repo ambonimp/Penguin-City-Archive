@@ -4,7 +4,7 @@
         Why: We use paths, no way to tell if you want to use a number as an index or a key from the path alone
     - No spaces in keys, use underscores or preferably just camel case instead
 ]]
-local PlayerData = {}
+local DataService = {}
 
 local Players = game:GetService("Players")
 local Paths = require(script.Parent)
@@ -14,12 +14,12 @@ local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(script.ProfileService)
 local Config = require(script.Config)
 
-PlayerData.Profiles = {}
-PlayerData.Updated = Signal.new()
+DataService.Profiles = {}
+DataService.Updated = Signal.new()
 
 -- Gets
-function PlayerData.get(player, path)
-    local profile = PlayerData.Profiles[player]
+function DataService.get(player, path)
+    local profile = DataService.Profiles[player]
 
     if profile then
         return DataUtil.getFromPath(profile.Data, path)
@@ -30,15 +30,15 @@ function PlayerData.get(player, path)
 end
 
 -- Sets
-function PlayerData.set(player, path, newValue, event) -- sets the value using path
-    local profile = PlayerData.Profiles[player]
+function DataService.set(player, path, newValue, event) -- sets the value using path
+    local profile = DataService.Profiles[player]
 
     if profile then
         newValue = DataUtil.setFromPath(profile.Data, DataUtil.keysFromPath(path), newValue)
         Remotes.fireClient(player, "DataUpdated", path, newValue, event)
 
         if event then
-            PlayerData.Updated:Fire(event, player, newValue)
+            DataService.Updated:Fire(event, player, newValue)
         end
 
         return newValue
@@ -48,39 +48,39 @@ function PlayerData.set(player, path, newValue, event) -- sets the value using p
 end
 
 -- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function PlayerData.append(player, path, newValue, event)
+function DataService.append(player, path, newValue, event)
     local length = 0
-    for i in PlayerData.get(player, path) do
+    for i in DataService.get(player, path) do
         local index = tonumber(i)
         length = math.max(index, length)
     end
 
     local key = tostring(length + 1)
-    PlayerData.set(player, path .. "." .. key, newValue, event)
+    DataService.set(player, path .. "." .. key, newValue, event)
 
     return key
 end
 
 -- Increments a value at the path by the addend. Value defaults to 0, addend defaults to 1
-function PlayerData.increment(player, path, addend, event)
-    local currentValue = PlayerData.get(player, path)
-    return PlayerData.set(player, path, (currentValue or 0) + (addend or 1), event)
+function DataService.increment(player, path, addend, event)
+    local currentValue = DataService.get(player, path)
+    return DataService.set(player, path, (currentValue or 0) + (addend or 1), event)
 end
 
 -- Multiplies a value at the path by the multiplicand. No defaults
-function PlayerData.multiply(player, path, multiplicand, event)
-    local currentValue = PlayerData.get(player, path)
-    return PlayerData.set(player, path, currentValue * multiplicand, event)
+function DataService.multiply(player, path, multiplicand, event)
+    local currentValue = DataService.get(player, path)
+    return DataService.set(player, path, currentValue * multiplicand, event)
 end
 
-function PlayerData.wipe(player)
-    local profile = PlayerData.Profiles[player]
+function DataService.wipe(player)
+    local profile = DataService.Profiles[player]
     profile.Data = nil
 
     player:Kick("DATA WIPE " .. player.Name)
 end
 
-function PlayerData.loadPlayer(player)
+function DataService.loadPlayer(player)
     local profile = ProfileService.GetProfileStore(Config.DataKey, Config.getDefaults(player))
         :LoadProfileAsync(tostring(player.UserId), "ForceLoad")
 
@@ -88,12 +88,12 @@ function PlayerData.loadPlayer(player)
         profile:Reconcile()
 
         profile:ListenToRelease(function()
-            PlayerData.Profiles[player] = nil
+            DataService.Profiles[player] = nil
             player:Kick("Data profile released " .. player.Name)
         end)
 
         if player:IsDescendantOf(Players) then
-            PlayerData.Profiles[player] = profile
+            DataService.Profiles[player] = profile
             Remotes.fireClient(player, "DataInitialized", profile.Data)
         else
             profile:Release()
@@ -103,8 +103,8 @@ function PlayerData.loadPlayer(player)
     end
 end
 
-function PlayerData.unloadPlayer(player)
-    local profile = PlayerData.Profiles[player]
+function DataService.unloadPlayer(player)
+    local profile = DataService.Profiles[player]
     if profile then
         -- Data was wiped, reconcile so that stuff unloads properly
         if not profile.Data then
@@ -116,4 +116,4 @@ function PlayerData.unloadPlayer(player)
     end
 end
 
-return PlayerData
+return DataService

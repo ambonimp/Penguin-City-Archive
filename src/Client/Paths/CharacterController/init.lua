@@ -1,8 +1,8 @@
-local Players = game:GetService("Players")
-local Character = {}
+local CharacterController = {}
 
+local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Vehicles = require(Paths.Client.Vehicles)
+local VehicleController = require(Paths.Client.VehicleController)
 local Loader = require(Paths.Client.Loader)
 
 local Animate = script.Animate
@@ -17,7 +17,7 @@ function loadCharacter(character)
 
         if character then
             task.defer(function() -- Everything inside the character should be loaded
-                Vehicles.loadCharacter(character)
+                VehicleController.loadCharacter(character)
             end)
 
             local conn
@@ -30,7 +30,7 @@ function loadCharacter(character)
 end
 
 function unloadCharacter()
-    Vehicles.unloadCharacter()
+    VehicleController.unloadCharacter()
 end
 
 Loader.giveTask("Character", "LoadCharacter", function()
@@ -38,4 +38,4 @@ Loader.giveTask("Character", "LoadCharacter", function()
     localPlayer.CharacterAdded:Connect(loadCharacter)
 end)
 
-return Character
+return CharacterController

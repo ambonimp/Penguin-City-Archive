@@ -7,7 +7,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local CharacterEditorScreen = require(Paths.Client.UI.Screens.CharacterEditorScreen)
 local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditorScreen.CharacterEditorConstants)
-local PlayerDataController = require(Paths.Client.PlayerData)
+local DataController = require(Paths.Client.DataController)
 
 local templates: Folder = ReplicatedStorage.Templates.CharacterEditor
 local screen: ScreenGui = UIController.getScreen("CharacterEditor")
@@ -24,7 +24,7 @@ function CharacterEditorCategory.new(categoryName: string)
 
     local itemConstants = require(Paths.Shared.Constants.CharacterItems[categoryName .. "Constants"])
     local itemCount = TableUtil.length(itemConstants.All)
-    local itemsOwned = PlayerDataController.get("Inventory." .. itemConstants.Path)
+    local itemsOwned = DataController.get("Inventory." .. itemConstants.Path)
     local equippedItem: string?
 
     local function isItemOwned(itemName: string)

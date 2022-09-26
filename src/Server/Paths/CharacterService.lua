@@ -8,7 +8,7 @@ local Paths = require(ServerScriptService.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
-local PlayerDataService = require(Paths.Server.PlayerData)
+local DataService = require(Paths.Server.DataService)
 local CharacterItems = Paths.Shared.Constants.CharacterItems
 local CharacterItemConstants = {}
 
@@ -48,14 +48,14 @@ Remotes.bindFunctions({
         local character = client.Character
 
         if character then
-            local inventory = PlayerDataService.get(client, "Inventory")
+            local inventory = DataService.get(client, "Inventory")
 
             -- Verify that every item that's being changed into is owned or free
             for category, item in changes do
                 local constants = CharacterItemConstants[category]
                 if constants and (constants.All[item].Price == 0 or inventory[constants.Path][item]) then
                     CharacterUtil.applyAppearance(character, { [category] = item })
-                    PlayerDataService.set(client, "Appearance." .. category, item, "OnCharacterAppareanceChanged_" .. category)
+                    DataService.set(client, "Appearance." .. category, item, "OnCharacterAppareanceChanged_" .. category)
                 end
             end
         end
