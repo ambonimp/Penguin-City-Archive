@@ -36,7 +36,7 @@ local function getFunctionHandler(name: string): FunctionHandler
 
     handler = {}
     handler.Remote = IS_SERVER and InstanceUtil.new("RemoteFunction", tostring(name), functionFolder) or functionFolder:WaitForChild(name)
-    if not IS_STUDIO and IS_SERVER then -- anti hack
+    if not IS_STUDIO and not IS_SERVER then -- anti hack
         handler.Remote.Name = "NO WAY JOSE"
     end
 
@@ -64,7 +64,7 @@ local function getEventHandler(name: string): EventHandler
 
     handler = {}
     handler.Remote = IS_SERVER and InstanceUtil.new("RemoteEvent", name, eventFolder) or eventFolder:WaitForChild(name)
-    if not IS_STUDIO and IS_SERVER then -- anti hack
+    if not IS_STUDIO and not IS_SERVER then -- anti hack
         handler.Remote.Name = "YOUR MOM"
     end
 
