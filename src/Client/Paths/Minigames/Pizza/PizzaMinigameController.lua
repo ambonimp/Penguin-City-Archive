@@ -11,6 +11,8 @@ local Camera = require(Paths.Client.Camera)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
 
+local FOV = 65
+
 local minigameFolder: Folder?
 local isStarted = false
 
@@ -26,7 +28,7 @@ function PizzaMinigameController.startMinigame(minigamesDirectory: Folder)
     --TODO Ensure that minigameFolder is fully loaded in
 
     Transitions.blink(function()
-        PizzaMinigameController.startViewing()
+        PizzaMinigameController.setupView()
     end)
 end
 
@@ -53,7 +55,7 @@ function PizzaMinigameController.play()
 
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
-        PizzaMinigameRunner.run()
+        PizzaMinigameRunner.run(minigameFolder)
     end)
 end
 
@@ -61,9 +63,10 @@ end
 -- Views
 -------------------------------------------------------------------------------
 
-function PizzaMinigameController.startViewing()
+function PizzaMinigameController.setupView()
     UIController.getStateMachine():PushIfMissing(UIConstants.States.PizzaMinigame)
     Camera.setScriptable()
+    Camera.setFov(FOV, 0)
 
     PizzaMinigameController.viewMenu()
 end
@@ -71,6 +74,7 @@ end
 function PizzaMinigameController.clearView()
     UIController.getStateMachine():Remove(UIConstants.States.PizzaMinigame)
     Camera.setPlayerControl()
+    Camera.resetFov(0)
 end
 
 function PizzaMinigameController.viewMenu()
