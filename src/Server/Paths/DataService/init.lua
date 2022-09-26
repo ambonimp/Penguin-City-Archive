@@ -18,7 +18,7 @@ DataService.Profiles = {}
 DataService.Updated = Signal.new()
 
 -- Gets
-function DataService.get(player, path)
+function DataService.get(player: Player, path: string): any
     local profile = DataService.Profiles[player]
 
     if profile then
@@ -30,7 +30,7 @@ function DataService.get(player, path)
 end
 
 -- Sets
-function DataService.set(player, path, newValue, event) -- sets the value using path
+function DataService.set(player: Player, path: string, newValue: any, event: string?) -- sets the value using path
     local profile = DataService.Profiles[player]
 
     if profile then
@@ -48,7 +48,7 @@ function DataService.set(player, path, newValue, event) -- sets the value using 
 end
 
 -- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function DataService.append(player, path, newValue, event)
+function DataService.append(player: Player, path: string, newValue: any, event: string?): string
     local length = 0
     for i in DataService.get(player, path) do
         local index = tonumber(i)
@@ -62,18 +62,18 @@ function DataService.append(player, path, newValue, event)
 end
 
 -- Increments a value at the path by the addend. Value defaults to 0, addend defaults to 1
-function DataService.increment(player, path, addend, event)
+function DataService.increment(player: Player, path: string, addend: number?, event: string?)
     local currentValue = DataService.get(player, path)
     return DataService.set(player, path, (currentValue or 0) + (addend or 1), event)
 end
 
 -- Multiplies a value at the path by the multiplicand. No defaults
-function DataService.multiply(player, path, multiplicand, event)
+function DataService.multiply(player: Player, path: string, multiplicand: number, event: string?)
     local currentValue = DataService.get(player, path)
     return DataService.set(player, path, currentValue * multiplicand, event)
 end
 
-function DataService.wipe(player)
+function DataService.wipe(player: Player)
     local profile = DataService.Profiles[player]
     profile.Data = nil
 
