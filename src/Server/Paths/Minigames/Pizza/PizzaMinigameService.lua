@@ -11,7 +11,7 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
-local Logger = require(Paths.Shared.Logger)
+local Output = require(Paths.Shared.Output)
 
 type RecipeRecord = {
     WasCorrect: boolean,
@@ -40,7 +40,7 @@ local MIN_RECIPE_TIMES = {
 local playerDatas: { [Player]: PlayerData } = {}
 
 function PizzaMinigameService.startMinigame(player: Player)
-    Logger.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.startMinigame", player)
+    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.startMinigame", player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
@@ -60,7 +60,7 @@ function PizzaMinigameService.startMinigame(player: Player)
 end
 
 function PizzaMinigameService.stopMinigame(player: Player)
-    Logger.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.stopMinigame", player)
+    Output.doDebug(MinigameConstants.DoDebug, "PizzaMinigameService.stopMinigame", player)
 
     -- Get PlayerData
     local playerData = playerDatas[player]

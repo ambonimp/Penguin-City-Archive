@@ -9,7 +9,7 @@ local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local Logger = require(Paths.Shared.Logger)
+local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 type MinigameService = {
@@ -24,7 +24,7 @@ local minigameToService: { [string]: MinigameService } = {
 }
 
 function MinigameService.requestToPlay(player: Player, minigame: string): MinigameConstants.PlayRequest
-    Logger.doDebug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", player)
+    Output.doDebug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", player)
 
     -- ERROR: No linked service
     local minigameService = MinigameService.getServiceFromMinigame(minigame)
@@ -35,7 +35,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string): Miniga
     local existingSession = playSessions[player]
     if existingSession then
         local playRequest = { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
-        Logger.doDebug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", playRequest.Error)
+        Output.doDebug(MinigameConstants.DoDebug, "MinigameService.requestToPlay", playRequest.Error)
         return playRequest
     end
 
@@ -64,12 +64,12 @@ function MinigameService.getServiceFromMinigame(minigame: string)
 end
 
 function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequest
-    Logger.doDebug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", player)
+    Output.doDebug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", player)
 
     -- WARN: Not playing!
     if not playSessions[player] then
         local playRequest = { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
-        Logger.doDebug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", playRequest.Error)
+        Output.doDebug(MinigameConstants.DoDebug, "MinigameService.stopPlaying", playRequest.Error)
         return playRequest
     end
 
