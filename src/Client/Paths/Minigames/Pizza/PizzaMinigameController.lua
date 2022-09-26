@@ -9,6 +9,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local PizzaMinigameScreen = require(Paths.Client.UI.Screens.Minigames.PizzaMinigame.PizzaMinigameScreen)
 local Camera = require(Paths.Client.Camera)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
 
 local minigameFolder: Folder?
 local isStarted = false
@@ -34,6 +35,7 @@ function PizzaMinigameController.stopMinigame()
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
     Transitions.blink(function()
+        PizzaMinigameRunner.stop()
         PizzaMinigameController.clearView()
     end)
 end
@@ -51,6 +53,7 @@ function PizzaMinigameController.play()
 
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
+        PizzaMinigameRunner.run()
     end)
 end
 
@@ -87,6 +90,9 @@ end
 do
     PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
         PizzaMinigameController.play()
+    end)
+    PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
+        warn("TODO Instructions")
     end)
 end
 
