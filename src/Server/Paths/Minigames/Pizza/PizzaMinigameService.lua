@@ -6,11 +6,10 @@ local PizzaMinigameService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local Modules = Paths.Modules
-local Remotes = require(Modules.Remotes)
-local TypeUtil = require(Modules.Utils.TypeUtil)
-local PizzaMinigameConstants = require(Modules.Minigames.Pizza.PizzaMinigameConstants)
-local PizzaMinigameUtil = require(Modules.Minigames.Pizza.PizzaMinigameUtil)
+local Remotes = require(Paths.Shared.Remotes)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
+local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
 
 type RecipeRecord = {
     WasCorrect: boolean,

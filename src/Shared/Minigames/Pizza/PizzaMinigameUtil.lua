@@ -3,7 +3,7 @@ local PizzaMinigameUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PizzaMinigameConstants = require(script.Parent.PizzaMinigameConstants)
 local MathUtil = require(ReplicatedStorage.Modules.Utils.MathUtil)
-local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
+local TableUtil = require(ReplicatedStorage.Paths.Shared.Utils.TableUtil)
 
 local TOTAL_TOPPINGS = TableUtil.length(PizzaMinigameConstants.Ingredients.Toppings)
 

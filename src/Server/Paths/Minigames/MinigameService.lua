@@ -6,48 +6,39 @@ local MinigameService = {}
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local Modules = Paths.Modules
-local Remotes = require(Modules.Remotes)
-local TypeUtil = require(Modules.Utils.TypeUtil)
-local TableUtil = require(Modules.Utils.TableUtil)
-local MinigameConstants = require(Modules.Minigames.MinigameConstants)
-
-type Session = {
-    Minigame: string,
-    Id: number,
-}
+local Remotes = require(Paths.Shared.Remotes)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 type MinigameService = {
     startMinigame: (player: Player, ...any) -> nil,
     stopMinigame: (player: Player, ...any) -> nil,
 }
 
-local playSessions: { [Player]: Session } = {}
+local playSessions: { [Player]: MinigameConstants.Session } = {}
 local sessionIdCounter = 0
 local minigameToService: { [string]: MinigameService } = {
-    [MinigameConstants.Minigames.Pizza] = require(Modules.Minigames.Pizza.PizzaMinigameService),
+    [MinigameConstants.Minigames.Pizza] = require(Paths.Server.Minigames.Pizza.PizzaMinigameService),
 }
 
---[[
-    - Returns a unique session ID if permission granted
-    - Returns nil otherwise (e.g., already playing a minigame)
-]]
-function MinigameService.requestToPlay(player: Player, minigame: string): Session | nil
+function MinigameService.requestToPlay(player: Player, minigame: string): MinigameConstants.PlayRequest
     -- ERROR: No linked service
     local minigameService = MinigameService.getServiceFromMinigame(minigame)
     if not minigameService then
         error(("No serviced linked to minigame %q"):format(minigame))
     end
 
-    if playSessions[player] then
-        return
+    local existingSession = playSessions[player]
+    if existingSession then
+        return { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
     end
 
-    -- Create Session
+    -- Create MinigameConstants.Session
     local sessionId = sessionIdCounter
     sessionIdCounter += 1
 
-    local session: Session = {
+    local session: MinigameConstants.Session = {
         Minigame = minigame,
         Id = sessionId,
     }
@@ -56,10 +47,10 @@ function MinigameService.requestToPlay(player: Player, minigame: string): Sessio
     -- Start Minigame
     minigameService.startMinigame(player)
 
-    return session
+    return { Session = session }
 end
 
-function MinigameService.getSession(player: Player): Session | nil
+function MinigameService.getSession(player: Player): MinigameConstants.Session | nil
     return playSessions[player]
 end
 
@@ -67,12 +58,10 @@ function MinigameService.getServiceFromMinigame(minigame: string)
     return minigameToService[minigame]
 end
 
--- - Returns true if a minigame session was stopped from this call
-function MinigameService.stopPlaying(player: Player)
+function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequest
     -- WARN: Not playing!
     if not playSessions[player] then
-        warn("Cannot stop playing for %s; they weren't playing in the first place!")
-        return false
+        return { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
     end
 
     -- Stop Minigame
@@ -80,10 +69,10 @@ function MinigameService.stopPlaying(player: Player)
     local minigameService = MinigameService.getServiceFromMinigame(session.Minigame)
     minigameService.stopMinigame(player)
 
-    -- Clear Session
+    -- Clear Cache
     playSessions[player] = nil
 
-    return true
+    return { Session = session }
 end
 
 -- Clear Cache

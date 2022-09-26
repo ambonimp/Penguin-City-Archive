@@ -2,10 +2,9 @@ local PizzaMinigameScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
 local Ui = Paths.UI
-local Button = require(Modules.UI.Elements.Button)
-local UIConstants = require(Modules.UI.UIConstants)
+local Button = require(Paths.Client.UI.Elements.Button)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local PLAY_BUTTON_TEXT = "Play Pizza"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
