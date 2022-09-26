@@ -9,6 +9,7 @@ local Remotes = require(Paths.Shared.Remotes)
 function CmdrService.invokeClientLogic(client: Player, commandName: string, ...: any)
     Remotes.fireClient(client, "CmdrRunClientLogic", commandName, ...)
 end
+Remotes.declareEvent("CmdrRunClientLogic")
 
 -- Takes a while to load, so put on a separate thread
 task.spawn(function()
