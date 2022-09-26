@@ -8,7 +8,7 @@ local Assume = require(Paths.Shared.Assume)
 local Output = require(Paths.Shared.Output)
 
 type MinigameController = {
-    startMinigame: (...any) -> nil,
+    startMinigame: (minigamesDirectory: Folder, ...any) -> nil,
     stopMinigame: (...any) -> nil,
 }
 
@@ -16,6 +16,7 @@ local currentSession: MinigameConstants.Session | nil
 local minigameToController: { [string]: MinigameController } = {
     [MinigameConstants.Minigames.Pizza] = require(Paths.Client.Minigames.Pizza.PizzaMinigameController),
 }
+local minigamesDirectory = game.Workspace:WaitForChild("Minigames")
 
 -- Yields Server
 function MinigameController.play(minigame: string)
@@ -48,7 +49,7 @@ function MinigameController.play(minigame: string)
         minigameController.stopMinigame()
     end)
     assume:Run(function()
-        minigameController.startMinigame()
+        minigameController.startMinigame(minigamesDirectory)
     end)
 
     local serverResponse = assume:Await()
