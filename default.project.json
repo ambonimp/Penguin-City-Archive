@@ -13,7 +13,7 @@
             "$className": "ReplicatedStorage",
             "$ignoreUnknownInstances": true,
 
-            "Modules": {
+            "Shared": {
                 "$className": "Folder",
                 "$path": "src/Shared"
             },

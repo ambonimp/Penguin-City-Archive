@@ -3,7 +3,7 @@ local TweenUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local shared = ReplicatedStorage.Modules
+local shared = ReplicatedStorage.Shared
 local Binder = require(shared.Binder)
 local packages = ReplicatedStorage.Packages
 local Promise = require(packages.promise)

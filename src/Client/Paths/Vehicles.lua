@@ -5,12 +5,11 @@ local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Remotes = require(Modules.Remotes)
-local InteractionUtil = require(Modules.Utils.InteractionUtil)
-local Maid = require(Modules.maid)
-local VehicleUI = require(Modules.UI.Screens.Vehicles.VehiclesUI)
-local VehicleUtil = require(Modules.Utils.VehicleUtil)
+local Remotes = require(Paths.Shared.Remotes)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
+local Maid = require(Paths.Packages.maid)
+local VehiclesScreen = require(Paths.Client.UI.Screens.VehiclesScreen)
+local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera
 local player = Players.LocalPlayer
@@ -30,7 +29,7 @@ end
 
 local function drive(model)
     if char then
-        VehicleUI.openDashboard()
+        VehiclesScreen.openDashboard()
 
         VehicleUtil.new(player, model)
 

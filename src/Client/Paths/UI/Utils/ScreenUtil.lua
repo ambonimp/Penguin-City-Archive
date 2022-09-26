@@ -8,11 +8,11 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Toggle = require(Modules.Toggle)
-local TweenUtil = require(Modules.Utils.TweenUtil)
-local Binder = require(Modules.Binder)
-local TweenableValue = require(Modules.TweenableValue)
+local Toggle = require(Paths.Shared.Toggle)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local Binder = require(Paths.Shared.Binder)
+local TweenableValue = require(Paths.Shared.TweenableValue)
+local Camera = require(Paths.Client.Camera)
 
 local BINDING_KEY = "ScreenOpenAnimations"
 local ANIMATION_LENGTH = 0.3
@@ -31,10 +31,10 @@ blurSize:BindToProperty(blurEffect, "Size")
 local cosmeticsEnabled = Toggle.new(false, function(value)
     if value then
         blurSize:Set(COSMETICS.BlurSize)
-        Modules.Camera.FOV:Set(COSMETICS.CameraFOV, ANIMATION_LENGTH)
+        Camera.FOV:Set(COSMETICS.CameraFOV, ANIMATION_LENGTH)
     else
         blurSize:Reset()
-        Modules.Camera.FOV:Reset(ANIMATION_LENGTH)
+        Camera.FOV:Reset(ANIMATION_LENGTH)
     end
 end)
 

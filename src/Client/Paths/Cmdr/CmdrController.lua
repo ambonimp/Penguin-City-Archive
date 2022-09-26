@@ -3,7 +3,7 @@ local CmdrController = {}
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CmdrUtil = require(Paths.Modules.Utils.CmdrUtil)
+local CmdrUtil = require(Paths.Shared.Utils.CmdrUtil)
 local CmdrClient = require(ReplicatedStorage:WaitForChild("CmdrClient"))
 
 CmdrClient:SetActivationKeys({ Enum.KeyCode.Semicolon })

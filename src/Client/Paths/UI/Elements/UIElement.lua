@@ -2,8 +2,7 @@ local UIElement = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Maid = require(Modules.maid)
+local Maid = require(Paths.Packages.maid)
 
 function UIElement.new()
     local uiElement = {}

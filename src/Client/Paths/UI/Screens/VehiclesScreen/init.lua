@@ -3,24 +3,22 @@ local VehiclesUI = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local Remotes = require(Modules.Remotes)
-local VehicleConstants = require(Modules.Constants.VehicleConstants)
-local UIController = require(Modules.UI.UIController)
-local UIConstants = require(Modules.UI.UIConstants)
-local Limiter = require(Modules.Limiter)
-local ScreenUtil = require(Modules.UI.Utils.ScreenUtil)
-local Vehicles: typeof(require(Modules.Vehicles))
+local Remotes = require(Paths.Shared.Remotes)
+local VehicleConstants = require(Paths.Shared.Constants.VehicleConstants)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local Limiter = require(Paths.Shared.Limiter)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local Vehicles: typeof(require(Paths.Client.Vehicles))
 
-local DEBOUNCE_SCOPE = "VehiclesUI"
+local DEBOUNCE_SCOPE = "VehiclesScreen"
 local DEBOUNCE_MOUNT = {
     Key = "MountVehicle",
     Timeframe = 0.5,
 }
 
-local ui = Paths.UI
 local templates = Paths.Templates.Vehicles
-local screenGui: ScreenGui = ui.Vehicles
+local screenGui: ScreenGui = UIController.getScreen("Vehicles")
 local menu: Frame = screenGui.Menu
 local menuList: ScrollingFrame = menu.List
 local dashboard: Frame = screenGui.Dashboard
@@ -29,7 +27,7 @@ local closeButton: ImageButton = menu.Header.Close
 local uiStateMachine = UIController.getStateMachine()
 
 function VehiclesUI.Init()
-    Vehicles = require(Modules.Vehicles)
+    Vehicles = require(Paths.Client.Vehicles)
 end
 
 function VehiclesUI.openDashboard()

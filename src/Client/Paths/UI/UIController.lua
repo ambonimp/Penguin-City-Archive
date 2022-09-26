@@ -6,14 +6,14 @@ local UIController = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Modules = Paths.Modules
-local UIConstants = require(Modules.UI.UIConstants)
-local TableUtil = require(Modules.Utils.TableUtil)
-local StateMachine = require(Modules.StateMachine)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local StateMachine = require(Paths.Shared.StateMachine)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
+local ui: PlayerGui = game:GetService("Players").LocalPlayer.PlayerGui
 
 -- Init
 do
@@ -37,6 +37,10 @@ end
 
 function UIController.getStateMachine()
     return stateMachine
+end
+
+function UIController.getScreen(screen: string): ScreenGui
+    return ui:WaitForChild(screen)
 end
 
 function UIController.Start()

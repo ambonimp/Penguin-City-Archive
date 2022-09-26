@@ -3,8 +3,9 @@ local Loader = {}
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Ui = Paths.UI
-local TransitionFX = require(Paths.Modules.UI.Screens.SpecialEffects.Transitions)
+local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 type Task = {
     Scope: string,
@@ -17,7 +18,7 @@ local FULL = 1.1 -- Gradient has 0.1 ease thing
 
 local localPlayer = Players.LocalPlayer
 local character: Model, humanoidRootPart: Part
-local screen: ScreenGui = Ui:WaitForChild("LoadingScreen")
+local screen: ScreenGui = UIController.getScreen("LoadingScreen")
 local gradient: UIGradient = screen.Logo.Colored.UIGradient
 local skipBtn: ImageButton = screen.Skip
 local skipConn: RBXScriptConnection?
@@ -25,6 +26,7 @@ local tween: Tween?
 local playing = true
 local taskQueue: { Task } = {}
 local hasStartedLoading = false
+local uiStateMachine = UIController.getStateMachine()
 
 local function close()
     repeat
@@ -34,6 +36,8 @@ local function close()
     playing = false
 
     TransitionFX.blink(function()
+        uiStateMachine:Pop()
+
         humanoidRootPart.Anchored = false
         screen:Destroy()
     end)
@@ -59,6 +63,7 @@ function Loader.Start()
         error(".load has already been called!")
     end
     hasStartedLoading = true
+    uiStateMachine:Push(UIConstants.States.Loading)
 
     local totalTasks = #taskQueue
     local tasksCompleted = 0

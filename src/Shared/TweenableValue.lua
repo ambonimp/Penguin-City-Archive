@@ -9,7 +9,7 @@ function TweenableValue.new(
     easingStyle: Enum.EasingStyle,
     easingDirection: Enum.EasingDirection
 )
-    local self = {}
+    local tweenableValue = {}
 
     local initialValue = goal
     local tween: Tween?
@@ -20,7 +20,7 @@ function TweenableValue.new(
     --[[
         When the value changes, so does the instance's property
     ]]
-    function self:BindToProperty(instance: Instance, property: string)
+    function tweenableValue:BindToProperty(instance: Instance, property: string)
         instance[property] = valueInstance.Value
         valueInstance.Changed:Connect(function(newVal)
             instance[property] = newVal
@@ -30,7 +30,7 @@ function TweenableValue.new(
     --[[
         Cancels any ongoing tweens and tweens to new value
     ]]
-    function self:Set(newGoal: any, _length: number?)
+    function tweenableValue:Set(newGoal: any, _length: number?)
         if newGoal == goal then
             print("OH NO")
             return
@@ -44,28 +44,28 @@ function TweenableValue.new(
         tween:Play()
     end
 
-    function self:Get()
+    function tweenableValue:Get()
         return self.Value.Value
     end
 
     --[[
         Sets the value to the initial value
     ]]
-    function self:Reset(_length: number?)
+    function tweenableValue:Reset(_length: number?)
         self:Set(initialValue, _length)
     end
 
     --[[
         Pauses any ongoing tweens
     ]]
-    function self:Stop()
+    function tweenableValue:Stop()
         if tween then
             tween:Cancel()
             tween = nil
         end
     end
 
-    return self
+    return tweenableValue
 end
 
 return TweenableValue
