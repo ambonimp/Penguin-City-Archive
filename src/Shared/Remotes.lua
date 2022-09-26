@@ -106,7 +106,6 @@ local function getEventHandler(name: string): EventHandler
     return handler
 end
 
--- Bindings, pass a dictionary of remotes to create / connect to
 function Remotes.bindFunctions(callbacks: { [string]: FunctionCallback })
     for name, callback in pairs(callbacks) do
         assert(callback and typeof(callback) == "function", ("%s has no valid callback function assigned"):format(name))
@@ -166,6 +165,11 @@ if IS_SERVER then
                 Remotes.fireClient(player, eventName, ...)
             end
         end
+    end
+
+    -- Used to create an event that clients can immediately connect to, even if the Server will not fire it immediately
+    function Remotes.declareEvent(eventName: string)
+        getEventHandler(eventName)
     end
 else
     communicationFolder = ReplicatedStorage:WaitForChild("Communication")
