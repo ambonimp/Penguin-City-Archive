@@ -116,4 +116,9 @@ function PlayerData.unloadPlayer(player)
     end
 end
 
+-- Communication
+do
+    Remotes.declareEvent("DataUpdated")
+end
+
 return PlayerData
