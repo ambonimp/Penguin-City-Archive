@@ -91,7 +91,7 @@ do
     PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
         PizzaMinigameController.play()
     end)
-    PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
+    PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")
     end)
 end
