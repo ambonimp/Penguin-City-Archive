@@ -16,7 +16,7 @@ function PizzaMinigameUtil.rollRecipe(pizzaNumber: number)
         weightTable[recipeLabel] = weight
     end
 
-    local selectedRecipeLabel: string = MathUtil.selectKeyFromValueWeights(weightTable)
+    local selectedRecipeLabel: string = MathUtil.weightedChoice(weightTable)
     local recipe = PizzaMinigameConstants.Recipes[selectedRecipeLabel]
 
     return recipe
@@ -38,7 +38,7 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
 
     local toppings: { string } = {}
     for _ = 1, toppingsNeeded do
-        local selectedTopping: string = MathUtil.selectKeyFromValueWeights(weightTable)
+        local selectedTopping: string = MathUtil.weightedChoice(weightTable)
         table.insert(toppings, selectedTopping)
         weightTable[selectedTopping] = nil
     end
@@ -55,7 +55,7 @@ function PizzaMinigameUtil.rollSauce(pizzaNumber: number)
         weightTable[sauce] = weight
     end
 
-    return MathUtil.selectKeyFromValueWeights(weightTable) :: string
+    return MathUtil.weightedChoice(weightTable) :: string
 end
 
 function PizzaMinigameUtil.rollBase(pizzaNumber: number)
@@ -67,7 +67,7 @@ function PizzaMinigameUtil.rollBase(pizzaNumber: number)
         weightTable[base] = weight
     end
 
-    return MathUtil.selectKeyFromValueWeights(weightTable) :: string
+    return MathUtil.weightedChoice(weightTable) :: string
 end
 
 -- Gives the reward for completing this specific pizza number

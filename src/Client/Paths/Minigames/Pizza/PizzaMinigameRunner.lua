@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
+local Camera = require(Paths.Client.Camera)
 
 local RAYCAST_LENGTH = 100
 
@@ -34,6 +35,9 @@ function PizzaMinigameRunner.run(newMinigameFolder: Folder)
     runMaid:GiveTask(RunService.RenderStepped:Connect(function(dt)
         PizzaMinigameRunner.tick(dt)
     end))
+
+    -- MouseFollowing
+    runMaid:GiveTask(Camera.followMouse(10, 10))
 end
 
 function PizzaMinigameRunner.stop()

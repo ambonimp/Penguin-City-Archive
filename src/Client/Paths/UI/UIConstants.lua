@@ -5,6 +5,7 @@ UIConstants.States = {
     Loading = "Loading",
     Vehicles = "Vehicles",
     PizzaMinigame = "PizzaMinigame",
+    HUD = "HUD",
 }
 
 UIConstants.Keybinds = {
@@ -17,6 +18,10 @@ UIConstants.Keybinds = {
 UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
+}
+
+UIConstants.AllowHUDWith = {
+    UIConstants.States.Vehicles,
 }
 
 UIConstants.Font = Enum.Font.GothamBold

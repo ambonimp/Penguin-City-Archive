@@ -10,6 +10,7 @@ local PizzaMinigameScreen = require(Paths.Client.UI.Screens.Minigames.PizzaMinig
 local Camera = require(Paths.Client.Camera)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
+local Remotes = require(Paths.Shared.Remotes)
 
 local FOV = 65
 
@@ -88,9 +89,10 @@ function PizzaMinigameController.viewGameplay()
 end
 
 -------------------------------------------------------------------------------
--- UI Hooks
+-- Other
 -------------------------------------------------------------------------------
 
+-- UI Hooks
 do
     PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
         PizzaMinigameController.play()
@@ -98,6 +100,15 @@ do
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")
     end)
+end
+
+-- Communication
+do
+    Remotes.bindEvents({
+        PizzaMinigameRecipeOrder = function(...)
+            print("PizzaMinigameRecipeOrder", ...)
+        end,
+    })
 end
 
 return PizzaMinigameController

@@ -22,7 +22,7 @@ end
     Linearly map a value from one range to another. Input range must not be empty. This is the same as chaining Normalize from input range and Lerp to output range.
     Example: function(20, 10, 30, 50, 100) returns 75.
 ]]
-function MathUtil.map(value: number, inRangeStart: number, inRangeEnd: number, outRangeStart: number, outRangeEnd: number, clamp: boolean)
+function MathUtil.map(value: number, inRangeStart: number, inRangeEnd: number, outRangeStart: number, outRangeEnd: number, clamp: boolean?)
     local result = outRangeStart + (value - inRangeStart) * (outRangeEnd - outRangeStart) / (inRangeEnd - inRangeStart)
     if clamp then
         result = math.clamp(result, math.min(outRangeStart, outRangeEnd), math.max(outRangeStart, outRangeEnd))
@@ -152,7 +152,7 @@ end
     Encodes any large number supported by Lua into a database format that's smaller than 64 bits.
     12 significant figures are preserved, while the others are lost.
 ]]
-function MathUtil:EncodeLargeNumber(number: number, printDebug: boolean?)
+function MathUtil.encodeLargeNumber(number: number, printDebug: boolean?)
     --[[
         FORMAT = |V|SEEE|SMMMMMMMMMMMM|
              V = Version
@@ -269,7 +269,7 @@ end
     Returns a pseudorandom float uniformly distributed over [min, max].
 ]]
 function MathUtil.nextNumber(min: number, max: number)
-    return MathUtil.Lerp(min, max, internalRandom:NextNumber())
+    return MathUtil.lerp(min, max, internalRandom:NextNumber())
 end
 
 --[[
