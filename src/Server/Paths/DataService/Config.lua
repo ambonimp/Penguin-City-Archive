@@ -10,7 +10,7 @@ local Paths = require(ServerScriptService.Paths)
 
 local defaultInventory = {}
 
-DataConfig.DataKey = "DEV_1"
+DataConfig.DataKey = "DEV_2"
 function DataConfig.getDefaults(player)
     return {
         Appearance = {

@@ -36,6 +36,9 @@ function CharacterService.loadPlayer(player: Player)
     character.Parent = Workspace
     player.Character = character
 
+    -- Apply saved appearance
+    CharacterUtil.applyAppearance(character, DataService.get(player, "Appearance"))
+
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed
     humanoid.JumpPower = CharacterConstants.JumpPower
