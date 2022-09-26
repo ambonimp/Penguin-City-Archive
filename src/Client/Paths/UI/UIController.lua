@@ -13,7 +13,7 @@ local StateMachine = require(Paths.Shared.StateMachine)
 local SHOW_STATE_MACHINE_DEBUG = true
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
-local ui: PlayerGui = game:GetService("Players").LocalPlayer.PlayerGui
+local ui = Paths.UI
 
 -- Init
 do
@@ -41,6 +41,22 @@ end
 
 function UIController.getScreen(screen: string): ScreenGui
     return ui:WaitForChild(screen)
+end
+
+function UIController.Start()
+    -- Init Screens (any ModuleScript inside Screens with "Screen" in its name)
+    do
+        local screens = Paths.Client.UI.Screens
+        for _, instance in pairs(screens:GetDescendants()) do
+            local isScreenScript = instance:IsA("ModuleScript") and string.find(instance.Name, "Screen")
+            if isScreenScript then
+                local requiredScreen = require(instance)
+                if requiredScreen.Init then
+                    requiredScreen.Init()
+                end
+            end
+        end
+    end
 end
 
 return UIController
