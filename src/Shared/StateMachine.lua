@@ -327,6 +327,15 @@ function StateMachine:HasState(state: string): boolean
 end
 
 --[[
+    Will :Push() if the state is not in the stack at all
+]]
+function StateMachine:PushIfMissing(state: string, data: table?)
+    if not self:HasState(state) then
+        self:Push(state, data)
+    end
+end
+
+--[[
     Counts how many states are in the stack.
 ]]
 function StateMachine:GetStateCount(): number
