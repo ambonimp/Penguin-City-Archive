@@ -1,3 +1,6 @@
 [submodule "roblox-analytics-service"]
 	path = roblox-analytics-service
 	url = https://github.com/voldexroblox/roblox-analytics-service.git
+[submodule "roblox-admin-tools"]
+	path = roblox-admin-tools
+	url = https://github.com/voldexroblox/roblox-admin-tools.git
