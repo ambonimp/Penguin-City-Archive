@@ -1,5 +1,6 @@
 local CharacterUtil = {}
 
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
@@ -9,19 +10,21 @@ local Maid = require(Packages.maid)
 local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
 
-type Appearance = {
+export type CharacterAppearance = {
     BodyType: string,
 }
-export type CharacterAppearance = Appearance
 
 local HIDEABLE_CLASSES = {
-    BasePart = { Property = "Transparency", HideValue = 1 },
-    Decal = { Property = "Transparency", HideValue = 1 },
-    BillboardGui = { Property = "Enabled", HideValue = false },
+    BasePart = {
+        { Name = "Transparency", HideValue = 1 },
+        { Name = "CollisionGroupId", HideValue = PhysicsService:GetCollisionGroupId("HiddenCharacters") },
+    },
+    Decal = { Name = "Transparency", HideValue = 1 },
+    BillboardGui = { Name = "Enabled", HideValue = false },
 }
 
 local hidingSession = Maid.new()
-local hidden: { [Instance]: { Property: string, UnhideValue: any } }?
+local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
 local areCharactersHidden = Toggle.new(false, function(value)
     if value then
         hidden = {}
@@ -30,8 +33,10 @@ local areCharactersHidden = Toggle.new(false, function(value)
             hidePlayer(player)
         end
     else
-        for instance, instructions in hidden do
-            instance[instructions.Property] = instructions.UnhideValue
+        for instance, unhidingProperties in hidden do
+            for _, property in unhidingProperties do
+                instance[property.Name] = property.UnhideValue
+            end
         end
 
         hidden = nil
@@ -41,12 +46,15 @@ end)
 
 function hideInstance(instance: Instance)
     -- Iterate through the classes rather than use ClassName in order to account for parent classes
-    for class, instructions in HIDEABLE_CLASSES do
+    for class, hiddingProperties in HIDEABLE_CLASSES do
         if instance:IsA(class) then
-            local property: string = instructions.Property
+            hidden[instance] = {}
+            for _, property in hiddingProperties do
+                local name: string = property.Name
 
-            hidden[instance] = { Property = property, UnhideValue = instance[property] }
-            instance[property] = instructions.HideValue
+                table.insert(hidden[instance], { Name = name, UnhideValue = instance[name] })
+                instance[name] = property.HideValue
+            end
         end
     end
 end

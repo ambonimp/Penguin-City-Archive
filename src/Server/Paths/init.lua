@@ -22,6 +22,7 @@ task.delay(0, function()
     -- Require necessary files
     local requiredModulesInOrder = {
         -- Systems
+        require(server.PhysicsService),
         require(server.DataService),
         require(server.AnalyticsTracking),
         require(server.VehicleService),
