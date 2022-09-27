@@ -7,12 +7,12 @@ local Promise = require(Paths.Packages.promise)
 local Remotes = require(Paths.Shared.Remotes)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
-local bank = {}
+local bank: { [string]: any } = {}
 DataController.Updated = Signal.new()
 
--- We use paths on client too only bc it's convinient to copy same paths as client
-function DataController.get(path)
-    return DataUtil.getFromPath(bank, path)
+-- We use addresses on client too only bc it's convinient to copy same addresses as client
+function DataController.get(address: string)
+    return DataUtil.getFromAddress(bank, address)
 end
 
 local loader = Promise.new(function(resolve)
@@ -27,7 +27,7 @@ end)
 Remotes.bindEvents({
     DataUpdated = function(path, newValue, event)
         loader:andThen(function() --- Ensures data has loaded before any changes are made, just in case
-            DataUtil.setFromPath(bank, DataUtil.keysFromPath(path), newValue)
+            DataUtil.setFromAddress(bank, DataUtil.keysFromAddress(path), newValue)
             if event then
                 DataController.Updated:Fire(event, newValue)
             end

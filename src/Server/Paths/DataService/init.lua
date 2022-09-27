@@ -1,7 +1,7 @@
 --[[
     RULES
     - Everything is a dictionary, no integer indexes.
-        Why: We use paths, no way to tell if you want to use a number as an index or a key from the path alone
+        Why: We use addresses, no way to tell if you want to use a number as an index or a key from the address alone
     - No spaces in keys, use underscores or preferably just camel case instead
 ]]
 local DataService = {}
@@ -18,24 +18,24 @@ DataService.Profiles = {}
 DataService.Updated = Signal.new()
 
 -- Gets
-function DataService.get(player: Player, path: string): any
+function DataService.get(player: Player, address: string): any
     local profile = DataService.Profiles[player]
 
     if profile then
-        return DataUtil.getFromPath(profile.Data, path)
+        return DataUtil.getFromAddress(profile.Data, address)
     else
         warn(debug.traceback())
-        warn("Attempting to get data after release: \n\t Path:" .. path .. "\n\tPlayer: " .. player.Name)
+        warn("Attempting to get data after release: \n\t Address:" .. address .. "\n\tPlayer: " .. player.Name)
     end
 end
 
 -- Sets
-function DataService.set(player: Player, path: string, newValue: any, event: string?) -- sets the value using path
+function DataService.set(player: Player, address: string, newValue: any, event: string?) -- sets the value using address
     local profile = DataService.Profiles[player]
 
     if profile then
-        newValue = DataUtil.setFromPath(profile.Data, DataUtil.keysFromPath(path), newValue)
-        Remotes.fireClient(player, "DataUpdated", path, newValue, event)
+        newValue = DataUtil.setFromAddress(profile.Data, DataUtil.keysFromAddress(address), newValue)
+        Remotes.fireClient(player, "DataUpdated", address, newValue, event)
 
         if event then
             DataService.Updated:Fire(event, player, newValue)
@@ -43,34 +43,34 @@ function DataService.set(player: Player, path: string, newValue: any, event: str
 
         return newValue
     else
-        warn("Attempting to set data after release: \n\t Path:" .. path .. "\n\tPlayer: " .. player.Name)
+        warn("Attempting to set data after release: \n\t Address:" .. address .. "\n\tPlayer: " .. player.Name)
     end
 end
 
 -- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function DataService.append(player: Player, path: string, newValue: any, event: string?): string
+function DataService.append(player: Player, address: string, newValue: any, event: string?): string
     local length = 0
-    for i in DataService.get(player, path) do
+    for i in DataService.get(player, address) do
         local index = tonumber(i)
         length = math.max(index, length)
     end
 
     local key = tostring(length + 1)
-    DataService.set(player, path .. "." .. key, newValue, event)
+    DataService.set(player, address .. "." .. key, newValue, event)
 
     return key
 end
 
--- Increments a value at the path by the addend. Value defaults to 0, addend defaults to 1
-function DataService.increment(player: Player, path: string, addend: number?, event: string?)
-    local currentValue = DataService.get(player, path)
-    return DataService.set(player, path, (currentValue or 0) + (addend or 1), event)
+-- Increments a value at the address by the addend. Value defaults to 0, addend defaults to 1
+function DataService.increment(player: Player, address: string, addend: number?, event: string?)
+    local currentValue = DataService.get(player, address)
+    return DataService.set(player, address, (currentValue or 0) + (addend or 1), event)
 end
 
--- Multiplies a value at the path by the multiplicand. No defaults
-function DataService.multiply(player: Player, path: string, multiplicand: number, event: string?)
-    local currentValue = DataService.get(player, path)
-    return DataService.set(player, path, currentValue * multiplicand, event)
+-- Multiplies a value at the address by the multiplicand. No defaults
+function DataService.multiply(player: Player, address: string, multiplicand: number, event: string?)
+    local currentValue = DataService.get(player, address)
+    return DataService.set(player, address, currentValue * multiplicand, event)
 end
 
 function DataService.wipe(player: Player)
