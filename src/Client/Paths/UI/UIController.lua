@@ -42,6 +42,7 @@ function UIController.Start()
     -- Init Screens (any ModuleScript inside Screens with "Screen" in its name)
     do
         local screens = Paths.Client.UI.Screens
+        local startMethods: { () -> nil } = {}
         for _, instance in pairs(screens:GetDescendants()) do
             local isScreenScript = instance:IsA("ModuleScript") and string.find(instance.Name, "Screen")
             if isScreenScript then
@@ -49,7 +50,14 @@ function UIController.Start()
                 if requiredScreen.Init then
                     requiredScreen.Init()
                 end
+                if requiredScreen.Start then
+                    table.insert(startMethods, requiredScreen.Start)
+                end
             end
+        end
+
+        for _, startMethod in pairs(startMethods) do
+            task.spawn(startMethod)
         end
     end
 end

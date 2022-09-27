@@ -35,6 +35,7 @@ task.delay(0, function()
         require(client.DataController),
         require(client.CharacterController),
         require(client.VehicleController),
+        require(client.Input.InputController)
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
