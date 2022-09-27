@@ -16,6 +16,8 @@ local FOV = 65
 
 local minigameFolder: Folder?
 local isStarted = false
+local runner: typeof(PizzaMinigameRunner.new(Instance.new("Folder"), {})) | nil
+local cachedRecipeTypeOrder: { string } | nil
 
 -------------------------------------------------------------------------------
 -- Start/Stop
@@ -38,7 +40,11 @@ function PizzaMinigameController.stopMinigame()
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
     Transitions.blink(function()
-        PizzaMinigameRunner.stop()
+        if runner then
+            runner:Stop()
+            runner = nil
+        end
+
         PizzaMinigameController.clearView()
     end)
 end
@@ -52,11 +58,21 @@ function PizzaMinigameController.play()
     if not isStarted then
         error("Not started")
     end
+
+    -- ERROR: No cached recipe order
+    if not cachedRecipeTypeOrder then
+        error("No cached recipe order")
+    end
+
     Output.doDebug(MinigameConstants.DoDebug, "play!")
 
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
-        PizzaMinigameRunner.run(minigameFolder)
+
+        runner = PizzaMinigameRunner.new(minigameFolder, cachedRecipeTypeOrder)
+        runner:Run()
+
+        cachedRecipeTypeOrder = nil
     end)
 end
 
@@ -105,8 +121,8 @@ end
 -- Communication
 do
     Remotes.bindEvents({
-        PizzaMinigameRecipeOrder = function(...)
-            print("PizzaMinigameRecipeOrder", ...)
+        PizzaMinigameRecipeTypeOrder = function(recipeOrder: { string })
+            cachedRecipeTypeOrder = recipeOrder
         end,
     })
 end
