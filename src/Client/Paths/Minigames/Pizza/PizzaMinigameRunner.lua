@@ -8,6 +8,7 @@ local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local Camera = require(Paths.Client.Camera)
 
 local RAYCAST_LENGTH = 100
+local CAMERA_SWAY_MAX_ANGLE = 4
 
 local runMaid = Maid.new()
 local minigameFolder: Folder?
@@ -37,7 +38,7 @@ function PizzaMinigameRunner.run(newMinigameFolder: Folder)
     end))
 
     -- MouseFollowing
-    runMaid:GiveTask(Camera.followMouse(10, 10))
+    runMaid:GiveTask(Camera.followMouse(CAMERA_SWAY_MAX_ANGLE, CAMERA_SWAY_MAX_ANGLE))
 end
 
 function PizzaMinigameRunner.stop()
@@ -60,7 +61,7 @@ function PizzaMinigameRunner.tick(_dt)
     }, RAYCAST_LENGTH)
     currentHitbox = raycastResult and raycastResult.Instance
 
-    print("current hitbox:", currentHitbox)
+    --print("current hitbox:", currentHitbox)
 end
 
 return PizzaMinigameRunner
