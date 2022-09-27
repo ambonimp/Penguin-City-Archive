@@ -7,6 +7,11 @@ local debounces: { [any]: { [any]: number | nil } | nil } = {}
 
 -- Returns true if free
 function Limiter.debounce(scope, key, timeframe)
+    -- TRUE: Negligible timeframe
+    if timeframe <= 0 then
+        return true
+    end
+
     -- FALSE: Locked
     local lockedUntilTick = debounces[scope] and debounces[scope][key]
     local thisTick = tick()
