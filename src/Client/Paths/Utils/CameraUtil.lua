@@ -1,6 +1,8 @@
 local CameraUtil = {}
 
-local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 
 --[[
     Returns how far away from it's subject a camera should be positioned so that the subject's full height is in view
@@ -26,7 +28,7 @@ function CameraUtil.getFitDeph(viewportSize: Vector2, fov: number, subjectSize: 
 end
 
 --[[
-    Locks the camera and it over so the subject is in view
+    Locks the camera and pans over to the subject
 ]]
 function CameraUtil.lookAt(camera: Camera, subject: BasePart | Model, offset: Vector3, tweenInfo: TweenInfo?): (Tween, CFrame)
     camera.CameraType = Enum.CameraType.Scriptable
@@ -37,10 +39,7 @@ function CameraUtil.lookAt(camera: Camera, subject: BasePart | Model, offset: Ve
     local subjectCFrame: CFrame = if subject:IsA("Model") then subject:GetBoundingBox() else subject.CFrame
     local goal = subjectCFrame * CFrame.fromEulerAnglesYXZ(0, math.pi, 0) * CFrame.new(offset)
 
-    camera.CameraType = Enum.CameraType.Scriptable
-
-    local tween: Tween = TweenService:Create(camera, tweenInfo, { CFrame = goal })
-    tween:Play()
+    local tween = TweenUtil.tween(camera, tweenInfo, { CFrame = goal })
 
     return tween, goal
 end
