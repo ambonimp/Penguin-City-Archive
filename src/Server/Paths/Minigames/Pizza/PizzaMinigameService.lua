@@ -19,7 +19,7 @@ type RecipeRecord = {
 }
 
 type PlayerData = {
-    RecipeOrder: { string },
+    RecipeTypeOrder: { string },
     RecipeRecords: { RecipeRecord },
     StartTick: number,
 }
@@ -44,19 +44,20 @@ function PizzaMinigameService.startMinigame(player: Player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
-        RecipeOrder = {},
+        RecipeTypeOrder = {},
         RecipeRecords = {},
         StartTick = tick(),
     }
     playerDatas[player] = playerData
 
-    -- Generate Recipe Order
+    -- Generate RecipeTypeOrder
     for pizzaNumber = 1, PizzaMinigameConstants.MaxPizzas do
-        table.insert(playerData.RecipeOrder, PizzaMinigameUtil.rollRecipe(pizzaNumber))
+        local recipeLabel, _recipe = PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+        table.insert(playerData.RecipeTypeOrder, recipeLabel)
     end
 
     -- Inform client of their recipe order
-    Remotes.fireClient(player, "PizzaMinigameRecipeOrder", playerData.RecipeOrder)
+    Remotes.fireClient(player, "PizzaMinigameRecipeTypeOrder", playerData.RecipeTypeOrder)
 end
 
 function PizzaMinigameService.stopMinigame(player: Player)
@@ -77,9 +78,9 @@ function PizzaMinigameService.stopMinigame(player: Player)
 
     -- Verify completion time
     local minimumTime = 0
-    local recipeOrder = playerData.RecipeOrder
+    local recipeTypeOrder = playerData.RecipeTypeOrder
     for pizzaNumber = 1, totalPizzas do
-        local recipe = recipeOrder[pizzaNumber]
+        local recipe = recipeTypeOrder[pizzaNumber]
         local recipeMinTime = MIN_RECIPE_TIMES[recipe]
         minimumTime += recipeMinTime
     end
