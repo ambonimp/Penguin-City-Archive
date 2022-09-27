@@ -1,4 +1,4 @@
-local Vehicles = {}
+local VehicleService = {}
 
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
@@ -50,7 +50,7 @@ local function setNetworkOwner(model, owner)
     end
 end
 
-function Vehicles.unmountFromVehicle(player: Player)
+function VehicleService.unmountFromVehicle(player: Player)
     -- RETURN: No seat part found
     local seat: (BasePart | Seat)? = player.Character.Humanoid.SeatPart
     if not seat then
@@ -62,7 +62,7 @@ function Vehicles.unmountFromVehicle(player: Player)
     seat.Disabled = false
 end
 
-function Vehicles.mountVehicle(client: Player, vehicleName: string)
+function VehicleService.mountVehicle(client: Player, vehicleName: string)
     local prevVehicle = spawnedVehicles[client]
     if prevVehicle then
         prevVehicle:Destroy()
@@ -158,8 +158,8 @@ function Vehicles.mountVehicle(client: Player, vehicleName: string)
 end
 
 Remotes.bindEvents({
-    UnmountFromVehicle = Vehicles.unmountFromVehicle,
-    MountVehicle = Vehicles.mountVehicle,
+    UnmountFromVehicle = VehicleService.unmountFromVehicle,
+    MountVehicle = VehicleService.mountVehicle,
 })
 
-return Vehicles
+return VehicleService

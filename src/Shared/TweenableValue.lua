@@ -2,13 +2,7 @@ local TweenableValue = {}
 
 local TweenService = game:GetService("TweenService")
 
-function TweenableValue.new(
-    valueType: string,
-    goal: any,
-    length: (number | (old: any, new: any) -> number),
-    easingStyle: Enum.EasingStyle,
-    easingDirection: Enum.EasingDirection
-)
+function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo | (old: T, new: T) -> TweenInfo)
     local tweenableValue = {}
 
     local initialValue = goal
@@ -30,29 +24,32 @@ function TweenableValue.new(
     --[[
         Cancels any ongoing tweens and tweens to new value
     ]]
-    function tweenableValue:Set(newGoal: any, _length: number?)
+    function tweenableValue:Set(newGoal: T, _tweenInfo: TweenInfo?)
         if newGoal == goal then
-            print("OH NO")
             return
         end
 
-        self:Stop()
+        tweenableValue:Stop()
         goal = newGoal
 
-        _length = _length or if typeof(length) == "function" then length(valueInstance, goal) else length
-        tween = TweenService:Create(valueInstance, TweenInfo.new(_length, easingStyle, easingDirection), { Value = goal })
+        _tweenInfo = _tweenInfo or (if typeof(tweenInfo) == "function" then tweenInfo(goal, valueInstance.Value) else tweenInfo)
+        tween = TweenService:Create(valueInstance, _tweenInfo, { Value = goal })
         tween:Play()
     end
 
-    function tweenableValue:Get()
-        return self.Value.Value
+    function tweenableValue:Get(): T
+        return tweenableValue.Value.Value
+    end
+
+    function tweenableValue:GetGoal(): T
+        return goal
     end
 
     --[[
         Sets the value to the initial value
     ]]
-    function tweenableValue:Reset(_length: number?)
-        self:Set(initialValue, _length)
+    function tweenableValue:Reset(_tweenInfo: TweenInfo?)
+        tweenableValue:Set(initialValue, _tweenInfo)
     end
 
     --[[
