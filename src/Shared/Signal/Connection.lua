@@ -1,23 +1,17 @@
 local Connection = {}
 
-type Handler = () -> ()
+export type Handler = (...any) -> ()
 
-function Connection.new(handler: Handler, parent: { [number]: any })
-	local id = #parent + 1
+function Connection.new(handler: Handler, connections: { [number]: Handler })
+    local id = #connections + 1
 
-	local connection = {
-		Handler = handler,
-	}
+    local connection = {}
+    function connection:Disconnect()
+        connections[id] = nil
+    end
 
-	function connection:Disconnect()
-		parent[id] = nil
-	end
-
-	parent[id] = connection
-	return connection
+    connections[id] = handler
+    return connection
 end
-
-export type Connection = typeof(Connection.new(function() end, {}))
-export type ConnectionHandler = Handler
 
 return Connection
