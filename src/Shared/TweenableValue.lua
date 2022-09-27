@@ -24,7 +24,7 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
     --[[
         Cancels any ongoing tweens and tweens to new value
     ]]
-    function tweenableValue:Set(newGoal: T, _tweenInfo: TweenInfo?)
+    function tweenableValue:Tween(newGoal: T, customTweenInfo: TweenInfo?)
         if newGoal == goal then
             return
         end
@@ -32,8 +32,24 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         tweenableValue:Stop()
         goal = newGoal
 
-        _tweenInfo = _tweenInfo or (if typeof(tweenInfo) == "function" then tweenInfo(goal, valueInstance.Value) else tweenInfo)
-        tween = TweenService:Create(valueInstance, _tweenInfo, { Value = goal })
+        customTweenInfo = customTweenInfo or (if typeof(tweenInfo) == "function" then tweenInfo(goal, valueInstance.Value) else tweenInfo)
+        tween = TweenService:Create(valueInstance, customTweenInfo, { Value = goal })
+        tween:Play()
+    end
+
+    --[[
+        Cancels any ongoing tweens and tweens to new value in time `length`
+    ]]
+    function tweenableValue:Set(newGoal: any, length: number)
+        if newGoal == goal then
+            return
+        end
+
+        self:Stop()
+        goal = newGoal
+
+        tween =
+            TweenService:Create(valueInstance, TweenInfo.new(length, tweenInfo.EasingStyle, tweenInfo.EasingDirection), { Value = goal })
         tween:Play()
     end
 
@@ -48,8 +64,8 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
     --[[
         Sets the value to the initial value
     ]]
-    function tweenableValue:Reset(_tweenInfo: TweenInfo?)
-        tweenableValue:Set(initialValue, _tweenInfo)
+    function tweenableValue:Reset(customTweenInfo: TweenInfo?)
+        tweenableValue:Set(initialValue, customTweenInfo)
     end
 
     --[[
