@@ -1,4 +1,4 @@
-local Vehicles = {}
+local VehicleController = {}
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -36,7 +36,7 @@ local function drive(model)
         local _, y, _ = char.HumanoidRootPart.CFrame:ToEulerAnglesYXZ()
         local yaw = y
 
-        Vehicles.DrivingSession:GiveTask(RunService.Heartbeat:Connect(function(dt)
+        VehicleController.DrivingSession:GiveTask(RunService.Heartbeat:Connect(function(dt)
             local move = controls:GetMoveVector()
             VehicleUtil.updateMove(move)
 
@@ -56,7 +56,7 @@ local function drive(model)
             VehicleUtil.applyMoveFoce(dt)
         end))
 
-        Vehicles.DrivingSession:GiveTask(function()
+        VehicleController.DrivingSession:GiveTask(function()
             VehicleUtil.destroy()
 
             -- If unmount button is clicked, make player jump of seat
@@ -67,9 +67,9 @@ local function drive(model)
     end
 end
 
-Vehicles.DrivingSession = Maid.new()
+VehicleController.DrivingSession = Maid.new()
 
-function Vehicles.loadCharacter(character)
+function VehicleController.loadCharacter(character)
     char = character
     local hum = char.Humanoid
 
@@ -86,7 +86,7 @@ function Vehicles.loadCharacter(character)
     end)
 end
 
-function Vehicles.unloadCharacter()
+function VehicleController.unloadCharacter()
     char = nil
 
     togglePPConn:Disconnect()
@@ -113,7 +113,7 @@ Remotes.bindEvents({
                 if driverSeat.Occupant then
                     drive(vehicle)
                 else
-                    Vehicles.DrivingSession:Cleanup()
+                    VehicleController.DrivingSession:Cleanup()
                 end
             end)
         else
@@ -122,4 +122,4 @@ Remotes.bindEvents({
     end,
 })
 
-return Vehicles
+return VehicleController

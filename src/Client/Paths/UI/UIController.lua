@@ -13,7 +13,6 @@ local StateMachine = require(Paths.Shared.StateMachine)
 local SHOW_STATE_MACHINE_DEBUG = true
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
-local ui = Paths.UI
 
 -- Init
 do
@@ -37,10 +36,6 @@ end
 
 function UIController.getStateMachine()
     return stateMachine
-end
-
-function UIController.getScreen(screen: string): ScreenGui
-    return ui:WaitForChild(screen)
 end
 
 function UIController.Start()

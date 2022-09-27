@@ -16,7 +16,7 @@ local client = script
 Paths.Client = client
 
 -- Misc
-Paths.UI = Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
+Paths.UI = Players.LocalPlayer.PlayerGui
 Paths.Templates = ReplicatedStorage.Templates
 Paths.Initialized = false
 
@@ -31,14 +31,12 @@ task.delay(0, function()
         -- Systems
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
-        require(client.PlayerData),
-        require(client.Character),
-        require(client.Vehicles),
+        require(client.CameraController),
+        require(client.DataController),
+        require(client.CharacterController),
+        require(client.VehicleController),
+        require(client.Input.InputController)
         require(client.Minigames.MinigameController),
-        require(client.Input.InputController),
-
-        -- UI
-        require(client.UI.Screens.VehiclesScreen),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
