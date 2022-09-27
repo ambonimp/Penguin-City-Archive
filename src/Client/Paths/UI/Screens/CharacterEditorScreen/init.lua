@@ -16,114 +16,110 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
 local CharacterEditorConstants = require(script.CharacterEditorConstants)
-local CharacterEditorCategory = typeof(script.CharacterEditorCategory)
+local CharacterEditorCategory = require(script.CharacterEditorCategory)
 
 -- Constants
 local CAM_OFFSET = 0
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 
+local DEFAULT_CATEGORY = "BodyType"
+
 -- Members
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Appearance
 local categoryPages: Frame = menu.Items
+local categoryTabs: Frame = menu.Tabs
 local uiStateMachine = UIController.getStateMachine()
 
-local categories = {}
+local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
 local currentCategory: string
 local previewCharacter: Model
-local appearanceChanges: table
 
 local player = Players.LocalPlayer
 
--- Methods
-function CharacterEditorScreen.Init()
-    CharacterEditorCategory = require(script.CharacterEditorCategory)
+-- Initialize categories
+do
     for categoryName in CharacterEditorConstants do
         categories[categoryName] = CharacterEditorCategory.new(categoryName)
+
+        -- Routing
+        local page = categoryPages[categoryName]
+        local tab = categoryTabs[categoryName]
+
+        local function openTab()
+            if currentCategory == categoryName then
+                return
+            end
+
+            if currentCategory then
+                categoryPages[currentCategory].Visible = false
+            end
+
+            currentCategory = categoryName
+            page.Visible = true
+        end
+
+        tab.MouseButton1Down:Connect(openTab)
+        if categoryName == DEFAULT_CATEGORY then
+            openTab()
+        end
     end
-end
-
--- Invoke when something needs to previewed on the character
-function CharacterEditorScreen.previewAppearanceChange(categoryName: string, itemName: string)
-    appearanceChanges[categoryName] = itemName
-    CharacterUtil.applyAppearance(previewCharacter, { [categoryName] = itemName })
-end
-
-function CharacterEditorScreen.openCategory(category: string)
-    if currentCategory == category then
-        return
-    end
-
-    if currentCategory then
-        categoryPages[currentCategory].Visible = false
-    end
-
-    currentCategory = category
-    categoryPages[currentCategory].Visible = true
-end
-
-function CharacterEditorScreen.openMenu(category: string?)
-    local character = player.Character
-    if not character then
-        return
-    end
-
-    appearanceChanges = {}
-
-    local appearanceDescription = DataController.get("Appearance")
-    for categoryName in CharacterEditorConstants do
-        categories[categoryName]:EquipItem(appearanceDescription[categoryName])
-    end
-
-    -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    humanoidRootPart.Anchored = true
-
-    previewCharacter = character:Clone()
-    previewCharacter.Name = "CharacterEditorPreview"
-    previewCharacter.Parent = Workspace
-    previewCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
-
-    -- Open menu and make camera look at character, hide all other characters
-    if category then
-        CharacterEditorScreen.openCategory(category)
-    end
-
-    CharacterUtil.hideCharacters(script.Name)
-    CameraController.lookAt(character, Vector3.new(0, 0, CAM_OFFSET))
-    ScreenUtil.inLeft(menu)
-end
-
-function CharacterEditorScreen.exitMenu()
-    --Changes were made to the character's appearance
-    if TableUtil.length(appearanceChanges) ~= 0 then
-        -- Relay them to the server so they can be verified and applied
-        Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)
-    end
-
-    previewCharacter:Destroy()
-
-    local character = player.Character
-    if character then
-        character.HumanoidRootPart.Anchored = false
-    end
-
-    CharacterUtil.showCharacters(script.Name)
-    CameraController.setPlayerControl()
-    ScreenUtil.out(menu)
 end
 
 -- Register UIState
 do
-    local function enter()
-        CharacterEditorScreen.openMenu()
+    local function openMenu()
+        local character = player.Character
+        if not character then
+            return
+        end
+
+        -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        humanoidRootPart.Anchored = true
+
+        previewCharacter = character:Clone()
+        previewCharacter.Name = "CharacterEditorPreview"
+        previewCharacter.Parent = Workspace
+        previewCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
+
+        local appearanceDescription: CharacterEditorCategory.AppearanceChange = DataController.get("Appearance")
+        for name, category in categories do
+            category:EquipItem(appearanceDescription[name])
+            category:SetPreviewCharacter(previewCharacter)
+        end
+
+        -- Open menu and make camera look at character, hide all other characters
+        CharacterUtil.hideCharacters(script.Name)
+        CameraController.lookAt(character, Vector3.new(0, 0, CAM_OFFSET))
+        ScreenUtil.inLeft(menu)
     end
 
-    local function exit()
-        CharacterEditorScreen.exitMenu()
+    local function exitMenu()
+        previewCharacter:Destroy()
+
+        --Were changes were made to the character's appearance
+        local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
+        for _, category in categories do
+            TableUtil.merge(appearanceChanges, category:GetChanges())
+            category:SetPreviewCharacter("")
+        end
+        if TableUtil.length(appearanceChanges) ~= 0 then
+            -- If so, relay them to the server so they can be verified and applied
+            Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)
+        end
+
+        local character = player.Character
+        if character then
+            character.HumanoidRootPart.Anchored = false
+        end
+
+        CharacterUtil.showCharacters(script.Name)
+        CameraController.setPlayerControl()
+        ScreenUtil.out(menu)
     end
 
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.CharacterEditor, enter, exit)
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.CharacterEditor, openMenu, exitMenu)
 end
 
 -- Manipulate UIState

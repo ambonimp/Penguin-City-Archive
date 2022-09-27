@@ -1,13 +1,13 @@
 local CharacterEditorCategory = {}
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local UIController = require(Paths.Client.UI.UIController)
-local CharacterEditorScreen = require(Paths.Client.UI.Screens.CharacterEditorScreen)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditorScreen.CharacterEditorConstants)
 local DataController = require(Paths.Client.DataController)
+export type AppearanceChange = { [string]: string }
 
 local templates: Folder = Paths.Templates.CharacterEditor
 local screen: ScreenGui = Paths.UI.CharacterEditor
@@ -15,18 +15,31 @@ local menu: Frame = screen.Appearance
 
 function CharacterEditorCategory.new(categoryName: string)
     local category = {}
+
+    -- ERROR: Bad categoryName
     local categoryConstants = EditorConstants[categoryName]
+    if not categoryConstants then
+        error(string.format("Character item category '%s' does not exist", categoryName))
+    end
 
     local page: Frame = templates.Category:Clone()
     page.Name = categoryName
     page.Visible = false
     page.Parent = menu.Items
 
-    local itemConstants = require(Paths.Shared.Constants.CharacterItems[categoryName .. "Constants"])
-    local canUnequip = itemConstants.All.None ~= nil
-    local itemCount = TableUtil.length(itemConstants.All)
-    local itemsOwned = DataController.get("Inventory." .. itemConstants.Path)
+    local tabButton: ImageButton = templates.Tab:Clone()
+    tabButton.Name = categoryName
+    tabButton.Icon.Text = categoryName
+    tabButton.LayoutOrder = categoryConstants.LayoutOrder or 100
+    tabButton.Parent = menu.Tabs
+
+    local itemConstants = CharacterItems[categoryName]
+    local canUnequip: boolean = itemConstants.All.None ~= nil
+    local itemCount: number = TableUtil.length(itemConstants.All)
+    local itemsOwned: { [string]: any } = DataController.get("Inventory." .. itemConstants.Path)
     local equippedItem: string?
+    local appearanceChange: AppearanceChange = {}
+    local previewCharacter: Model?
 
     local function isItemOwned(itemName: string)
         return itemConstants.All[itemName].Price == 0 or itemsOwned[itemName]
@@ -55,22 +68,9 @@ function CharacterEditorCategory.new(categoryName: string)
         equippedItem = itemName
     end
 
-    function category:EquipItem(itemName: string)
-        onItemEquipped(itemName)
-    end
-
-    -- Loading
-    -- Tabs
-    local tabButton: ImageButton = templates.Tab:Clone()
-    tabButton.Icon.Text = categoryName
-    tabButton.LayoutOrder = categoryConstants.LayoutOrder or 100
-    tabButton.Parent = menu.Tabs
-    tabButton.MouseButton1Down:Connect(function()
-        CharacterEditorScreen.openCategory(categoryName)
-    end)
-
-    if categoryConstants.IsDefaultCategory then
-        CharacterEditorScreen.openCategory(categoryName)
+    local function onAppearanceChanged(itemName: string)
+        appearanceChange = { [categoryName] = itemName }
+        CharacterUtil.applyAppearance(previewCharacter, appearanceChange)
     end
 
     -- Items
@@ -93,17 +93,29 @@ function CharacterEditorCategory.new(categoryName: string)
                     equippedItem = nil
                     itemButton.Equipped.Visible = false
 
-                    CharacterEditorScreen.saveAppearanceChange(categoryName, "None")
+                    onAppearanceChanged("None")
                 end
 
                 if not itemIsEquipped then
                     onItemEquipped(itemName)
-                    CharacterEditorScreen.previewAppearanceChange(categoryName, itemName)
+                    onAppearanceChanged(itemName)
                 end
             else
                 -- TODO: Prompt purchase
             end
         end)
+    end
+
+    function category:EquipItem(itemName: string)
+        onItemEquipped(itemName)
+    end
+
+    function category:SetPreviewCharacter(character: Model?)
+        previewCharacter = character
+    end
+
+    function category:GetChanges(): AppearanceChange
+        return appearanceChange
     end
 
     return category

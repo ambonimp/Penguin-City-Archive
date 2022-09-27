@@ -8,7 +8,6 @@ function InstanceUtil.new(className, name: string, parent: Instance)
     return instance
 end
 
--- TODO: Needs a better name
 -- Wrapper for creating an instance with property values and children ideally in one line
 function InstanceUtil.tree(class: string, props: { [string]: any }, children: { Instance }?): Instance
     local instance = Instance.new(class)
