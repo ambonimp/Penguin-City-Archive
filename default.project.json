@@ -20,14 +20,21 @@
             "Packages": {
                 "$className": "Folder",
                 "$path": "Packages"
+            },
+
+            "VoldexAdmin": {
+              "$path": "roblox-admin-tools/src/ReplicatedStorage/VoldexAdmin"
             }
         },
 
         "ServerScriptService": {
             "$className": "ServerScriptService",
             "$ignoreUnknownInstances": true,
-            "$path": "src/Server"
+            "$path": "src/Server",
 
+            "VoldexAdmin": {
+              "$path": "roblox-admin-tools/src/ServerScriptService/VoldexAdmin"
+            }
         },
 
         "ServerStorage": {
@@ -72,12 +79,11 @@
 
                 "VoldexAnalytics" : {
                     "$path": "roblox-analytics-service/src/StarterPlayer/StarterPlayerScripts/AnalyticsClientInit.client.lua"
-                  }
-
+                },
+                "VoldexAdmin": {
+                  "$path": "roblox-admin-tools/src/StarterPlayer/StarterPlayerScripts/VoldexAdmin"
+                }
             }
-
         }
-
     }
-
 }
