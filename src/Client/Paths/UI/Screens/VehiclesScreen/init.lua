@@ -9,7 +9,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Limiter = require(Paths.Shared.Limiter)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local Vehicles: typeof(require(Paths.Client.Vehicles))
+local VehicleController: typeof(require(Paths.Client.VehicleController))
 
 local DEBOUNCE_SCOPE = "VehiclesScreen"
 local DEBOUNCE_MOUNT = {
@@ -18,7 +18,7 @@ local DEBOUNCE_MOUNT = {
 }
 
 local templates = Paths.Templates.Vehicles
-local screenGui: ScreenGui = UIController.getScreen("Vehicles")
+local screenGui: ScreenGui = Paths.UI.Vehicles
 local menu: Frame = screenGui.Menu
 local menuList: ScrollingFrame = menu.List
 local dashboard: Frame = screenGui.Dashboard
@@ -27,12 +27,12 @@ local closeButton: ImageButton = menu.Header.Close
 local uiStateMachine = UIController.getStateMachine()
 
 function VehiclesUI.Init()
-    Vehicles = require(Paths.Client.Vehicles)
+    VehicleController = require(Paths.Client.VehicleController)
 end
 
 function VehiclesUI.openDashboard()
     dashboard.Visible = true
-    Vehicles.DrivingSession:GiveTask(function()
+    VehicleController.DrivingSession:GiveTask(function()
         dashboard.Visible = false
     end)
 end
@@ -113,7 +113,7 @@ end
 -- Dismounting
 do
     dismountButton.MouseButton1Down:Connect(function()
-        Vehicles.DrivingSession:Cleanup()
+        VehicleController.DrivingSession:Cleanup()
     end)
 end
 

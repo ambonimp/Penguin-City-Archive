@@ -5,8 +5,6 @@
     Spring module
 --]]
 
--- TODO: Create a torsion spring
-
 local Spring = {}
 Spring.__index = Spring
 
