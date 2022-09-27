@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
-local Camera = require(Paths.Client.Camera)
+local CameraController = require(Paths.Client.CameraController)
 local InputController = require(Paths.Client.Input.InputController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
@@ -183,7 +183,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end))
 
         -- MouseFollowing
-        maid:GiveTask(Camera.followMouse(CAMERA_SWAY_MAX_ANGLE, CAMERA_SWAY_MAX_ANGLE))
+        maid:GiveTask(CameraController.followMouse(CAMERA_SWAY_MAX_ANGLE, CAMERA_SWAY_MAX_ANGLE))
 
         -- Cursor Input
         InputController.CursorDown:Connect(cursorDown)

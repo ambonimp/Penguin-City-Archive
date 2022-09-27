@@ -11,7 +11,7 @@ local PLAY_BUTTON_TEXT = "Play Pizza"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
 local DEBOUNCE_TIME = 0.2
 
-local screenGui: ScreenGui = Ui.Minigames.Pizza
+local screenGui: ScreenGui = Ui.Minigames.PizzaMinigame
 local buttonsFrame: Frame = screenGui.Buttons
 local playButton = Button.new()
 local instructionsButton = Button.new()

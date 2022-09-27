@@ -7,7 +7,7 @@ local Output = require(Paths.Shared.Output)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local PizzaMinigameScreen = require(Paths.Client.UI.Screens.Minigames.PizzaMinigame.PizzaMinigameScreen)
-local Camera = require(Paths.Client.Camera)
+local CameraController = require(Paths.Client.CameraController)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
 local Remotes = require(Paths.Shared.Remotes)
@@ -82,26 +82,26 @@ end
 
 function PizzaMinigameController.setupView()
     UIController.getStateMachine():PushIfMissing(UIConstants.States.PizzaMinigame)
-    Camera.setScriptable()
-    Camera.setFov(FOV, 0)
+    CameraController.setScriptable()
+    CameraController.setFov(FOV, 0)
 
     PizzaMinigameController.viewMenu()
 end
 
 function PizzaMinigameController.clearView()
     UIController.getStateMachine():Remove(UIConstants.States.PizzaMinigame)
-    Camera.setPlayerControl()
-    Camera.resetFov(0)
+    CameraController.setPlayerControl()
+    CameraController.resetFov(0)
 end
 
 function PizzaMinigameController.viewMenu()
     PizzaMinigameScreen.viewMenu()
-    Camera.viewCameraModel(minigameFolder.Cameras.Menu)
+    CameraController.viewCameraModel(minigameFolder.Cameras.Menu)
 end
 
 function PizzaMinigameController.viewGameplay()
     PizzaMinigameScreen.viewGameplay()
-    Camera.viewCameraModel(minigameFolder.Cameras.Gameplay)
+    CameraController.viewCameraModel(minigameFolder.Cameras.Gameplay)
 end
 
 -------------------------------------------------------------------------------
