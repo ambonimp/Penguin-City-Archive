@@ -7,7 +7,7 @@
 local DataUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 type Data = { [string]: (string | number | {}) }
 export type Store = Data
