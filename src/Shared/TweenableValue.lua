@@ -65,7 +65,7 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         Sets the value to the initial value
     ]]
     function tweenableValue:Reset(customTweenInfo: TweenInfo?)
-        tweenableValue:Set(initialValue, customTweenInfo)
+        tweenableValue:Tween(initialValue, customTweenInfo)
     end
 
     --[[
