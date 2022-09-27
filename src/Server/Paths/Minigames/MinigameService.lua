@@ -15,6 +15,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 type MinigameService = {
     startMinigame: (player: Player, ...any) -> nil,
     stopMinigame: (player: Player, ...any) -> nil,
+    [any]: any,
 }
 
 local playSessions: { [Player]: MinigameConstants.Session } = {}

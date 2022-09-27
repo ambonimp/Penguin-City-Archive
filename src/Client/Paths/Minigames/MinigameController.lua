@@ -10,6 +10,7 @@ local Output = require(Paths.Shared.Output)
 type MinigameController = {
     startMinigame: (minigamesDirectory: Folder, ...any) -> nil,
     stopMinigame: (...any) -> nil,
+    [any]: any,
 }
 
 local currentSession: MinigameConstants.Session | nil
