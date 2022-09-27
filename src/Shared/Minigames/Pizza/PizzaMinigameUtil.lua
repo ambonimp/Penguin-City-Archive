@@ -5,21 +5,27 @@ local PizzaMinigameConstants = require(script.Parent.PizzaMinigameConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
+export type Recipe = {
+    Base: string,
+    Sauce: string,
+    Toppings: { [string]: number },
+}
+
 local TOTAL_TOPPINGS = TableUtil.length(PizzaMinigameConstants.Ingredients.Toppings)
 
-function PizzaMinigameUtil.rollRecipe(pizzaNumber: number)
+function PizzaMinigameUtil.rollRecipeType(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
-    for recipeLabel, weightEquation in pairs(PizzaMinigameConstants.RecipeWeightEquations) do
+    for recipeLabel, weightEquation in pairs(PizzaMinigameConstants.RecipeTypeWeightEquations) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
         weightTable[recipeLabel] = weight
     end
 
     local selectedRecipeLabel: string = MathUtil.weightedChoice(weightTable)
-    local recipe = PizzaMinigameConstants.Recipes[selectedRecipeLabel]
+    local recipeType = PizzaMinigameConstants.RecipeTypes[selectedRecipeLabel]
 
-    return recipe
+    return selectedRecipeLabel, recipeType
 end
 
 function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: number)
@@ -70,10 +76,61 @@ function PizzaMinigameUtil.rollBase(pizzaNumber: number)
     return MathUtil.weightedChoice(weightTable) :: string
 end
 
+function PizzaMinigameUtil.rollRecipe(pizzaNumber: number, recipeType: PizzaMinigameConstants.RecipeType?)
+    recipeType = recipeType or PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+
+    local recipe: Recipe = {
+        Base = PizzaMinigameUtil.rollBase(pizzaNumber),
+        Sauce = PizzaMinigameUtil.rollSauce(pizzaNumber),
+        Toppings = {},
+    }
+
+    local toppings = PizzaMinigameUtil.rollToppings(pizzaNumber, #recipeType.Toppings)
+    for i, topping in pairs(toppings) do
+        recipe.Toppings[topping] = recipeType.Toppings[i]
+    end
+
+    return recipe
+end
+
 -- Gives the reward for completing this specific pizza number
 function PizzaMinigameUtil.calculatePizzaReward(pizzaNumber: number)
     local increaseCount = math.floor((pizzaNumber - 1) / PizzaMinigameConstants.Reward.IncreaseEvery)
     return PizzaMinigameConstants.Reward.Base + increaseCount * PizzaMinigameConstants.Reward.IncreaseBy
+end
+
+function PizzaMinigameUtil.getRecipeName(recipe: Recipe)
+    local ingredients = PizzaMinigameConstants.Ingredients
+    local totalToppings = TableUtil.length(recipe.Toppings)
+
+    -- No Toppings
+    if totalToppings == 0 then
+        if recipe.Base == ingredients.Bases.Cheese and recipe.Sauce == ingredients.Sauces.TomatoSauce then
+            return "Margherita"
+        end
+        if recipe.Base == ingredients.Bases.Cheese and recipe.Sauce == ingredients.Sauces.HotSauce then
+            return "Plain 'n' Spicy"
+        end
+
+        return "?No Toppings?"
+    end
+
+    -- Toppings
+    local prefix = recipe.Sauce == ingredients.Sauces.HotSauce and "Spicy " or ""
+
+    local toppingsCombo = ""
+    if totalToppings <= 3 then
+        local totalToppingsScribed = 0
+        for toppingName, _ in pairs(recipe.Toppings) do
+            local suffix = (totalToppingsScribed + 1) < totalToppings and "-" or ""
+            toppingsCombo ..= ("%s%s"):format(toppingName, suffix)
+            totalToppingsScribed += 1
+        end
+    else
+        toppingsCombo = "Bonanza"
+    end
+
+    return ("%s%s"):format(prefix, toppingsCombo)
 end
 
 return PizzaMinigameUtil
