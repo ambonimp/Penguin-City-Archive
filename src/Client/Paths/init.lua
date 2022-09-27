@@ -34,7 +34,7 @@ task.delay(0, function()
         require(client.PlayerData),
         require(client.Character),
         require(client.Vehicles),
-        require(client.Minigames.MinigameController),
+        require(client.Input.InputController),
 
         -- UI
         require(client.UI.Screens.VehiclesScreen),

@@ -1,6 +1,7 @@
 local TweenUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local shared = ReplicatedStorage.Shared
@@ -54,6 +55,57 @@ function TweenUtil.promisify(instance: Instance, tweenInfo: TweenInfo, goal: { [
             tween:Play()
         end)
     end
+end
+
+--[[
+    Every frame, will call `callback` with an alpha value which is calculated from the tweenInfo.
+
+    Returns an RBXScriptConnection that:
+    - Will automatically disconnect when the tween is completed
+    - You can disconnect at any time yourself!
+]]
+function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
+    local startTick = tick() + tweenInfo.DelayTime
+    local repeatsLeft = tweenInfo.RepeatCount
+
+    -- ERROR: I was too lazy
+    if tweenInfo.Reverses then
+        error("Not implemented yet.. sorry developer :c")
+    end
+
+    local connection: RBXScriptConnection
+    connection = RunService.RenderStepped:Connect(function()
+        -- RETURN: Delay time stops us from starting yet
+        local thisTick = tick()
+        if thisTick < startTick then
+            return
+        end
+
+        -- Calculate time
+        local timeElapsed = thisTick - startTick
+        local timeAlpha = math.clamp(timeElapsed / tweenInfo.Time, 0, 1)
+
+        -- Times up! What do?
+        if timeAlpha == 1 then
+            repeatsLeft -= 1
+            if repeatsLeft >= 0 then
+                -- Loop back
+                startTick += tweenInfo.Time
+            else
+                -- Exit
+                connection:Disconnect()
+            end
+
+            callback(1)
+            return
+        end
+
+        -- Tween
+        local tweenAlpha = TweenService:GetValue(timeAlpha, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
+        callback(tweenAlpha)
+    end)
+
+    return connection
 end
 
 return TweenUtil
