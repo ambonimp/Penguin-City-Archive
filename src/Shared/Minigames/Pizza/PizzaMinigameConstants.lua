@@ -1,8 +1,6 @@
 local PizzaMinigameConstants = {}
 
-type Recipe = {
-    Bases: number, -- How many base ingredients are needed
-    Sauces: number, -- How many sauces are needed
+export type RecipeType = {
     Toppings: { number } | nil, -- How many toppings are needed, and how many of each topping
 }
 
@@ -30,8 +28,8 @@ PizzaMinigameConstants.Ingredients = {
         Shrimp = "Shrimp",
     },
     Sauces = {
-        TomatoSauce = "Tomato Sauce",
-        HotSauce = "Hot Sauce",
+        TomatoSauce = "TomatoSauce",
+        HotSauce = "HotSauce",
     },
     Bases = {
         Cheese = "Cheese",
@@ -78,14 +76,14 @@ PizzaMinigameConstants.IngredientWeightEquations = {
     } :: { [string]: WeightEquation },
 }
 
-PizzaMinigameConstants.Recipes = {
-    A = { Bases = 1, Sauces = 1 },
-    B = { Bases = 1, Sauces = 1, Toppings = { 2, 2 } },
-    C = { Bases = 1, Sauces = 1, Toppings = { 1, 1, 1, 1 } },
-    D = { Bases = 1, Sauces = 1, Toppings = { 5 } },
-} :: { [string]: Recipe }
+PizzaMinigameConstants.RecipeTypes = {
+    A = { Toppings = {} },
+    B = { Toppings = { 2, 2 } },
+    C = { Toppings = { 1, 1, 1, 1 } },
+    D = { Toppings = { 5 } },
+} :: { [string]: RecipeType }
 
-PizzaMinigameConstants.RecipeWeightEquations = {
+PizzaMinigameConstants.RecipeTypeWeightEquations = {
     --[[
         We graph a recipes weight over time. At any given time, some recipes will be more likely to be chosen than others.
         In first ~11% of the game (at time of writing), only equation A gives a value greater than 0 - so only recipe A will be
