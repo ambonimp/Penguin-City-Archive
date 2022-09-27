@@ -35,7 +35,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local currentHitbox: BasePart | nil
     local hitboxParts: { BasePart } = {}
 
-    local pizzaLine: BasePart = minigameFolder.Hitboxes.PizzaLine
+    local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
     local pizzaStartCFrame = CFrame.new(pizzaLine.Position - (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
     local pizzaEndCFrame = CFrame.new(pizzaLine.Position + (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
 

@@ -1,7 +1,5 @@
 local MathUtil = {}
 
-local TableUtil = require(script.Parent.TableUtil)
-
 local LARGE_NUMBER_ENCODING_VERSION = 1
 
 local internalRandom = Random.new(os.time())

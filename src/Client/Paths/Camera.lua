@@ -8,7 +8,6 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TweenableValue = require(Paths.Shared.TweenableValue)
 local Maid = require(Paths.Packages.maid)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 
 -- We transform our followMopuse cframes into this object space for easy calculation
 local ZERO_VECTOR = Vector3.new(0, 0, 0)

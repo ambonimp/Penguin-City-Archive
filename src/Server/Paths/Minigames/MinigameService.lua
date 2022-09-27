@@ -15,6 +15,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 type MinigameService = {
     startMinigame: (player: Player, ...any) -> nil,
     stopMinigame: (player: Player, ...any) -> nil,
+    developerToLive: ((minigamesDirectory: Folder) -> nil)?, -- Optional method to clean up a minigame from "developer mode" to "live mode"
     [any]: any,
 }
 
@@ -115,6 +116,14 @@ do
             return MinigameService.stopPlaying(player)
         end,
     })
+end
+
+-- Developer to Live
+do
+    local minigamesDirectory = game.Workspace:WaitForChild("Minigames")
+    for _, minigameService in pairs(minigameToService) do
+        minigameService.developerToLive(minigamesDirectory)
+    end
 end
 
 return MinigameService

@@ -105,6 +105,18 @@ function PizzaMinigameService.stopMinigame(player: Player)
     playerDatas[player] = nil
 end
 
+function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
+    -- Hide Guides & Hitboxes
+    local minigameFolder = minigamesDirectory:WaitForChild("Pizza")
+    for _, directory: Instance in pairs({ minigameFolder.Guides, minigameFolder.Hitboxes }) do
+        for _, descendant: BasePart in pairs(directory:GetDescendants()) do
+            if descendant:IsA("BasePart") then
+                descendant.Transparency = 1
+            end
+        end
+    end
+end
+
 -- Setup Communication
 do
     Remotes.bindEvents({
