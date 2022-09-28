@@ -44,9 +44,15 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
 
     local toppings: { string } = {}
     for _ = 1, toppingsNeeded do
-        local selectedTopping: string = MathUtil.weightedChoice(weightTable)
-        table.insert(toppings, selectedTopping)
-        weightTable[selectedTopping] = nil
+        local totalWeight = TableUtil.sumValues(weightTable)
+        if totalWeight > 0 then
+            local selectedTopping: string = MathUtil.weightedChoice(weightTable)
+            table.insert(toppings, selectedTopping)
+            weightTable[selectedTopping] = nil
+        else
+            local _, selectedTopping = TableUtil.getRandom(weightTable)
+            table.insert(toppings, selectedTopping)
+        end
     end
 
     return toppings

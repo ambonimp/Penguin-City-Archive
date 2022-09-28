@@ -28,7 +28,7 @@ function TableUtil.length(tbl: table)
     return length
 end
 
--- Returns a random value in a table
+-- Returns a random value, key pair in a table
 function TableUtil.getRandom(tbl: table)
     local selection = math.random(1, TableUtil.length(tbl))
     local index = 1
@@ -138,6 +138,15 @@ function TableUtil.isEmpty(tbl: table)
     end
 
     return true
+end
+
+function TableUtil.sumValues(tbl: { [any]: number })
+    local sum = 0
+    for _, num in pairs(tbl) do
+        sum += num
+    end
+
+    return sum
 end
 
 return TableUtil
