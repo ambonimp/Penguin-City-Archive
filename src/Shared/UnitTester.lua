@@ -10,7 +10,7 @@ local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 -- Constants
 local GOOD = "🟩"
 local BAD = "🟥"
-local UNIT_TEST_PATTERN = ".test"
+local UNIT_TEST_SUFFIX = ".spec"
 
 --[[
     Finds and runs all the tests in UnitTests.
@@ -23,7 +23,7 @@ function UnitTester.Run(directory: Instance)
     -- Gather test scripts
     local testScripts: { ModuleScript } = {}
     for _, descendant in pairs(directory:GetDescendants()) do
-        if descendant:IsA("ModuleScript") and StringUtil.endsWith(descendant.Name, UNIT_TEST_PATTERN) then
+        if descendant:IsA("ModuleScript") and StringUtil.endsWith(descendant.Name, UNIT_TEST_SUFFIX) then
             table.insert(testScripts, descendant)
         end
     end
