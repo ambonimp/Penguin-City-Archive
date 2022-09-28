@@ -24,4 +24,10 @@ function InstanceUtil.tree(class: string, props: { [string]: any }, children: { 
     return instance
 end
 
+function InstanceUtil.setProperties(instance: Instance, propertyTable: { [string]: any })
+    for propertyName, propertyValue in pairs(propertyTable) do
+        instance[propertyName] = propertyValue
+    end
+end
+
 return InstanceUtil
