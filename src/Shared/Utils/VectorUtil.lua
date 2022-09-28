@@ -7,4 +7,11 @@ function VectorUtil.round(vector: Vector3, decimals: number)
     return Vector3.new(MathUtil.round(vector.X, decimals), MathUtil.round(vector.Y, decimals), MathUtil.round(vector.Z, decimals))
 end
 
+--[[
+    Returns a Vector3 with internalRandom numbers in all axes.
+]]
+function VectorUtil.nextVector3(min: number, max: number)
+    return MathUtil.nextVector3(min, max)
+end
+
 return VectorUtil

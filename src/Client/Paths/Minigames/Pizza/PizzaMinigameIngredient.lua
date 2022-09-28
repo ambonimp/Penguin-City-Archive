@@ -16,6 +16,8 @@ local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil
 local PizzaMinigameOrder = require(Paths.Client.Minigames.Pizza.PizzaMinigameOrder)
 local Output = require(Paths.Shared.Output)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
@@ -43,6 +45,11 @@ local PROPERTIES = {
 }
 local DESTROY_ASSET_AFTER = 3
 local SHOW_ASSET_TWEEN_INFO = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local THROW_ASSET_POWER = {
+    ANGULAR = 6,
+    LINEAR = 22,
+}
+local THROW_EPSILON = 0.1
 
 type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}))
 
@@ -104,6 +111,19 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         alignOrientation.Attachment0 = assetAttachment
         alignOrientation.Attachment1 = goalAttachment
         alignOrientation.Parent = asset.PrimaryPart
+
+        -- Sauces
+        if ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces then
+            -- Randomly Offset SauceParticles
+            for _, descendant: ParticleEmitter in pairs(asset:GetDescendants()) do
+                if descendant:IsA("ParticleEmitter") then
+                    descendant.Enabled = false
+                    task.delay(math.random() / descendant.Rate, function()
+                        descendant.Enabled = true
+                    end)
+                end
+            end
+        end
     end
 
     local function tickIngredient(_dt: number)
@@ -157,6 +177,16 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end))
         maid:GiveTask(goalPart)
         maid:GiveTask(function()
+            -- Throw asset
+            local angularVelocity = VectorUtil.nextVector3(-1, 1).Unit * THROW_ASSET_POWER.ANGULAR
+            local linearVelocity = Vector3.new(MathUtil.nextNumber(-1, 1), 8, MathUtil.nextNumber(-1, 1)).Unit * THROW_ASSET_POWER.LINEAR
+
+            asset.PrimaryPart.AssemblyAngularVelocity = angularVelocity
+
+            if asset.PrimaryPart.AssemblyLinearVelocity.Magnitude < THROW_EPSILON then
+                asset.PrimaryPart.AssemblyLinearVelocity = linearVelocity
+            end
+
             task.delay(DESTROY_ASSET_AFTER, function()
                 asset:Destroy()
             end)
