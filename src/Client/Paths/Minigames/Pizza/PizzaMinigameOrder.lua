@@ -96,7 +96,6 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
                 end
 
                 local textColor = ingredient.Current == ingredient.Needed and COLOR_INGREDIENT_COMPLETED or colorIngredientDefault
-                print(textColor)
 
                 ingredientLabel.Text = text
                 ingredientLabel.TextColor3 = textColor

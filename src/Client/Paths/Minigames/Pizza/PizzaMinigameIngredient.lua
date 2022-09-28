@@ -151,12 +151,26 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end
 
         -- Calculate new position
-        isOnPizza = raycastResult.Instance:IsDescendantOf(runner:GetCurrentPizzaModel())
+        local pizzaModel = runner:GetCurrentPizzaModel()
+        isOnPizza = raycastResult.Instance:IsDescendantOf(pizzaModel)
         local offset = (isOnPizza and not isSauce and PIZZA_INGREDIENT_OFFSET or INGREDIENT_OFFSET) + assetHeightOffset
         local newPosition = raycastResult.Position + offset
 
         -- Move
         goalPart.Position = newPosition
+
+        -- EDGE CASE: Apply sauce
+        if isSauce and isOnPizza then
+            -- Raycast for just sauce parts
+            local sauceRaycastResult = RaycastUtil.raycastMouse({
+                FilterDescendantsInstances = { pizzaModel.Sauce },
+                FilterType = Enum.RaycastFilterType.Whitelist,
+            }, RAYCAST_LENGTH)
+
+            if sauceRaycastResult then
+                runner:ApplySauce(ingredientName, sauceRaycastResult.Instance)
+            end
+        end
     end
 
     -------------------------------------------------------------------------------

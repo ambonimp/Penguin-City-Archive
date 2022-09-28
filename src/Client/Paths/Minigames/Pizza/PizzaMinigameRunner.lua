@@ -8,6 +8,7 @@ local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local CameraController = require(Paths.Client.CameraController)
 local InputController = require(Paths.Client.Input.InputController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
 local PizzaMinigameOrder = require(Paths.Client.Minigames.Pizza.PizzaMinigameOrder)
@@ -17,6 +18,9 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 4
+local ADD_SAUCE_MIN_PROPORTION = 0.9
+local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
+local STAGGER_SAUCE_AUTOFILL_BY = 0.25
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string })
     local runner = {}
@@ -46,7 +50,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local totalCorrectPizzasInARow = 0
     local totalCoinsEarnt = 0
 
+    -- These members dynamically change on each new sendPizza() call
+    local recipe: PizzaMinigameUtil.Recipe
     local pizzaModel: Model
+    local appliedSauceParts: { [BasePart]: boolean } = {}
+    local maxSauceParts: number
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -104,6 +112,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             pizzaMaid:GiveTask(TweenUtil.run(function(alpha)
                 pizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))
             end, pizzaMoveTweenInfo))
+
+            -- Reset other members
+            maxSauceParts = #pizzaModel.Sauce:GetChildren()
+            appliedSauceParts = {}
         end
 
         -- Recipe
@@ -111,7 +123,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             local pizzaNumber = totalPizzasMade + 1
             local recipeTypeLabel = recipeTypeOrder[totalPizzasMade + 1]
             local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
-            local recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
+            recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
 
             order:SetRecipe(recipe)
         end
@@ -138,7 +150,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
 
         -- Place
-        ingredient:Place()
+        if ingredient:CanPlace() then
+            ingredient:Place()
+        end
 
         -- Read current state of pizza, and make decisions accordingly
         local successfulAdd = order:IngredientAdded(ingredient:GetName())
@@ -215,6 +229,15 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
     end
 
+    local function tweenSaucePart(sauceColor: Color3, saucePart: BasePart)
+        saucePart.Color = sauceColor
+
+        local sauceSize = saucePart.Size
+        saucePart.Size = Vector3.new(0, 0, 0)
+        saucePart.Transparency = 0
+        TweenUtil.tween(saucePart, SAUCE_TWEEN_INFO, { Size = sauceSize })
+    end
+
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
@@ -272,6 +295,52 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     function runner:GetCurrentPizzaModel()
         return pizzaModel
+    end
+
+    function runner:ApplySauce(sauceName: string, saucePart: BasePart)
+        -- WARN: Not a descendant of current pizza!
+        if not saucePart:IsDescendantOf(pizzaModel.Sauce) then
+            warn(("Sauce part %s not on our current pizza"):format(saucePart:GetFullName()))
+            return
+        end
+
+        -- RETURN: Already applied
+        if appliedSauceParts[saucePart] then
+            return
+        end
+        appliedSauceParts[saucePart] = true
+
+        -- RETURN: Wrong sauce!
+        if sauceName ~= recipe.Sauce then
+            pizzaUpdate(false)
+            return
+        end
+
+        -- ERROR: Could not find a sauce emitter
+        local sauceAsset = minigameFolder.Assets[sauceName]
+        local sauceEmitter = sauceAsset:FindFirstChildWhichIsA("ParticleEmitter", true)
+        if not sauceEmitter then
+            error(("Could not find ParticleEmitter for sauce %s asset (%s)"):format(sauceName, sauceEmitter:GetFullName()))
+        end
+
+        -- Tween in sauce
+        local sauceColor = sauceEmitter.Color.Keypoints[1].Value
+        tweenSaucePart(sauceColor, saucePart)
+
+        -- Add sauce as completed!
+        local totalAppliedSauceParts = TableUtil.length(appliedSauceParts)
+        if totalAppliedSauceParts / maxSauceParts > ADD_SAUCE_MIN_PROPORTION then
+            -- Tween other sauce parts
+            for _, someSaucePart in pairs(pizzaModel.Sauce:GetChildren()) do
+                if not appliedSauceParts[someSaucePart] then
+                    appliedSauceParts[someSaucePart] = true
+                    task.delay(math.random(0, STAGGER_SAUCE_AUTOFILL_BY), tweenSaucePart, sauceColor, someSaucePart)
+                end
+            end
+
+            -- Place
+            placeIngredient()
+        end
     end
 
     -------------------------------------------------------------------------------
