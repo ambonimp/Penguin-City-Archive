@@ -13,8 +13,8 @@ PizzaMinigameConstants.Reward = {
 }
 
 PizzaMinigameConstants.Conveyor = {
-    Speed = 10, -- How many seconds the pizza is on screen for
-    IncreaseFactor = 0.9, -- How much to decrease the time on screen by
+    Time = 10, -- How many seconds the pizza takes to traverse the conveyor
+    IncreaseFactor = 0.95, -- How much to decrease this time by each iteration
 }
 
 PizzaMinigameConstants.MaxMistakes = 3

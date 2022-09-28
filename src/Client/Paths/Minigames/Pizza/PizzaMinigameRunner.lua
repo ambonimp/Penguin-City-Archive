@@ -21,8 +21,8 @@ local CAMERA_SWAY_MAX_ANGLE = 4
 local ADD_SAUCE_MIN_PROPORTION = 0.9
 local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
 local STAGGER_SAUCE_AUTOFILL_BY = 0.25
-local OLD_PIZZA_CONVEYOR_SPEED = 2 -- How many seconds to traverse whole conveyor
-local OLD_PIZZA_TWEEN_INFO = TweenInfo.new(0, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local OLD_PIZZA_SPEED_FACTOR = 10
+local MOVE_NEXT_PIZZA_AFTER = 0.5
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string })
     local runner = {}
@@ -46,7 +46,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
     local pizzaStartCFrame = CFrame.new(pizzaLine.Position - (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
     local pizzaEndCFrame = CFrame.new(pizzaLine.Position + (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
-    local pizzaLineLength = (pizzaStartCFrame.Position - pizzaEndCFrame.Position).Magnitude
 
     local totalPizzasMade = 0
     local totalMistakes = 0
@@ -100,60 +99,71 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Cleanup last pizza
         pizzaMaid:Cleanup()
 
-        -- Pizza Model
-        local pizzaTime = PizzaMinigameConstants.Conveyor.Speed
-            * (PizzaMinigameConstants.Conveyor.IncreaseFactor ^ totalCorrectPizzasInARow)
-        do
-            -- Place Pizza Model
-            local thisPizzaModel = minigameFolder.Assets.Pizza:Clone()
-            thisPizzaModel:PivotTo(pizzaStartCFrame)
-            thisPizzaModel.Parent = gameplayFolder
+        -- Send new pizza after a delay
+        task.delay(MOVE_NEXT_PIZZA_AFTER, function()
+            -- Pizza Model
+            local pizzaTime = PizzaMinigameConstants.Conveyor.Time
+                * (PizzaMinigameConstants.Conveyor.IncreaseFactor ^ totalCorrectPizzasInARow)
+            do
+                -- Place Pizza Model
+                local thisPizzaModel = minigameFolder.Assets.Pizza:Clone()
+                thisPizzaModel:PivotTo(pizzaStartCFrame)
+                thisPizzaModel.Parent = gameplayFolder
+                pizzaModel = thisPizzaModel
 
-            pizzaModel = thisPizzaModel
-            pizzaMaid:GiveTask(function()
-                local pizzaCurrentCFrame = thisPizzaModel:GetPivot()
-                local currentDistance = (pizzaCurrentCFrame.Position - pizzaEndCFrame.Position).Magnitude
-                local oldPizzaTime = OLD_PIZZA_CONVEYOR_SPEED * (currentDistance / pizzaLineLength)
-                TweenUtil.run(function(alpha)
-                    thisPizzaModel:PivotTo(pizzaCurrentCFrame:Lerp(pizzaEndCFrame, alpha))
-                end, TweenInfo.new(oldPizzaTime, OLD_PIZZA_TWEEN_INFO.EasingStyle, OLD_PIZZA_TWEEN_INFO.EasingDirection))
+                -- Setup Pizza Model movement
+                local pizzaMovementTimeElapsed = 0
+                pizzaMaid:GiveTask(RunService.RenderStepped:Connect(function(dt)
+                    pizzaMovementTimeElapsed += dt
+                    local alpha = pizzaMovementTimeElapsed / pizzaTime
+                    pizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))
+                end))
 
-                task.delay(oldPizzaTime, function()
-                    thisPizzaModel:Destroy()
+                -- Setup movement when exiting the conveyor / pizza model is "destroyed"
+                pizzaMaid:GiveTask(function()
+                    local currentAlpha = pizzaMovementTimeElapsed / pizzaTime
+                    local oldPizzaMovementTimeElapsed = 0
+                    local steppedConnection: RBXScriptConnection
+                    steppedConnection = RunService.RenderStepped:Connect(function(dt)
+                        oldPizzaMovementTimeElapsed += dt
+                        local oldAlpha = oldPizzaMovementTimeElapsed / pizzaTime
+                        local alpha = currentAlpha + oldAlpha * math.exp(oldAlpha * OLD_PIZZA_SPEED_FACTOR)
+                        thisPizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))
+
+                        if alpha >= 1 then
+                            steppedConnection:Disconnect()
+                            thisPizzaModel:Destroy()
+                        end
+                    end)
                 end)
-            end)
 
-            -- Setup Pizza Model movement
-            pizzaMaid:GiveTask(TweenUtil.run(function(alpha)
-                pizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))
-            end, TweenInfo.new(pizzaTime, Enum.EasingStyle.Linear)))
-
-            -- Reset other members
-            maxSauceParts = #pizzaModel.Sauce:GetChildren()
-            appliedSauceParts = {}
-        end
-
-        -- Recipe
-        do
-            local pizzaNumber = totalPizzasMade + 1
-            local recipeTypeLabel = recipeTypeOrder[totalPizzasMade + 1]
-            local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
-            recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
-
-            order:SetRecipe(recipe)
-        end
-
-        -- EDGE CASE: Time expired!
-        local cachedTotalPizzas = totalPizzasMade
-        task.delay(pizzaTime, function()
-            -- RETURN: Client has since moved onto a new pizza
-            if cachedTotalPizzas ~= totalPizzasMade then
-                return
+                -- Reset other members
+                maxSauceParts = #pizzaModel.Sauce:GetChildren()
+                appliedSauceParts = {}
             end
 
-            print("time expired")
+            -- Recipe
+            do
+                local pizzaNumber = totalPizzasMade + 1
+                local recipeTypeLabel = recipeTypeOrder[totalPizzasMade + 1]
+                local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
+                recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
 
-            pizzaUpdate(false)
+                order:SetRecipe(recipe)
+            end
+
+            -- EDGE CASE: Time expired!
+            local cachedTotalPizzas = totalPizzasMade
+            task.delay(pizzaTime, function()
+                -- RETURN: Client has since moved onto a new pizza
+                if cachedTotalPizzas ~= totalPizzasMade then
+                    return
+                end
+
+                print("time expired")
+
+                pizzaUpdate(false)
+            end)
         end)
     end
 

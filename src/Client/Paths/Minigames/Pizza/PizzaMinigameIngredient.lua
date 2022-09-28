@@ -156,7 +156,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         goalPart.Position = newPosition
 
         -- EDGE CASE: Apply sauce
-        if isSauce and isOnPizza then
+        if isSauce and isOnPizza and pizzaModel then
             -- Raycast for just sauce parts
             local sauceRaycastResult = RaycastUtil.raycastMouse({
                 FilterDescendantsInstances = { pizzaModel.Sauce },
