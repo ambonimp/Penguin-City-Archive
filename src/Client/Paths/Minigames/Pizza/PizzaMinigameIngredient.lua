@@ -182,10 +182,15 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         return isPlaced
     end
 
+    function ingredient:CanPlace()
+        return not ingredient:IsPlaced() and not (ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces)
+    end
+
     function ingredient:Place()
-        -- ERROR: Cannot place Sauces!
-        if ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces then
-            error("Cannot place Sauces!")
+        -- ERROR: Cannot place
+        if not ingredient:CanPlace() then
+            warn(("Cannot place %s (%s)!"):format(ingredientName, ingredientType))
+            return
         end
 
         -- WARN: Already placed!

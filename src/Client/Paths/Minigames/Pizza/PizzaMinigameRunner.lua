@@ -137,8 +137,18 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             return
         end
 
+        -- Place
         ingredient:Place()
-        order:IngredientAdded(ingredient:GetName())
+
+        -- Read current state of pizza, and make decisions accordingly
+        local successfulAdd = order:IngredientAdded(ingredient:GetName())
+        if successfulAdd then
+            if order:IsOrderFulfilled() then
+                pizzaUpdate(true)
+            end
+        else
+            pizzaUpdate(false)
+        end
     end
 
     local function tickRunner(_dt)
@@ -196,8 +206,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     local function cursorUp()
         if ingredient then
-            -- See if we can place
-            if ingredient:IsOnPizza() then
+            if ingredient:IsOnPizza() and ingredient:CanPlace() then
                 placeIngredient()
             end
 

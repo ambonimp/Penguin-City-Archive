@@ -37,6 +37,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
         order = surfaceGui.Frame.Ingredients :: Frame,
         ingredientsTemplate = surfaceGui.Frame.Ingredients.template :: TextLabel,
     }
+    local colorIngredientDefault = elements.ingredientsTemplate.TextColor3
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -85,6 +86,8 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
 
             -- Write
             for _, ingredient in pairs(order) do
+                print(ingredient.IngredientName, ingredient.Current, "/", ingredient.Needed)
+
                 local ingredientLabel = ingredientElements[ingredient.IngredientName]
 
                 local text = ingredient.IngredientName
@@ -92,7 +95,8 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
                     text = ("%d %s"):format(ingredient.Needed, ingredient.IngredientName)
                 end
 
-                local textColor = ingredient.Current == ingredient.Needed and COLOR_INGREDIENT_COMPLETED or ingredientLabel.TextColor3
+                local textColor = ingredient.Current == ingredient.Needed and COLOR_INGREDIENT_COMPLETED or colorIngredientDefault
+                print(textColor)
 
                 ingredientLabel.Text = text
                 ingredientLabel.TextColor3 = textColor
@@ -142,16 +146,30 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
         draw()
     end
 
+    --[[
+        - true: Ingredient successfully added!
+        - false: Bad ingredient / too many added
+    ]]
     function orderObject:IngredientAdded(ingredientName: string)
         for _, ingredient in pairs(order) do
-            if ingredient.IngredientName == ingredientName then
+            if ingredient.IngredientName == ingredientName and ingredient.Current < ingredient.Needed then
                 ingredient.Current += 1
                 draw()
-                return
+                return true
             end
         end
 
-        warn(("No internal ingredient %q"):format(ingredientName))
+        return false
+    end
+
+    function orderObject:IsOrderFulfilled()
+        for _, ingredient in pairs(order) do
+            if ingredient.Current < ingredient.Needed then
+                return false
+            end
+        end
+
+        return true
     end
 
     function orderObject:GetCurrentOrder()
