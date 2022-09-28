@@ -11,6 +11,8 @@ local CameraController = require(Paths.Client.CameraController)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
 local Remotes = require(Paths.Shared.Remotes)
+local Promise = require(Paths.Packages.promise)
+local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 
 local FOV = 65
 
@@ -69,7 +71,7 @@ function PizzaMinigameController.play()
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
 
-        runner = PizzaMinigameRunner.new(minigameFolder, cachedRecipeTypeOrder)
+        runner = PizzaMinigameRunner.new(minigameFolder, cachedRecipeTypeOrder or { PizzaMinigameConstants.FirstRecipe })
         runner:Run()
 
         cachedRecipeTypeOrder = nil
@@ -122,7 +124,11 @@ end
 do
     Remotes.bindEvents({
         PizzaMinigameRecipeTypeOrder = function(recipeOrder: { string })
-            cachedRecipeTypeOrder = recipeOrder
+            if runner then
+                runner:SetRecipeTypeOrder(recipeOrder)
+            else
+                cachedRecipeTypeOrder = recipeOrder
+            end
         end,
     })
 end

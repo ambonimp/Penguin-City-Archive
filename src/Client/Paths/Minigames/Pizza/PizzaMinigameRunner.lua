@@ -146,7 +146,14 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             -- Recipe
             do
                 local pizzaNumber = totalPizzasMade + 1
+
+                -- UH OH: Ran out of recipe types
                 local recipeTypeLabel = recipeTypeOrder[totalPizzasMade + 1]
+                if not recipeTypeLabel then
+                    warn(("Ran out of recipeTypes! PizzaNumber: %d"):format(pizzaNumber))
+                    require(Paths.Client.Minigames.Pizza.PizzaMinigameController).stopMinigame() -- hacky sorry
+                end
+
                 local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
                 recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
 
@@ -321,6 +328,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     function runner:GetCurrentPizzaModel()
         return pizzaModel
+    end
+
+    function runner:SetRecipeTypeOrder(newRecipeTypeOrder: { string })
+        recipeTypeOrder = newRecipeTypeOrder
     end
 
     function runner:ApplySauce(sauceName: string, saucePart: BasePart)
