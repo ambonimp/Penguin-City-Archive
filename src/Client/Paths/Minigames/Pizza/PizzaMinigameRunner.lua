@@ -32,7 +32,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     local gameplayFolder: Folder
     local order: typeof(PizzaMinigameOrder.new(Instance.new("SurfaceGui")))
-    local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "")) | nil
+    local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "", Instance.new("Part"))) | nil
 
     local currentHitbox: BasePart?
     local hitboxParts: { BasePart } = {}
@@ -140,6 +140,8 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function processHitboxClick()
+        Output.doDebug(MinigameConstants.DoDebug, "hitboxClick", currentHitbox)
+
         local hitbox: BasePart = currentHitbox
         local isIngredient = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Ingredients)
         local isSecret = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Secrets)
@@ -153,11 +155,17 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
             -- ERROR: Unknown ingredient name
             local ingredientName = hitbox.Name
-            if not PizzaMinigameConstants.Ingredients[ingredientName] then
+            if not PizzaMinigameConstants.Ingredients[ingredientType][ingredientName] then
                 error(("Unknown ingredient name %s (%s)"):format(ingredientName, hitbox:GetFullName()))
             end
 
-            ingredient = PizzaMinigameIngredient.new(runner, ingredientType, ingredientName)
+            -- EDGE CASE: Clean up old ingredient
+            if ingredient then
+                ingredient:Destroy()
+                ingredient = nil
+            end
+
+            ingredient = PizzaMinigameIngredient.new(runner, ingredientType, ingredientName, hitbox)
             return
         end
 
@@ -170,12 +178,14 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function cursorDown()
+        print("CURSOR DOWN", currentHitbox)
         if currentHitbox then
             processHitboxClick()
         end
     end
 
     local function cursorUp()
+        print("CURSOR UP", ingredient)
         if ingredient then
             ingredient:Destroy()
             ingredient = nil
@@ -235,6 +245,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     function runner:GetGameplayFolder()
         return gameplayFolder
+    end
+
+    function runner:GetCurrentPizzaModel()
+        return pizzaModel
     end
 
     -------------------------------------------------------------------------------
