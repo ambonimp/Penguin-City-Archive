@@ -18,8 +18,6 @@ local UNIT_TEST_SUFFIX = ".spec"
     Returns our findings.
 ]]
 function UnitTester.Run(directory: Instance)
-    print("run", directory:GetFullName())
-
     -- Gather test scripts
     local testScripts: { ModuleScript } = {}
     for _, descendant in pairs(directory:GetDescendants()) do
@@ -74,13 +72,12 @@ function UnitTester.Run(directory: Instance)
     local passedWithFlyingColours = totalTestsPassed == totalTests
     local location = RunService:IsServer() and "SERVER" or "CLIENT"
     local resultColor = passedWithFlyingColours and GOOD or BAD
-    local feedbackString = "\n"
-    feedbackString ..= ("  > UNIT TESTER (%s)\n"):format(location)
-    feedbackString ..= ("    > %s PASSED %d/%d TESTS\n"):format(resultColor, totalTestsPassed, totalTests)
+    local outputMethod = passedWithFlyingColours and print or warn
+    outputMethod(("> UNIT TESTER (%s)"):format(location))
+    outputMethod(("  > %s PASSED %d/%d TESTS"):format(resultColor, totalTestsPassed, totalTests))
 
     -- EXIT: Passed!
     if passedWithFlyingColours then
-        print(feedbackString)
         return
     end
 
@@ -88,17 +85,12 @@ function UnitTester.Run(directory: Instance)
     for testScript, testFindings in pairs(findings) do
         -- Create error message if this testScript caused errors
         if #testFindings > 0 then
-            local testFindingsString = ("      > %s\n"):format(testScript.Name)
+            outputMethod(("    > %s"):format(testScript.Name))
             for i, issue in ipairs(testFindings) do
-                testFindingsString ..= ("        (%d) %s\n"):format(i, issue)
+                outputMethod(("      (%d) %s"):format(i, issue))
             end
-            testFindingsString ..= "\n"
-
-            feedbackString ..= testFindingsString
         end
     end
-
-    warn(feedbackString)
 end
 
 return UnitTester
