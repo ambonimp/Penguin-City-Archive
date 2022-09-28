@@ -15,6 +15,7 @@ local PizzaMinigameOrder = require(Paths.Client.Minigames.Pizza.PizzaMinigameOrd
 local PizzaMinigameIngredient = require(Paths.Client.Minigames.Pizza.PizzaMinigameIngredient)
 local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local Remotes = require(Paths.Shared.Remotes)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 4
@@ -83,7 +84,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             return
         end
 
-        --todo inform server
+        Remotes.fireServer("PizzaMinigameCompletedPizza", didComplete)
 
         -- Update Orders
         order:SetCoinsEarnt(totalCoinsEarnt)

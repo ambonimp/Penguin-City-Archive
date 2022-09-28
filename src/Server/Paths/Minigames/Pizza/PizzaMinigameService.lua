@@ -21,7 +21,6 @@ type RecipeRecord = {
 type PlayerData = {
     RecipeTypeOrder: { string },
     RecipeRecords: { RecipeRecord },
-    StartTick: number,
 }
 
 local MIN_RECIPE_TIMES = {
@@ -44,14 +43,13 @@ function PizzaMinigameService.startMinigame(player: Player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
-        RecipeTypeOrder = {},
+        RecipeTypeOrder = { PizzaMinigameConstants.FirstRecipe },
         RecipeRecords = {},
-        StartTick = tick(),
     }
     playerDatas[player] = playerData
 
     -- Generate RecipeTypeOrder
-    for pizzaNumber = 1, PizzaMinigameConstants.MaxPizzas do
+    for pizzaNumber = 2, PizzaMinigameConstants.MaxPizzas do
         local recipeLabel, _recipe = PizzaMinigameUtil.rollRecipeType(pizzaNumber)
         table.insert(playerData.RecipeTypeOrder, recipeLabel)
     end
@@ -84,7 +82,8 @@ function PizzaMinigameService.stopMinigame(player: Player)
         local recipeMinTime = MIN_RECIPE_TIMES[recipe]
         minimumTime += recipeMinTime
     end
-    local actualTime = totalPizzas > 0 and playerData.RecipeRecords[1].Tick - playerData.StartTick or 0
+    local firstPizzaTime = MIN_RECIPE_TIMES[PizzaMinigameConstants.FirstRecipe]
+    local actualTime = totalPizzas >= 2 and (playerData.RecipeRecords[2].Tick - playerData.RecipeRecords[1].Tick) + firstPizzaTime or 0
     local finishedTooQuickly = actualTime < minimumTime
 
     -- Calculate reward
