@@ -23,7 +23,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 local RAYCAST_LENGTH = 100
 local INGREDIENT_OFFSET = Vector3.new(0, 2, 0)
-local PIZZA_INGREDIENT_OFFSET = Vector3.new(0, 0.5, 0)
+local PIZZA_INGREDIENT_OFFSET = Vector3.new(0, 0.2, 0)
 local PROPERTIES = {
     ALIGN_POSITION = {
         MaxForce = 100000,
@@ -50,6 +50,7 @@ local THROW_ASSET_POWER = {
     LINEAR = 22,
 }
 local THROW_EPSILON = 0.1
+local BASE_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
 type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}))
 
@@ -72,7 +73,10 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     local assetHeightOffset = Vector3.new(0, asset.PrimaryPart.Size.Y / 2, 0)
     local isSauce = ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces
     local filterDescendantsInstances = { asset, goalPart }
+
     local isFirstRaycast = true
+    local isPlaced = false
+    local isOnPizza = false
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -147,7 +151,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end
 
         -- Calculate new position
-        local isOnPizza = raycastResult.Instance:IsDescendantOf(runner:GetCurrentPizzaModel())
+        isOnPizza = raycastResult.Instance:IsDescendantOf(runner:GetCurrentPizzaModel())
         local offset = (isOnPizza and not isSauce and PIZZA_INGREDIENT_OFFSET or INGREDIENT_OFFSET) + assetHeightOffset
         local newPosition = raycastResult.Position + offset
 
@@ -158,6 +162,62 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
+
+    function ingredient:GetName()
+        return ingredientName
+    end
+
+    function ingredient:GetType()
+        return ingredientType
+    end
+
+    --[[
+        Whether the ingredient is currently positioned ontop the pizza or not
+    ]]
+    function ingredient:IsOnPizza()
+        return isOnPizza
+    end
+
+    function ingredient:IsPlaced()
+        return isPlaced
+    end
+
+    function ingredient:Place()
+        -- ERROR: Cannot place Sauces!
+        if ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces then
+            error("Cannot place Sauces!")
+        end
+
+        -- WARN: Already placed!
+        if isPlaced then
+            warn("Already placed!")
+            return
+        end
+        isPlaced = true
+
+        -- Place onto Pizza
+        local pizzaModel = runner:GetCurrentPizzaModel()
+        ModelUtil.anchor(asset)
+        asset.Parent = pizzaModel.Ingredients
+
+        -- EDGE CASE: Tween base size to cover whole pizza
+        if ingredientType == PizzaMinigameConstants.IngredientTypes.Bases then
+            -- WARN: Only supports single-part Bases at time of writing (sorry developer!)
+            if #asset:GetChildren() > 1 then
+                warn("No current support for multi-part Bases")
+            end
+
+            local pizzaBase: BasePart = pizzaModel.Base
+            local sizeFactor = pizzaBase.Size.X / asset.PrimaryPart.Size.X
+            local primaryPart = asset.PrimaryPart
+            local startSize = primaryPart.Size
+            local goalSize = startSize * sizeFactor
+            TweenUtil.run(function(alpha)
+                primaryPart.Size = startSize:Lerp(goalSize, alpha)
+                primaryPart.Position = primaryPart.Position:Lerp(pizzaBase.Position, alpha)
+            end, BASE_TWEEN_INFO)
+        end
+    end
 
     function ingredient:Destroy()
         Output.doDebug(MinigameConstants.DoDebug, "destroy")
@@ -177,6 +237,11 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end))
         maid:GiveTask(goalPart)
         maid:GiveTask(function()
+            -- RETURN: Asset was used to place on pizza
+            if isPlaced then
+                return
+            end
+
             -- Throw asset
             local angularVelocity = VectorUtil.nextVector3(-1, 1).Unit * THROW_ASSET_POWER.ANGULAR
             local linearVelocity = Vector3.new(MathUtil.nextNumber(-1, 1), 8, MathUtil.nextNumber(-1, 1)).Unit * THROW_ASSET_POWER.LINEAR

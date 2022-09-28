@@ -130,6 +130,17 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end)
     end
 
+    local function placeIngredient()
+        -- WARN: No ingredient!
+        if not ingredient then
+            warn("No ingredient!")
+            return
+        end
+
+        ingredient:Place()
+        order:IngredientAdded(ingredient:GetName())
+    end
+
     local function tickRunner(_dt)
         -- Update current Hitbox
         local raycastResult = RaycastUtil.raycastMouse({
@@ -178,15 +189,18 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function cursorDown()
-        print("CURSOR DOWN", currentHitbox)
         if currentHitbox then
             processHitboxClick()
         end
     end
 
     local function cursorUp()
-        print("CURSOR UP", ingredient)
         if ingredient then
+            -- See if we can place
+            if ingredient:IsOnPizza() then
+                placeIngredient()
+            end
+
             ingredient:Destroy()
             ingredient = nil
         end
