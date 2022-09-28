@@ -258,8 +258,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 placeIngredient()
             end
 
-            ingredient:Destroy()
-            ingredient = nil
+            if ingredient then
+                ingredient:Destroy()
+                ingredient = nil
+            end
         end
     end
 
@@ -415,6 +417,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     maid:GiveTask(function()
         if ingredient then
             ingredient:Destroy()
+            ingredient = nil
         end
     end)
 
