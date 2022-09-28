@@ -25,7 +25,7 @@ local STAGGER_SAUCE_AUTOFILL_BY = 0.25
 local OLD_PIZZA_SPEED_FACTOR = 10
 local MOVE_NEXT_PIZZA_AFTER = 0.5
 
-function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string })
+function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
     Output.doDebug(MinigameConstants.DoDebug, "new")
 
@@ -43,6 +43,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     local currentHitbox: BasePart?
     local hitboxParts: { BasePart } = {}
+    local isRunning = false
 
     local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
     local pizzaStartCFrame = CFrame.new(pizzaLine.Position - (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
@@ -79,8 +80,8 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
 
         -- GAME FINISHED
-        if totalPizzasMade == PizzaMinigameConstants.MaxPizzas then
-            warn("TODO GAME FINISHED")
+        if totalPizzasMade == PizzaMinigameConstants.MaxPizzas or totalMistakes >= PizzaMinigameConstants.MaxMistakes then
+            finishCallback()
             return
         end
 
@@ -151,7 +152,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 local recipeTypeLabel = recipeTypeOrder[totalPizzasMade + 1]
                 if not recipeTypeLabel then
                     warn(("Ran out of recipeTypes! PizzaNumber: %d"):format(pizzaNumber))
-                    require(Paths.Client.Minigames.Pizza.PizzaMinigameController).stopMinigame() -- hacky sorry
+                    finishCallback()
                 end
 
                 local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
@@ -276,6 +277,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -------------------------------------------------------------------------------
 
     function runner:Run()
+        -- RETURN: Already running
+        if isRunning then
+            warn("Already running")
+            return
+        end
+        isRunning = true
+
         Output.doDebug(MinigameConstants.DoDebug, "Run")
 
         -- Init Members
@@ -313,6 +321,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     function runner:Stop()
+        -- RETURN: Not running
+        if not isRunning then
+            warn("Not running")
+            return
+        end
+        isRunning = false
+
         Output.doDebug(MinigameConstants.DoDebug, "Stop")
 
         maid:Destroy()
@@ -328,6 +343,18 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     function runner:GetCurrentPizzaModel()
         return pizzaModel
+    end
+
+    function runner:GetStats()
+        return {
+            TotalPizzas = totalPizzasMade,
+            TotalMistakes = totalMistakes,
+            TotalCoins = totalCoinsEarnt,
+        }
+    end
+
+    function runner:IsRunning()
+        return isRunning
     end
 
     function runner:SetRecipeTypeOrder(newRecipeTypeOrder: { string })
