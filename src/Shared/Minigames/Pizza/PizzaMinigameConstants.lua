@@ -30,7 +30,7 @@ PizzaMinigameConstants.Ingredients = {
     Toppings = {
         Seaweed = "Seaweed",
         Squid = "Squid",
-        Anchovies = "Anchovies",
+        Anchovy = "Anchovy",
         Shrimp = "Shrimp",
     },
     Sauces = {
@@ -55,7 +55,7 @@ PizzaMinigameConstants.IngredientWeightEquations = {
         Squid = function(alpha: number)
             return -(4 * alpha - 1.6) + 1
         end,
-        Anchovies = function(alpha: number)
+        Anchovy = function(alpha: number)
             return -(4 * alpha - 2.4) + 1
         end,
         Shrimp = function(alpha: number)
