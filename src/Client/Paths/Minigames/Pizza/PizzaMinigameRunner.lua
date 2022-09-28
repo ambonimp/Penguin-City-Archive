@@ -21,6 +21,8 @@ local CAMERA_SWAY_MAX_ANGLE = 4
 local ADD_SAUCE_MIN_PROPORTION = 0.9
 local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
 local STAGGER_SAUCE_AUTOFILL_BY = 0.25
+local OLD_PIZZA_CONVEYOR_SPEED = 2 -- How many seconds to traverse whole conveyor
+local OLD_PIZZA_TWEEN_INFO = TweenInfo.new(0, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string })
     local runner = {}
@@ -44,6 +46,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
     local pizzaStartCFrame = CFrame.new(pizzaLine.Position - (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
     local pizzaEndCFrame = CFrame.new(pizzaLine.Position + (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
+    local pizzaLineLength = (pizzaStartCFrame.Position - pizzaEndCFrame.Position).Magnitude
 
     local totalPizzasMade = 0
     local totalMistakes = 0
@@ -102,16 +105,28 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             * (PizzaMinigameConstants.Conveyor.IncreaseFactor ^ totalCorrectPizzasInARow)
         do
             -- Place Pizza Model
-            pizzaModel = minigameFolder.Assets.Pizza:Clone()
-            pizzaModel:PivotTo(pizzaStartCFrame)
-            pizzaModel.Parent = gameplayFolder
-            pizzaMaid:GiveTask(pizzaModel)
+            local thisPizzaModel = minigameFolder.Assets.Pizza:Clone()
+            thisPizzaModel:PivotTo(pizzaStartCFrame)
+            thisPizzaModel.Parent = gameplayFolder
+
+            pizzaModel = thisPizzaModel
+            pizzaMaid:GiveTask(function()
+                local pizzaCurrentCFrame = thisPizzaModel:GetPivot()
+                local currentDistance = (pizzaCurrentCFrame.Position - pizzaEndCFrame.Position).Magnitude
+                local oldPizzaTime = OLD_PIZZA_CONVEYOR_SPEED * (currentDistance / pizzaLineLength)
+                TweenUtil.run(function(alpha)
+                    thisPizzaModel:PivotTo(pizzaCurrentCFrame:Lerp(pizzaEndCFrame, alpha))
+                end, TweenInfo.new(oldPizzaTime, OLD_PIZZA_TWEEN_INFO.EasingStyle, OLD_PIZZA_TWEEN_INFO.EasingDirection))
+
+                task.delay(oldPizzaTime, function()
+                    thisPizzaModel:Destroy()
+                end)
+            end)
 
             -- Setup Pizza Model movement
-            local pizzaMoveTweenInfo = TweenInfo.new(pizzaTime, Enum.EasingStyle.Linear)
             pizzaMaid:GiveTask(TweenUtil.run(function(alpha)
                 pizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))
-            end, pizzaMoveTweenInfo))
+            end, TweenInfo.new(pizzaTime, Enum.EasingStyle.Linear)))
 
             -- Reset other members
             maxSauceParts = #pizzaModel.Sauce:GetChildren()
