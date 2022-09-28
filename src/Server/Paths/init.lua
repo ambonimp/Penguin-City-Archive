@@ -28,6 +28,9 @@ task.delay(0, function()
         require(server.VehicleService),
         require(server.Cmdr.CmdrService),
         require(server.PlayerService),
+
+        -- UnitTest
+        require(server.UnitTestingService),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)

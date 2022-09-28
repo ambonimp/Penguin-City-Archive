@@ -36,6 +36,9 @@ task.delay(0, function()
         require(client.CharacterController),
         require(client.VehicleController),
         require(client.Input.InputController),
+
+        -- UnitTest
+        require(client.UnitTestingController),
     }
 
     PathsUtil.runInitAndStart(requiredModulesInOrder)
