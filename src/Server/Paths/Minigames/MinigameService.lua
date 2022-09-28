@@ -86,6 +86,10 @@ function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequ
     return { Session = session }
 end
 
+function MinigameService.getMinigamesDirectory()
+    return game.Workspace.Minigames :: Folder
+end
+
 -- Clear Cache
 do
     Players.PlayerRemoving:Connect(function(player)
