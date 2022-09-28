@@ -10,7 +10,7 @@ local SCALE_MODEL_WORLD_CLASSNAMES = { "BasePart" }
 
 function ModelUtil.weld(model: Model)
     -- ERROR: No mainPart
-    local mainPart = model.PrimaryPart or model:FindFirstChildOfClass("BasePart")
+    local mainPart = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
     if not mainPart then
         error(("Model %s has no BaseParts to weld!"):format(model:GetFullName()))
     end
