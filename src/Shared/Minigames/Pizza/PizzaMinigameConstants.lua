@@ -20,6 +20,12 @@ PizzaMinigameConstants.Conveyor = {
 PizzaMinigameConstants.MaxMistakes = 3
 PizzaMinigameConstants.MaxPizzas = 40
 
+PizzaMinigameConstants.IngredientTypes = {
+    Toppings = "Toppings",
+    Sauces = "Sauces",
+    Bases = "Bases",
+}
+
 PizzaMinigameConstants.Ingredients = {
     Toppings = {
         Seaweed = "Seaweed",

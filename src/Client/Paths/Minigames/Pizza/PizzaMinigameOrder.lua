@@ -12,13 +12,8 @@ export type OrderEntry = { IngredientName: string, IngredientType: string, Curre
 export type Order = { OrderEntry }
 
 local COLOR_INGREDIENT_COMPLETED = Color3.fromRGB(80, 199, 12)
-local INGREDIENT_TYPE = {
-    BASE = "BASE",
-    SAUCE = "SAUCE",
-    TOPPING = "TOPPING",
-}
 
-function PizzaMinigameOrder.new(surfaceGui: SurfaceGui?)
+function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     local orderObject = {}
 
     -------------------------------------------------------------------------------
@@ -93,7 +88,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui?)
                 local ingredientLabel = ingredientElements[ingredient.IngredientName]
 
                 local text = ingredient.IngredientName
-                if ingredient.IngredientType == INGREDIENT_TYPE.TOPPING then
+                if ingredient.IngredientType == PizzaMinigameConstants.IngredientTypes.Toppings then
                     text = ("%d %s"):format(ingredient.Needed, ingredient.IngredientName)
                 end
 
@@ -118,13 +113,13 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui?)
 
         -- Ingredients
         order = {
-            { IngredientName = recipe.Sauce, IngredientType = INGREDIENT_TYPE.SAUCE, Current = 0, Needed = 1 },
-            { IngredientName = recipe.Base, IngredientType = INGREDIENT_TYPE.BASE, Current = 0, Needed = 1 },
+            { IngredientName = recipe.Sauce, IngredientType = PizzaMinigameConstants.IngredientTypes.Sauces, Current = 0, Needed = 1 },
+            { IngredientName = recipe.Base, IngredientType = PizzaMinigameConstants.IngredientTypes.Bases, Current = 0, Needed = 1 },
         }
         for toppingName, toppingAmount in pairs(recipe.Toppings) do
             table.insert(order, {
                 IngredientName = toppingName,
-                IngredientType = INGREDIENT_TYPE.TOPPING,
+                IngredientType = PizzaMinigameConstants.IngredientTypes.Toppings,
                 Current = 0,
                 Needed = toppingAmount,
             })

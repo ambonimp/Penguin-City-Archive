@@ -11,6 +11,7 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
 local PizzaMinigameOrder = require(Paths.Client.Minigames.Pizza.PizzaMinigameOrder)
+local PizzaMinigameIngredient = require(Paths.Client.Minigames.Pizza.PizzaMinigameIngredient)
 local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
@@ -30,9 +31,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     maid:GiveTask(pizzaMaid)
 
     local gameplayFolder: Folder
-    local order: typeof(PizzaMinigameOrder.new())
+    local order: typeof(PizzaMinigameOrder.new(Instance.new("SurfaceGui")))
+    local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "")) | nil
 
-    local currentHitbox: BasePart | nil
+    local currentHitbox: BasePart?
     local hitboxParts: { BasePart } = {}
 
     local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
@@ -129,7 +131,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function tickRunner(_dt)
-        -- Hitbox
+        -- Update current Hitbox
         local raycastResult = RaycastUtil.raycastMouse({
             FilterDescendantsInstances = hitboxParts,
             FilterType = Enum.RaycastFilterType.Whitelist,
@@ -139,7 +141,32 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     local function processHitboxClick()
         local hitbox: BasePart = currentHitbox
-        print("click", hitbox)
+        local isIngredient = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Ingredients)
+        local isSecret = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Secrets)
+
+        if isIngredient then
+            -- ERROR: Unknown ingredient type
+            local ingredientType = hitbox.Parent.Name
+            if not PizzaMinigameConstants.IngredientTypes[ingredientType] then
+                error(("Unknown ingredient type %s (%s)"):format(ingredientType, hitbox:GetFullName()))
+            end
+
+            -- ERROR: Unknown ingredient name
+            local ingredientName = hitbox.Name
+            if not PizzaMinigameConstants.Ingredients[ingredientName] then
+                error(("Unknown ingredient name %s (%s)"):format(ingredientName, hitbox:GetFullName()))
+            end
+
+            ingredient = PizzaMinigameIngredient.new(runner, ingredientType, ingredientName)
+            return
+        end
+
+        if isSecret then
+            warn(("todo secret %s"):format(hitbox.Name))
+            return
+        end
+
+        error("Missing edgecase for hitbox")
     end
 
     local function cursorDown()
@@ -149,7 +176,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function cursorUp()
-        --todo
+        if ingredient then
+            ingredient:Destroy()
+            ingredient = nil
+        end
     end
 
     -------------------------------------------------------------------------------
@@ -198,6 +228,25 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
         maid:Destroy()
     end
+
+    function runner:GetMinigameFolder()
+        return minigameFolder
+    end
+
+    function runner:GetGameplayFolder()
+        return gameplayFolder
+    end
+
+    -------------------------------------------------------------------------------
+    -- Logic
+    -------------------------------------------------------------------------------
+
+    -- One-time cleanups
+    maid:GiveTask(function()
+        if ingredient then
+            ingredient:Destroy()
+        end
+    end)
 
     return runner
 end
