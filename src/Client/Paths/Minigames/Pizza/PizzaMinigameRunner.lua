@@ -16,6 +16,7 @@ local PizzaMinigameIngredient = require(Paths.Client.Minigames.Pizza.PizzaMiniga
 local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
+local Sound = require(Paths.Shared.Sound)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 4
@@ -24,6 +25,7 @@ local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
 local STAGGER_SAUCE_AUTOFILL_BY = 0.25
 local OLD_PIZZA_SPEED_FACTOR = 10
 local MOVE_NEXT_PIZZA_AFTER = 0.5
+local SPEED_UP_MUSIC_BY = 0.01
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -40,6 +42,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local gameplayFolder: Folder
     local order: typeof(PizzaMinigameOrder.new(Instance.new("SurfaceGui")))
     local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "", Instance.new("Part"))) | nil
+    local music = Sound.play("PizzaMinigame", true)
 
     local currentHitbox: BasePart?
     local hitboxParts: { BasePart } = {}
@@ -80,6 +83,15 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         else
             totalMistakes += 1
             totalCorrectPizzasInARow = 0
+        end
+
+        -- Audio Feedback
+        local soundName = didComplete and "CorrectPizza" or "WrongPizza"
+        Sound.play(soundName)
+        if didComplete then
+            music.PlaybackSpeed = 1 + totalCorrectPizzasInARow * SPEED_UP_MUSIC_BY
+        else
+            music.PlaybackSpeed = 1
         end
 
         -- GAME FINISHED
@@ -431,6 +443,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    -- Music
+    maid:GiveTask(music)
 
     -- One-time cleanups
     maid:GiveTask(function()

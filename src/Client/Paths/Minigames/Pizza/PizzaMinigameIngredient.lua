@@ -16,6 +16,7 @@ local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local Sound = require(Paths.Shared.Sound)
 
 local RAYCAST_LENGTH = 100
 local INGREDIENT_OFFSET = Vector3.new(0, 2, 0)
@@ -123,6 +124,9 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
                     end)
                 end
             end
+
+            -- Sound
+            maid:GiveTask(Sound.play(ingredientName, true))
         end
     end
 
