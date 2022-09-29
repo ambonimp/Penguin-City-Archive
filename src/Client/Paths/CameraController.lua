@@ -97,7 +97,12 @@ function CameraController.followMouse(xDegrees: number, yDegrees: number)
     followMouseMaid:Cleanup()
 
     local thisFollowMouseMaid = Maid.new()
-    followMouseMaid:GiveTask(thisFollowMouseMaid)
+    followMouseMaid:GiveTask(function()
+        -- May have been cleaned up/destroyed somewhere else beforehand
+        if thisFollowMouseMaid.Destroy then
+            thisFollowMouseMaid:Destroy()
+        end
+    end)
 
     -- Read beginning camera state
     local cameraCFrame = camera.CFrame
