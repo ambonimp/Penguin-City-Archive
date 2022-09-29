@@ -8,7 +8,7 @@ local Assume = require(Paths.Shared.Assume)
 local Output = require(Paths.Shared.Output)
 
 type MinigameController = {
-    startMinigame: (minigamesDirectory: Folder, ...any) -> nil,
+    startMinigame: (minigamesDirectory: Folder, () -> MinigameConstants.PlayRequest, ...any) -> nil,
     stopMinigame: (...any) -> nil,
     [any]: any,
 }
@@ -50,7 +50,7 @@ function MinigameController.play(minigame: string)
         minigameController.stopMinigame()
     end)
     assume:Run(function()
-        minigameController.startMinigame(minigamesDirectory)
+        minigameController.startMinigame(minigamesDirectory, MinigameController.stopPlaying)
     end)
 
     local serverResponse = assume:Await()

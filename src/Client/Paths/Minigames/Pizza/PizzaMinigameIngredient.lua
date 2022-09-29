@@ -19,7 +19,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 local RAYCAST_LENGTH = 100
 local INGREDIENT_OFFSET = Vector3.new(0, 2, 0)
-local PIZZA_INGREDIENT_OFFSET = Vector3.new(0, 0.2, 0)
+local PIZZA_INGREDIENT_OFFSET = Vector3.new(0, 0, 0)
 local PROPERTIES = {
     ALIGN_POSITION = {
         MaxForce = 100000,

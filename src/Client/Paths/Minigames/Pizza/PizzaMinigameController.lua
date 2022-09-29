@@ -20,12 +20,13 @@ local minigameFolder: Folder?
 local isStarted = false
 local runner: typeof(PizzaMinigameRunner.new(Instance.new("Folder"), {}, function() end)) | nil
 local cachedRecipeTypeOrder: { string } | nil
+local cachedStopPlayingCallback: () -> MinigameConstants.PlayRequest
 
 -------------------------------------------------------------------------------
 -- Start/Stop
 -------------------------------------------------------------------------------
 
-function PizzaMinigameController.startMinigame(minigamesDirectory: Folder)
+function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopPlayingCallback: () -> MinigameConstants.PlayRequest)
     isStarted = true
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 
@@ -35,6 +36,8 @@ function PizzaMinigameController.startMinigame(minigamesDirectory: Folder)
     Transitions.blink(function()
         PizzaMinigameController.setupView()
     end)
+
+    cachedStopPlayingCallback = stopPlayingCallback
 end
 
 function PizzaMinigameController.stopMinigame()
@@ -42,9 +45,8 @@ function PizzaMinigameController.stopMinigame()
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
     Transitions.blink(function()
-        if runner then
-            runner:Stop()
-            runner = nil
+        if runner and runner:IsRunning() then
+            PizzaMinigameController.finish()
         end
 
         PizzaMinigameController.clearView()
@@ -91,7 +93,10 @@ function PizzaMinigameController.finish()
     local stats = runner:GetStats()
     print("TODO STATS", stats)
 
-    PizzaMinigameController.stopMinigame()
+    runner:Stop()
+    runner = nil
+
+    cachedStopPlayingCallback()
 end
 
 -------------------------------------------------------------------------------
@@ -110,6 +115,7 @@ function PizzaMinigameController.clearView()
     UIController.getStateMachine():Remove(UIConstants.States.PizzaMinigame)
     CameraController.setPlayerControl()
     CameraController.resetFov(0)
+    LightingUtil.resetBlur(0)
 end
 
 function PizzaMinigameController.viewMenu()
@@ -134,7 +140,7 @@ do
         PizzaMinigameController.play()
     end)
     PizzaMinigameScreen.getExitButton().Pressed:Connect(function()
-        PizzaMinigameController.stopMinigame()
+        cachedStopPlayingCallback()
     end)
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")
