@@ -83,6 +83,11 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
         vectorForce(platform, "Move")
         vectorForce(platform, "Float")
 
+        local function mountVehicle(player: Player, seat: Seat)
+            seat:Sit(player.Character.Humanoid)
+            Remotes.fireClient(player, "VehicleMounted", client, model)
+        end
+
         local simulating: boolean, simulation: RBXScriptConnection, yaw: number
         simulation = RunService.Heartbeat:Connect(function(dt)
             local currentVehicle = spawnedVehicles[client]
@@ -109,7 +114,7 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
 
                 local character: Model = client.Character
                 local humanoid: Humanoid = character.Humanoid
-                local humanoidRootPat: BasePart = character.HumanoidRootPart
+                local humanoidRootPart: BasePart = character.HumanoidRootPart
 
                 seat:GetPropertyChangedSignal("Occupant"):Connect(function()
                     local occupant = seat.Occupant
@@ -135,10 +140,11 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
 
                 -- Vehicle spawns at character
                 model.WorldPivot = seat.CFrame
-                model:PivotTo(humanoidRootPat.CFrame)
+                model:PivotTo(humanoidRootPart.CFrame)
+                -- Play sits on it
+                mountVehicle(client, seat)
 
                 Remotes.fireAllClients("VehicleCreated", client, model)
-                seat:Sit(humanoid)
             else
                 interaction = Interactionutil.createInteraction(seat, { ObjectText = "PassengerSeat", ActionText = "Enter" })
             end
@@ -149,17 +155,22 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
 
             interaction.Triggered:Connect(function(player)
                 if not seat.Occupant then
-                    seat:Sit(player.Character.Humanoid)
-                    Remotes.fireClient(client, "VehicleMounted", model)
+                    mountVehicle(player, seat)
                 end
             end)
         end
     end
 end
 
-Remotes.bindEvents({
-    UnmountFromVehicle = VehicleService.unmountFromVehicle,
-    MountVehicle = VehicleService.mountVehicle,
-})
+-- Communication
+do
+    Remotes.declareEvent("VehicleMounted")
+    Remotes.declareEvent("VehicleCreated")
+
+    Remotes.bindEvents({
+        UnmountFromVehicle = VehicleService.unmountFromVehicle,
+        MountVehicle = VehicleService.mountVehicle,
+    })
+end
 
 return VehicleService
