@@ -89,7 +89,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         local soundName = didComplete and "CorrectPizza" or "WrongPizza"
         Sound.play(soundName)
         if didComplete then
-            music.PlaybackSpeed = 1 + totalCorrectPizzasInARow * SPEED_UP_MUSIC_BY
+            music.PlaybackSpeed = 1 + math.min(totalCorrectPizzasInARow, PizzaMinigameConstants.Conveyor.MaxIncreases) * SPEED_UP_MUSIC_BY
         else
             music.PlaybackSpeed = 1
         end
@@ -125,7 +125,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
             -- Pizza Model
             local pizzaTime = PizzaMinigameConstants.Conveyor.Time
-                * (PizzaMinigameConstants.Conveyor.IncreaseFactor ^ totalCorrectPizzasInARow)
+                * (
+                    PizzaMinigameConstants.Conveyor.IncreaseFactor
+                    ^ math.min(totalCorrectPizzasInARow, PizzaMinigameConstants.Conveyor.MaxIncreases)
+                )
             do
                 -- Place Pizza Model
                 local thisPizzaModel = minigameFolder.Assets.Pizza:Clone()
