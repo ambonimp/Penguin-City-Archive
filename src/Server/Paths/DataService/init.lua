@@ -119,6 +119,12 @@ end
 -- Communication
 do
     Remotes.declareEvent("DataUpdated")
+
+    Remotes.bindFunctions({
+        GetPlayerData = function(player: Player, path: string)
+            return DataService.get(player, path)
+        end,
+    })
 end
 
 return DataService

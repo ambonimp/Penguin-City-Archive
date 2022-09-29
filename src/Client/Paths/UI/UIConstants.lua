@@ -5,6 +5,7 @@ UIConstants.States = {
     Loading = "Loading",
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
+    HousingEdit = "HousingEdit",
 }
 
 UIConstants.Keybinds = {

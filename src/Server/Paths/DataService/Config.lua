@@ -7,7 +7,7 @@ local DataConfig = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-
+local houseDefaults = require(script.Parent.HouseDefault)
 local defaultInventory = {}
 
 DataConfig.DataKey = "DEV_2"
@@ -17,7 +17,12 @@ function DataConfig.getDefaults(player)
             BodyType = "Teen",
         },
         Inventory = defaultInventory,
-        Igloo = {},
+        Igloo = {
+            IglooPlot = "Default",
+            IglooHouse = "Default",
+            Placements = houseDefaults.getDefaults(),
+            OwnedItems = {},
+        },
         Gamepasses = {},
         Settings = {},
         RedeemedCodes = {},

@@ -32,6 +32,7 @@ task.delay(0, function()
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
         require(client.CameraController),
+        require(client.HousingController),
         require(client.DataController),
         require(client.CharacterController),
         require(client.VehicleController),

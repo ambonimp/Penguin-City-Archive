@@ -97,9 +97,9 @@ end
 
 Remotes.bindEvents({
     MountVehicle = function(owner, vehicle)
-        local driverSeat = vehicle.Seats.Driver
+        local driverSeat = vehicle.Seats:WaitForChild("Driver", 2)
 
-        if owner == player then
+        if owner == player and driverSeat then
             InteractionUtil.createInteraction(driverSeat, {
                 ActionText = "Drive",
                 ObjectText = "DriverSeat",
@@ -116,7 +116,7 @@ Remotes.bindEvents({
                     VehicleController.DrivingSession:Cleanup()
                 end
             end)
-        else
+        elseif driverSeat then
             driverSeat:FindFirstChildOfClass("ProximityPrompt"):Destroy()
         end
     end,
