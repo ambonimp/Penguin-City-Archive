@@ -26,10 +26,13 @@ type PlayerData = {
 }
 
 local MIN_RECIPE_TIMES = {
-    A = 1,
-    B = 2,
-    C = 2.5,
-    D = 3,
+    A = 0.5,
+    B = 1,
+    C = 1.5,
+    D = 2,
+    E = 2,
+    F = 2,
+    G = 2,
 
     -- Failsafe for missing entries
     __index = function(_, index)
