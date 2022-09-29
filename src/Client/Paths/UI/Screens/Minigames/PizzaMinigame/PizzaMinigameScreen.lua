@@ -7,6 +7,7 @@ local Button = require(Paths.Client.UI.Elements.Button)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
@@ -19,6 +20,7 @@ local menuButtonsFrame: Frame = menuFrame.Buttons
 local playButton = Button.new(menuFrame)
 local exitButton = KeyboardButton.new()
 local instructionsButton = KeyboardButton.new()
+local exitGameplayButton = KeyboardButton.new()
 
 function PizzaMinigameScreen.Init()
     -- Setup Buttons
@@ -34,6 +36,12 @@ function PizzaMinigameScreen.Init()
         instructionsButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
         instructionsButton:Mount(menuButtonsFrame.Instructions, true)
         instructionsButton:SetPressedDebounce(DEBOUNCE_TIME)
+
+        exitGameplayButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
+        exitGameplayButton:SetText(EXIT_BUTTON_TEXT, true)
+        exitGameplayButton:Mount(gameplayFrame.ExitButton, true)
+        exitGameplayButton:SetPressedDebounce(DEBOUNCE_TIME)
+        UIUtil.offsetGuiInset(gameplayFrame.ExitButton)
     end
 
     -- Register UIState
@@ -60,6 +68,10 @@ end
 
 function PizzaMinigameScreen.getExitButton()
     return exitButton
+end
+
+function PizzaMinigameScreen.getExitGameplayButton()
+    return exitGameplayButton
 end
 
 function PizzaMinigameScreen.getInstructionsButton()

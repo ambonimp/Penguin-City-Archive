@@ -57,6 +57,12 @@ end
 -- Play
 -------------------------------------------------------------------------------
 
+local function transitionFinish()
+    Transitions.blink(function()
+        PizzaMinigameController.finish()
+    end)
+end
+
 function PizzaMinigameController.play()
     Output.doDebug(MinigameConstants.DoDebug, "play!")
 
@@ -74,11 +80,7 @@ function PizzaMinigameController.play()
     Remotes.fireServer("PizzaMinigamePlay")
 
     -- Transition into gameplay
-    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, function()
-        Transitions.blink(function()
-            PizzaMinigameController.finish()
-        end)
-    end)
+    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, transitionFinish)
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
         runner:Run()
@@ -147,6 +149,9 @@ do
     end)
     PizzaMinigameScreen.getExitButton().Pressed:Connect(function()
         cachedStopMinigameCallback()
+    end)
+    PizzaMinigameScreen.getExitGameplayButton().Pressed:Connect(function()
+        transitionFinish()
     end)
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")
