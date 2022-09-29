@@ -16,7 +16,8 @@ local FOLLOW_MOUSE_OBJECT_SPACE = CFrame.new(ZERO_VECTOR, Vector3.new(1, 0, 0))
 
 local followMouseMaid = Maid.new()
 local camera = Workspace.CurrentCamera
-local tweenableFov = TweenableValue.new("NumberValue", 70, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+local tweenableFov =
+    TweenableValue.new("NumberValue", camera.FieldOfView, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 
 tweenableFov:BindToProperty(camera, "FieldOfView")
 

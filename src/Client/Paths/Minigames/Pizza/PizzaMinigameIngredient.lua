@@ -48,7 +48,7 @@ local THROW_ASSET_POWER = {
 local THROW_EPSILON = 0.1
 local BASE_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}))
+type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}, function() end))
 
 function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType: string, ingredientName: string, hitbox: BasePart)
     local ingredient = {}

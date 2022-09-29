@@ -4,29 +4,35 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
 local Button = require(Paths.Client.UI.Elements.Button)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 
-local PLAY_BUTTON_TEXT = "Play Pizza"
+local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
 local DEBOUNCE_TIME = 0.2
 
 local screenGui: ScreenGui = Ui.Minigames.PizzaMinigame
-local buttonsFrame: Frame = screenGui.Buttons
-local playButton = Button.new()
-local instructionsButton = Button.new()
+local menuFrame: ImageButton = screenGui.Menu
+local gameplayFrame: Frame = screenGui.Gameplay
+local menuButtonsFrame: Frame = menuFrame.Buttons
+local playButton = Button.new(menuFrame)
+local exitButton = KeyboardButton.new()
+local instructionsButton = KeyboardButton.new()
 
 function PizzaMinigameScreen.Init()
     -- Setup Buttons
     do
-        playButton:SetColor(UIConstants.Colors.Buttons.PlayGreen, true)
-        playButton:SetText(PLAY_BUTTON_TEXT, true)
-        playButton:Mount(buttonsFrame.Play, true)
         playButton:SetPressedDebounce(DEBOUNCE_TIME)
+
+        exitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
+        exitButton:SetText(EXIT_BUTTON_TEXT, true)
+        exitButton:Mount(menuButtonsFrame.Exit, true)
+        exitButton:SetPressedDebounce(DEBOUNCE_TIME)
 
         instructionsButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
         instructionsButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
-        instructionsButton:Mount(buttonsFrame.Instructions, true)
+        instructionsButton:Mount(menuButtonsFrame.Instructions, true)
         instructionsButton:SetPressedDebounce(DEBOUNCE_TIME)
     end
 
@@ -52,6 +58,10 @@ function PizzaMinigameScreen.getPlayButton()
     return playButton
 end
 
+function PizzaMinigameScreen.getExitButton()
+    return exitButton
+end
+
 function PizzaMinigameScreen.getInstructionsButton()
     return instructionsButton
 end
@@ -69,11 +79,13 @@ function PizzaMinigameScreen.close()
 end
 
 function PizzaMinigameScreen.viewMenu()
-    buttonsFrame.Visible = true
+    menuFrame.Visible = true
+    gameplayFrame.Visible = false
 end
 
 function PizzaMinigameScreen.viewGameplay()
-    buttonsFrame.Visible = false
+    menuFrame.Visible = false
+    gameplayFrame.Visible = true
 end
 
 return PizzaMinigameScreen

@@ -13,4 +13,6 @@ MinigameConstants.Minigames = {
 
 MinigameConstants.DoDebug = true
 
+MinigameConstants.BlurSize = 8
+
 return MinigameConstants

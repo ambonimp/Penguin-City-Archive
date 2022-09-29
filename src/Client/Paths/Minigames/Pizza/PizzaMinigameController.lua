@@ -12,6 +12,7 @@ local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
 local Remotes = require(Paths.Shared.Remotes)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
+local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
 
 local FOV = 65
 
@@ -114,11 +115,13 @@ end
 function PizzaMinigameController.viewMenu()
     PizzaMinigameScreen.viewMenu()
     CameraController.viewCameraModel(minigameFolder.Cameras.Menu)
+    LightingUtil.setBlur(MinigameConstants.BlurSize, 0)
 end
 
 function PizzaMinigameController.viewGameplay()
     PizzaMinigameScreen.viewGameplay()
     CameraController.viewCameraModel(minigameFolder.Cameras.Gameplay)
+    LightingUtil.resetBlur(0)
 end
 
 -------------------------------------------------------------------------------
@@ -129,6 +132,9 @@ end
 do
     PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
         PizzaMinigameController.play()
+    end)
+    PizzaMinigameScreen.getExitButton().Pressed:Connect(function()
+        PizzaMinigameController.stopMinigame()
     end)
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")

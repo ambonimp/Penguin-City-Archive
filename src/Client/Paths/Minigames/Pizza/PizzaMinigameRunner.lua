@@ -103,6 +103,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
         -- Send new pizza after a delay
         task.delay(MOVE_NEXT_PIZZA_AFTER, function()
+            -- RETURN: No longer running
+            if not isRunning then
+                return
+            end
+
             -- Pizza Model
             local pizzaTime = PizzaMinigameConstants.Conveyor.Time
                 * (PizzaMinigameConstants.Conveyor.IncreaseFactor ^ totalCorrectPizzasInARow)
@@ -166,6 +171,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             task.delay(pizzaTime, function()
                 -- RETURN: Client has since moved onto a new pizza
                 if cachedTotalPizzas ~= totalPizzasMade then
+                    return
+                end
+
+                -- RETURN: This runner is dead
+                if not isRunning then
                     return
                 end
 
@@ -376,12 +386,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
         appliedSauceParts[saucePart] = true
 
-        -- RETURN: Wrong sauce!
-        if sauceName ~= recipe.Sauce then
-            pizzaUpdate(false)
-            return
-        end
-
         -- ERROR: Could not find a sauce emitter
         local sauceAsset = minigameFolder.Assets[sauceName]
         local sauceEmitter = sauceAsset:FindFirstChildWhichIsA("ParticleEmitter", true)
@@ -392,6 +396,12 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Tween in sauce
         local sauceColor = sauceEmitter.Color.Keypoints[1].Value
         tweenSaucePart(sauceColor, saucePart)
+
+        -- RETURN: Wrong sauce!
+        if sauceName ~= recipe.Sauce then
+            pizzaUpdate(false)
+            return
+        end
 
         -- Add sauce as completed!
         local totalAppliedSauceParts = TableUtil.length(appliedSauceParts)
