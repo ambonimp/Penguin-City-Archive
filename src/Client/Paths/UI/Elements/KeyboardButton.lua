@@ -14,6 +14,14 @@ local RELEASE_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.Easi
 local COLOR_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Linear)
 local TEXT_TWEEN_INFO = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 local INSTANT_TWEEN = TweenInfo.new(0)
+local TEXT_POSITION = UDim2.fromScale(0.5, 0.5)
+local TEXT_SIZE = UDim2.fromScale(0.8, 0.8)
+local ICON_SIZE = UDim2.fromScale(0.7, 0.7)
+local ICON_POSITION = UDim2.fromScale(0.5, 0.48)
+local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
+local ICON_TEXT_PADDING_SCALE = 0.05
+local LEFT_ALIGN_ANCHOR_POINT = Vector2.new(0, 0.5)
+local RIGHT_ALIGN_ANCHOR_POINT = Vector2.new(1, 0.5)
 
 KeyboardButton.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the keyboardButton
@@ -21,6 +29,8 @@ KeyboardButton.Defaults = {
     CornerRadius = 0.3, -- Severity of corners (0.5 creates circular sides)
     Color = Color3.fromRGB(230, 156, 21),
     TextColor = Color3.fromRGB(255, 255, 255),
+    IconColor = Color3.fromRGB(255, 255, 255),
+    IconAlign = "Left",
 }
 
 -- Applies a UICorner to the passed Instance with the default CornerRadius
@@ -45,6 +55,9 @@ function KeyboardButton.new()
     local heightPressed = KeyboardButton.Defaults.HeightPressed
     local text = ""
     local textColor = KeyboardButton.Defaults.TextColor
+    local iconColor = KeyboardButton.Defaults.IconColor
+    local iconAlign: "Left" | "Right" = KeyboardButton.Defaults.IconAlign
+    local iconImageId = ""
 
     local imageButton: ImageButton = keyboardButton:GetButtonObject()
     imageButton.AnchorPoint = Vector2.new(0.5, 0)
@@ -61,14 +74,16 @@ function KeyboardButton.new()
 
     local textLabel = Instance.new("TextLabel")
     textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    textLabel.Position = UDim2.fromScale(0.5, 0.5)
+    textLabel.Position = TEXT_POSITION
+    textLabel.Size = TEXT_SIZE
     textLabel.BackgroundTransparency = 1
     textLabel.Text = text
     textLabel.TextColor3 = textColor
     textLabel.Font = UIConstants.Font
     textLabel.TextScaled = true
-    textLabel.Size = UDim2.fromScale(0.9, 0.9)
     textLabel.Parent = imageButton
+
+    local icon: ImageLabel?
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -133,6 +148,57 @@ function KeyboardButton.new()
         end
     end
 
+    local function adjustIconAndText()
+        -- RETURN: No icon
+        if not icon then
+            return
+        end
+
+        -- Calculate the sizes we're working with here
+        local textBounds = textLabel.TextBounds
+        local textXScale = textBounds.X / (textLabel.AbsoluteSize.X / textLabel.Size.X.Scale)
+        local iconXScale = icon.AbsoluteSize.X / icon.Parent.AbsoluteSize.X
+        local totalScale = textXScale + iconXScale + ICON_TEXT_PADDING_SCALE
+
+        -- Scale back text label if too large
+        local overshotBy = math.max(0, totalScale - TEXT_SIZE.X.Scale)
+        textXScale -= overshotBy
+        totalScale = math.min(totalScale, TEXT_SIZE.X.Scale)
+
+        -- Calculate where to position icon and text
+        local iconXPosition: number
+        local textXPosition: number
+        if iconAlign == "Left" then
+            iconXPosition = 0.5 - totalScale / 2
+            textXPosition = 0.5 + totalScale / 2
+
+            icon.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
+            textLabel.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
+        else
+            iconXPosition = 0.5 + totalScale / 2
+            textXPosition = 0.5 - totalScale / 2
+
+            icon.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
+            textLabel.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
+        end
+
+        print(
+            ("text: %s, text bounds: %.2f, textxscale: %.2f, iconxscale: %.2f, totalscale: %.2f, iconxpos: %.2f, textxpos: %.2f"):format(
+                text,
+                textBounds.X,
+                textXScale,
+                iconXScale,
+                totalScale,
+                iconXPosition,
+                textXPosition
+            )
+        )
+
+        icon.Position = UDim2.new(iconXPosition, 0, ICON_POSITION.Y.Scale, 0)
+        textLabel.Position = UDim2.new(textXPosition, 0, ICON_POSITION.Y.Scale, 0)
+        textLabel.Size = UDim2.new(textXScale, 0, TEXT_SIZE.Y.Scale, 0)
+    end
+
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
@@ -143,6 +209,10 @@ function KeyboardButton.new()
 
     function keyboardButton:GetTextLabel()
         return textLabel
+    end
+
+    function keyboardButton:GetIcon()
+        return icon
     end
 
     function keyboardButton:SetColor(newColor: Color3, skipTween: boolean?)
@@ -217,6 +287,7 @@ function KeyboardButton.new()
             end
 
             textLabel.Text = text
+            adjustIconAndText()
 
             TweenUtil.tween(
                 textLabel,
@@ -236,6 +307,39 @@ function KeyboardButton.new()
 
         local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
         TweenUtil.tween(textLabel, tweenInfo, { TextColor = textColor })
+
+        return self
+    end
+
+    function keyboardButton:SetIcon(imageId: string, align: "Left" | "Right"?)
+        align = align or "Left"
+
+        -- Create ImageLabel
+        if not icon then
+            icon = Instance.new("ImageLabel")
+            icon.Transparency = 1
+            icon.Size = ICON_SIZE
+            icon.Position = ICON_POSITION
+            icon.AnchorPoint = ICON_ANCHOR_POINT
+            icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+            icon.Parent = imageButton
+
+            adjustIconAndText()
+        end
+
+        iconAlign = align
+        iconImageId = imageId
+
+        icon.Image = iconImageId
+
+        return self
+    end
+
+    function keyboardButton:SetIconColor(newColor: Color3, skipTween: boolean?)
+        iconColor = newColor
+
+        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+        TweenUtil.tween(icon, tweenInfo, { ImageColor3 = iconColor })
 
         return self
     end
