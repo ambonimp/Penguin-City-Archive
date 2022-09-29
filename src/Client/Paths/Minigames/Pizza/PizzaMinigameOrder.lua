@@ -86,8 +86,6 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
 
             -- Write
             for _, ingredient in pairs(order) do
-                print(ingredient.IngredientName, ingredient.Current, "/", ingredient.Needed)
-
                 local ingredientLabel = ingredientElements[ingredient.IngredientName]
 
                 local text = ingredient.IngredientName

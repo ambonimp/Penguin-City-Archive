@@ -12,6 +12,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
 local Output = require(Paths.Shared.Output)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 type RecipeRecord = {
     WasCorrect: boolean,
@@ -21,6 +22,7 @@ type RecipeRecord = {
 type PlayerData = {
     RecipeTypeOrder: { string },
     RecipeRecords: { RecipeRecord },
+    PlayRequestTick: number,
 }
 
 local MIN_RECIPE_TIMES = {
@@ -35,16 +37,33 @@ local MIN_RECIPE_TIMES = {
         return 0
     end,
 }
+local CLEANUP_PLAYER_DATA_AFTER = 5
 
-local playerDatas: { [Player]: PlayerData } = {}
+local startedPlayers: { Player } = {} -- Players currently in this minigame
+local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay sessions
 
-function PizzaMinigameService.startMinigame(player: Player)
-    Output.doDebug(MinigameConstants.DoDebug, "startMinigame", player)
+-------------------------------------------------------------------------------
+-- Gameplay
+-------------------------------------------------------------------------------
+
+function PizzaMinigameService.isPlaying(player: Player)
+    return playerDatas[player] and true or false
+end
+
+function PizzaMinigameService.playRequest(player: Player)
+    Output.doDebug(MinigameConstants.DoDebug, "playRequest", player)
+
+    -- RETURN: Already playing
+    if PizzaMinigameService.isPlaying(player) then
+        Output.doDebug(MinigameConstants.DoDebug, player, "already playing")
+        return
+    end
 
     -- Init PlayerData
     local playerData: PlayerData = {
         RecipeTypeOrder = { PizzaMinigameConstants.FirstRecipe },
         RecipeRecords = {},
+        PlayRequestTick = tick(),
     }
     playerDatas[player] = playerData
 
@@ -58,8 +77,14 @@ function PizzaMinigameService.startMinigame(player: Player)
     Remotes.fireClient(player, "PizzaMinigameRecipeTypeOrder", playerData.RecipeTypeOrder)
 end
 
-function PizzaMinigameService.stopMinigame(player: Player)
-    Output.doDebug(MinigameConstants.DoDebug, "stopMinigame", player)
+function PizzaMinigameService.finishRequest(player: Player)
+    Output.doDebug(MinigameConstants.DoDebug, "finishRequest", player)
+
+    -- RETURN: Wasn't playing
+    if not PizzaMinigameService.isPlaying(player) then
+        Output.doDebug(MinigameConstants.DoDebug, player, "wasn't playing")
+        return
+    end
 
     -- Get PlayerData
     local playerData = playerDatas[player]
@@ -83,7 +108,7 @@ function PizzaMinigameService.stopMinigame(player: Player)
         minimumTime += recipeMinTime
     end
     local firstPizzaTime = MIN_RECIPE_TIMES[PizzaMinigameConstants.FirstRecipe]
-    local actualTime = totalPizzas >= 2 and (playerData.RecipeRecords[2].Tick - playerData.RecipeRecords[1].Tick) + firstPizzaTime or 0
+    local actualTime = totalPizzas > 0 and (playerData.RecipeRecords[totalPizzas].Tick - playerData.PlayRequestTick) + firstPizzaTime or 0
     local finishedTooQuickly = actualTime < minimumTime
 
     -- Calculate reward
@@ -98,10 +123,59 @@ function PizzaMinigameService.stopMinigame(player: Player)
     local doGiveReward = not finishedTooQuickly
     if doGiveReward then
         warn(("TODO: Give %s %d coins for completing %d/%d pizzas!"):format(player.Name, totalReward, totalCorrectPizzas, totalPizzas))
+    else
+        warn(("%s finished pizza too quickly (Min Time: %.2f, Actual Time: %.2f)"):format(player.Name, minimumTime, actualTime))
     end
 
     -- Cleanup
     playerDatas[player] = nil
+end
+
+function PizzaMinigameService.completedPizza(player: Player, dirtyWasCorrect: any)
+    Output.doDebug(MinigameConstants.DoDebug, "completedPizza", player)
+
+    -- RETURN: Not playing
+    if not PizzaMinigameService.isPlaying(player) then
+        Output.doDebug(MinigameConstants.DoDebug, player, "wasn't playing")
+        return
+    end
+
+    -- Verify + Clean parameters
+    local wasCorrect = TypeUtil.toBoolean(dirtyWasCorrect) and true or false
+
+    -- Store Record
+    local playerData = playerDatas[player]
+    local recipeRecord: RecipeRecord = {
+        WasCorrect = wasCorrect,
+        Tick = tick(),
+    }
+    table.insert(playerData.RecipeRecords, recipeRecord)
+end
+
+-------------------------------------------------------------------------------
+-- Internals
+-------------------------------------------------------------------------------
+
+function PizzaMinigameService.hasPlayerStarted(player: Player)
+    return table.find(startedPlayers, player) and true or false
+end
+
+function PizzaMinigameService.startMinigame(player: Player)
+    Output.doDebug(MinigameConstants.DoDebug, "startMinigame", player)
+    table.insert(startedPlayers, player)
+end
+
+function PizzaMinigameService.stopMinigame(player: Player)
+    Output.doDebug(MinigameConstants.DoDebug, "stopMinigame", player)
+    TableUtil.remove(startedPlayers, player)
+
+    -- After a delay, clear the cache. It's possible this stopMinigame call was the first the client knew about the minigame stopping.
+    -- They may still need to request the minigame to finish on their end!
+    task.delay(CLEANUP_PLAYER_DATA_AFTER, function()
+        if not PizzaMinigameService.hasPlayerStarted(player) then
+            playerDatas[player] = nil
+        end
+    end)
 end
 
 function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
@@ -119,24 +193,9 @@ end
 -- Setup Communication
 do
     Remotes.bindEvents({
-        PizzaMinigameCompletedPizza = function(player: Player, dirtyWasCorrect: any)
-            -- Verify + Clean parameters
-            local wasCorrect = TypeUtil.toBoolean(dirtyWasCorrect) and true or false
-
-            -- RETURN: Player not playing!
-            local playerData = playerDatas[player]
-            if not playerData then
-                warn(("Recieved PizzaMinigameCompletedPizza event from %s; they are not playing!"):format(player.Name))
-                return
-            end
-
-            -- Store Record
-            local recipeRecord: RecipeRecord = {
-                WasCorrect = wasCorrect,
-                Tick = tick(),
-            }
-            table.insert(playerData.RecipeRecords, recipeRecord)
-        end,
+        PizzaMinigamePlay = PizzaMinigameService.playRequest,
+        PizzaMinigameFinsh = PizzaMinigameService.finishRequest,
+        PizzaMinigameCompletedPizza = PizzaMinigameService.completedPizza,
     })
 end
 

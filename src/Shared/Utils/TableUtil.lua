@@ -149,4 +149,41 @@ function TableUtil.sumValues(tbl: { [any]: number })
     return sum
 end
 
+function TableUtil.isArray(tbl: table)
+    if #tbl == TableUtil.length(tbl) then
+        return true
+    end
+
+    return false
+end
+
+--[[
+    If `maxOccurences` not defined, will stop after removing one instance of `value`
+]]
+function TableUtil.remove(tbl: table, value: any, maxOccurences: number?)
+    maxOccurences = maxOccurences or 1
+
+    if TableUtil.isArray(tbl) then
+        while maxOccurences > 0 do
+            local index = table.find(tbl, value)
+            if index then
+                table.remove(tbl, index)
+                maxOccurences -= 1
+            else
+                break
+            end
+        end
+    else
+        for key, someValue in pairs(tbl) do
+            if someValue == value then
+                tbl[key] = nil
+                maxOccurences -= 1
+                if maxOccurences >= 0 then
+                    break
+                end
+            end
+        end
+    end
+end
+
 return TableUtil

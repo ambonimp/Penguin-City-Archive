@@ -15,18 +15,18 @@ local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigam
 local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
 
 local FOV = 65
+local FILLER_RECIPE_ORDER = { PizzaMinigameConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 local minigameFolder: Folder?
 local isStarted = false
 local runner: typeof(PizzaMinigameRunner.new(Instance.new("Folder"), {}, function() end)) | nil
-local cachedRecipeTypeOrder: { string } | nil
-local cachedStopPlayingCallback: () -> MinigameConstants.PlayRequest
+local cachedStopMinigameCallback: () -> MinigameConstants.PlayRequest
 
 -------------------------------------------------------------------------------
 -- Start/Stop
 -------------------------------------------------------------------------------
 
-function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopPlayingCallback: () -> MinigameConstants.PlayRequest)
+function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopMinigameCallback: () -> MinigameConstants.PlayRequest)
     isStarted = true
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 
@@ -37,7 +37,7 @@ function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopP
         PizzaMinigameController.setupView()
     end)
 
-    cachedStopPlayingCallback = stopPlayingCallback
+    cachedStopMinigameCallback = stopMinigameCallback
 end
 
 function PizzaMinigameController.stopMinigame()
@@ -58,6 +58,8 @@ end
 -------------------------------------------------------------------------------
 
 function PizzaMinigameController.play()
+    Output.doDebug(MinigameConstants.DoDebug, "play!")
+
     -- ERROR: Not started!
     if not isStarted then
         error("Not started")
@@ -68,27 +70,27 @@ function PizzaMinigameController.play()
         error("Already playing")
     end
 
-    Output.doDebug(MinigameConstants.DoDebug, "play!")
+    -- Inform server
+    Remotes.fireServer("PizzaMinigamePlay")
 
+    -- Transition into gameplay
+    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, PizzaMinigameController.finish)
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
-
-        runner = PizzaMinigameRunner.new(
-            minigameFolder,
-            cachedRecipeTypeOrder or { PizzaMinigameConstants.FirstRecipe },
-            PizzaMinigameController.finish
-        )
         runner:Run()
-
-        cachedRecipeTypeOrder = nil
     end)
 end
 
 function PizzaMinigameController.finish()
+    Output.doDebug(MinigameConstants.DoDebug, "finish!")
+
     -- ERROR: Not playing
-    if not (runner or runner:IsRunning()) then
+    if not (runner and runner:IsRunning()) then
         error("Not playing")
     end
+
+    -- Inform server
+    Remotes.fireServer("PizzaMinigameFinsh")
 
     local stats = runner:GetStats()
     print("TODO STATS", stats)
@@ -96,7 +98,7 @@ function PizzaMinigameController.finish()
     runner:Stop()
     runner = nil
 
-    cachedStopPlayingCallback()
+    PizzaMinigameController.viewMenu()
 end
 
 -------------------------------------------------------------------------------
@@ -140,7 +142,7 @@ do
         PizzaMinigameController.play()
     end)
     PizzaMinigameScreen.getExitButton().Pressed:Connect(function()
-        cachedStopPlayingCallback()
+        cachedStopMinigameCallback()
     end)
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
         warn("TODO Instructions")
@@ -152,10 +154,10 @@ do
     Remotes.bindEvents({
         PizzaMinigameRecipeTypeOrder = function(recipeOrder: { string })
             if runner then
-                -- Recieved this event a tad late - but that's okay!
+                Output.doDebug(MinigameConstants.DoDebug, "got recipeOrder", recipeOrder)
                 runner:SetRecipeTypeOrder(recipeOrder)
             else
-                cachedRecipeTypeOrder = recipeOrder
+                warn("Received recipeOrder but no runner")
             end
         end,
     })

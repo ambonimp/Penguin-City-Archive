@@ -56,7 +56,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     -- These members dynamically change on each new sendPizza() call
     local recipe: PizzaMinigameUtil.Recipe
-    local pizzaModel: Model
+    local pizzaModel: Model?
     local appliedSauceParts: { [BasePart]: boolean } = {}
     local maxSauceParts: number
 
@@ -68,6 +68,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -- Client has just finished a pizza
     local function pizzaUpdate(didComplete: boolean)
         Output.doDebug(MinigameConstants.DoDebug, "pizzaUpdate")
+
+        -- Clear current pizzaModel
+        pizzaModel = nil
 
         -- Update Internal counts
         totalPizzasMade += 1
@@ -158,6 +161,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 if not recipeTypeLabel then
                     warn(("Ran out of recipeTypes! PizzaNumber: %d"):format(pizzaNumber))
                     finishCallback()
+                    return
                 end
 
                 local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
