@@ -19,6 +19,8 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         valueInstance.Changed:Connect(function(newVal)
             instance[property] = newVal
         end)
+
+        return tweenableValue
     end
 
     --[[
