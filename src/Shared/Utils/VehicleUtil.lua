@@ -27,10 +27,11 @@ local PLATFORM_CORNERS = {
 local move: Vector3?
 local et: number?
 local moveVelocity: Vector3?
-local direction: { X: CFrame, Z: CFrame }?
+local direction: { X: CFrame, Y: CFrame?, Z: CFrame }?
 local raycastParams: RaycastParams?
 local platform: BasePart?
 local platformSize: Vector3?
+
 -- Enums
 local hoverHeight: number
 local acceleration: number
@@ -43,13 +44,14 @@ local function magnify(x: number): number
     return math.sign(x) * (1 / math.log((b - 1) / b) * math.log((b - math.abs(x)) / b))
 end
 
-local function getSlope(axis, magnitude)
+local function getSlope(axis: Vector3, magnitude: number): Vector3?
     local _, y, _ = platform.CFrame:ToEulerAnglesYXZ()
     local cframe = CFrame.new(platform.Position + RAYCAST_HEIGHT) * CFrame.fromEulerAnglesYXZ(0, y, 0)
     local rayDirection = Vector3.new(0, -magnitude, 0)
 
-    local r1 = workspace:Raycast(cframe:PointToWorldSpace(axis * Vector3.new(1, 1, -1) * platformSize), rayDirection, raycastParams)
-    local r2 = workspace:Raycast(cframe:PointToWorldSpace(-axis * Vector3.new(1, 1, -1) * platformSize), rayDirection, raycastParams)
+    axis *= Vector3.new(1, 1, -1)
+    local r1 = workspace:Raycast(cframe:PointToWorldSpace(axis * platformSize), rayDirection, raycastParams)
+    local r2 = workspace:Raycast(cframe:PointToWorldSpace(-axis * platformSize), rayDirection, raycastParams)
 
     if r1 and r2 then
         return r1.Position - r2.Position
@@ -102,17 +104,15 @@ function VehicleUtil.applyFloatForce(dt: number)
     local bouyancyOffset = math.sin(et / (math.rad(BUOYANCY_RATE) / math.pi)) * BUOYANCY_HEIGHT
 
     local cframe = platform.CFrame
-    local tallestSurface = -math.huge
+    local tallestFloorHeight = -math.huge
 
     local rayDirection = Vector3.new(0, -100, 0)
     for _, corner in PLATFORM_CORNERS do
         local origin = cframe:PointToWorldSpace(platformSize * corner)
-
-        local results = Workspace:Raycast(origin, rayDirection, raycastParams)
-        tallestSurface = math.max(tallestSurface, results.Position.Y)
+        tallestFloorHeight = math.max(tallestFloorHeight, Workspace:Raycast(origin, rayDirection, raycastParams).Position.Y)
     end
 
-    local offset = math.max(-2.8, (tallestSurface + hoverHeight + bouyancyOffset) - cframe.Position.Y)
+    local offset = math.max(-2.8, (tallestFloorHeight + hoverHeight + bouyancyOffset) - cframe.Position.Y)
     platform.Float.Force = Vector3.new(0, (offset * FLOAT_STRENGTH) - (platform.AssemblyLinearVelocity.Y * dt * FLOAT_DAMPING), 0)
         * platform.AssemblyMass
 end
@@ -131,17 +131,20 @@ end
 function VehicleUtil.updateDirection(dt: number, yaw: number, delyaYaw: number)
     -- Roll
     direction.Z = direction.Z:Lerp(CFrame.fromEulerAnglesYXZ(0, 0, magnify(delyaYaw / math.pi) * math.rad(35)), dt * 2)
+    direction.Y = CFrame.fromEulerAnglesYXZ(0, yaw, 0)
 
     -- Pitch
     local slope = getSlope(Vector3.new(0, 0, 1), 15)
     if slope then
+        slope = direction.Y:PointToObjectSpace(slope)
+
         local thetha = math.atan(math.max(slope.Y, -2) / -slope.Z)
         thetha = math.sign(thetha) * (if math.abs(thetha) < math.rad(hoverHeight * 4) then 0 else thetha)
 
-        direction.X = direction.X:Lerp(CFrame.fromEulerAnglesXYZ(thetha, 0, 0), dt * (if thetha == 0 then 1 else 3.5))
+        direction.X = direction.X:Lerp(CFrame.fromEulerAnglesYXZ(thetha, 0, 0), dt * (if thetha == 0 then 1 else 3.5))
     end
 
-    platform.Look.CFrame = direction.X * CFrame.fromEulerAnglesYXZ(0, yaw, 0) * direction.Z
+    platform.Look.CFrame = direction.X * direction.Y * direction.Z
 end
 
 return VehicleUtil
