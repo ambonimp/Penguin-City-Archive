@@ -5,7 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
-local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditorScreen.CharacterEditorConstants)
+local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
 local DataController = require(Paths.Client.DataController)
 export type AppearanceChange = { [string]: string }
 

@@ -8,7 +8,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local Maid = require(Paths.Packages.maid)
-local VehiclesScreen = require(Paths.Client.UI.Screens.VehiclesScreen)
+local VehiclesScreen = require(Paths.Client.UI.Screens.Vehicles.VehicleScreen)
 local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera

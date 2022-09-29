@@ -3,16 +3,16 @@ local PlayerService = {}
 
 local Players = game:GetService("Players")
 local Paths = require(script.Parent)
-local PlayerData = require(Paths.Server.DataService)
+local DataService = require(Paths.Server.Data.DataService)
 local CharacterService = require(Paths.Server.CharacterService)
 
 local function loadPlayer(player)
-    PlayerData.loadPlayer(player)
+    DataService.loadPlayer(player)
     CharacterService.loadPlayer(player)
 end
 
 Players.PlayerRemoving:Connect(function(player)
-    PlayerData.unloadPlayer(player)
+    DataService.unloadPlayer(player)
 end)
 
 Players.PlayerAdded:Connect(loadPlayer)

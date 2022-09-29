@@ -15,8 +15,8 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
-local CharacterEditorConstants = require(script.CharacterEditorConstants)
-local CharacterEditorCategory = require(script.CharacterEditorCategory)
+local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
+local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 
 -- Constants
 local CAM_OFFSET = 0

@@ -5,7 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local VehicleController = require(Paths.Client.VehicleController)
 local Loader = require(Paths.Client.Loader)
 
-local Animate = script.Animate
+local Animate = Paths.Client.Character.Animate
 
 local localPlayer = Players.LocalPlayer
 
