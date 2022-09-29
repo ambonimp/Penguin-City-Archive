@@ -214,8 +214,13 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end
         isPlaced = true
 
-        -- Place onto Pizza
+        -- RETURN: No pizza model right now
         local pizzaModel = runner:GetCurrentPizzaModel()
+        if not pizzaModel then
+            return
+        end
+
+        -- Place onto Pizza
         ModelUtil.anchor(asset)
         asset.Parent = pizzaModel.Ingredients
 

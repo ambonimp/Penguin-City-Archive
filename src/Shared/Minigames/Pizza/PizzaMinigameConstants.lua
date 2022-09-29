@@ -13,12 +13,12 @@ PizzaMinigameConstants.Reward = {
 }
 
 PizzaMinigameConstants.Conveyor = {
-    Time = 7, -- How many seconds the pizza takes to traverse the conveyor
+    Time = 8.5, -- How many seconds the pizza takes to traverse the conveyor
     IncreaseFactor = 0.97, -- How much to decrease this time by each iteration
 }
 
 PizzaMinigameConstants.MaxMistakes = 3
-PizzaMinigameConstants.MaxPizzas = 40
+PizzaMinigameConstants.MaxPizzas = 30
 
 PizzaMinigameConstants.IngredientTypes = {
     Toppings = "Toppings",
@@ -47,31 +47,31 @@ PizzaMinigameConstants.IngredientWeightEquations = {
         --[[
             We graph toppings' weights over time. We want each topping to have its "reign", so you feel yourself progressing through
             the game as one of the toppings is most frequented
-            https://www.desmos.com/calculator/83yw1wfnct
+            https://www.desmos.com/calculator/labxavf1ss
         ]]
         Seaweed = function(alpha: number)
             return -(4 * alpha - 0.8) + 1
         end,
-        Squid = function(alpha: number)
+        Shrimp = function(alpha: number)
             return -(4 * alpha - 1.6) + 1
         end,
-        Anchovy = function(alpha: number)
+        Squid = function(alpha: number)
             return -(4 * alpha - 2.4) + 1
         end,
-        Shrimp = function(alpha: number)
+        Anchovy = function(alpha: number)
             return -(4 * alpha - 3.2) + 1
         end,
     } :: { [string]: WeightEquation },
     Sauces = {
         --[[
             We graph a sauces' weight over time. We aim for hotsauce to become more prevelant as the game goes on
-            https://www.desmos.com/calculator/iaqdci8seo
+            https://www.desmos.com/calculator/6shrx9vdgk
         ]]
         TomatoSauce = function(alpha: number)
-            return -0.6 * alpha + 1
+            return -0.8 * alpha + 0.8
         end,
         HotSauce = function(alpha: number)
-            return 2 * alpha - 0.5
+            return alpha
         end,
     } :: { [string]: WeightEquation },
     Bases = {
@@ -82,11 +82,15 @@ PizzaMinigameConstants.IngredientWeightEquations = {
     } :: { [string]: WeightEquation },
 }
 
+-- Ranked in order of what the developer thinks is increasing difficulty
 PizzaMinigameConstants.RecipeTypes = {
     A = { Toppings = {} },
-    B = { Toppings = { 2, 2 } },
-    C = { Toppings = { 1, 1, 1, 1 } },
-    D = { Toppings = { 5 } },
+    C = { Toppings = { 2 } },
+    B = { Toppings = { 1, 1 } },
+    D = { Toppings = { 2, 2 } },
+    E = { Toppings = { 1, 1, 1, 1 } },
+    F = { Toppings = { 5 } },
+    G = { Toppings = { 2, 2, 1 } },
 } :: { [string]: RecipeType }
 
 PizzaMinigameConstants.RecipeTypeWeightEquations = {
@@ -94,19 +98,28 @@ PizzaMinigameConstants.RecipeTypeWeightEquations = {
         We graph a recipes weight over time. At any given time, some recipes will be more likely to be chosen than others.
         In first ~11% of the game (at time of writing), only equation A gives a value greater than 0 - so only recipe A will be
         chosen for this time period!
-        https://www.desmos.com/calculator/bns1imkyxe
+        https://www.desmos.com/calculator/o31n3nkixv
     ]]
     A = function(alpha: number)
-        return -1.3 * alpha + 1
+        return -1 * alpha + 0.5
     end,
     B = function(alpha: number)
-        return -(2.5 * alpha - 1) ^ 2 + 0.5
+        return -(4 * alpha - 1) ^ 2 + 0.5
     end,
     C = function(alpha: number)
-        return -(2.8 * alpha - 1.5) ^ 2 + 0.6
+        return -(4 * alpha - 1.5) ^ 2 + 0.5
     end,
     D = function(alpha: number)
-        return alpha ^ 4
+        return -(4 * alpha - 2) ^ 2 + 0.5
+    end,
+    E = function(alpha: number)
+        return -(4 * alpha - 2.5) ^ 2 + 0.5
+    end,
+    F = function(alpha: number)
+        return -(4 * alpha - 3) ^ 2 + 0.5
+    end,
+    G = function(alpha: number)
+        return alpha ^ 8
     end,
 } :: { [string]: WeightEquation }
 
