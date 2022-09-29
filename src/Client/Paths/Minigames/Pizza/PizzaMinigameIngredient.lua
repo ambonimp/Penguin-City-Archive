@@ -224,13 +224,13 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         ModelUtil.anchor(asset)
         asset.Parent = pizzaModel.Ingredients
 
-        -- EDGE CASE: Tween base size to cover whole pizza
         if ingredientType == PizzaMinigameConstants.IngredientTypes.Bases then
             -- WARN: Only supports single-part Bases at time of writing (sorry developer!)
             if #asset:GetChildren() > 1 then
                 warn("No current support for multi-part Bases")
             end
 
+            -- Cover pizza with the base
             local pizzaBase: BasePart = pizzaModel.Base
             local sizeFactor = pizzaBase.Size.X / asset.PrimaryPart.Size.X
             local primaryPart = asset.PrimaryPart
@@ -240,6 +240,9 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
                 primaryPart.Size = startSize:Lerp(goalSize, alpha)
                 primaryPart.Position = primaryPart.Position:Lerp(pizzaBase.Position, alpha)
             end, BASE_TWEEN_INFO)
+        elseif ingredientType == PizzaMinigameConstants.IngredientTypes.Toppings then
+            -- Ensure topping is on the pizza (may get prematurely anchored if the player is very quick)
+            asset:PivotTo(goalPart.CFrame)
         end
     end
 
