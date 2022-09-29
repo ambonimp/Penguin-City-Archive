@@ -124,6 +124,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 -- Setup Pizza Model movement
                 local pizzaMovementTimeElapsed = 0
                 pizzaMaid:GiveTask(RunService.RenderStepped:Connect(function(dt)
+                    -- RETURN: No pizzaModel!
+                    if not pizzaModel then
+                        return
+                    end
+
                     pizzaMovementTimeElapsed += dt
                     local alpha = pizzaMovementTimeElapsed / pizzaTime
                     pizzaModel:PivotTo(pizzaStartCFrame:Lerp(pizzaEndCFrame, alpha))

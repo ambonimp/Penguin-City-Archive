@@ -60,21 +60,25 @@ end
 function PizzaMinigameController.play()
     Output.doDebug(MinigameConstants.DoDebug, "play!")
 
-    -- ERROR: Not started!
+    -- WARN: Not started!
     if not isStarted then
-        error("Not started")
+        warn("Not started")
     end
 
-    -- ERROR: Already playing
+    -- WARN : Already playing
     if runner and runner:IsRunning() then
-        error("Already playing")
+        warn("Already playing")
     end
 
     -- Inform server
     Remotes.fireServer("PizzaMinigamePlay")
 
     -- Transition into gameplay
-    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, PizzaMinigameController.finish)
+    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, function()
+        Transitions.blink(function()
+            PizzaMinigameController.finish()
+        end)
+    end)
     Transitions.blink(function()
         PizzaMinigameController.viewGameplay()
         runner:Run()
@@ -84,9 +88,9 @@ end
 function PizzaMinigameController.finish()
     Output.doDebug(MinigameConstants.DoDebug, "finish!")
 
-    -- ERROR: Not playing
+    -- WARN: Not playing
     if not (runner and runner:IsRunning()) then
-        error("Not playing")
+        warn("Not playing")
     end
 
     -- Inform server
