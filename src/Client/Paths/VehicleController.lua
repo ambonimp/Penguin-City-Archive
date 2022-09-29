@@ -8,7 +8,6 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local Maid = require(Paths.Packages.maid)
-local VehiclesScreen = require(Paths.Client.UI.Screens.Vehicles.VehicleScreen)
 local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera
@@ -31,8 +30,6 @@ end
 
 local function drive(model)
     if character then
-        VehiclesScreen.openDashboard()
-
         VehicleUtil.new(player, model)
 
         local _, y, _ = character.HumanoidRootPart.CFrame:ToEulerAnglesYXZ()
@@ -71,41 +68,28 @@ end
 
 VehicleController.DrivingSession = Maid.new()
 
-function VehicleController.loadCharacter(newCharacter)
-    character = newCharacter
-    local humanoid = character.Humanoid
-
-    -- Hide proxmity prompts when a vehicle is entered
-    togglePPConn = humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
-        local seatPart = humanoid.SeatPart
-        if seatPart then
-            if CollectionService:HasTag(humanoid.SeatPart.Parent.Parent, "Vehicle") then
-                InteractionUtil.toggleVisible(script.Name, seatPart == nil)
-            end
-        else
-            InteractionUtil.toggleVisible(script.Name, true)
-        end
-    end)
-end
-
-function VehicleController.unloadCharacter()
-    character = nil
-
-    togglePPConn:Disconnect()
-    ProximityPromptService.Enabled = false
-
-    InteractionUtil.toggleVisible(script.Name, true)
-end
-
 Remotes.bindEvents({
-    MountVehicle = function(owner, vehicle)
+    VehicleMounted = function(owner, vehicle)
+        InteractionUtil.toggleVisible(script.Name, false)
+
+        local driving = owner == player
+        if driving then
+            drive(vehicle)
+        end
+
+        local dismountConn
+        dismountConn = player.Character.Humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
+            dismountConn:Disconnect()
+            InteractionUtil.toggleVisible(script.Name, true)
+
+            VehicleController.DrivingSession:Cleanup()
+        end)
+    end,
+    VehicleCreated = function(owner, vehicle)
         local driverSeat = vehicle.Seats.Driver
 
         if owner == player then
-            InteractionUtil.createInteraction(driverSeat, {
-                ActionText = "Drive",
-                ObjectText = "DriverSeat",
-            })
+            driverSeat:FindFirstChildOfClass("ProximityPrompt").ActionText = "Drive"
 
             if driverSeat.Occupant then
                 drive(vehicle)

@@ -137,8 +137,8 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
                 model.WorldPivot = seat.CFrame
                 model:PivotTo(humanoidRootPat.CFrame)
 
+                Remotes.fireAllClients("VehicleCreated", client, model)
                 seat:Sit(humanoid)
-                Remotes.fireAllClients("MountVehicle", client, model)
             else
                 interaction = Interactionutil.createInteraction(seat, { ObjectText = "PassengerSeat", ActionText = "Enter" })
             end
@@ -150,6 +150,7 @@ function VehicleService.mountVehicle(client: Player, vehicleName: string)
             interaction.Triggered:Connect(function(player)
                 if not seat.Occupant then
                     seat:Sit(player.Character.Humanoid)
+                    Remotes.fireClient(client, "VehicleMounted", model)
                 end
             end)
         end
