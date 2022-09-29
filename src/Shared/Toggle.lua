@@ -9,11 +9,13 @@ function Toggle.new(value: boolean, onToggled: (boolean) -> ())
     local toggle = {}
     local jobs = {}
 
+    local initialValue: boolean = value
+
     --[[
-        Set the toggles value. If setting to false, all jobs must agree
+        Change the value, if flipping back the value to the initial value, all jobs must agree
     ]]
     function toggle:Set(newValue: boolean, job: any)
-        if newValue then
+        if newValue ~= initialValue then
             if not table.find(jobs, job) then
                 if value ~= newValue then
                     value = true

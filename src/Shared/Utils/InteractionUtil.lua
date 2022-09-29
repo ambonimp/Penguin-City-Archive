@@ -1,7 +1,12 @@
 local InteractionUtil = {}
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
-local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Toggle = require(ReplicatedStorage.Shared.Toggle)
+
+local arePromptsHidden = Toggle.new(false, function(value)
+    ProximityPromptService.Enabled = not value
+end)
 
 function InteractionUtil.createInteraction(interactable, props)
     local proximityPrompt = Instance.new("ProximityPrompt")
@@ -17,23 +22,12 @@ function InteractionUtil.createInteraction(interactable, props)
     return proximityPrompt
 end
 
-if RunService:IsClient() then
-    -- Disbales proximity prompt
-    -- Keeps track of requests so that there is no conflicts between scripts when re-enabling
-    local disableRequests = {}
-    function InteractionUtil.toggleVisible(request, toggle)
-        if toggle then
-            table.remove(disableRequests, table.find(disableRequests, request))
-            if #disableRequests == 0 then
-                ProximityPromptService.Enabled = true
-            end
-        else
-            if not table.find(disableRequests, request) then
-                table.insert(disableRequests, request)
-                ProximityPromptService.Enabled = false
-            end
-        end
-    end
+function InteractionUtil.hideInteractions(requester: string)
+    arePromptsHidden:Set(true, requester)
+end
+
+function InteractionUtil.showInteractions(requester: string)
+    arePromptsHidden:Set(false, requester)
 end
 
 return InteractionUtil
