@@ -1,99 +1,72 @@
 local VehicleController = {}
 
-local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local Maid = require(Paths.Packages.maid)
-local VehiclesScreen = require(Paths.Client.UI.Screens.VehiclesScreen)
 local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera
 local player = Players.LocalPlayer
 local controls = require(player.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
-local char
-local togglePPConn -- Proxmity prompts
 
-local function normalizeAngle(x)
-    return x % (2 * math.pi)
+-- Returns an angle within (0, math.pi * 2)
+local function normalizeAngle(theta: number): number
+    return theta % (2 * math.pi)
 end
 
-local function minRot(x)
+-- Returns the fastest way to reach an angle. For example minimizeTheta(270) = -90 since 90 < 270
+local function minimizeTheta(x: number): number
     x = normalizeAngle(x)
     local x2 = x - (2 * math.pi)
     return if math.abs(x) < math.abs(x2) then x else x2
 end
 
 local function drive(model)
-    if char then
-        VehiclesScreen.openDashboard()
-
-        VehicleUtil.new(player, model)
-
-        local _, y, _ = char.HumanoidRootPart.CFrame:ToEulerAnglesYXZ()
-        local yaw = y
-
-        VehicleController.DrivingSession:GiveTask(RunService.Heartbeat:Connect(function(dt)
-            local move = controls:GetMoveVector()
-            VehicleUtil.updateMove(move)
-
-            -- Turning
-            local deltaYaw = 0
-            if VehicleUtil.getThrottle() ~= 0 then
-                _, y, _ = camera.CFrame:ToEulerAnglesYXZ()
-                local goalDir = y + math.atan2(-move.Z, move.X) - math.pi / 2
-
-                deltaYaw = minRot(goalDir - yaw)
-                yaw = yaw + deltaYaw * dt * 1.8
-            end
-
-            VehicleUtil.updateLook(dt, yaw, deltaYaw)
-
-            VehicleUtil.applyFloatForce(dt)
-            VehicleUtil.applyMoveFoce(dt)
-        end))
-
-        VehicleController.DrivingSession:GiveTask(function()
-            VehicleUtil.destroy()
-
-            -- If unmount button is clicked, make player jump of seat
-            if char.Humanoid.SeatPart then
-                Remotes.fireServer("UnmountFromVehicle")
-            end
-        end)
+    -- RETURN: Character doesn't exist
+    local character = player.Character
+    if not character then
+        return
     end
-end
 
-VehicleController.DrivingSession = Maid.new()
+    VehicleUtil.new(player, model)
 
-function VehicleController.loadCharacter(character)
-    char = character
-    local hum = char.Humanoid
+    local _, y, _ = character.HumanoidRootPart.CFrame:ToEulerAnglesYXZ()
+    local yaw = y
 
-    -- Hide proxmity prompts when a vehicle is entered
-    togglePPConn = hum:GetPropertyChangedSignal("SeatPart"):Connect(function()
-        local seatPart = hum.SeatPart
-        if seatPart then
-            if CollectionService:HasTag(hum.SeatPart.Parent.Parent, "Vehicle") then
-                InteractionUtil.toggleVisible(script.Name, seatPart == nil)
-            end
-        else
-            InteractionUtil.toggleVisible(script.Name, true)
+    VehicleController.DrivingSession:GiveTask(RunService.Heartbeat:Connect(function(dt)
+        local move = controls:GetMoveVector()
+        VehicleUtil.updateMove(move)
+
+        -- Turning
+        local deltaYaw = 0
+        if VehicleUtil.getThrottle() ~= 0 then
+            _, y, _ = camera.CFrame:ToEulerAnglesYXZ()
+            local goalDir = y + math.atan2(-move.Z, move.X) - math.pi / 2
+
+            deltaYaw = minimizeTheta(goalDir - yaw)
+            yaw = yaw + deltaYaw * dt * 1.8
+        end
+
+        VehicleUtil.updateDirection(dt, yaw, deltaYaw)
+
+        VehicleUtil.applyFloatForce(dt)
+        VehicleUtil.applyMoveFoce(dt)
+    end))
+
+    VehicleController.DrivingSession:GiveTask(function()
+        VehicleUtil.destroy()
+
+        -- If unmount button is clicked, make player jump of seat
+        if character.Humanoid.SeatPart then
+            Remotes.fireServer("UnmountFromVehicle")
         end
     end)
 end
 
-function VehicleController.unloadCharacter()
-    char = nil
-
-    togglePPConn:Disconnect()
-    ProximityPromptService.Enabled = false
-
-    InteractionUtil.toggleVisible(script.Name, true)
-end
+VehicleController.DrivingSession = Maid.new()
 
 Remotes.bindEvents({
     MountVehicle = function(owner, vehicle)

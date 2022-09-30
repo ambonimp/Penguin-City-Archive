@@ -6,49 +6,47 @@
 --]]
 
 local Spring = {}
-Spring.__index = Spring
 
-function Spring.new(pos, mass, force, damping, speed)
-    local self = setmetatable({}, Spring)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
 
-    self.Position = pos
-    self.Velocity = Vector3.new()
+function Spring.new(position: Vector3, mass: Vector3?, force: Vector3?, damping: Vector3?, speed: Vector3)
+    local spring = setmetatable({}, Spring)
 
-    self.Mass = mass or 1
-    self.Force = force or 50
-    self.Damping = damping or 2
-    self.Speed = speed or 1
+    local velocity = Vector3.new()
 
-    return self
-end
+    mass = mass or 1
+    force = force or 50
+    damping = damping or 2
+    speed = speed or 1
 
-function Spring:Shove(force)
-    local x, y, z = force.X, force.Y, force.Z
-    if x ~= x or x == math.huge or x == -math.huge then
-        x = 0
-    end
-    if y ~= y or y == math.huge or y == -math.huge then
-        y = 0
-    end
-    if z ~= z or z == math.huge or z == -math.huge then
-        z = 0
+    function spring:Set(newPosition: Vector3)
+        position = newPosition
     end
 
-    self.Velocity = self.Velocity + Vector3.new(x, y, z)
-end
+    function spring:Get(): Vector3
+        return position
+    end
 
-function Spring:Update(target, dt)
-    local scaledDeltaTime = math.min(dt * self.Speed, 0.1)
+    function spring:Impuse(impule: Vector3)
+        velocity = velocity + VectorUtil.ifNanThen0(impule)
+    end
 
-    local force = target - self.Position
-    local acceleration = (force * self.Force) / self.Mass
+    function spring:Update(target: Vector3, dt: number)
+        local scaledDeltaTime = math.min(dt * self.Speed, 0.1)
 
-    acceleration = acceleration - self.Velocity * self.Damping
+        local impulse = target - position
+        local acceleration = (impulse * force) / mass
 
-    self.Velocity = self.Velocity + acceleration * scaledDeltaTime
-    self.Position = self.Position + self.Velocity * scaledDeltaTime
+        acceleration = acceleration - velocity * damping
 
-    return self.Position
+        velocity = velocity + acceleration * scaledDeltaTime
+        position = position + velocity * scaledDeltaTime
+
+        return position
+    end
+
+    return spring
 end
 
 return Spring

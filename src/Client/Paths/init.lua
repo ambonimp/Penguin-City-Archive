@@ -34,7 +34,7 @@ task.delay(0, function()
         require(client.CameraController),
         require(client.HousingController),
         require(client.DataController),
-        require(client.CharacterController),
+        require(client.Character.CharacterController),
         require(client.VehicleController),
         require(client.Input.InputController),
 

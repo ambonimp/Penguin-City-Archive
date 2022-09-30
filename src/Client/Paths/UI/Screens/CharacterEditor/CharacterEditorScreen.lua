@@ -15,8 +15,8 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
-local CharacterEditorConstants = require(script.CharacterEditorConstants)
-local CharacterEditorCategory = require(script.CharacterEditorCategory)
+local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
+local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 
 -- Constants
 local CAM_OFFSET = 0
@@ -25,6 +25,8 @@ local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterC
 local DEFAULT_CATEGORY = "BodyType"
 
 -- Members
+local canOpen: boolean = true
+
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Appearance
 local categoryPages: Frame = menu.Items
@@ -68,11 +70,46 @@ end
 
 -- Register UIState
 do
+    local yielding: boolean
     local function openMenu()
-        local character = player.Character
-        if not character then
+        -- RETURN: Menu is already open
+        if not canOpen then
             return
         end
+
+        canOpen = false
+
+        -- RETURN: No character
+        local character: Model = player.Character
+        if not character then
+            uiStateMachine:Pop()
+            return
+        end
+
+        -- Only open character editor when the player is on the floor
+        yielding = true
+
+        local humanoid: Humanoid = character.Humanoid
+        local state: Enum.HumanoidStateType = humanoid:GetState()
+
+        repeat
+            state = humanoid:GetState()
+
+            if state == Enum.HumanoidStateType.Seated then
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
+                task.wait(0.1) -- Give it time to stand up
+            end
+
+            if state == Enum.HumanoidStateType.Dead then
+                uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
+                return
+            elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
+                yielding = false
+            end
+
+            task.wait()
+        until not yielding
 
         -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -96,27 +133,39 @@ do
     end
 
     local function exitMenu()
-        previewCharacter:Destroy()
+        yielding = false
 
-        --Were changes were made to the character's appearance
-        local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
-        for _, category in categories do
-            TableUtil.merge(appearanceChanges, category:GetChanges())
-            category:SetPreviewCharacter("")
-        end
-        if TableUtil.length(appearanceChanges) ~= 0 then
-            -- If so, relay them to the server so they can be verified and applied
-            Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)
+        if not yielding then
+            previewCharacter:Destroy()
+
+            --Were changes were made to the character's appearance
+            local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
+            for _, category in categories do
+                TableUtil.merge(appearanceChanges, category:GetChanges())
+                category:SetPreviewCharacter("")
+            end
+            if TableUtil.length(appearanceChanges) ~= 0 then
+                -- If so, relay them to the server so they can be verified and applied
+                Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)
+            end
+
+            local character = player.Character
+            if character then
+                character.HumanoidRootPart.Anchored = false
+            end
+
+            CharacterUtil.showCharacters(script.Name)
+            CameraController.setPlayerControl()
+            ScreenUtil.out(menu)
         end
 
         local character = player.Character
         if character then
-            character.HumanoidRootPart.Anchored = false
+            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
         end
 
-        CharacterUtil.showCharacters(script.Name)
-        CameraController.setPlayerControl()
-        ScreenUtil.out(menu)
+        yielding = false
+        canOpen = true
     end
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.CharacterEditor, openMenu, exitMenu)
