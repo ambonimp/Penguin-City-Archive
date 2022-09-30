@@ -13,7 +13,7 @@ local function getSound(soundName: string)
     return sound
 end
 
--- Plays sound globally. Plays by using `PlayOnRemove`, unless specified otherwise
+-- Plays sound globally. Plays by using `PlayOnRemove`, or via :Play() and is not removed
 function Sound.play(soundName: string, dontRemove: boolean?): Sound | nil
     local sound = getSound(soundName):Clone()
     sound.Parent = game.Workspace
@@ -21,6 +21,11 @@ function Sound.play(soundName: string, dontRemove: boolean?): Sound | nil
     if dontRemove then
         sound:Play()
         return sound
+    end
+
+    -- WARN: Is looped
+    if sound.Looped then
+        warn(("PlayOnRemove'd a looped sound (%s)"):format(soundName))
     end
 
     sound.PlayOnRemove = true
@@ -36,7 +41,7 @@ do
             error(("SoundFolder %s has no SoundGroup"):format(soundFolder:GetFullName()))
         end
 
-        for _, sound: Sound in pairs(soundFolder:GetChildren()) do
+        for _, sound: Sound in pairs(soundFolder:GetDescendants()) do
             if sound:IsA("Sound") then
                 -- ERROR: Duplicate name
                 local soundName = sound.Name

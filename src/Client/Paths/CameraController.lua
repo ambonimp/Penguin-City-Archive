@@ -16,7 +16,8 @@ local FOLLOW_MOUSE_OBJECT_SPACE = CFrame.new(ZERO_VECTOR, Vector3.new(1, 0, 0))
 
 local followMouseMaid = Maid.new()
 local camera = Workspace.CurrentCamera
-local tweenableFov = TweenableValue.new("NumberValue", 70, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+local tweenableFov =
+    TweenableValue.new("NumberValue", camera.FieldOfView, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 
 tweenableFov:BindToProperty(camera, "FieldOfView")
 
@@ -96,7 +97,12 @@ function CameraController.followMouse(xDegrees: number, yDegrees: number)
     followMouseMaid:Cleanup()
 
     local thisFollowMouseMaid = Maid.new()
-    followMouseMaid:GiveTask(thisFollowMouseMaid)
+    followMouseMaid:GiveTask(function()
+        -- May have been cleaned up/destroyed somewhere else beforehand
+        if thisFollowMouseMaid.Destroy then
+            thisFollowMouseMaid:Destroy()
+        end
+    end)
 
     -- Read beginning camera state
     local cameraCFrame = camera.CFrame

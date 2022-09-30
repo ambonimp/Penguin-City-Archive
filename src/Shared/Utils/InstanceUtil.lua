@@ -30,4 +30,14 @@ function InstanceUtil.setProperties(instance: Instance, propertyTable: { [string
     end
 end
 
+function InstanceUtil.weld(mainPart: BasePart, otherPart: BasePart)
+    local weldConstraint = Instance.new("WeldConstraint")
+    weldConstraint.Name = otherPart:GetFullName()
+    weldConstraint.Part0 = mainPart
+    weldConstraint.Part1 = otherPart
+    weldConstraint.Parent = mainPart
+
+    return weldConstraint
+end
+
 return InstanceUtil
