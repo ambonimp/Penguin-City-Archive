@@ -114,11 +114,19 @@ end
 ]]
 function MathUtil.weightedChoice(t: { [any]: number })
     local sum = 0
-    for _, v in pairs(t) do
-        assert(v >= 0, "[MathUtil:WeightedChoice] Weight value cannot be less than zero.")
-        sum = sum + v
+    for _, weight in pairs(t) do
+        if weight < 0 then
+            warn(t)
+            error("[MathUtil.weightedChoice] Weight value cannot be less than zero. Culprit: %s")
+        end
+        sum = sum + weight
     end
-    assert(sum ~= 0, "[MathUtil:WeightedChoice] The sum of all weights is zero.")
+
+    if sum <= 0 then
+        warn(t)
+        error(("[MathUtil.weightedChoice] The sum of all weights is not greater than 0 (%d)"):format(sum))
+    end
+
     local rnd = MathUtil.nextNumber(0, sum)
     local last = nil
     for k, v in pairs(t) do
