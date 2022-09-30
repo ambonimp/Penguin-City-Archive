@@ -7,12 +7,13 @@
 local DataService = {}
 
 local Players = game:GetService("Players")
-local Paths = require(script.Parent)
+local ServerScriptService = game:GetService("ServerScriptService")
+local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local Signal = require(Paths.Shared.Signal)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
-local ProfileService = require(script.ProfileService)
-local Config = require(script.Config)
+local ProfileService = require(Paths.Server.Data.ProfileService)
+local Config = require(Paths.Server.Data.Config)
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new()

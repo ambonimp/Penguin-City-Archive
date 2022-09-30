@@ -8,7 +8,7 @@ local Paths = require(ServerScriptService.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
-local DataService = require(Paths.Server.DataService)
+local DataService = require(Paths.Server.Data.DataService)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 
 Players.CharacterAutoLoads = false

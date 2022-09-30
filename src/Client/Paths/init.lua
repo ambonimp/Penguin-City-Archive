@@ -33,7 +33,7 @@ task.delay(0, function()
         require(client.UI.UIController),
         require(client.CameraController),
         require(client.DataController),
-        require(client.CharacterController),
+        require(client.Character.CharacterController),
         require(client.VehicleController),
         require(client.Input.InputController),
         require(client.Minigames.MinigameController),
