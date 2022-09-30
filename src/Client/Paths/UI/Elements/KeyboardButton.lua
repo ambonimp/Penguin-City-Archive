@@ -22,6 +22,7 @@ local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local ICON_TEXT_PADDING_SCALE = 0.05
 local LEFT_ALIGN_ANCHOR_POINT = Vector2.new(0, 0.5)
 local RIGHT_ALIGN_ANCHOR_POINT = Vector2.new(1, 0.5)
+local CENTER_ALIGN_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 
 KeyboardButton.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the keyboardButton
@@ -192,8 +193,10 @@ function KeyboardButton.new()
         else
             -- Then just center what we do have
             if hasText then
+                textLabel.AnchorPoint = CENTER_ALIGN_ANCHOR_POINT
                 textLabel.Position = TEXT_POSITION
             else
+                icon.AnchorPoint = CENTER_ALIGN_ANCHOR_POINT
                 icon.Position = ICON_POSITION
             end
         end
