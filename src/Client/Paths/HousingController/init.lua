@@ -9,12 +9,13 @@ local Remotes
 
 local PlayerData
 local ObjectModule
+local HousingScreen: typeof(require(Paths.Client.UI.Screens.HousingScreen))
+local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
 
 local houseCF: CFrame
 local assets: Folder
 
-local isEditing: boolean
-
+--Sets the players house CF used to place objects when loading
 local function SetHouseCFrame()
     if Player:GetAttribute("House") and Player:GetAttribute("HouseSpawn") then
         houseCF = CFrame.new(Player:GetAttribute("House")) * CFrame.Angles(0, math.rad(180), 0)
@@ -29,10 +30,24 @@ function Housing.Init()
     ObjectModule = require(Paths.Shared.HousingObjectData)
     PlayerData = require(Paths.Client.DataController)
     Remotes = require(Paths.Shared.Remotes)
-    isEditing = false
+    HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
+    Housing.isEditing = false
 end
 
 function Housing.Start()
+    Remotes.bindEvents({
+        EnteredHouse = function(player: Player, hasAccess: boolean)
+            if player == Player then
+                HousingScreen.HouseEntered(true)
+            else
+                HousingScreen.HouseEntered(hasAccess)
+            end
+        end,
+        ExitedHouse = function(player: Player)
+            HousingScreen.HouseExited(false)
+        end,
+    })
+    --set house cf if it hasn't been already
     if houseCF == nil then
         repeat
             task.wait()
@@ -40,12 +55,28 @@ function Housing.Start()
 
         SetHouseCFrame()
     end
+    --wait for character to load house
     local Character = Player.Character or Player.CharacterAdded:Wait()
     Housing.LoadPlayerHouse(Player, Character)
+    --show edit button, true: has access to edit
+    HousingScreen.HouseEntered(true)
+
+    EditMode = require(Paths.Client.HousingController.EditMode)
+end
+
+--gets the interior plot of a house of any player
+function Housing.GetPlayerPlot(player: Player)
+    for _, plot in workspace.Houses:GetChildren() do
+        if plot:GetAttribute("Owner") == player.UserId then
+            return plot
+        end
+    end
+    return nil
 end
 
 --Loads a players house and teleports the localplayer to it
 function Housing.LoadPlayerHouse(player: Player, character: Model)
+    local plot = Housing.GetPlayerPlot(player)
     local data
     local houseCFrame
     if player == Player then
@@ -62,7 +93,7 @@ function Housing.LoadPlayerHouse(player: Player, character: Model)
 
             if Object then
                 Object = Object:Clone()
-                Object:SetPrimaryPartCFrame(
+                Object:PivotTo(
                     houseCFrame
                         * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
                         * CFrame.Angles(
@@ -71,11 +102,14 @@ function Housing.LoadPlayerHouse(player: Player, character: Model)
                             math.rad(objectData.Rotation[3])
                         )
                 )
-                Object.Parent = workspace.LoadedHouse
+
+                if player ~= Player then
+                    Object.Parent = plot:WaitForChild("Furniture")
+                end
             end
         end
     end
-
+    --move character to interior of house
     character:PivotTo(CFrame.new(player:GetAttribute("HouseSpawn")) * CFrame.new(0, Player.Character:GetExtentsSize().Y / 2, 0))
 end
 

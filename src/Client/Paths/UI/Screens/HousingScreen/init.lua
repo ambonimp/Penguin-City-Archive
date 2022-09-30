@@ -19,31 +19,61 @@ local templates = Paths.Templates.Housing
 local screenGui: ScreenGui = Paths.UI.Housing
 local edit: Frame = screenGui.Edit
 local enterEdit: TextButton = screenGui.EnterEdit
-local closeButton: ImageButton = edit.Close.Button
+local editCloseButton: ImageButton = edit.Close.Button
 local uiStateMachine = UIController.getStateMachine()
+
+local function EditButtonStateChanged()
+    local isOpen = uiStateMachine:GetState() == UIConstants.States.HousingEdit
+    if isOpen then
+        uiStateMachine:Pop()
+    else
+        uiStateMachine:Push(UIConstants.States.HousingEdit)
+    end
+end
 
 function HousingUI.Init()
     HousingController = require(Paths.Client.HousingController)
 end
 
-function HousingUI.openEdit()
+function HousingUI.OpenEdit()
+    HousingController.isEditing = true
     enterEdit.Text = "Exit Edit"
     ScreenUtil.inUp(edit)
 end
 
-function HousingUI.exitEdit()
+function HousingUI.ExitEdit()
+    HousingController.isEditing = false
     enterEdit.Text = "Edit"
     ScreenUtil.outDown(edit)
+end
+
+function HousingUI.OpenEditButton()
+    enterEdit.Visible = true
+end
+
+function HousingUI.ExitEditButton()
+    enterEdit.Visible = false
+end
+
+function HousingUI.HouseEntered(editPerms: boolean)
+    if editPerms then
+        EditButtonStateChanged()
+    end
+end
+
+function HousingUI.HouseExited()
+    HousingUI.ExitEdit()
+    uiStateMachine:Pop()
 end
 
 -- Register UIState
 do
     local function enter()
-        HousingUI.openEdit()
+        HousingUI.OpenEditButton()
     end
 
     local function exit()
-        HousingUI.exitEdit()
+        HousingUI.ExitEditButton()
     end
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HousingEdit, enter, exit)
@@ -51,19 +81,16 @@ end
 
 -- Manipulate UIState
 do
-    closeButton.MouseButton1Down:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.HousingEdit)
+    enterEdit.MouseButton1Down:Connect(function()
+        if HousingController.isEditing then
+            HousingUI.ExitEdit()
+        else
+            HousingUI.OpenEdit()
+        end
     end)
 
-    -- TODO: Replace this with something on the HUD
-
-    enterEdit.MouseButton1Down:Connect(function()
-        local isOpen = uiStateMachine:GetState() == UIConstants.States.HousingEdit
-        if isOpen then
-            uiStateMachine:Pop()
-        else
-            uiStateMachine:Push(UIConstants.States.HousingEdit)
-        end
+    editCloseButton.MouseButton1Down:Connect(function()
+        HousingUI.ExitEdit() -- uiStateMachine:PopIfStateOnTop(UIConstants.States.HousingEdit)
     end)
 end
 

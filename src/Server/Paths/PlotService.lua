@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ObjectModule: typeof(require(Paths.Shared.HousingObjectData))
 local PlayerData: typeof(require(Paths.Server.DataService))
 local Limiter: typeof(require(Paths.Shared.Limiter))
+local Remotes: typeof(require(Paths.Shared.Remotes))
 
 PlotLoader.PlayerPlot = {}
 PlotLoader.PlayerHouse = {}
@@ -29,6 +30,9 @@ function PlotLoader.Init()
     ObjectModule = require(Paths.Shared.HousingObjectData)
     PlayerData = require(Paths.Server.DataService)
     Limiter = require(Paths.Shared.Limiter)
+    Remotes = require(Paths.Shared.Remotes)
+    Remotes.declareEvent("EnteredHouse")
+    Remotes.declareEvent("ExitedHouse")
 end
 
 function PlotLoader.Start() end
@@ -47,6 +51,7 @@ end
 
 --Handles unloading a house interior or exterior : type; "House" for interior, "Plot" for exterior
 local function UnloadPlot(player: Player, plot: Model, type: string)
+    print(player, plot, type)
     --checks for given plot, if player house plot of type, or if it's in the plots table
     local plotModel: Model = plot or PlotLoader.PlayerHasPlot(player, type) or PlotLoader["Player" .. type][player.Name]
 
@@ -57,6 +62,10 @@ local function UnloadPlot(player: Player, plot: Model, type: string)
 
         if plotModel:FindFirstChildOfClass("Model") then
             plotModel:FindFirstChildOfClass("Model"):Destroy()
+        end
+
+        if plotModel:FindFirstChild("Furniture") then
+            plotModel.Furniture:ClearAllChildren()
         end
     end
 
@@ -74,7 +83,7 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
 
             if Object then
                 Object = Object:Clone()
-                Object:SetPrimaryPartCFrame(
+                Object:PivotTo(
                     houseCFrame
                         * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
                         * CFrame.Angles(
@@ -83,7 +92,7 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
                             math.rad(objectData.Rotation[3])
                         )
                 )
-                Object.Parent = workspace.LoadedHouse
+                Object.Parent = plot.Furniture
             end
         end
     end
@@ -107,7 +116,9 @@ local function LoadPlot(player: Player, plot: Model, type: string)
             Model:PivotTo(plot.Plot.CFrame)
             Model.Parent = plot
 
-            player:SetAttribute(type, Model.Spawn.Position)
+            player:SetAttribute(type, Model.Spawn.Position) --Sets the location as an attribute to easily be retrieved by Clients
+
+            --Handle entering and exiting houses
             if type == "House" then
                 loadHouseInterior(player, plot, Model)
                 Model.Exit.Touched:Connect(function(part: BasePart)
@@ -118,6 +129,7 @@ local function LoadPlot(player: Player, plot: Model, type: string)
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
                         newPlayer.Character:PivotTo(CFrame.new(player:GetAttribute("Plot")))
+                        Remotes.fireClient(newPlayer, "ExitedHouse", newPlayer)
                     end
                 end)
             elseif type == "Plot" then
@@ -129,6 +141,7 @@ local function LoadPlot(player: Player, plot: Model, type: string)
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
                         newPlayer.Character:PivotTo(CFrame.new(player:GetAttribute("House")))
+                        Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
                     end
                 end)
             end
