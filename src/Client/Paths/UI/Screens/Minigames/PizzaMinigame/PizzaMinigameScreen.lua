@@ -8,13 +8,11 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local Images = require(Paths.Client.Images.Images)
 
 local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
 local DEBOUNCE_TIME = 0.2
-
-local EXIT_ICON_IMAGE_ID = "rbxassetid://11111629845"
-local INSTRUCTIONS_ICON_IMAGE_ID = "rbxassetid://11111629651"
 
 local screenGui: ScreenGui = Ui.Minigames.PizzaMinigame
 local menuFrame: ImageButton = screenGui.Menu
@@ -34,19 +32,19 @@ function PizzaMinigameScreen.Init()
         exitButton:SetText(EXIT_BUTTON_TEXT, true)
         exitButton:Mount(menuButtonsFrame.Exit, true)
         exitButton:SetPressedDebounce(DEBOUNCE_TIME)
-        exitButton:SetIcon(EXIT_ICON_IMAGE_ID)
+        exitButton:SetIcon(Images.Icons.Exit)
 
         instructionsButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
         instructionsButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
         instructionsButton:Mount(menuButtonsFrame.Instructions, true)
         instructionsButton:SetPressedDebounce(DEBOUNCE_TIME)
-        instructionsButton:SetIcon(INSTRUCTIONS_ICON_IMAGE_ID)
+        instructionsButton:SetIcon(Images.Icons.Instructions)
 
         exitGameplayButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
         exitGameplayButton:SetText(EXIT_BUTTON_TEXT, true)
         exitGameplayButton:Mount(gameplayFrame.ExitButton, true)
         exitGameplayButton:SetPressedDebounce(DEBOUNCE_TIME)
-        exitGameplayButton:SetIcon(EXIT_ICON_IMAGE_ID)
+        exitGameplayButton:SetIcon(Images.Icons.Exit)
         UIUtil.offsetGuiInset(gameplayFrame.ExitButton)
     end
 
