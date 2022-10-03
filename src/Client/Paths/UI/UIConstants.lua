@@ -35,4 +35,8 @@ UIConstants.Colors = {
     },
 }
 
+UIConstants.Offsets = {
+    ButtonOutlineThickness = 2,
+}
+
 return UIConstants
