@@ -306,6 +306,14 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         TweenUtil.tween(saucePart, SAUCE_TWEEN_INFO, { Size = sauceSize })
     end
 
+    local function setIngredientLabelVisibility(isVisible: boolean)
+        for _, billboardGui: BillboardGui in pairs(minigameFolder.Hitboxes.Ingredients:GetDescendants()) do
+            if billboardGui:IsA("BillboardGui") then
+                billboardGui.Enabled = isVisible
+            end
+        end
+    end
+
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
@@ -349,6 +357,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Cursor Input
         InputController.CursorDown:Connect(cursorDown)
         InputController.CursorUp:Connect(cursorUp)
+
+        -- Ingredient Labels
+        setIngredientLabelVisibility(true)
 
         -- Start the gameplay loop!
         sendPizza()
@@ -454,6 +465,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             ingredient:Destroy()
             ingredient = nil
         end
+    end)
+
+    -- Ingredient BillboardGuis
+    maid:GiveTask(function()
+        setIngredientLabelVisibility(false)
     end)
 
     return runner

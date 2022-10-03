@@ -41,6 +41,7 @@ local MIN_RECIPE_TIMES = {
     end,
 }
 local CLEANUP_PLAYER_DATA_AFTER = 5
+local INGREDIENT_LABEL_SAUCE_OFFSET = Vector3.new(0, 2, 0)
 
 local startedPlayers: { Player } = {} -- Players currently in this minigame
 local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay sessions
@@ -188,6 +189,26 @@ function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
         for _, descendant: BasePart in pairs(directory:GetDescendants()) do
             if descendant:IsA("BasePart") then
                 descendant.Transparency = 1
+            end
+        end
+    end
+
+    -- Place ingredient labels
+    for _, ingredientHitbox: BasePart in pairs(minigameFolder.Hitboxes.Ingredients:GetDescendants()) do
+        if ingredientHitbox:IsA("BasePart") then
+            local ingredientName = ingredientHitbox.Name
+
+            local billboardGui: BillboardGui = minigameFolder.Assets.IngredientBillboardGui:Clone()
+            billboardGui.Frame.Icon.Image = PizzaMinigameUtil.getIngredientIconId(ingredientName)
+            billboardGui.Frame.Title.Text = PizzaMinigameUtil.getNiceName(ingredientName)
+
+            billboardGui.Enabled = false
+            billboardGui.Adornee = ingredientHitbox
+            billboardGui.Parent = ingredientHitbox
+
+            local isSauce = table.find(PizzaMinigameConstants.Ingredients.Sauces, ingredientName)
+            if isSauce then
+                billboardGui.StudsOffset += INGREDIENT_LABEL_SAUCE_OFFSET
             end
         end
     end

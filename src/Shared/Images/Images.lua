@@ -81,7 +81,7 @@ Images.PizzaMinigame = {
     Doodle3 = "rbxassetid://11152399111",
     PizzaBase = "rbxassetid://11152399418",
     Cheese = "rbxassetid://11152399496",
-    Anchoves = "rbxassetid://11152399621",
+    Anchovy = "rbxassetid://11152399621",
 }
 --#endregion
 
