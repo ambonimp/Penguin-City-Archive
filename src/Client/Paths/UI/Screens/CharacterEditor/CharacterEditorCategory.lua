@@ -11,7 +11,7 @@ export type AppearanceChange = { [string]: string }
 
 local templates: Folder = Paths.Templates.CharacterEditor
 local screen: ScreenGui = Paths.UI.CharacterEditor
-local menu: Frame = screen.Appearance
+local menu: Frame = screen.Edit
 
 function CharacterEditorCategory.new(categoryName: string)
     local category = {}
@@ -25,11 +25,11 @@ function CharacterEditorCategory.new(categoryName: string)
     local page: Frame = templates.Category:Clone()
     page.Name = categoryName
     page.Visible = false
-    page.Parent = menu.Items
+    page.Parent = menu.Body
 
     local tabButton: ImageButton = templates.Tab:Clone()
     tabButton.Name = categoryName
-    tabButton.Icon.Text = categoryName
+    tabButton.Icon.Image = categoryConstants.Icon
     tabButton.LayoutOrder = categoryConstants.LayoutOrder or 100
     tabButton.Parent = menu.Tabs
 
@@ -48,22 +48,25 @@ function CharacterEditorCategory.new(categoryName: string)
     local function onItemOwned(itemName: string)
         local itemInfo = itemConstants.All[itemName]
 
-        local itemButton: ImageButton = page[itemName]
-        itemButton.ImageColor3 = Color3.fromRGB(254, 255, 214)
+        local itemButton: Frame = page[itemName]
         -- Owned items appear first on the list
         itemButton.LayoutOrder = if itemInfo.LayoutOrder then -(itemCount - itemInfo.LayoutOrder) else 0
     end
 
+    local function onEquippedUneqipped()
+        page[equippedItem].BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+        equippedItem = nil
+    end
+
     local function onItemEquipped(itemName: string)
-        local itemButton: ImageButton
+        local itemButton: Frame
         -- Unequip last item
         if equippedItem then
-            itemButton = page[equippedItem]
-            itemButton.Equipped.Visible = false
+            onEquippedUneqipped()
         end
 
         itemButton = page[itemName]
-        itemButton.Equipped.Visible = true
+        itemButton.BackgroundColor3 = Color3.fromRGB(255, 245, 154)
 
         equippedItem = itemName
     end
@@ -75,9 +78,11 @@ function CharacterEditorCategory.new(categoryName: string)
 
     -- Items
     for itemName, itemInfo in itemConstants.All do
-        local itemButton: ImageButton = templates.ListItem:Clone()
+        local itemButton: Frame = templates.Item:Clone()
         itemButton.Name = itemName
-        itemButton:FindFirstChild("Name").Text = itemName
+        itemButton.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+        itemButton.Icon.Image = itemInfo.Icon
+        itemButton.Icon.ImageColor3 = itemInfo.Color or Color3.fromRGB(255, 255, 255)
         itemButton.Parent = page
 
         if isItemOwned(itemName) then
@@ -90,9 +95,7 @@ function CharacterEditorCategory.new(categoryName: string)
             if isItemOwned(itemName) then
                 local itemIsEquipped = itemName == equippedItem
                 if canUnequip and itemIsEquipped then
-                    equippedItem = nil
-                    itemButton.Equipped.Visible = false
-
+                    onEquippedUneqipped()
                     onAppearanceChanged("None")
                 end
 

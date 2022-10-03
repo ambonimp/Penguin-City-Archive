@@ -15,6 +15,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
 local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 
@@ -28,9 +29,10 @@ local DEFAULT_CATEGORY = "BodyType"
 local canOpen: boolean = true
 
 local screen: ScreenGui = Paths.UI.CharacterEditor
-local menu: Frame = screen.Appearance
-local categoryPages: Frame = menu.Items
+local menu: Frame = screen.Edit
+local body: Frame = menu.Body
 local categoryTabs: Frame = menu.Tabs
+local selectedTab: Frame = categoryTabs.SelectedTab
 local uiStateMachine = UIController.getStateMachine()
 
 local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
@@ -45,20 +47,22 @@ do
         categories[categoryName] = CharacterEditorCategory.new(categoryName)
 
         -- Routing
-        local page = categoryPages[categoryName]
+        local page = body[categoryName]
         local tab = categoryTabs[categoryName]
 
         local function openTab()
-            if currentCategory == categoryName then
-                return
+            if currentCategory then
+                body[currentCategory].Visible = false
+                categoryTabs[currentCategory].Visible = true
             end
 
-            if currentCategory then
-                categoryPages[currentCategory].Visible = false
-            end
+            page.Visible = true
+            tab.Visible = false
+            selectedTab.Visible = true
+            selectedTab.Icon.Image = tab.Icon.Image
+            selectedTab.LayoutOrder = tab.LayoutOrder
 
             currentCategory = categoryName
-            page.Visible = true
         end
 
         tab.MouseButton1Down:Connect(openTab)
@@ -173,8 +177,10 @@ end
 
 -- Manipulate UIState
 do
-    menu.Header.Close.MouseButton1Down:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
+    local exitButton = ExitButton.new()
+    exitButton:Mount(menu.Tabs.Exit, true)
+    exitButton.InternalPress:Connect(function()
+        uiStateMachine:Pop()
     end)
 
     -- TODO: Replace this with something on the HUD

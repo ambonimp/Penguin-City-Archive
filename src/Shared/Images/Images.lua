@@ -85,6 +85,11 @@ Images.PizzaMinigame = {
     Anchovy = "rbxassetid://11152399621",
 }
 --#endregion
+--#region CharacterEditor
+Images.CharacterEditor = {
+    Gloss = "http://www.roblox.com/asset/?id=11122230877",
+}
+--#endregion
 
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
