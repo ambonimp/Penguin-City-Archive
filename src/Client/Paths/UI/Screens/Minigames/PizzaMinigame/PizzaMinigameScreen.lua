@@ -54,6 +54,7 @@ function PizzaMinigameScreen.Init()
         instructionsCloseButton:Mount(instructionsFrame.Background.CloseButton, true)
         instructionsCloseButton:SetPressedDebounce(DEBOUNCE_TIME)
         instructionsCloseButton:RoundOff()
+        instructionsCloseButton:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
     end
 
     -- Register UIState
