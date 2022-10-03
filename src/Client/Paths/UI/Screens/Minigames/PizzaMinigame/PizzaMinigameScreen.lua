@@ -12,7 +12,6 @@ local Images = require(Paths.Client.Images.Images)
 
 local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
-local DEBOUNCE_TIME = 0.2
 
 local screenGui: ScreenGui = Ui.Minigames.PizzaMinigame
 local menuFrame: ImageButton = screenGui.Menu
@@ -28,31 +27,31 @@ local instructionsCloseButton = KeyboardButton.new()
 function PizzaMinigameScreen.Init()
     -- Setup Buttons
     do
-        playButton:SetPressedDebounce(DEBOUNCE_TIME)
+        playButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
 
         exitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
         exitButton:SetText(EXIT_BUTTON_TEXT, true)
         exitButton:Mount(menuButtonsFrame.Exit, true)
-        exitButton:SetPressedDebounce(DEBOUNCE_TIME)
+        exitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
         exitButton:SetIcon(Images.Icons.Exit)
 
         instructionsButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
         instructionsButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
         instructionsButton:Mount(menuButtonsFrame.Instructions, true)
-        instructionsButton:SetPressedDebounce(DEBOUNCE_TIME)
+        instructionsButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
         instructionsButton:SetIcon(Images.Icons.Instructions)
 
         exitGameplayButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
         exitGameplayButton:SetText(EXIT_BUTTON_TEXT, true)
         exitGameplayButton:Mount(gameplayFrame.ExitButton, true)
-        exitGameplayButton:SetPressedDebounce(DEBOUNCE_TIME)
+        exitGameplayButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
         exitGameplayButton:SetIcon(Images.Icons.Exit)
         UIUtil.offsetGuiInset(gameplayFrame.ExitButton)
 
         instructionsCloseButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
         instructionsCloseButton:SetIcon(Images.Icons.Close)
         instructionsCloseButton:Mount(instructionsFrame.Background.CloseButton, true)
-        instructionsCloseButton:SetPressedDebounce(DEBOUNCE_TIME)
+        instructionsCloseButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
         instructionsCloseButton:RoundOff()
         instructionsCloseButton:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
     end

@@ -13,6 +13,8 @@ local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRu
 local Remotes = require(Paths.Shared.Remotes)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
+local UIResults = require(Paths.Client.UI.UIResults)
+local Images = require(Paths.Client.Images.Images)
 
 local FOV = 65
 local FILLER_RECIPE_ORDER = { PizzaMinigameConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
@@ -105,6 +107,11 @@ function PizzaMinigameController.finish()
     runner = nil
 
     PizzaMinigameController.viewMenu()
+    UIResults.display(Images.PizzaMinigame.Logo, {
+        { Name = "Coins", Value = stats.TotalCoins },
+        { Name = "Pizzas Made", Value = stats.TotalPizzas },
+        { Name = "Mistakes", Value = stats.TotalMistakes },
+    }, nil)
 end
 
 -------------------------------------------------------------------------------

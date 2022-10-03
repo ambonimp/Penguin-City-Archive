@@ -7,6 +7,7 @@ UIConstants.States = {
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
     HUD = "HUD",
+    Results = "Results",
 }
 
 UIConstants.Keybinds = {
@@ -30,6 +31,7 @@ UIConstants.Font = Enum.Font.GothamBold
 UIConstants.Colors = {
     Buttons = {
         PlayGreen = Color3.fromRGB(56, 196, 13),
+        NextGreen = Color3.fromRGB(43, 195, 114),
         InstructionsOrange = Color3.fromRGB(214, 145, 15),
         CloseRed = Color3.fromRGB(249, 104, 101),
     },
@@ -38,5 +40,7 @@ UIConstants.Colors = {
 UIConstants.Offsets = {
     ButtonOutlineThickness = 2,
 }
+
+UIConstants.DefaultButtonDebounce = 0.2
 
 return UIConstants
