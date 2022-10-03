@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 -- Constants
-local MAX_TIME_FRAME = 300
+local INDECISION_TIME_FRAME = 300
 local CONTEXT_ANY = "CONTEXT_ANY"
 
 -- Types
@@ -60,10 +60,10 @@ end
 ]]
 function Limiter.indecisive(key: string, timeframe: number, callback: (any) -> (any))
     -- Clean Params
-    if not (timeframe > 0 and timeframe <= MAX_TIME_FRAME) then
+    if not (timeframe > 0 and timeframe <= INDECISION_TIME_FRAME) then
         warn(("[Limiter] Timeframe %.2f is out of bounds. Clamping."):format(timeframe))
     end
-    timeframe = math.clamp(timeframe, 0, MAX_TIME_FRAME)
+    timeframe = math.clamp(timeframe, 0, INDECISION_TIME_FRAME)
 
     -- Create/Update Indecision
     local indecision = indecisions[key]
