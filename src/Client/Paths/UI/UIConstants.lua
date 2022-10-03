@@ -19,6 +19,13 @@ UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Loading,
 }
 
+UIConstants.EnableCoreGuiInStates = {
+    UIConstants.States.Nothing,
+    UIConstants.States.Loading,
+    UIConstants.States.HUD,
+    UIConstants.States.Vehicles,
+}
+
 UIConstants.Font = Enum.Font.GothamBold
 
 UIConstants.Colors = {
@@ -32,5 +39,7 @@ UIConstants.Colors = {
 UIConstants.Offsets = {
     ButtonOutlineThickness = 2,
 }
+
+UIConstants.DefaultButtonDebounce = 0.2
 
 return UIConstants
