@@ -37,18 +37,31 @@ function CameraController.isCameraScriptable()
     return camera.CameraType == Enum.CameraType.Scriptable
 end
 
-function CameraController.lookAt(subject: BasePart | Model, offset: Vector3, fov: number?): (Tween, CFrame)
+function CameraController.setFov(fov: number, animationLength: number?)
+    tweenableFov:Set(fov, animationLength)
+end
+
+function CameraController.getFov()
+    return tweenableFov:GetGoal()
+end
+
+function CameraController.resetFov(animationLength: number?)
+    tweenableFov:Reset(animationLength)
+end
+
+function CameraController.lookAt(subject: BasePart | Model | {}, offset: Vector3, fov: number?): (Tween, CFrame)
     fov = fov or tweenableFov:GetGoal()
-    local _, size
+    local cframe, size
     if subject:IsA("Model") then
-        _, size = subject:GetBoundingBox()
+        cframe, size = subject:GetBoundingBox()
     else
+        cframe = subject.CFrame
         size = subject.Size
     end
 
     return CameraUtil.lookAt(
         camera,
-        subject,
+        cframe,
         Vector3.new(0, 0, CameraUtil.getFitDeph(camera.ViewportSize, fov, size)) + offset,
         TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     )
@@ -67,14 +80,6 @@ function CameraController.viewCameraModel(cameraModel: Model)
     end
 
     camera.CFrame = CFrame.new(lens.Position, lens.Position + lens.CFrame.LookVector)
-end
-
-function CameraController.setFov(fov: number, animationLength: number?)
-    tweenableFov:Set(fov, animationLength)
-end
-
-function CameraController.resetFov(animationLength: number?)
-    tweenableFov:Reset(animationLength)
 end
 
 --[[

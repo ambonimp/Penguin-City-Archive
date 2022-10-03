@@ -1,18 +1,22 @@
 local CharacterEditorScreen = {}
 
 -- Dependecies
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIController = require(Paths.Client.UI.UIController)
+local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
@@ -20,13 +24,19 @@ local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor
 local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 
 -- Constants
-local CAM_OFFSET = 0
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
+
+local CAMERA_ROTATIONAL_OFFSET = math.rad(10)
+local CHARACTER_SCALE_X = 0.3
+local CHARACTER_POSITION_X = 0.3
 
 local DEFAULT_CATEGORY = "BodyType"
 
 -- Members
 local canOpen: boolean = true
+
+local camera: Camera = workspace.CurrentCamera
+local player = Players.LocalPlayer
 
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Edit
@@ -37,9 +47,25 @@ local uiStateMachine = UIController.getStateMachine()
 
 local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
 local currentCategory: string
-local previewCharacter: Model
+local pCharacter: Model
+local pCharacterCFrame: CFrame, pCharacterSize: Vector3
 
-local player = Players.LocalPlayer
+local session = Maid.new()
+
+local function lookAtPreviewCharacter(viewportSize: Vector2)
+    local fov: number = CameraController.getFov()
+    camera.FieldOfView = fov
+    local aspectRatio: number = viewportSize.X / viewportSize.Y
+
+    local worldDeph: number = CameraUtil.getFitDeph(viewportSize, fov, pCharacterSize * Vector3.new(1 / CHARACTER_SCALE_X, 1, 1))
+    local worldWidth: number = aspectRatio * (math.tan(math.rad(fov) / 2) * worldDeph) * 2
+    local screenOffset: number = (0.5 - CHARACTER_POSITION_X) -- Character is normally center screen
+    CameraUtil.lookAt(camera, pCharacterCFrame, Vector3.new(worldWidth * screenOffset, 0, worldDeph))
+
+    -- Orient preview character forward
+    local humanoidRootPart = pCharacter.HumanoidRootPart
+    humanoidRootPart.CFrame = pCharacterCFrame * CFrame.Angles(0, math.rad(fov * aspectRatio) * screenOffset + CAMERA_ROTATIONAL_OFFSET, 0) -- Align preview character with camera
+end
 
 -- Initialize categories
 do
@@ -116,23 +142,28 @@ do
         until not yielding
 
         -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        humanoidRootPart.Anchored = true
+        character:WaitForChild("HumanoidRootPart").Anchored = true
 
-        previewCharacter = character:Clone()
-        previewCharacter.Name = "CharacterEditorPreview"
-        previewCharacter.Parent = Workspace
-        previewCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
+        pCharacter = character:Clone()
+        pCharacter.Name = "CharacterEditorPreview"
+        pCharacter.Parent = Workspace
+        pCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
+        session:GiveTask(pCharacter)
 
+        -- Make camera look at preview character
+        pCharacterCFrame, pCharacterSize = pCharacter:GetBoundingBox()
+        lookAtPreviewCharacter(camera.ViewportSize)
+        session:GiveTask(UIScaleController.ViewportSizeChanged:Connect(lookAtPreviewCharacter))
+
+        -- Make categories aware of starting appearance
         local appearanceDescription: CharacterEditorCategory.AppearanceChange = DataController.get("Appearance")
         for name, category in categories do
             category:EquipItem(appearanceDescription[name])
-            category:SetPreviewCharacter(previewCharacter)
+            category:SetPreviewCharacter(pCharacter)
         end
 
-        -- Open menu and make camera look at character, hide all other characters
+        -- Open menu and hide all other characters
         CharacterUtil.hideCharacters(script.Name)
-        CameraController.lookAt(character, Vector3.new(0, 0, CAM_OFFSET))
         ScreenUtil.inLeft(menu)
     end
 
@@ -140,8 +171,6 @@ do
         yielding = false
 
         if not yielding then
-            previewCharacter:Destroy()
-
             --Were changes were made to the character's appearance
             local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
             for _, category in categories do
@@ -158,9 +187,11 @@ do
                 character.HumanoidRootPart.Anchored = false
             end
 
+            session:Cleanup()
+
             CharacterUtil.showCharacters(script.Name)
-            CameraController.setPlayerControl()
             ScreenUtil.out(menu)
+            CameraController.setPlayerControl()
         end
 
         local character = player.Character

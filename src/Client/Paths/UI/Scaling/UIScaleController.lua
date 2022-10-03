@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Limiter = require(Paths.Shared.Limiter)
+local Signal = require(Paths.Shared.Signal)
 
 local BASE_RESOLUTION = Vector2.new(1920, 1080) -- UI is edited using this aspect ratio
 
@@ -13,6 +14,8 @@ local initUICornerRadi: { [UICorner]: UDim } = {} -- UICorners don't scale with 
 local scale: number -- Allows for the retention of aspect ratios
 
 local camera: Camera = Workspace.CurrentCamera
+
+UIScaleController.ViewportSizeChanged = Signal.new()
 
 local function scaleContainer(instance: Instance)
     instance.UIScale.Scale = scale
@@ -28,7 +31,10 @@ end
 
 -- Initialize
 local function updateScale()
-    local ratio = camera.ViewportSize / BASE_RESOLUTION
+    local viewportSize: Vector2 = camera.ViewportSize
+    local prevScale = scale
+
+    local ratio: Vector2 = viewportSize / BASE_RESOLUTION
     scale = if math.abs(1 - ratio.X) > math.abs(1 - ratio.Y) then ratio.X else ratio.Y
 
     for instance in initContainerSizes do
@@ -37,6 +43,10 @@ local function updateScale()
 
     for instance in initUICornerRadi do
         scaleUICorner(instance)
+    end
+
+    if prevScale then -- Don't fire on initialization
+        UIScaleController.ViewportSizeChanged:Fire(viewportSize)
     end
 end
 
