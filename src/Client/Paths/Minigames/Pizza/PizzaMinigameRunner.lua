@@ -36,6 +36,7 @@ local CONVEYOR_TWEEN_INFOS = {
 local CONVEYOR_REVERSES = {
     TileV = true,
 }
+local FADE_MUSIC_DURATION = 1
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -485,7 +486,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -------------------------------------------------------------------------------
 
     -- Music
-    maid:GiveTask(music)
+    maid:GiveTask(function()
+        Sound.fadeOut(music, FADE_MUSIC_DURATION, true)
+    end)
 
     -- One-time cleanups
     maid:GiveTask(function()
