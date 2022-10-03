@@ -18,6 +18,11 @@ local UNIT_TEST_SUFFIX = ".spec"
     Returns our findings.
 ]]
 function UnitTester.Run(directory: Instance)
+    -- RETURN: Only run tests in studio
+    if not RunService:IsStudio() then
+        return
+    end
+
     -- Gather test scripts
     local testScripts: { ModuleScript } = {}
     for _, descendant in pairs(directory:GetDescendants()) do

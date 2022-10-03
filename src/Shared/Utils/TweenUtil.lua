@@ -35,6 +35,8 @@ function TweenUtil.bind(instance: Instance, bindKey: string, tween: Tween, onCom
     end)
 
     tween:Play()
+
+    return tween
 end
 
 --[[

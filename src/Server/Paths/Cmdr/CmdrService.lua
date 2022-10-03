@@ -3,6 +3,13 @@ local CmdrService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local CmdrUtil = require(Paths.Shared.Cmdr.CmdrUtil)
+local Remotes = require(Paths.Shared.Remotes)
+
+-- Inform a client to run some logic in the context of a command
+function CmdrService.invokeClientLogic(client: Player, commandName: string, ...: any)
+    Remotes.fireClient(client, "CmdrRunClientLogic", commandName, ...)
+end
+Remotes.declareEvent("CmdrRunClientLogic")
 
 -- Takes a while to load, so put on a separate thread
 task.spawn(function()

@@ -1,6 +1,10 @@
 local Sound = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+
+local DEFAULT_FADE_DURATION = 0.5
 
 local soundsByName: { [string]: Sound } = {}
 
@@ -30,6 +34,31 @@ function Sound.play(soundName: string, dontRemove: boolean?): Sound | nil
 
     sound.PlayOnRemove = true
     sound:Destroy()
+end
+
+function Sound.fadeIn(sound: Sound, duration: number?)
+    duration = duration or DEFAULT_FADE_DURATION
+
+    local goalVolume = sound.Volume
+    sound.Volume = 0
+
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+    return TweenUtil.tween(sound, tweenInfo, { Volume = goalVolume })
+end
+
+function Sound.fadeOut(sound: Sound, duration: number?, destroyAfter: boolean?)
+    duration = duration or DEFAULT_FADE_DURATION
+
+    local tweenInfo = TweenInfo.new(duration or DEFAULT_FADE_DURATION, Enum.EasingStyle.Linear)
+    local tween = TweenUtil.tween(sound, tweenInfo, { Volume = 0 })
+
+    if destroyAfter then
+        task.delay(duration, function()
+            tween:Destroy()
+        end)
+    end
+
+    return tween
 end
 
 -- Load Sounds
