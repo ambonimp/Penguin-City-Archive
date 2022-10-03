@@ -7,11 +7,12 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
 export type OrderEntry = { IngredientName: string, IngredientType: string, Current: number, Needed: number }
 export type Order = { OrderEntry }
 
-local COLOR_INGREDIENT_COMPLETED = Color3.fromRGB(80, 199, 12)
+local STRIKETHROUGH_ROTATION_RANGE = NumberRange.new(-3, 3)
 
 function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     local orderObject = {}
@@ -20,24 +21,21 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     -- Private Members
     -------------------------------------------------------------------------------
 
-    local pizzaTitle = "Pizza"
+    local pizzaTitle = "Waiting for order.."
     local pizzasMade = 0
-    local pizzasLeft = PizzaMinigameConstants.MaxPizzas
     local mistakes = 0
     local coinsEarnt = 0
 
     local order: Order = {}
 
     local elements = {
-        pizzaTitle = surfaceGui.Frame.PizzaTitle :: TextLabel,
-        pizzasMade = surfaceGui.Frame.Stats.PizzasMade :: TextLabel,
-        pizzasLeft = surfaceGui.Frame.Stats.PizzasLeft :: TextLabel,
-        mistakes = surfaceGui.Frame.Stats.Mistakes :: TextLabel,
-        coins = surfaceGui.Frame.Coins :: TextLabel,
+        pizzaTitle = surfaceGui.Frame.PizzaTitle.TextLabel :: TextLabel,
+        pizzas = surfaceGui.Frame.Stats.Pizzas.Value :: TextLabel,
+        mistakes = surfaceGui.Frame.Stats.Mistakes.Value :: TextLabel,
+        coins = surfaceGui.Frame.Coins.Value :: TextLabel,
         order = surfaceGui.Frame.Ingredients :: Frame,
         ingredientsTemplate = surfaceGui.Frame.Ingredients.template :: TextLabel,
     }
-    local colorIngredientDefault = elements.ingredientsTemplate.TextColor3
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -46,15 +44,14 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     local function draw()
         -- Static
         elements.pizzaTitle.Text = pizzaTitle
-        elements.pizzasMade.Text = ("Pizzas Made: %d"):format(pizzasMade)
-        elements.pizzasLeft.Text = ("Pizzas Left: %d"):format(pizzasLeft)
-        elements.mistakes.Text = ("Mistakes: %d"):format(mistakes)
-        elements.coins.Text = ("%d Coins"):format(coinsEarnt)
+        elements.pizzas.Text = ("%d/%d"):format(pizzasMade, PizzaMinigameConstants.MaxPizzas)
+        elements.mistakes.Text = ("%d/%d"):format(mistakes, PizzaMinigameConstants.MaxMistakes)
+        elements.coins.Text = ("%d"):format(coinsEarnt)
 
         -- Ingredients
         do
             -- Read current labels
-            local currentIngredientElements: { [string]: TextLabel } = {}
+            local currentIngredientElements: { [string]: Frame } = {}
             for _, child in pairs(elements.order:GetChildren()) do
                 if child:IsA(elements.ingredientsTemplate.ClassName) and child ~= elements.ingredientsTemplate then
                     currentIngredientElements[child.Name] = child
@@ -62,20 +59,21 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
             end
 
             -- Get / Create needed labels
-            local ingredientElements: { [string]: TextLabel } = {}
+            local ingredientElements: { [string]: Frame } = {}
             for i, ingredient in pairs(order) do
                 local ingredientName = ingredient.IngredientName
 
-                local ingredientLabel = elements.order:FindFirstChild(ingredientName)
-                if not ingredientLabel then
-                    ingredientLabel = elements.ingredientsTemplate:Clone()
-                    ingredientLabel.Name = ingredientName
-                    ingredientLabel.Visible = true
-                    ingredientLabel.LayoutOrder = i
-                    ingredientLabel.Parent = elements.order
+                local ingredientFrame = elements.order:FindFirstChild(ingredientName)
+                if not ingredientFrame then
+                    ingredientFrame = elements.ingredientsTemplate:Clone()
+                    ingredientFrame.Name = ingredientName
+                    ingredientFrame.Visible = true
+                    ingredientFrame.LayoutOrder = i
+                    ingredientFrame.Icon.Image = PizzaMinigameUtil.getIngredientIconId(ingredientName)
+                    ingredientFrame.Parent = elements.order
                 end
 
-                ingredientElements[ingredientName] = ingredientLabel
+                ingredientElements[ingredientName] = ingredientFrame
                 currentIngredientElements[ingredientName] = nil
             end
 
@@ -86,17 +84,22 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
 
             -- Write
             for _, ingredient in pairs(order) do
-                local ingredientLabel = ingredientElements[ingredient.IngredientName]
+                local ingredientFrame = ingredientElements[ingredient.IngredientName]
 
-                local text = ingredient.IngredientName
+                local text = PizzaMinigameUtil.getNiceName(ingredient.IngredientName)
                 if ingredient.IngredientType == PizzaMinigameConstants.IngredientTypes.Toppings then
-                    text = ("%d %s"):format(ingredient.Needed, ingredient.IngredientName)
+                    text = ("x%d %s"):format(ingredient.Needed, ingredient.IngredientName)
                 end
 
-                local textColor = ingredient.Current == ingredient.Needed and COLOR_INGREDIENT_COMPLETED or colorIngredientDefault
+                local isCompleted = ingredient.Current >= ingredient.Needed
+                if isCompleted and ingredientFrame.Strikethrough.Visible == false then
+                    ingredientFrame.Strikethrough.Rotation = MathUtil.nextNumberInRange(STRIKETHROUGH_ROTATION_RANGE)
+                    ingredientFrame.Strikethrough.Visible = true
+                elseif not isCompleted then
+                    ingredientFrame.Strikethrough.Visible = false
+                end
 
-                ingredientLabel.Text = text
-                ingredientLabel.TextColor3 = textColor
+                ingredientFrame.TextLabel.Text = text
             end
         end
     end
@@ -129,9 +132,8 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
         draw()
     end
 
-    function orderObject:SetPizzaCounts(newPizzasMade: number, newPizzasLeft: number, newMistakes: number)
+    function orderObject:SetPizzaCounts(newPizzasMade: number, newMistakes: number)
         pizzasMade = newPizzasMade
-        pizzasLeft = newPizzasLeft
         mistakes = newMistakes
 
         draw()
@@ -178,6 +180,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     -------------------------------------------------------------------------------
 
     elements.ingredientsTemplate.Visible = false
+    elements.ingredientsTemplate.Strikethrough.Visible = false
     draw()
 
     return orderObject

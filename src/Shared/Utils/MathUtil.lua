@@ -279,6 +279,13 @@ function MathUtil.nextNumber(min: number, max: number)
 end
 
 --[[
+    Returns a pseudorandom float uniformly distributed over [numberRange.Min, numberRange.Max].
+]]
+function MathUtil.nextNumberInRange(numberRange: NumberRange)
+    return MathUtil.nextNumber(numberRange.Min, numberRange.Max)
+end
+
+--[[
     Returns a boolean indicating if the given chance was met when compared with a internalRandom value. Chance must be between 0 and 1.
 ]]
 function MathUtil.nextChance(chance: number?)

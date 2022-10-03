@@ -104,7 +104,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
         -- Update Orders
         order:SetCoinsEarnt(totalCoinsEarnt)
-        order:SetPizzaCounts(totalPizzasMade, PizzaMinigameConstants.MaxPizzas - totalPizzasMade, totalMistakes)
+        order:SetPizzaCounts(totalPizzasMade, totalMistakes)
 
         -- Move onto next pizza
         sendPizza()
@@ -202,8 +202,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 if not isRunning then
                     return
                 end
-
-                print("time expired")
 
                 pizzaUpdate(false)
             end)

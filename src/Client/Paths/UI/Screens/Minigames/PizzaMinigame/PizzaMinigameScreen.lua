@@ -8,7 +8,7 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
-local Images = require(Paths.Client.Images.Images)
+local Images = require(Paths.Shared.Images.Images)
 
 local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"

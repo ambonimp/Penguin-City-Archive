@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PizzaMinigameConstants = require(script.Parent.PizzaMinigameConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 export type Recipe = {
     Base: string,
@@ -12,6 +13,10 @@ export type Recipe = {
 }
 
 local TOTAL_TOPPINGS = TableUtil.length(PizzaMinigameConstants.Ingredients.Toppings)
+local NICE_NAMES = {
+    HotSauce = "Hot Sauce",
+    TomatoSauce = "Tomato Sauce",
+}
 
 function PizzaMinigameUtil.rollRecipeType(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
@@ -137,6 +142,21 @@ function PizzaMinigameUtil.getRecipeName(recipe: Recipe)
     end
 
     return ("%s%s"):format(prefix, toppingsCombo)
+end
+
+-- Useful to convert a "data-scoped" name to something appropriate to show to a user
+function PizzaMinigameUtil.getNiceName(someString: string)
+    return NICE_NAMES[someString] or someString
+end
+
+function PizzaMinigameUtil.getIngredientIconId(ingredientName: string)
+    local imageId = Images.PizzaMinigame[ingredientName]
+    if not imageId then
+        warn(("Could not get ImageId for ingredient %q"):format(ingredientName))
+        imageId = ""
+    end
+
+    return imageId
 end
 
 return PizzaMinigameUtil
