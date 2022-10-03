@@ -17,6 +17,7 @@ local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local Sound = require(Paths.Shared.Sound)
+local CoyoteTimeValue = require(Paths.Shared.CoyoteTimeValue)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 2
@@ -27,6 +28,7 @@ local OLD_PIZZA_SPEED_FACTOR = 10
 local MOVE_NEXT_PIZZA_AFTER = 0.5
 local SPEED_UP_MUSIC_BY = 0.01
 local DO_DEBUG_HITBOX = false
+local HITBOX_COYOTE_TIME = 0.1
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -38,14 +40,16 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
     local maid = Maid.new()
     local pizzaMaid = Maid.new()
+    local cursorDownMaid = Maid.new()
     maid:GiveTask(pizzaMaid)
+    maid:GiveTask(cursorDownMaid)
 
     local gameplayFolder: Folder
     local order: typeof(PizzaMinigameOrder.new(Instance.new("SurfaceGui")))
     local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "", Instance.new("Part"))) | nil
     local music = Sound.play("PizzaMinigame", true)
 
-    local currentHitbox: BasePart?
+    local currentHitbox = CoyoteTimeValue.new()
     local hitboxParts: { BasePart } = {}
     local isRunning = false
 
@@ -240,24 +244,24 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         }, RAYCAST_LENGTH)
 
         local hitHitbox: BasePart = raycastResult and raycastResult.Instance
-        if hitHitbox ~= currentHitbox then
+        if hitHitbox ~= currentHitbox:GetValue() then
             if DO_DEBUG_HITBOX then
-                if currentHitbox then
-                    currentHitbox.Transparency = 1
+                if currentHitbox:GetValue() then
+                    currentHitbox:GetValue().Transparency = 1
                 end
                 if hitHitbox then
                     hitHitbox.Transparency = 0.5
                 end
             end
 
-            currentHitbox = hitHitbox
+            currentHitbox:SetValue(hitHitbox)
         end
     end
 
     local function processHitboxClick()
         Output.doDebug(MinigameConstants.DoDebug, "hitboxClick", currentHitbox)
 
-        local hitbox: BasePart = currentHitbox
+        local hitbox: BasePart = currentHitbox:GetValue()
         local isIngredient = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Ingredients)
         local isSecret = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Secrets)
 
@@ -289,13 +293,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             return
         end
 
-        error("Missing edgecase for hitbox")
+        error(("Missing edgecase for hitbox %s"):format(hitbox:GetFullName()))
     end
 
     local function cursorDown()
-        if currentHitbox then
-            processHitboxClick()
-        end
+        cursorDownMaid:GiveTask(currentHitbox:CallbackNonNil(processHitboxClick, HITBOX_COYOTE_TIME))
     end
 
     local function cursorUp()
@@ -309,6 +311,8 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 ingredient = nil
             end
         end
+
+        cursorDownMaid:Cleanup()
     end
 
     local function tweenSaucePart(sauceColor: Color3, saucePart: BasePart)
@@ -369,8 +373,8 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         maid:GiveTask(CameraController.followMouse(CAMERA_SWAY_MAX_ANGLE, CAMERA_SWAY_MAX_ANGLE))
 
         -- Cursor Input
-        InputController.CursorDown:Connect(cursorDown)
-        InputController.CursorUp:Connect(cursorUp)
+        maid:GiveTask(InputController.CursorDown:Connect(cursorDown))
+        maid:GiveTask(InputController.CursorUp:Connect(cursorUp))
 
         -- Ingredient Labels
         setIngredientLabelVisibility(true)

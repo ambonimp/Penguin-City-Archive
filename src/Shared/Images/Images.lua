@@ -31,6 +31,7 @@ Images.Icons = {
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
     Hat = "rbxassetid://11152371685",
+    Heart = "rbxassetid://11154920458",
     Igloo = "rbxassetid://11152371572",
     Instructions = "rbxassetid://11152371331",
     Layout = "rbxassetid://11152371133",
@@ -70,7 +71,7 @@ Images.Coins = {
 Images.PizzaMinigame = {
     Squid = "rbxassetid://11152398223",
     TomatoSauce = "rbxassetid://11152398287",
-    Shrimp = "rbxassetid://11152372064",
+    Shrimp = "rbxassetid://11154654667",
     Seaweed = "rbxassetid://11152398463",
     HotSauce = "rbxassetid://11152398581",
     Logo = "rbxassetid://11152398785",
@@ -85,6 +86,6 @@ Images.PizzaMinigame = {
 }
 --#endregion
 
---!! ImageViewer assumes all keys of Images are a table of ImageIds
+--!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images

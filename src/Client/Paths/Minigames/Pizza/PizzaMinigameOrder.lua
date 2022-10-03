@@ -31,7 +31,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     local elements = {
         pizzaTitle = surfaceGui.Frame.PizzaTitle.TextLabel :: TextLabel,
         pizzas = surfaceGui.Frame.Stats.Pizzas.Value :: TextLabel,
-        mistakes = surfaceGui.Frame.Stats.Mistakes.Value :: TextLabel,
+        mistakes = surfaceGui.Frame.Stats.Mistakes :: TextLabel,
         coins = surfaceGui.Frame.Coins.Value :: TextLabel,
         order = surfaceGui.Frame.Ingredients :: Frame,
         ingredientsTemplate = surfaceGui.Frame.Ingredients.template :: TextLabel,
@@ -45,8 +45,15 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
         -- Static
         elements.pizzaTitle.Text = pizzaTitle
         elements.pizzas.Text = ("%d/%d"):format(pizzasMade, PizzaMinigameConstants.MaxPizzas)
-        elements.mistakes.Text = ("%d/%d"):format(mistakes, PizzaMinigameConstants.MaxMistakes)
         elements.coins.Text = ("%d"):format(coinsEarnt)
+
+        -- Mistakes
+        do
+            for i = 1, PizzaMinigameConstants.MaxMistakes do
+                local hasLife = mistakes < i
+                elements.mistakes[i].Visible = hasLife
+            end
+        end
 
         -- Ingredients
         do
