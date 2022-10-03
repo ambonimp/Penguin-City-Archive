@@ -25,10 +25,13 @@ return function()
     -- Write all stored imageIds into a dictionary for O(1) searching
     local storedImageIds: { [string]: boolean } = {}
     local function searchStoredImageIds(tbl: table)
-        for _, value in pairs(tbl) do
+        for key, value in pairs(tbl) do
             if typeof(value) == "table" then
                 searchStoredImageIds(value)
             elseif typeof(value) == "string" then
+                if storedImageIds[value] then
+                    table.insert(issues, ("Duplicate Stored ImageId (Key: %s)"):format(key))
+                end
                 storedImageIds[value] = true
             end
         end

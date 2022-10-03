@@ -1,7 +1,7 @@
 return {
     Squid = "rbxassetid://11152398223",
     HotSauce = "rbxassetid://11152398287",
-    Shrimp = "rbxassetid://11152398361",
+    Shrimp = "rbxassetid://11152372064",
     Seaweed = "rbxassetid://11152398463",
     Sauce = "rbxassetid://11152398581",
     Logo = "rbxassetid://11152398785",
