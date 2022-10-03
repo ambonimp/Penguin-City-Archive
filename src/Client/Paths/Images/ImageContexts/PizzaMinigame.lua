@@ -1,0 +1,16 @@
+return {
+    Squid = "rbxassetid://11152398223",
+    HotSauce = "rbxassetid://11152398287",
+    Shrimp = "rbxassetid://11152372064",
+    Seaweed = "rbxassetid://11152398463",
+    Sauce = "rbxassetid://11152398581",
+    Logo = "rbxassetid://11152398785",
+    LogoCartoon = "rbxassetid://11152398954",
+    InstructionsPaper = "rbxassetid://11152399041",
+    Doodle1 = "rbxassetid://11152399315",
+    Doodle2 = "rbxassetid://11152399219",
+    Doodle3 = "rbxassetid://11152399111",
+    Crust = "rbxassetid://11152399418",
+    Cheese = "rbxassetid://11152399496",
+    Anchoves = "rbxassetid://11152399621",
+}
