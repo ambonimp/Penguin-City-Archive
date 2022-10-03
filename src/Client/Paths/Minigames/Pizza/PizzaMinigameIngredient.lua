@@ -48,7 +48,7 @@ local THROW_ASSET_POWER = {
 }
 local THROW_EPSILON = 0.1
 local BASE_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local FADE_INGREDIENT_SOUND_DURATION = 0.2
+local FADE_INGREDIENT_SOUND_DURATION = 0.1
 
 type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}, function() end))
 
