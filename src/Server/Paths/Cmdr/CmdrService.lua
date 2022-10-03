@@ -18,7 +18,6 @@ task.spawn(function()
 
     Cmdr:RegisterDefaultCommands()
     Cmdr:RegisterCommandsIn(script.Parent.Commands)
-    Cmdr:RegisterTypesIn(script.Parent.Types)
 
     Cmdr.Registry:RegisterHook("BeforeRun", function(context)
         local player: Player = context.Executor
