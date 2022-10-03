@@ -37,6 +37,7 @@ task.delay(0, function()
         require(client.VehicleController),
         require(client.Input.InputController),
         require(client.Minigames.MinigameController),
+        require(client.UI.CoreGui),
 
         -- UnitTest
         require(client.UnitTestingController),

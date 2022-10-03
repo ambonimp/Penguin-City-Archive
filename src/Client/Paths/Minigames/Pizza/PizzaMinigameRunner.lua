@@ -17,6 +17,7 @@ local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local Sound = require(Paths.Shared.Sound)
+local CoreGui = require(Paths.Client.UI.CoreGui)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 4
@@ -361,6 +362,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Ingredient Labels
         setIngredientLabelVisibility(true)
 
+        -- CoreGui
+        CoreGui.disable()
+
         -- Start the gameplay loop!
         sendPizza()
     end
@@ -470,6 +474,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -- Ingredient BillboardGuis
     maid:GiveTask(function()
         setIngredientLabelVisibility(false)
+    end)
+
+    -- CoreGui
+    maid:GiveTask(function()
+        CoreGui.enable()
     end)
 
     return runner

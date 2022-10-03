@@ -41,7 +41,7 @@ local MIN_RECIPE_TIMES = {
     end,
 }
 local CLEANUP_PLAYER_DATA_AFTER = 5
-local INGREDIENT_LABEL_SAUCE_OFFSET = Vector3.new(0, 2, 0)
+local INGREDIENT_LABEL_SAUCE_OFFSET = Vector3.new(0, 1, 0)
 
 local startedPlayers: { Player } = {} -- Players currently in this minigame
 local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay sessions
@@ -206,7 +206,7 @@ function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
             billboardGui.Adornee = ingredientHitbox
             billboardGui.Parent = ingredientHitbox
 
-            local isSauce = table.find(PizzaMinigameConstants.Ingredients.Sauces, ingredientName)
+            local isSauce = TableUtil.find(PizzaMinigameConstants.Ingredients.Sauces, ingredientName) and true or false
             if isSauce then
                 billboardGui.StudsOffset += INGREDIENT_LABEL_SAUCE_OFFSET
             end

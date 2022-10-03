@@ -182,4 +182,15 @@ do
     })
 end
 
+--TODO REMOVE TEMPORARY
+local pressed = false
+game.Workspace.startminigame.Touched:Connect(function()
+    if pressed then
+        return
+    end
+    pressed = true
+
+    require(Paths.Client.Minigames.MinigameController).play("Pizza")
+end)
+
 return PizzaMinigameController
