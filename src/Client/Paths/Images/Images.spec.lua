@@ -8,6 +8,8 @@ local Images = require(Paths.Client.Images.Images)
 return function()
     local issues: { string } = {}
 
+    local ignoreDirectories: { Instance } = { ReplicatedStorage.VoldexAdmin }
+
     -- Grab all Images found in studio
     local foundImageIds: { [string]: Instance } = {}
     for _, directory: Instance in pairs({ StarterGui, ReplicatedStorage, Workspace }) do
@@ -42,10 +44,20 @@ return function()
     for imageId, instance in pairs(foundImageIds) do
         local isStored = storedImageIds[imageId] and true or false
         if not isStored then
-            table.insert(
-                issues,
-                ("%s %q has an ImageId not stored internally in Images!"):format(instance.ClassName, instance:GetFullName())
-            )
+            local doIgnore = false
+            for _, ignoreDirectory in pairs(ignoreDirectories) do
+                if instance:IsDescendantOf(ignoreDirectory) then
+                    doIgnore = true
+                    break
+                end
+            end
+
+            if not doIgnore then
+                table.insert(
+                    issues,
+                    ("%s %q has an ImageId not stored internally in Images!"):format(instance.ClassName, instance:GetFullName())
+                )
+            end
         end
     end
 
