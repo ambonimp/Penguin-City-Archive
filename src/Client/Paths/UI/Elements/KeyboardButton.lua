@@ -274,6 +274,13 @@ function KeyboardButton.new()
         return self
     end
 
+    -- Makes the button corners as curved as possible. Will make square buttons circular.
+    function keyboardButton:RoundOff()
+        self:SetCornerRadius(0.5)
+
+        return self
+    end
+
     function keyboardButton:SetHeight(newHeight: number?, newHeightPressed: number?)
         height = newHeight or height
         newHeightPressed = newHeightPressed or heightPressed
