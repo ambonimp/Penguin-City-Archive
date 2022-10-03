@@ -2,7 +2,7 @@ local ImageViewer = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Images = require(Paths.Client.Images.Images)
+local Images = require(Paths.Shared.Images.Images)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local IMAGES_RESOLUTION = Vector2.new(10, 5) -- How many images to display on X/Y axis
