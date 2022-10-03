@@ -15,7 +15,7 @@ local COLOR_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Linear)
 local TEXT_TWEEN_INFO = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 local INSTANT_TWEEN = TweenInfo.new(0)
 local TEXT_POSITION = UDim2.fromScale(0.5, 0.5)
-local TEXT_SIZE = UDim2.fromScale(0.75, 0.75)
+local TEXT_SIZE = UDim2.fromScale(0.7, 0.7)
 local ICON_SIZE = UDim2.fromScale(0.7, 0.7)
 local ICON_POSITION = UDim2.fromScale(0.5, 0.48)
 local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
@@ -326,14 +326,13 @@ function KeyboardButton.new()
             icon.AnchorPoint = ICON_ANCHOR_POINT
             icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
             icon.Parent = imageButton
-
-            adjustIconAndText()
         end
 
         iconAlign = align
         iconImageId = imageId
 
         icon.Image = iconImageId
+        adjustIconAndText()
 
         return self
     end
