@@ -18,10 +18,12 @@ local screenGui: ScreenGui = Ui.Minigames.PizzaMinigame
 local menuFrame: ImageButton = screenGui.Menu
 local gameplayFrame: Frame = screenGui.Gameplay
 local menuButtonsFrame: Frame = menuFrame.Buttons
+local instructionsFrame: Frame = screenGui.Instructions
 local playButton = Button.new(menuFrame)
 local exitButton = KeyboardButton.new()
 local instructionsButton = KeyboardButton.new()
 local exitGameplayButton = KeyboardButton.new()
+local instructionsCloseButton = KeyboardButton.new()
 
 function PizzaMinigameScreen.Init()
     -- Setup Buttons
@@ -46,6 +48,12 @@ function PizzaMinigameScreen.Init()
         exitGameplayButton:SetPressedDebounce(DEBOUNCE_TIME)
         exitGameplayButton:SetIcon(Images.Icons.Exit)
         UIUtil.offsetGuiInset(gameplayFrame.ExitButton)
+
+        instructionsCloseButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
+        instructionsCloseButton:SetIcon(Images.Icons.Close)
+        instructionsCloseButton:Mount(instructionsFrame.Background.CloseButton, true)
+        instructionsCloseButton:SetPressedDebounce(DEBOUNCE_TIME)
+        instructionsCloseButton:RoundOff()
     end
 
     -- Register UIState
@@ -82,6 +90,10 @@ function PizzaMinigameScreen.getInstructionsButton()
     return instructionsButton
 end
 
+function PizzaMinigameScreen.getInstructionsCloseButton()
+    return instructionsCloseButton
+end
+
 -------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
@@ -97,11 +109,19 @@ end
 function PizzaMinigameScreen.viewMenu()
     menuFrame.Visible = true
     gameplayFrame.Visible = false
+    instructionsFrame.Visible = false
 end
 
 function PizzaMinigameScreen.viewGameplay()
     menuFrame.Visible = false
     gameplayFrame.Visible = true
+    instructionsFrame.Visible = false
+end
+
+function PizzaMinigameScreen.viewInstructions()
+    menuFrame.Visible = false
+    gameplayFrame.Visible = false
+    instructionsFrame.Visible = true
 end
 
 return PizzaMinigameScreen

@@ -154,7 +154,10 @@ do
         transitionFinish()
     end)
     PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
-        warn("TODO Instructions")
+        PizzaMinigameScreen.viewInstructions()
+    end)
+    PizzaMinigameScreen.getInstructionsCloseButton().Pressed:Connect(function()
+        PizzaMinigameScreen.viewMenu()
     end)
 end
 
