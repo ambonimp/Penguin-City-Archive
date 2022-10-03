@@ -31,7 +31,7 @@ task.delay(0, function()
         -- Systems
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
-        require(client.UI.UIScaleController),
+        require(client.UI.Scaling.UIScaleController),
         require(client.CameraController),
         require(client.DataController),
         require(client.Character.CharacterController),
