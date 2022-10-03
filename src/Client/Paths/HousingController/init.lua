@@ -12,13 +12,14 @@ local ObjectModule
 local HousingScreen: typeof(require(Paths.Client.UI.Screens.HousingScreen))
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
 
-local houseCF: CFrame
+Housing.houseCF = nil
 local assets: Folder
+Housing.CurrentHouse = nil
 
 --Sets the players house CF used to place objects when loading
 local function SetHouseCFrame()
     if Player:GetAttribute("House") and Player:GetAttribute("HouseSpawn") then
-        houseCF = CFrame.new(Player:GetAttribute("House")) * CFrame.Angles(0, math.rad(180), 0)
+        Housing.houseCF = CFrame.new(Player:GetAttribute("House"))
     end
 end
 
@@ -48,7 +49,7 @@ function Housing.Start()
         end,
     })
     --set house cf if it hasn't been already
-    if houseCF == nil then
+    if Housing.houseCF == nil then
         repeat
             task.wait()
         until Player:GetAttribute("House") and Player:GetAttribute("HouseSpawn")
@@ -60,7 +61,6 @@ function Housing.Start()
     Housing.LoadPlayerHouse(Player, Character)
     --show edit button, true: has access to edit
     HousingScreen.HouseEntered(true)
-
     EditMode = require(Paths.Client.HousingController.EditMode)
 end
 
@@ -80,13 +80,13 @@ function Housing.LoadPlayerHouse(player: Player, character: Model)
     local data
     local houseCFrame
     if player == Player then
-        houseCFrame = houseCF
+        houseCFrame = Housing.houseCF
         data = PlayerData.get("Igloo.Placements")
     else
-        houseCFrame = CFrame.new(Player:GetAttribute("House")) * CFrame.Angles(0, math.rad(180), 0)
+        houseCFrame = CFrame.new(Player:GetAttribute("House"))
         data = Remotes.invokeServer("GetPlayerData", player, "Igloo.Placements")
     end
-
+    --[[
     for itemName, objectData in data do --only load objects that  don't interact on client
         if ObjectModule[itemName].interactable == false then
             local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
@@ -108,9 +108,10 @@ function Housing.LoadPlayerHouse(player: Player, character: Model)
                 end
             end
         end
-    end
+    end]]
     --move character to interior of house
     character:PivotTo(CFrame.new(player:GetAttribute("HouseSpawn")) * CFrame.new(0, Player.Character:GetExtentsSize().Y / 2, 0))
+    Housing.CurrentHouse = plot:FindFirstChildOfClass("Model")
 end
 
 return Housing

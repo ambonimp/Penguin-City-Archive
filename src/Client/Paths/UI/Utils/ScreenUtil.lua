@@ -97,11 +97,18 @@ end
 function ScreenUtil.inRight(frame: Frame, cosmetics: boolean?)
     inn(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
+
+function ScreenUtil.outRight(frame: Frame, cosmetics: boolean?)
+    outt(UDim2.fromScale(-1, 0), frame, cosmetics)
+end
 --[[
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
 function ScreenUtil.inLeft(frame: Frame, cosmetics: boolean?)
-    inn(UDim2.fromScale(1, 0), frame, cosmetics)
+    inn(UDim2.fromScale(-1, 0), frame, cosmetics)
+end
+function ScreenUtil.outLeft(frame: Frame, cosmetics: boolean?)
+    outt(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
 
 function ScreenUtil.out(frame: Frame, cosmetics: boolean?)

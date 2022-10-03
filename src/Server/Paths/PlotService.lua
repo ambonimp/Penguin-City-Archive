@@ -28,14 +28,35 @@ function PlotLoader.Init()
         ["House"] = workspace:WaitForChild("Houses"),
     }
     ObjectModule = require(Paths.Shared.HousingObjectData)
-    PlayerData = require(Paths.Server.DataService)
+    PlayerData = require(Paths.Server.Data.DataService)
     Limiter = require(Paths.Shared.Limiter)
     Remotes = require(Paths.Shared.Remotes)
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
 end
 
-function PlotLoader.Start() end
+function PlotLoader.Start()
+    Remotes.bindEvents({
+        ChangeObject = function(player: Player, id: number, position: CFrame, rotation: Vector3, color: Color3, object: Model)
+            local plot = PlotLoader.PlayerHasPlot(player, "House")
+            local items = PlayerData.get(player, "Igloo.Placements")
+            local houseCFrame = CFrame.new(plot.Plot.Position)
+            if object and object:IsDescendantOf(plot) and (houseCFrame.Position - position.Position).magnitude < 150 then
+                local realPosition = houseCFrame:ToObjectSpace(position)
+                realPosition = CFrame.new(realPosition.Position)
+                object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
+                for _, itemData in items do
+                    if itemData.Id == id then
+                        itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
+                        itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
+                        itemData.Color = { color.R, color.G, color.B }
+                        break
+                    end
+                end
+            end
+        end,
+    })
+end
 
 --Finds an empty plot for exterior/interior
 local function FindEmpty(folder: Folder)
@@ -72,29 +93,26 @@ local function UnloadPlot(player: Player, plot: Model, type: string)
     PlotLoader["Player" .. type][player.Name] = nil
 end
 
---Loads interactable objects in players house
+--Loads objects in players house
 local function loadHouseInterior(player: Player, plot: Model, Model: Model)
-    local houseCFrame = CFrame.new(plot.Plot.Position) * CFrame.Angles(0, math.rad(180), 0)
+    local houseCFrame = CFrame.new(plot.Plot.Position)
     player:SetAttribute("HouseSpawn", Model.Spawn.Position)
     local furniture = PlayerData.get(player, "Igloo.Placements")
     for itemName, objectData in furniture do
-        if ObjectModule[itemName].interactable then
-            local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
+        --if ObjectModule[itemName].interactable then
+        local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
 
-            if Object then
-                Object = Object:Clone()
-                Object:PivotTo(
-                    houseCFrame
-                        * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
-                        * CFrame.Angles(
-                            math.rad(objectData.Rotation[1]),
-                            math.rad(objectData.Rotation[2]),
-                            math.rad(objectData.Rotation[3])
-                        )
-                )
-                Object.Parent = plot.Furniture
-            end
+        if Object then
+            Object = Object:Clone()
+            Object:PivotTo(
+                houseCFrame
+                    * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
+                    * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
+            )
+            Object:SetAttribute("Id", objectData.Id)
+            Object.Parent = plot.Furniture
         end
+        --end
     end
 end
 --Loads a house interior or exterior
