@@ -22,6 +22,7 @@ local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local ICON_TEXT_PADDING_SCALE = 0.05
 local LEFT_ALIGN_ANCHOR_POINT = Vector2.new(0, 0.5)
 local RIGHT_ALIGN_ANCHOR_POINT = Vector2.new(1, 0.5)
+local CENTER_ALIGN_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 
 KeyboardButton.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the keyboardButton
@@ -154,37 +155,51 @@ function KeyboardButton.new()
             return
         end
 
-        -- Calculate the sizes we're working with here
-        local textBounds = textLabel.TextBounds
-        local textXScale = textBounds.X / (textLabel.AbsoluteSize.X / textLabel.Size.X.Scale)
-        local iconXScale = icon.AbsoluteSize.X / icon.Parent.AbsoluteSize.X
-        local totalScale = textXScale + iconXScale + ICON_TEXT_PADDING_SCALE
+        local hasText = textLabel.Text ~= ""
+        local hasImage = icon.Image ~= ""
 
-        -- Scale back text label if too large
-        local overshotBy = math.max(0, totalScale - TEXT_SIZE.X.Scale)
-        textXScale -= overshotBy
-        totalScale = math.min(totalScale, TEXT_SIZE.X.Scale)
+        if hasText and hasImage then
+            -- Calculate the sizes we're working with here
+            local textBounds = textLabel.TextBounds
+            local textXScale = textBounds.X / (textLabel.AbsoluteSize.X / textLabel.Size.X.Scale)
+            local iconXScale = icon.AbsoluteSize.X / icon.Parent.AbsoluteSize.X
+            local totalScale = textXScale + iconXScale + ICON_TEXT_PADDING_SCALE
 
-        -- Calculate where to position icon and text
-        local iconXPosition: number
-        local textXPosition: number
-        if iconAlign == "Left" then
-            iconXPosition = 0.5 - totalScale / 2
-            textXPosition = 0.5 + totalScale / 2
+            -- Scale back text label if too large
+            local overshotBy = math.max(0, totalScale - TEXT_SIZE.X.Scale)
+            textXScale -= overshotBy
+            totalScale = math.min(totalScale, TEXT_SIZE.X.Scale)
 
-            icon.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
-            textLabel.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
+            -- Calculate where to position icon and text
+            local iconXPosition: number
+            local textXPosition: number
+            if iconAlign == "Left" then
+                iconXPosition = 0.5 - totalScale / 2
+                textXPosition = 0.5 + totalScale / 2
+
+                icon.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
+                textLabel.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
+            else
+                iconXPosition = 0.5 + totalScale / 2
+                textXPosition = 0.5 - totalScale / 2
+
+                icon.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
+                textLabel.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
+            end
+
+            icon.Position = UDim2.new(iconXPosition, 0, ICON_POSITION.Y.Scale, 0)
+            textLabel.Position = UDim2.new(textXPosition, 0, TEXT_POSITION.Y.Scale, 0)
+            textLabel.Size = UDim2.new(textXScale, 0, TEXT_SIZE.Y.Scale, 0)
         else
-            iconXPosition = 0.5 + totalScale / 2
-            textXPosition = 0.5 - totalScale / 2
-
-            icon.AnchorPoint = RIGHT_ALIGN_ANCHOR_POINT
-            textLabel.AnchorPoint = LEFT_ALIGN_ANCHOR_POINT
+            -- Then just center what we do have
+            if hasText then
+                textLabel.AnchorPoint = CENTER_ALIGN_ANCHOR_POINT
+                textLabel.Position = TEXT_POSITION
+            else
+                icon.AnchorPoint = CENTER_ALIGN_ANCHOR_POINT
+                icon.Position = ICON_POSITION
+            end
         end
-
-        icon.Position = UDim2.new(iconXPosition, 0, ICON_POSITION.Y.Scale, 0)
-        textLabel.Position = UDim2.new(textXPosition, 0, ICON_POSITION.Y.Scale, 0)
-        textLabel.Size = UDim2.new(textXScale, 0, TEXT_SIZE.Y.Scale, 0)
     end
 
     -------------------------------------------------------------------------------
