@@ -18,6 +18,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local Sound = require(Paths.Shared.Sound)
 local CoyoteTimeValue = require(Paths.Shared.CoyoteTimeValue)
+local AnimationUtil = require(Paths.Shared.Utils.AnimationUtil)
 
 local RAYCAST_LENGTH = 100
 local CAMERA_SWAY_MAX_ANGLE = 2
@@ -29,6 +30,12 @@ local MOVE_NEXT_PIZZA_AFTER = 0.5
 local SPEED_UP_MUSIC_BY = 0.01
 local DO_DEBUG_HITBOX = false
 local HITBOX_COYOTE_TIME = 0.1
+local CONVEYOR_TWEEN_INFOS = {
+    TileV = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, math.huge),
+}
+local CONVEYOR_REVERSES = {
+    TileV = true,
+}
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -378,6 +385,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
         -- Ingredient Labels
         setIngredientLabelVisibility(true)
+
+        -- Animate conveyor
+        maid:GiveTask(AnimationUtil.animateTexture(minigameFolder.ConveyorBelt.Top.Texture, CONVEYOR_TWEEN_INFOS, CONVEYOR_REVERSES))
 
         -- Start the gameplay loop!
         sendPizza()
