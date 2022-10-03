@@ -19,6 +19,8 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         valueInstance.Changed:Connect(function(newVal)
             instance[property] = newVal
         end)
+
+        return tweenableValue
     end
 
     --[[
@@ -64,7 +66,18 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
     --[[
         Sets the value to the initial value
     ]]
-    function tweenableValue:Reset(customTweenInfo: TweenInfo?)
+    function tweenableValue:Reset(length: number?)
+        if length then
+            tweenableValue:Set(initialValue, length)
+        else
+            tweenableValue:Tween(initialValue)
+        end
+    end
+
+    --[[
+        Sets the value to the initial value
+    ]]
+    function tweenableValue:ResetTween(customTweenInfo: TweenInfo?)
         tweenableValue:Tween(initialValue, customTweenInfo)
     end
 
