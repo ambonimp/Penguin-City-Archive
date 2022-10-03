@@ -31,6 +31,7 @@ Images.Icons = {
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
     Hat = "rbxassetid://11152371685",
+    Heart = "rbxassetid://11154920458",
     Igloo = "rbxassetid://11152371572",
     Instructions = "rbxassetid://11152371331",
     Layout = "rbxassetid://11152371133",
@@ -63,27 +64,28 @@ Images.Coins = {
     Bundle4 = "rbxassetid://11152355907",
     Bundle5 = "rbxassetid://11152355811",
     Bundle6 = "rbxassetid://11152355721",
+    Coin = "rbxassetid://11152355612",
 }
 --#endregion
 --#region PizzaMinigame
 Images.PizzaMinigame = {
     Squid = "rbxassetid://11152398223",
-    HotSauce = "rbxassetid://11152398287",
-    Shrimp = "rbxassetid://11152372064",
+    TomatoSauce = "rbxassetid://11152398287",
+    Shrimp = "rbxassetid://11154654667",
     Seaweed = "rbxassetid://11152398463",
-    Sauce = "rbxassetid://11152398581",
+    HotSauce = "rbxassetid://11152398581",
     Logo = "rbxassetid://11152398785",
     LogoCartoon = "rbxassetid://11152398954",
     InstructionsPaper = "rbxassetid://11152399041",
     Doodle1 = "rbxassetid://11152399315",
     Doodle2 = "rbxassetid://11152399219",
     Doodle3 = "rbxassetid://11152399111",
-    Crust = "rbxassetid://11152399418",
+    PizzaBase = "rbxassetid://11152399418",
     Cheese = "rbxassetid://11152399496",
-    Anchoves = "rbxassetid://11152399621",
+    Anchovy = "rbxassetid://11152399621",
 }
 --#endregion
 
---!! ImageViewer assumes all keys of Images are a table of ImageIds
+--!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images
