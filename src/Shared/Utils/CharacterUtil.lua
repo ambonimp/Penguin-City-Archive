@@ -7,8 +7,7 @@ local Shared = ReplicatedStorage.Shared
 local Toggle = require(Shared.Toggle)
 local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
-local ItemConstants = Shared.Constants.CharacterItems
-local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
+local CharacterItems = require(Shared.Constants.CharacterItems)
 
 export type CharacterAppearance = {
     BodyType: string,
@@ -88,7 +87,15 @@ end
 function CharacterUtil.applyAppearance(character: Model, description: { [string]: string })
     local bodyType = description.BodyType
     if bodyType then
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + BodyTypeConstants.All[bodyType].Height
+        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.All[bodyType].Height
+    end
+
+    local furColor = description.FurColor
+    if furColor then
+        local color = CharacterItems.FurColor.All[furColor].Color
+        character.Body.Color = color
+        character.Arms.Color = color
+        character.EyeLids.Color = color
     end
 end
 

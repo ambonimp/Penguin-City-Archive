@@ -9,4 +9,9 @@ CharacterEditorConstants.BodyType = {
     Icon = Images.Icons.Face,
 }
 
+CharacterEditorConstants.FurColor = {
+    LayoutOrder = 2,
+    Icon = Images.Icons.PaintBucket,
+}
+
 return CharacterEditorConstants

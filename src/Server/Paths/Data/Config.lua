@@ -15,6 +15,7 @@ function DataConfig.getDefaults(player)
     return {
         Appearance = {
             BodyType = "Teen",
+            FurColor = "Matte",
         },
         Inventory = defaultInventory,
         Igloo = {},
