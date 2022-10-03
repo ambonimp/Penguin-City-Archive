@@ -22,6 +22,13 @@ UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Loading,
 }
 
+UIConstants.EnableCoreGuiInStates = {
+    UIConstants.States.Nothing,
+    UIConstants.States.Loading,
+    UIConstants.States.HUD,
+    UIConstants.States.Vehicles,
+}
+
 UIConstants.AllowHUDWith = {
     UIConstants.States.Vehicles,
 }

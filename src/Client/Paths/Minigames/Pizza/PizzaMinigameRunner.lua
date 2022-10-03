@@ -17,16 +17,16 @@ local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local Sound = require(Paths.Shared.Sound)
-local CoreGui = require(Paths.Client.UI.CoreGui)
 
 local RAYCAST_LENGTH = 100
-local CAMERA_SWAY_MAX_ANGLE = 4
+local CAMERA_SWAY_MAX_ANGLE = 2
 local ADD_SAUCE_MIN_PROPORTION = 0.9
 local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
 local STAGGER_SAUCE_AUTOFILL_BY = 0.25
 local OLD_PIZZA_SPEED_FACTOR = 10
 local MOVE_NEXT_PIZZA_AFTER = 0.5
 local SPEED_UP_MUSIC_BY = 0.01
+local DO_DEBUG_HITBOX = false
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -238,7 +238,20 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             FilterDescendantsInstances = hitboxParts,
             FilterType = Enum.RaycastFilterType.Whitelist,
         }, RAYCAST_LENGTH)
-        currentHitbox = raycastResult and raycastResult.Instance
+
+        local hitHitbox: BasePart = raycastResult and raycastResult.Instance
+        if hitHitbox ~= currentHitbox then
+            if DO_DEBUG_HITBOX then
+                if currentHitbox then
+                    currentHitbox.Transparency = 1
+                end
+                if hitHitbox then
+                    hitHitbox.Transparency = 0.5
+                end
+            end
+
+            currentHitbox = hitHitbox
+        end
     end
 
     local function processHitboxClick()
@@ -362,9 +375,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Ingredient Labels
         setIngredientLabelVisibility(true)
 
-        -- CoreGui
-        CoreGui.disable()
-
         -- Start the gameplay loop!
         sendPizza()
     end
@@ -474,11 +484,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -- Ingredient BillboardGuis
     maid:GiveTask(function()
         setIngredientLabelVisibility(false)
-    end)
-
-    -- CoreGui
-    maid:GiveTask(function()
-        CoreGui.enable()
     end)
 
     return runner
