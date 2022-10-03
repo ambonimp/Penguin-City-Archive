@@ -16,4 +16,6 @@ Images.Icons = require(ImageContexts.Icons)
 Images.Coins = require(ImageContexts.Coins)
 Images.PizzaMinigame = require(ImageContexts.PizzaMinigame)
 
+--!! ImageViewer assumes all keys of Images are a table of ImageIds
+
 return Images
