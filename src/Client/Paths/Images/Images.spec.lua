@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Images = require(Paths.Client.Images.Images)
+local Images = require(Paths.Shared.Images.Images)
 
 local PLACEHOLDER_IMAGE_ID = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 
