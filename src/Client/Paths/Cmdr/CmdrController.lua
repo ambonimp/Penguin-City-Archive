@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CmdrUtil = require(Paths.Shared.Cmdr.CmdrUtil)
 local Remotes = require(Paths.Shared.Remotes)
+local Permissions = require(Paths.Shared.Permissions)
 local CmdrClient = require(ReplicatedStorage:WaitForChild("CmdrClient"))
 
 local CLIENT_SUFFIX = "Client"
@@ -41,7 +42,11 @@ end
 
 -- Cmdr Setup
 do
-    CmdrClient:SetActivationKeys({ Enum.KeyCode.Semicolon })
+    if Permissions.isAdmin(Players.LocalPlayer) then
+        CmdrClient:SetActivationKeys({ Enum.KeyCode.Semicolon })
+    else
+        CmdrClient:SetActivationKeys({})
+    end
 
     CmdrClient.Registry:RegisterHook("BeforeRun", function(context)
         local player: Player = context.Executor
