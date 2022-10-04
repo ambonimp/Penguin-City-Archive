@@ -9,6 +9,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -19,6 +20,7 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
+local CoreGui = require(Paths.Client.UI.CoreGui)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
 local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
@@ -152,6 +154,7 @@ do
 
         -- Make camera look at preview character
         pCharacterCFrame, pCharacterSize = pCharacter:GetBoundingBox()
+        pCharacterCFrame = pCharacter.HumanoidRootPart.CFrame
         lookAtPreviewCharacter(camera.ViewportSize)
         session:GiveTask(UIScaleController.ViewportSizeChanged:Connect(lookAtPreviewCharacter))
 
@@ -163,8 +166,10 @@ do
         end
 
         -- Open menu and hide all other characters
+        InteractionUtil.hideInteractions(script.Name)
         CharacterUtil.hideCharacters(script.Name)
         ScreenUtil.inLeft(menu)
+        CoreGui.disable()
     end
 
     local function exitMenu()
@@ -192,6 +197,8 @@ do
             CharacterUtil.showCharacters(script.Name)
             ScreenUtil.out(menu)
             CameraController.setPlayerControl()
+            CoreGui.enable()
+            InteractionUtil.showInteractions(script.Name)
         end
 
         local character = player.Character
