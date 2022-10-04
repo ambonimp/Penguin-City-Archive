@@ -7,6 +7,7 @@ local DataConfig = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
+local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 
 local defaultInventory = {}
 
@@ -26,9 +27,8 @@ function DataConfig.getDefaults(player)
 end
 
 -- Load default character items into inventory
-for _, module in ipairs(Paths.Shared.Constants.CharacterItems:GetChildren()) do
-    local itemConstants = require(module)
-    defaultInventory[itemConstants.Path] = {}
+for _, itemConstants in CharacterItems do
+    defaultInventory[itemConstants.InventoryPath] = {}
 end
 
 return DataConfig

@@ -1,6 +1,12 @@
 local BodyTypeConstants = {}
+export type BodyType = {
+    Height: Vector3,
+    Price: number,
+    Icon: string,
+    LayoutOrder: number,
+}
 
-BodyTypeConstants.Path = "BodyTypes" -- Key in data stores
+BodyTypeConstants.InventoryPath = "BodyTypes" -- Key in data stores
 BodyTypeConstants.All = {
     ["Kid"] = {
         Height = Vector3.new(0, -0.4, 0),

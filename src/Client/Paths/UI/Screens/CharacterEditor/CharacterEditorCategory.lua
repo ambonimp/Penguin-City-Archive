@@ -17,7 +17,7 @@ function CharacterEditorCategory.new(categoryName: string)
     local category = {}
 
     -- ERROR: Bad categoryName
-    local categoryConstants = EditorConstants[categoryName]
+    local categoryConstants: EditorConstants.Category = EditorConstants[categoryName]
     if not categoryConstants then
         error(string.format("Character item category '%s' does not exist", categoryName))
     end
@@ -25,6 +25,7 @@ function CharacterEditorCategory.new(categoryName: string)
     local page: Frame = templates.Category:Clone()
     page.Name = categoryName
     page.Visible = false
+    page.UIGridLayout.SortOrder = categoryConstants.SortOrder
     page.Parent = menu.Body
 
     local tabButton: ImageButton = templates.Tab:Clone()
@@ -36,7 +37,7 @@ function CharacterEditorCategory.new(categoryName: string)
     local itemConstants = CharacterItems[categoryName]
     local canUnequip: boolean = itemConstants.All.None ~= nil
     local itemCount: number = TableUtil.length(itemConstants.All)
-    local itemsOwned: { [string]: any } = DataController.get("Inventory." .. itemConstants.Path)
+    local itemsOwned: { [string]: any } = DataController.get("Inventory." .. itemConstants.InventoryPath)
     local equippedItem: string?
     local appearanceChange: AppearanceChange = {}
     local previewCharacter: Model?
@@ -54,6 +55,11 @@ function CharacterEditorCategory.new(categoryName: string)
     end
 
     local function onEquippedUneqipped()
+        -- RETURN: None doesn't have a button
+        if equippedItem == "None" then
+            return
+        end
+
         page[equippedItem].BackgroundColor3 = Color3.fromRGB(235, 244, 255)
         equippedItem = nil
     end
@@ -78,6 +84,11 @@ function CharacterEditorCategory.new(categoryName: string)
 
     -- Items
     for itemName, itemInfo in itemConstants.All do
+        -- RETURN: None doesn't need a button
+        if itemName == "None" then
+            return
+        end
+
         local itemButton: Frame = templates.Item:Clone()
         itemButton.Name = itemName
         itemButton.BackgroundColor3 = Color3.fromRGB(235, 244, 255)

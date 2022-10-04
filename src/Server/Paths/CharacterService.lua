@@ -51,7 +51,7 @@ Remotes.bindFunctions({
         -- Verify that every item that's being changed into is owned or free
         for category, item in changes do
             local constants = CharacterItems[category]
-            if constants and (constants.All[item].Price == 0 or inventory[constants.Path][item]) then
+            if constants and (constants.All[item].Price == 0 or inventory[constants.InventoryPaths][item]) then
                 CharacterUtil.applyAppearance(character, { [category] = item })
                 DataService.set(client, "Appearance." .. category, item, "OnCharacterAppareanceChanged_" .. category)
             end

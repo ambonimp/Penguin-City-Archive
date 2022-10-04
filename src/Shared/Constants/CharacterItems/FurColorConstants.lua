@@ -3,38 +3,39 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local FurColorConstants = {}
 
-FurColorConstants.Path = "BodyTypes" -- Key in data stores
+export type FurColor = {
+    Price: number,
+    Icon: string,
+    Color: Color3,
+}
+
+FurColorConstants.InventoryPath = "FurColors" -- Key in data stores
 FurColorConstants.All = {
     ["Matte"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(27, 42, 53),
-        LayoutOrder = 1,
-    },
+    } :: FurColor,
     ["Red"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(255, 0, 0),
-        LayoutOrder = 2,
-    },
+    } :: FurColor,
     ["Blue"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(0, 0, 255),
-        LayoutOrder = 3,
-    },
+    } :: FurColor,
     ["Green"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(0, 255, 0),
-        LayoutOrder = 4,
-    },
+    } :: FurColor,
     ["Yellow"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(255, 255, 0),
-        LayoutOrder = 5,
-    },
+    } :: FurColor,
 }
 
 return FurColorConstants
