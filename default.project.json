@@ -1,89 +1,92 @@
 {
-    "name": "Penguin City",
-    "tree": {
-        "$className": "DataModel",
+  "name": "Penguin City",
+  "tree": {
+    "$className": "DataModel",
 
-        "ReplicatedFirst": {
-            "$className": "ReplicatedFirst",
-            "$ignoreUnknownInstances": true,
-            "$path": "src/ReplicatedFirst"
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ReplicatedFirst"
+    },
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+
+      "Shared": {
+        "$className": "Folder",
+        "$path": "src/Shared"
+      },
+      "Packages": {
+        "$className": "Folder",
+        "$path": "Packages"
+      },
+      "Version": {
+        "$path": "src/version.txt"
+      },
+
+      "VoldexAdmin": {
+        "$path": "roblox-admin-tools/src/ReplicatedStorage/VoldexAdmin"
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$ignoreUnknownInstances": true,
+      "$path": "src/Server",
+
+      "VoldexAdmin": {
+        "$path": "roblox-admin-tools/src/ServerScriptService/VoldexAdmin"
+      }
+    },
+
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ServerStorage",
+
+      "VoldexAnalytics": {
+        "$path": "roblox-analytics-service/src/ServerStorage/Analytics"
+      },
+
+      "SocketPlugin": {
+        "$ignoreUnknownInstances": true,
+        "$className": "Configuration",
+        "Macros": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true,
+          "CarGame": {
+            "$className": "Folder",
+            "$path": "src/SocketPlugin/Macros"
+          }
         },
-
-        "ReplicatedStorage": {
-            "$className": "ReplicatedStorage",
-            "$ignoreUnknownInstances": true,
-
-            "Shared": {
-                "$className": "Folder",
-                "$path": "src/Shared"
-            },
-            "Packages": {
-                "$className": "Folder",
-                "$path": "Packages"
-            },
-
-            "VoldexAdmin": {
-              "$path": "roblox-admin-tools/src/ReplicatedStorage/VoldexAdmin"
-            }
-        },
-
-        "ServerScriptService": {
-            "$className": "ServerScriptService",
-            "$ignoreUnknownInstances": true,
-            "$path": "src/Server",
-
-            "VoldexAdmin": {
-              "$path": "roblox-admin-tools/src/ServerScriptService/VoldexAdmin"
-            }
-        },
-
-        "ServerStorage": {
-            "$className": "ServerStorage",
-            "$ignoreUnknownInstances": true,
-            "$path": "src/ServerStorage",
-
-            "VoldexAnalytics" : {
-              "$path" : "roblox-analytics-service/src/ServerStorage/Analytics"
-            },
-
-            "SocketPlugin": {
-                "$ignoreUnknownInstances": true,
-                "$className": "Configuration",
-                "Macros": {
-                  "$className": "Folder",
-                  "$ignoreUnknownInstances": true,
-                  "CarGame": {
-                    "$className": "Folder",
-                    "$path": "src/SocketPlugin/Macros"
-                  }
-                },
-                "Utils": {
-                  "$className": "Folder",
-                  "$ignoreUnknownInstances": true,
-                  "CarGame": {
-                    "$className": "Folder",
-                    "$path": "src/SocketPlugin/Utils"
-                  }
-                }
-              }
-        },
-
-        "StarterPlayer": {
-            "$className": "StarterPlayer",
-            "$ignoreUnknownInstances": true,
-
-            "StarterPlayerScripts": {
-                "$className": "StarterPlayerScripts",
-                "$ignoreUnknownInstances": true,
-                "$path": "src/Client",
-
-                "VoldexAnalytics" : {
-                    "$path": "roblox-analytics-service/src/StarterPlayer/StarterPlayerScripts/AnalyticsClientInit.client.lua"
-                },
-                "VoldexAdmin": {
-                  "$path": "roblox-admin-tools/src/StarterPlayer/StarterPlayerScripts/VoldexAdmin"
-                }
-            }
+        "Utils": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true,
+          "CarGame": {
+            "$className": "Folder",
+            "$path": "src/SocketPlugin/Utils"
+          }
         }
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$ignoreUnknownInstances": true,
+
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$ignoreUnknownInstances": true,
+        "$path": "src/Client",
+
+        "VoldexAnalytics": {
+          "$path": "roblox-analytics-service/src/StarterPlayer/StarterPlayerScripts/AnalyticsClientInit.client.lua"
+        },
+        "VoldexAdmin": {
+          "$path": "roblox-admin-tools/src/StarterPlayer/StarterPlayerScripts/VoldexAdmin"
+        }
+      }
     }
+  }
 }
