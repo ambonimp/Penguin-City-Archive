@@ -2,10 +2,10 @@ local CmdrUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
-local GroupUtil = require(ReplicatedStorage.Shared.Utils.GroupUtil)
+local Permissions = require(ReplicatedStorage.Shared.Permissions)
 
 function CmdrUtil.IsAdmin(player: Player)
-    return GroupUtil.isAdmin(player)
+    return Permissions.isAdmin(player)
 end
 
 function CmdrUtil.createTypeDefinition(name: string, stringsGetter: () -> { string }, stringToObject: (text: string) -> any)
