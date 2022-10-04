@@ -9,6 +9,9 @@ PLEASE DELETE ANY NON-RELEVANT SECTIONS (self-checklist) (including this line!)
 ### Studio changes
 (does this pr rely on new instances? has this been moved into the dev place? any notes?)
 
+### Merge Checklist
+(are there missing assets? will there be some last minute commits? anything the team will need to do?)
+
 # Self-Checklist
 ### Here are some reminders of what _may_ be appropriate to check before you PR
  - My PR branch has had `main` merged into it
