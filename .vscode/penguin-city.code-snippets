@@ -1,9 +1,4 @@
 {
-  "Nothing": {
-    "prefix": ["nothing", "nthng"],
-    "description": "Nothing",
-    "body": [""]
-  },
   "ClientPath": {
     "prefix": ["paths-client"],
     "body": [
@@ -16,6 +11,36 @@
     "body": [
       "local ServerScriptService = game:GetService(\"ServerScriptService\")",
       "local Paths = require(ServerScriptService.Paths)"
+    ]
+  },
+  "Module": {
+    "prefix": ["module"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
+    ]
+  },
+  "ServerModule": {
+    "prefix": ["module-server"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "local ServerScriptService = game:GetService(\"ServerScriptService\")",
+      "local Paths = require(ServerScriptService.Paths)",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
+    ]
+  },
+  "ClientModule": {
+    "prefix": ["module-client"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "local Players = game:GetService(\"Players\")",
+      "local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
     ]
   },
   "LocalPlayer": {

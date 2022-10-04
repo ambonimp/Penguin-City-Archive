@@ -37,6 +37,7 @@ task.delay(0, function()
         require(client.Character.CharacterController),
         require(client.VehicleController),
         require(client.Input.InputController),
+        require(client.CurrencyController),
 
         -- UnitTest
         require(client.UnitTestingController),

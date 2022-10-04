@@ -21,6 +21,7 @@ function DataConfig.getDefaults(player)
         Gamepasses = {},
         Settings = {},
         RedeemedCodes = {},
+        Coins = 0,
     }
 end
 
