@@ -65,7 +65,7 @@ function PizzaMinigameService.playRequest(player: Player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
-        RecipeTypeOrder = { PizzaMinigameConstants.FirstRecipe },
+        RecipeTypeOrder = PizzaMinigameConstants.FillerRecipeOrder,
         RecipeRecords = {},
         PlayRequestTick = tick(),
     }
@@ -193,23 +193,10 @@ function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
         end
     end
 
-    -- Place ingredient labels
-    for _, ingredientHitbox: BasePart in pairs(minigameFolder.Hitboxes.Ingredients:GetDescendants()) do
-        if ingredientHitbox:IsA("BasePart") then
-            local ingredientName = ingredientHitbox.Name
-
-            local billboardGui: BillboardGui = minigameFolder.Assets.IngredientBillboardGui:Clone()
-            billboardGui.Frame.Icon.Image = PizzaMinigameUtil.getIngredientIconId(ingredientName)
-            billboardGui.Frame.Title.Text = PizzaMinigameUtil.getNiceName(ingredientName)
-
-            billboardGui.Enabled = false
-            billboardGui.Adornee = ingredientHitbox
-            billboardGui.Parent = ingredientHitbox
-
-            local isSauce = TableUtil.find(PizzaMinigameConstants.Ingredients.Sauces, ingredientName) and true or false
-            if isSauce then
-                billboardGui.StudsOffset += INGREDIENT_LABEL_SAUCE_OFFSET
-            end
+    -- Hide Ingredient Labels
+    for _, surfaceGui: SurfaceGui in pairs(minigameFolder.Labels:GetDescendants()) do
+        if surfaceGui:IsA("SurfaceGui") then
+            surfaceGui.Enabled = false
         end
     end
 end

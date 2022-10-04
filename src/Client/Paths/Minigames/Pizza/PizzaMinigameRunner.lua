@@ -25,7 +25,7 @@ local CAMERA_SWAY_MAX_ANGLE = 2
 local ADD_SAUCE_MIN_PROPORTION = 0.9
 local SAUCE_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
 local STAGGER_SAUCE_AUTOFILL_BY = 0.25
-local OLD_PIZZA_SPEED_FACTOR = 10
+local OLD_PIZZA_SPEED_FACTOR = 15
 local MOVE_NEXT_PIZZA_AFTER = 0.5
 local SPEED_UP_MUSIC_BY = 0.01
 local DO_DEBUG_HITBOX = false
@@ -333,9 +333,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     end
 
     local function setIngredientLabelVisibility(isVisible: boolean)
-        for _, billboardGui: BillboardGui in pairs(minigameFolder.Hitboxes.Ingredients:GetDescendants()) do
-            if billboardGui:IsA("BillboardGui") then
-                billboardGui.Enabled = isVisible
+        for _, surfaceGui: SurfaceGui in pairs(minigameFolder.Labels:GetDescendants()) do
+            if surfaceGui:IsA("SurfaceGui") then
+                surfaceGui.Enabled = isVisible
             end
         end
     end
@@ -498,7 +498,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
     end)
 
-    -- Ingredient BillboardGuis
+    -- Ingredient Labels
     maid:GiveTask(function()
         setIngredientLabelVisibility(false)
     end)

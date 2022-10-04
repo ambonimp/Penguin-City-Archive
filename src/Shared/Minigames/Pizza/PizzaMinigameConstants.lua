@@ -124,6 +124,6 @@ PizzaMinigameConstants.RecipeTypeWeightEquations = {
     end,
 } :: { [string]: WeightEquation }
 
-PizzaMinigameConstants.FirstRecipe = "A" -- Force first recipe
+PizzaMinigameConstants.FillerRecipeOrder = { "A" } -- Force first recipe
 
 return PizzaMinigameConstants
