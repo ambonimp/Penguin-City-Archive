@@ -108,9 +108,13 @@ function PizzaMinigameController.finish()
 
     PizzaMinigameController.viewMenu()
     UIResults.display(Images.PizzaMinigame.Logo, {
-        { Name = "Coins", Value = stats.TotalCoins },
-        { Name = "Pizzas Made", Value = stats.TotalPizzas },
-        { Name = "Mistakes", Value = stats.TotalMistakes },
+        { Name = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
+        { Name = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaMinigame.PizzaBase },
+        {
+            Name = "Lives Left",
+            Value = ("%d/%d"):format((PizzaMinigameConstants.MaxMistakes - stats.TotalMistakes), PizzaMinigameConstants.MaxMistakes),
+            Icon = Images.Icons.Heart,
+        },
     }, nil)
 end
 

@@ -72,7 +72,12 @@ function ResultsScreen.Init()
     templateValueFrame.Visible = false
 end
 
-function ResultsScreen.open(logoId: string, values: { { Name: string, Value: any } }, _stamps: nil?, nextCallback: (() -> nil)?)
+function ResultsScreen.open(
+    logoId: string,
+    values: { { Name: string, Value: any, Icon: string? } },
+    _stamps: nil?,
+    nextCallback: (() -> nil)?
+)
     cachedNextCallback = nextCallback
 
     logoLabel.Image = logoId
@@ -85,11 +90,27 @@ function ResultsScreen.open(logoId: string, values: { { Name: string, Value: any
 
     -- Create new value frames
     for i, valueInfo in pairs(values) do
+        -- ERROR: Bad valueInfo
+        if not typeof(valueInfo.Name) == "string" then
+            warn(values)
+            error("valueInfo missing string .Name")
+        end
+        if valueInfo.Value == nil then
+            warn(values)
+            error("valueInfo missing any .Value")
+        end
+        if valueInfo.Icon and typeof(valueInfo.Icon) ~= "string" then
+            warn(values)
+            error("valueInfo has .Icon that is not a string")
+        end
+
         local valueFrame = templateValueFrame:Clone()
 
+        -- Name
         local name = valueInfo.Name
         valueFrame.Title.Text = name
 
+        -- Value
         local value = valueInfo.Value
         local stringValue: string
         if typeof(value) == "number" then
@@ -98,6 +119,9 @@ function ResultsScreen.open(logoId: string, values: { { Name: string, Value: any
             stringValue = tostring(value)
         end
         valueFrame.Value.Text = stringValue
+
+        -- Icon
+        valueFrame.Title.Icon.Image = valueInfo.Icon or ""
 
         valueFrame.Visible = true
         valueFrame.Name = name
