@@ -49,7 +49,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
 
         -- Mistakes
         do
-            for i = 1, PizzaMinigameConstants.MaxMistakes do
+            for i = 0, PizzaMinigameConstants.MaxMistakes do
                 local hasLife = mistakes < i
                 elements.mistakes[i].Visible = hasLife
             end

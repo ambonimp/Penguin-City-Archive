@@ -17,6 +17,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 type RecipeRecord = {
     WasCorrect: boolean,
     Tick: number,
+    DoSubtractMistake: boolean,
 }
 
 type PlayerData = {
@@ -41,7 +42,6 @@ local MIN_RECIPE_TIMES = {
     end,
 }
 local CLEANUP_PLAYER_DATA_AFTER = 5
-local INGREDIENT_LABEL_SAUCE_OFFSET = Vector3.new(0, 1, 0)
 
 local startedPlayers: { Player } = {} -- Players currently in this minigame
 local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay sessions
@@ -65,7 +65,7 @@ function PizzaMinigameService.playRequest(player: Player)
 
     -- Init PlayerData
     local playerData: PlayerData = {
-        RecipeTypeOrder = PizzaMinigameConstants.FillerRecipeOrder,
+        RecipeTypeOrder = { PizzaMinigameConstants.FirstRecipe },
         RecipeRecords = {},
         PlayRequestTick = tick(),
     }
@@ -93,13 +93,23 @@ function PizzaMinigameService.finishRequest(player: Player)
     -- Get PlayerData
     local playerData = playerDatas[player]
 
-    -- Calculate total correct pizzas
+    -- Calculate total correct/wrong pizzas
     local playerRecipeRecords = playerData.RecipeRecords
     local totalPizzas = #playerRecipeRecords
     local totalCorrectPizzas = 0
+    local totalMistakes = 0
+    local doSubtractMistakeCount = 0
     for _, recipeRecord in pairs(playerRecipeRecords) do
-        if recipeRecord.WasCorrect then
+        if recipeRecord.DoSubtractMistake then
+            doSubtractMistakeCount += 1
             totalCorrectPizzas += 1
+            totalMistakes -= 1
+        else
+            if recipeRecord.WasCorrect then
+                totalCorrectPizzas += 1
+            else
+                totalMistakes += 1
+            end
         end
     end
 
@@ -124,18 +134,27 @@ function PizzaMinigameService.finishRequest(player: Player)
     end
 
     -- Give reward
-    local doGiveReward = not finishedTooQuickly
+    local doGiveReward = not finishedTooQuickly and (totalMistakes <= PizzaMinigameConstants.MaxMistakes) and (doSubtractMistakeCount <= 1)
     if doGiveReward then
         warn(("TODO: Give %s %d coins for completing %d/%d pizzas!"):format(player.Name, totalReward, totalCorrectPizzas, totalPizzas))
     else
-        warn(("%s finished pizza too quickly (Min Time: %.2f, Actual Time: %.2f)"):format(player.Name, minimumTime, actualTime))
+        warn(
+            ("%s had an issue. FinishedTooQuickly: %s (Min Time: %.2f, Actual Time: %.2f). Total Mistakes: %d. DoSubtractMistakeCount: %d"):format(
+                player.Name,
+                tostring(finishedTooQuickly),
+                minimumTime,
+                actualTime,
+                totalMistakes,
+                doSubtractMistakeCount
+            )
+        )
     end
 
     -- Cleanup
     playerDatas[player] = nil
 end
 
-function PizzaMinigameService.completedPizza(player: Player, dirtyWasCorrect: any)
+function PizzaMinigameService.completedPizza(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
     Output.doDebug(MinigameConstants.DoDebug, "completedPizza", player)
 
     -- RETURN: Not playing
@@ -145,13 +164,15 @@ function PizzaMinigameService.completedPizza(player: Player, dirtyWasCorrect: an
     end
 
     -- Verify + Clean parameters
-    local wasCorrect = TypeUtil.toBoolean(dirtyWasCorrect) and true or false
+    local wasCorrect = TypeUtil.toBoolean(dirtyWasCorrect, false)
+    local doSubtractMistake = TypeUtil.toBoolean(dirtyDoSubtractMistake, false)
 
     -- Store Record
     local playerData = playerDatas[player]
     local recipeRecord: RecipeRecord = {
         WasCorrect = wasCorrect,
         Tick = tick(),
+        DoSubtractMistake = doSubtractMistake,
     }
     table.insert(playerData.RecipeRecords, recipeRecord)
 end
@@ -199,6 +220,9 @@ function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
             surfaceGui.Enabled = false
         end
     end
+
+    -- Hide Heart
+    minigameFolder.Assets.Pizza.Heart.Decal.Transparency = 1
 end
 
 -- Setup Communication

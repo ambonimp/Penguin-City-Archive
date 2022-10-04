@@ -17,7 +17,7 @@ local UIResults = require(Paths.Client.UI.UIResults)
 local Images = require(Paths.Shared.Images.Images)
 
 local FOV = 65
-local FILLER_RECIPE_ORDER = PizzaMinigameConstants.FillerRecipeOrder -- Assumed agreement between Server/Client on start recipe order
+local FILLER_RECIPE_ORDER = { PizzaMinigameConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 local minigameFolder: Folder?
 local isStarted = false
@@ -101,8 +101,6 @@ function PizzaMinigameController.finish()
     Remotes.fireServer("PizzaMinigameFinsh")
 
     local stats = runner:GetStats()
-    print("TODO STATS", stats)
-
     runner:Stop()
     runner = nil
 

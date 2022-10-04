@@ -70,9 +70,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local totalCorrectPizzasInARow = 0
     local totalCoinsEarnt = 0
 
+    local hasEnabledHeartPizza = false
+    local hasSentHeartPizza = false
+
     -- These members dynamically change on each new sendPizza() call
     local recipe: PizzaMinigameUtil.Recipe
     local pizzaModel: Model?
+    local isHeartPizza = false
     local appliedSauceParts: { [BasePart]: boolean } = {}
     local maxSauceParts: number
 
@@ -85,6 +89,25 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local function pizzaUpdate(didComplete: boolean)
         Output.doDebug(MinigameConstants.DoDebug, "pizzaUpdate")
 
+        -- SECRET: Heart pizza
+        local doSubtractMistake = false
+        if isHeartPizza then
+            local noSauce = TableUtil.isEmpty(appliedSauceParts)
+
+            local noIngredients = true
+            for _, orderEntry in pairs(order:GetCurrentOrder()) do
+                if orderEntry.Current > 0 then
+                    noIngredients = false
+                    break
+                end
+            end
+
+            if noSauce and noIngredients then
+                print("SUBTRACT MISTAKE!")
+                doSubtractMistake = true
+            end
+        end
+
         -- Clear current pizzaModel
         pizzaModel = nil
 
@@ -92,6 +115,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         totalPizzasMade += 1
         if didComplete then
             totalCoinsEarnt += PizzaMinigameUtil.calculatePizzaReward(totalPizzasMade)
+            totalCorrectPizzasInARow += 1
+        elseif doSubtractMistake then
+            didComplete = true --!! Overrides didComplete
+            totalMistakes -= 1
             totalCorrectPizzasInARow += 1
         else
             totalMistakes += 1
@@ -107,13 +134,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             music.PlaybackSpeed = 1
         end
 
+        Remotes.fireServer("PizzaMinigameCompletedPizza", didComplete, doSubtractMistake)
+
         -- GAME FINISHED
         if totalPizzasMade == PizzaMinigameConstants.MaxPizzas or totalMistakes >= PizzaMinigameConstants.MaxMistakes then
             finishCallback()
             return
         end
-
-        Remotes.fireServer("PizzaMinigameCompletedPizza", didComplete)
 
         -- Update Orders
         order:SetCoinsEarnt(totalCoinsEarnt)
@@ -148,6 +175,18 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 thisPizzaModel:PivotTo(pizzaStartCFrame)
                 thisPizzaModel.Parent = gameplayFolder
                 pizzaModel = thisPizzaModel
+
+                -- SECRET: Heart pizza
+                if hasEnabledHeartPizza and not hasSentHeartPizza then
+                    hasSentHeartPizza = true
+
+                    isHeartPizza = true
+                    pizzaMaid:GiveTask(function()
+                        isHeartPizza = false
+                    end)
+
+                    thisPizzaModel.Heart.Decal.Transparency = 0
+                end
 
                 -- Setup Pizza Model movement
                 local pizzaMovementTimeElapsed = 0
@@ -266,6 +305,18 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
     end
 
+    local function setSinkSecretEnabled(doEnable: boolean)
+        for _, particleEmitter: ParticleEmitter in pairs(minigameFolder.Secrets.SinkParticle:GetDescendants()) do
+            if particleEmitter:IsA("ParticleEmitter") then
+                particleEmitter.Enabled = doEnable
+            end
+        end
+    end
+
+    local function setFireExtinguisherEnabled(doEnable: boolean)
+        hasEnabledHeartPizza = doEnable
+    end
+
     local function processHitboxClick()
         Output.doDebug(MinigameConstants.DoDebug, "hitboxClick", currentHitbox)
 
@@ -297,6 +348,14 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
 
         if isSecret then
+            if hitbox.Name == "Sink" then
+                setSinkSecretEnabled(true)
+                return
+            end
+            if hitbox.Name == "FireExtinguisher" then
+                setFireExtinguisherEnabled(true)
+                return
+            end
             warn(("todo secret %s"):format(hitbox.Name))
             return
         end
@@ -501,6 +560,12 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     -- Ingredient Labels
     maid:GiveTask(function()
         setIngredientLabelVisibility(false)
+    end)
+
+    -- Cleanup secrets
+    maid:GiveTask(function()
+        setSinkSecretEnabled(false)
+        setFireExtinguisherEnabled(false)
     end)
 
     return runner
