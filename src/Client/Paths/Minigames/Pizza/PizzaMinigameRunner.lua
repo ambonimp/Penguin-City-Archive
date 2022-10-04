@@ -356,8 +356,6 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 setFireExtinguisherEnabled(true)
                 return
             end
-            warn(("todo secret %s"):format(hitbox.Name))
-            return
         end
 
         error(("Missing edgecase for hitbox %s"):format(hitbox:GetFullName()))
