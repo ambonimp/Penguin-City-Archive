@@ -24,9 +24,11 @@ function AnimationUtil.animateTexture(
 
     return function()
         if tweenU then
+            tweenU:Cancel()
             tweenU:Destroy()
         end
         if tweenV then
+            tweenV:Cancel()
             tweenV:Destroy()
         end
     end
