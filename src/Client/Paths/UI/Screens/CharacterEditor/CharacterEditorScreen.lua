@@ -30,7 +30,7 @@ local CAMERA_ROTATIONAL_OFFSET = math.rad(10)
 local CHARACTER_SCALE_X = 0.3
 local CHARACTER_POSITION_X = 0.3
 
-local DEFAULT_CATEGORY = "BodyType"
+local DEFAULT_CATEGORY = "Hat"
 
 -- Members
 local canOpen: boolean = true

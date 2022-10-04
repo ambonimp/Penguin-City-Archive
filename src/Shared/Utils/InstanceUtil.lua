@@ -40,4 +40,12 @@ function InstanceUtil.weld(mainPart: BasePart, otherPart: BasePart)
     return weldConstraint
 end
 
+function InstanceUtil.findFirstDescendant(instance: Instance, searchingFor: string): Instance?
+    for _, descendant in instance:GetDescendants() do
+        if descendant.Name == searchingFor then
+            return descendant
+        end
+    end
+end
+
 return InstanceUtil

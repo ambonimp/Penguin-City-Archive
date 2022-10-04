@@ -10,8 +10,13 @@ export type Category = {
     SortOrder: Enum.SortOrder,
 }
 
-CharacterEditorConstants.BodyType = {
+CharacterEditorConstants.Hat = {
     LayoutOrder = 1,
+    Icon = Images.Icons.Hat,
+    SortOrder = Enum.SortOrder.Name,
+} :: Category
+CharacterEditorConstants.BodyType = {
+    LayoutOrder = 3,
     Icon = Images.Icons.Face,
     SortOrder = Enum.SortOrder.LayoutOrder,
 } :: Category

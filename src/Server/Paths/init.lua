@@ -27,6 +27,7 @@ task.delay(0, function()
         require(server.AnalyticsTracking),
         require(server.VehicleService),
         require(server.Cmdr.CmdrService),
+        require(server.Characters.CharacterItemService),
         require(server.PlayerService),
 
         -- UnitTest

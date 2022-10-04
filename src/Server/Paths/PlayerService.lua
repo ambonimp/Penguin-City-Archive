@@ -4,7 +4,7 @@ local PlayerService = {}
 local Players = game:GetService("Players")
 local Paths = require(script.Parent)
 local DataService = require(Paths.Server.Data.DataService)
-local CharacterService = require(Paths.Server.CharacterService)
+local CharacterService = require(Paths.Server.Characters.CharacterService)
 
 local function loadPlayer(player)
     DataService.loadPlayer(player)

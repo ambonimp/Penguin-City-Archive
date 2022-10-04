@@ -71,8 +71,10 @@ function CharacterEditorCategory.new(categoryName: string)
             onEquippedUneqipped()
         end
 
-        itemButton = page[itemName]
-        itemButton.BackgroundColor3 = Color3.fromRGB(255, 245, 154)
+        if itemName ~= "None" then
+            itemButton = page[itemName]
+            itemButton.BackgroundColor3 = Color3.fromRGB(255, 245, 154)
+        end
 
         equippedItem = itemName
     end
@@ -84,15 +86,15 @@ function CharacterEditorCategory.new(categoryName: string)
 
     -- Items
     for itemName, itemInfo in itemConstants.All do
-        -- RETURN: None doesn't need a button
+        -- CONTINUE: None doesn't need a button
         if itemName == "None" then
-            return
+            continue
         end
 
         local itemButton: Frame = templates.Item:Clone()
         itemButton.Name = itemName
         itemButton.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
-        itemButton.Icon.Image = itemInfo.Icon
+        itemButton.Icon.Image = assert(itemInfo.Icon, string.format("%s icon does not exist: %s", categoryName, itemName))
         itemButton.Icon.ImageColor3 = itemInfo.Color or Color3.fromRGB(255, 255, 255)
         itemButton.Parent = page
 

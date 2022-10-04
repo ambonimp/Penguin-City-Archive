@@ -3,15 +3,12 @@ local CharacterUtil = {}
 local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Shared = ReplicatedStorage.Shared
-local Toggle = require(Shared.Toggle)
 local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
+local Shared = ReplicatedStorage.Shared
 local CharacterItems = require(Shared.Constants.CharacterItems)
-
-export type CharacterAppearance = {
-    BodyType: string,
-}
+local Toggle = require(Shared.Toggle)
+local InstanceUtil = require(Shared.Utils.InstanceUtil)
 
 local HIDEABLE_CLASSES = {
     BasePart = {
@@ -21,6 +18,12 @@ local HIDEABLE_CLASSES = {
     Decal = { Name = "Transparency", HideValue = 1 },
     BillboardGui = { Name = "Enabled", HideValue = false },
 }
+
+export type CharacterAppearance = {
+    BodyType: string,
+}
+
+local assets = ReplicatedStorage.Assets.Character
 
 local hidingSession = Maid.new()
 local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
@@ -96,6 +99,32 @@ function CharacterUtil.applyAppearance(character: Model, description: { [string]
         character.Body.Color = color
         character.Arms.Color = color
         character.EyeLids.Color = color
+    end
+
+    local hat = description.Hat
+    if hat then
+        local alreadyEquippedHats: { [string]: true } = {}
+        for _, child in character:GetChildren() do
+            if child:GetAttribute("AccessoryType") == "Hat" then
+                local name: string = child.Name
+                if name == hat then
+                    alreadyEquippedHats[name] = true
+                else
+                    child:Destroy()
+                end
+            end
+        end
+
+        if hat ~= "None" and not alreadyEquippedHats[hat] then
+            local model: Accessory = assets.Hats[hat]:Clone()
+
+            local rigidConstraint = Instance.new("RigidConstraint")
+            rigidConstraint.Attachment0 = model.Handle.HatAttachment
+            rigidConstraint.Attachment1 = character.Body.Main_Bone.Belly["Belly.001"].HEAD
+            rigidConstraint.Parent = model
+
+            model.Parent = character
+        end
     end
 end
 
