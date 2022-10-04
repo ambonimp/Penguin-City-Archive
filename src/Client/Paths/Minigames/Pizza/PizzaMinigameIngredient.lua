@@ -1,5 +1,5 @@
 --[[
-    Class that represents an ingredient the client is currently holding
+    Class that represents an ingredient the client is currently holding. Can feedback to the runner.
 ]]
 local PizzaMinigameIngredient = {}
 

@@ -1,3 +1,6 @@
+--[[
+    This is the main hub where a player requests to start/stop a minigame, and gets permission from the server.
+]]
 local MinigameController = {}
 
 local Players = game:GetService("Players")

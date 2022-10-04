@@ -1,3 +1,10 @@
+--[[
+    This is a class that represents one "playthrough" of the pizza minigame (i.e., when they hit play, it creates a runner. when the game stops, the runner is destroyed).
+    This handles everything in-game.
+
+    We have a PizzaMinigameOrder, which has a 1-1 relationship with a PizzaMinigameRunner (handles the order board + tracks our ingredients on the current pizza)
+    We have a PizzaMinigameIngredient, which has a many-1 relationship with a PizzaMinigameRunner (PizzaMinigameIngredient is created each time we pick up an ingredient)
+]]
 local PizzaMinigameRunner = {}
 
 local Players = game:GetService("Players")
@@ -414,7 +421,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         -- Init Members
         do
             -- Gameplay Folder
-            gameplayFolder = Instance.new("Folder")
+            gameplayFolder = minigameFolder:FindFirstChild("Gameplay") or Instance.new("Folder")
             gameplayFolder.Name = "Gameplay"
             gameplayFolder.Parent = minigameFolder
 

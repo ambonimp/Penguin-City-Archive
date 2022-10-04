@@ -1,3 +1,7 @@
+--[[
+    Has a lot of "rollers"; gives us a random recipeType/sauce/etc.. dependent on our current progress in the game.
+    Some convenient getters too.
+]]
 local PizzaMinigameUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

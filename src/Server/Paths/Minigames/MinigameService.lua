@@ -1,6 +1,7 @@
 --[[
-    Tracks what minigames players are playing
-    ]]
+    Tracks what minigames players are playing.
+    Ensures a player can only be engaging with + be rewarded for 1 minigame at a time (those pesky clients!)
+]]
 local MinigameService = {}
 
 local Players = game:GetService("Players")

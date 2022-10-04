@@ -1,3 +1,6 @@
+--[[
+    The brain of the pizza minigame. This can create multiple PizzaMinigameRunners
+]]
 local PizzaMinigameController = {}
 
 local Players = game:GetService("Players")

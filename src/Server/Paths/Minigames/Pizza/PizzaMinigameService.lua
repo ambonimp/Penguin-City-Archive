@@ -1,7 +1,7 @@
 --[[
     - Verifies that players playing PizzaMinigame aren't cheating
     - Rewards players after finishing the minigame
-    ]]
+]]
 local PizzaMinigameService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -80,6 +80,7 @@ function PizzaMinigameService.playRequest(player: Player)
     -- Inform client of their recipe order
     Remotes.fireClient(player, "PizzaMinigameRecipeTypeOrder", playerData.RecipeTypeOrder)
 end
+Remotes.declareEvent("PizzaMinigameRecipeTypeOrder")
 
 function PizzaMinigameService.finishRequest(player: Player)
     Output.doDebug(MinigameConstants.DoDebug, "finishRequest", player)
