@@ -6,11 +6,11 @@ return function()
 
     for _, descendant in Paths.UI:GetDescendants() do
         if descendant:IsA("UIScale") then
-            local parent = descendant.Parent
-            if not parent.Parent:IsA("ScreenGui") then
+            local isDirectChildOfScreenGui = descendant.Parent and descendant.Parent:IsA("ScreenGui")
+            if isDirectChildOfScreenGui then
                 table.insert(
                     issues,
-                    string.format("UIScales can only be applied to children of ScreenGuis, the one in %s is invalid", parent.Name)
+                    string.format("UIScales should not be direct children of ScreenGuis - put %s inside a frame!", descendant:GetFullName())
                 )
             end
         end
