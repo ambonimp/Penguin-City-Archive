@@ -9,6 +9,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local Images = require(Paths.Shared.Images.Images)
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 
 local EXIT_BUTTON_TEXT = "Go Back"
 local INSTRUCTIONS_BUTTON_TEXT = "Instructions"
@@ -68,6 +69,9 @@ function PizzaMinigameScreen.Init()
 
         UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PizzaMinigame, enter, exit)
     end
+
+    -- Customise TapToPlayText by device
+    menuFrame.TapToPlay.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
 end
 
 -------------------------------------------------------------------------------

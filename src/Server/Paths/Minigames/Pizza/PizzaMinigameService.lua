@@ -93,7 +93,6 @@ function PizzaMinigameService.playRequest(player: Player)
                 break
             else
                 totalRerolls += 1
-                print("Repeated recipe type", internalRecipeLabel)
             end
         end
         table.insert(playerData.RecipeTypeOrder, recipeLabel)
