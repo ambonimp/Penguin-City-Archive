@@ -45,7 +45,7 @@ UIConstants.Colors = {
 }
 
 UIConstants.Offsets = {
-    ButtonOutlineThickness = 2,
+    ButtonOutlineThickness = 4,
 }
 
 UIConstants.DefaultButtonDebounce = 0.2
