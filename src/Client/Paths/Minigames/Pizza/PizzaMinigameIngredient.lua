@@ -70,7 +70,6 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
 
     local assetHeightOffset = Vector3.new(0, asset.PrimaryPart.Size.Y / 2, 0)
     local isSauce = ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces
-    local filterDescendantsInstances = { asset, goalPart }
 
     local isFirstRaycast = true
     local isPlaced = false
@@ -130,8 +129,10 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
 
     local function tickIngredient(_dt: number)
         -- Raycast where user is pointing
+        local pizzaModel = runner:GetCurrentPizzaModel()
+        local ingredients: Model = pizzaModel and pizzaModel.Ingredients
         local raycastResult = RaycastUtil.raycastMouse({
-            FilterDescendantsInstances = filterDescendantsInstances,
+            FilterDescendantsInstances = { asset, goalPart, ingredients },
             FilterType = Enum.RaycastFilterType.Blacklist,
         }, RAYCAST_LENGTH)
 
@@ -149,7 +150,6 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end
 
         -- Calculate new position
-        local pizzaModel = runner:GetCurrentPizzaModel()
         isOnPizza = raycastResult.Instance:IsDescendantOf(pizzaModel)
         local offset = (isOnPizza and not isSauce and PIZZA_INGREDIENT_OFFSET or INGREDIENT_OFFSET) + assetHeightOffset
         local newPosition = raycastResult.Position + offset
@@ -254,6 +254,9 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     -------------------------------------------------------------------------------
 
     setup()
+
+    -- Pickup Audio feedback
+    Sound.play("IngredientPickup")
 
     -- Cleanup
     do

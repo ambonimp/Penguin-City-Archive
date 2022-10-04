@@ -44,6 +44,7 @@ local CONVEYOR_REVERSES = {
     TileV = true,
 }
 local FADE_MUSIC_DURATION = 1
+local RUNNING_WATER_DURATION = 3
 
 function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
@@ -133,7 +134,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
 
         -- Audio Feedback
-        local soundName = didComplete and "CorrectPizza" or "WrongPizza"
+        local soundName = doSubtractMistake and "ExtraLife" or didComplete and "CorrectPizza" or "WrongPizza"
         Sound.play(soundName)
         if didComplete then
             music.PlaybackSpeed = 1 + math.min(totalCorrectPizzasInARow, PizzaMinigameConstants.Conveyor.MaxIncreases) * SPEED_UP_MUSIC_BY
@@ -274,6 +275,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             return
         end
 
+        -- Audio feedback
+        Sound.play("IngredientPlace")
+
         -- Place
         if ingredient:CanPlace() then
             ingredient:Place()
@@ -317,6 +321,16 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             if particleEmitter:IsA("ParticleEmitter") then
                 particleEmitter.Enabled = doEnable
             end
+        end
+
+        if doEnable then
+            local runningWaterSound = Sound.play("RunningWater", true)
+            task.delay(RUNNING_WATER_DURATION, function()
+                if runningWaterSound.Parent and runningWaterSound.IsPlaying then
+                    Sound.fadeOut(runningWaterSound, nil, true)
+                end
+            end)
+            maid:GiveTask(runningWaterSound)
         end
     end
 
