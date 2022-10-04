@@ -42,6 +42,7 @@ local MIN_RECIPE_TIMES = {
     end,
 }
 local CLEANUP_PLAYER_DATA_AFTER = 5
+local MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS = 5
 
 local startedPlayers: { Player } = {} -- Players currently in this minigame
 local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay sessions
@@ -71,9 +72,30 @@ function PizzaMinigameService.playRequest(player: Player)
     }
     playerDatas[player] = playerData
 
-    -- Generate RecipeTypeOrder
+    -- Generate RecipeTypeOrder (ensure we don't have long repeats)
     for pizzaNumber = 2, PizzaMinigameConstants.MaxPizzas do
-        local recipeLabel, _recipe = PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+        local recipeLabel: string
+        local totalRerolls = 0
+        while totalRerolls < MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS do
+            local internalRecipeLabel, _recipe = PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+            recipeLabel = internalRecipeLabel
+
+            local repeatsBefore = 0
+            for i = (pizzaNumber - 1), 1, -1 do
+                if playerData.RecipeTypeOrder[i] == recipeLabel then
+                    repeatsBefore += 1
+                else
+                    break
+                end
+            end
+
+            if repeatsBefore < PizzaMinigameConstants.MaxRecipeRepeats then
+                break
+            else
+                totalRerolls += 1
+                print("Repeated recipe type", internalRecipeLabel)
+            end
+        end
         table.insert(playerData.RecipeTypeOrder, recipeLabel)
     end
 
