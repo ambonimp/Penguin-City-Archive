@@ -1,6 +1,7 @@
 local GameConstants = {}
 
-GameConstants.Version = "v0"
+GameConstants.BranchName = nil :: string | nil -- Feel free to place the name of your branch here for more specific versioning
+GameConstants.Version = "v0.0.0"
 GameConstants.GameName = "penguin-city"
 GameConstants.PrettyGameName = "Penguin City"
 

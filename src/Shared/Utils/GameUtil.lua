@@ -26,8 +26,16 @@ function GameUtil.isDevGame()
     return GameUtil.getGameId() == GameConstants.GameId.Dev
 end
 
+function GameUtil.isBranchGame()
+    return not (GameUtil.isLiveGame() or GameUtil.isQAGame() or GameUtil.isDevGame())
+end
+
 function GameUtil.getPlaceName(): PlaceName
-    return GameUtil.isLiveGame() and "Live" or GameUtil.isDevGame() and "Dev" or GameUtil.isQAGame() and "QA" or "feature"
+    return GameUtil.isLiveGame() and "Live"
+        or GameUtil.isDevGame() and "Dev"
+        or GameUtil.isQAGame() and "QA"
+        or GameUtil.isBranchGame() and GameConstants.BranchName
+        or "feature/?"
 end
 
 return GameUtil

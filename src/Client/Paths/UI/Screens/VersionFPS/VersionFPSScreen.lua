@@ -4,6 +4,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local GameConstants = require(Paths.Shared.Constants.GameConstants)
+local GameUtil = require(Paths.Shared.Utils.GameUtil)
 
 local CACHE_TIMEFRAME = 2
 local WRITE_FPS_EVERY = 0.25
@@ -11,10 +13,14 @@ local WRITE_FPS_EVERY = 0.25
 local screenGui: ScreenGui = Paths.UI.VersionFPS
 local fpsLabel: TextLabel = screenGui.Frame.FPS
 local versionLabel: TextLabel = screenGui.Frame.Version
-local versionValue: StringValue = ReplicatedStorage.Version
+local branchLabel: TextLabel = screenGui.Frame.Branch
+
+-- Branch
+branchLabel.Visible = not GameUtil.isLiveGame()
+branchLabel.Text = GameUtil.getPlaceName()
 
 -- Version
-versionLabel.Text = versionValue.Value
+versionLabel.Text = GameConstants.Version
 
 -- FPS
 do

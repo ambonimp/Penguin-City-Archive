@@ -21,9 +21,6 @@
         "$className": "Folder",
         "$path": "Packages"
       },
-      "Version": {
-        "$path": "src/version.txt"
-      },
 
       "VoldexAdmin": {
         "$path": "roblox-admin-tools/src/ReplicatedStorage/VoldexAdmin"
