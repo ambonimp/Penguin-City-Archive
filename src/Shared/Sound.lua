@@ -52,11 +52,13 @@ function Sound.fadeOut(sound: Sound, duration: number?, destroyAfter: boolean?)
     local tweenInfo = TweenInfo.new(duration or DEFAULT_FADE_DURATION, Enum.EasingStyle.Linear)
     local tween = TweenUtil.tween(sound, tweenInfo, { Volume = 0 })
 
-    if destroyAfter then
-        task.delay(duration, function()
-            tween:Destroy()
-        end)
-    end
+    task.delay(duration, function()
+        tween:Cancel()
+        tween:Destroy()
+        if destroyAfter then
+            sound:Destroy()
+        end
+    end)
 
     return tween
 end
