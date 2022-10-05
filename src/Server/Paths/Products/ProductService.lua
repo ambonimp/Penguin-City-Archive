@@ -23,6 +23,7 @@ local Output = require(Paths.Shared.Output)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
+local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; please rejoin."
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
@@ -35,13 +36,17 @@ local function getConsumer(productType: string, productId: string): ((player: Pl
     return consumersByTypeAndId[productType] and consumersByTypeAndId[productType][productId]
 end
 
+local function getProductDataAddress(productType: string, productId: string)
+    return ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
+end
+
 -- `amount` defaults to 1
 function ProductService.addProduct(player: Player, product: Products.Product, amount: number?)
     amount = amount or 1
     Output.doDebug(ProductConstants.DoDebug, "addProduct", player, product.Type, product.Id, ("x%d"):format(amount))
 
     -- Manage Data
-    local address = ("%s.%s.%s"):format(ProductConstants.DataAddress, product.Type, product.Id)
+    local address = getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, amount)
 
     -- Run Handler
@@ -55,12 +60,41 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
 end
 
 function ProductService.getProductCount(player: Player, product: Products.Product)
-    local address = ("%s.%s.%s"):format(ProductConstants.DataAddress, product.Type, product.Id)
+    local address = getProductDataAddress(product.Type, product.Id)
     return DataService.get(player, address) or 0
 end
 
 function ProductService.hasProduct(player: Player, product: Products.Product)
     return ProductService.getProductCount(player, product) > 0
+end
+
+--[[
+    Will clear stored product(s).
+    Could cause unintended behaviour.
+]]
+function ProductService.clearProduct(player: Player, product: Products.Product, kickPlayer: boolean?)
+    -- Detract
+    local address = getProductDataAddress(product.Type, product.Id)
+    DataService.set(player, address, 0)
+
+    -- Read
+    ProductService.readProducts(player)
+
+    if kickPlayer then
+        player:Kick(CLEARED_PRODUCT_KICK_MESSAGE)
+    end
+end
+
+--[[
+    Will clear all stored products.
+    Will very likely cause unintended behaviour.
+]]
+function ProductService.clearProducts(player: Player, kickPlayer: boolean?)
+    DataService.set(player, ProductConstants.DataAddress, {})
+
+    if kickPlayer then
+        player:Kick(CLEARED_PRODUCT_KICK_MESSAGE)
+    end
 end
 
 -- Goes through the products this player currently owns, and checks if we need to do anything (e.g., immediately consume)
@@ -71,7 +105,7 @@ function ProductService.readProducts(player: Player)
     for productType, products in pairs(storedProducts) do
         for productId, amount in pairs(products) do
             -- Get State
-            local address = ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
+            local address = getProductDataAddress(productType, productId)
             local product = ProductUtil.getProduct(productType, productId)
 
             -- Run logic off of product
@@ -95,17 +129,16 @@ function ProductService.readProducts(player: Player)
                     return
                 end
 
-                -- Manage data (remove if product is totally consumed)
+                -- Manage data (e.g., remove if product is totally consumed)
                 -- Should not be less than 0, but cover that edge case just in case
-                local newestAmount = ProductService.getProductCount(player, product)
-                if newestAmount <= 0 then
+                if amount <= 0 then
                     Output.doDebug(
                         ProductConstants.DoDebug,
                         "readProducts",
                         "Clear product",
                         productType,
                         productId,
-                        ("x%d"):format(newestAmount)
+                        ("x%d"):format(amount)
                     )
                     DataService.set(player, address, nil)
 
@@ -148,7 +181,7 @@ function ProductService.consumeProduct(player: Player, product: Products.Product
     consumer(player)
 
     -- Detract
-    local address = ("%s.%s.%s"):format(ProductConstants.DataAddress, product.Type, product.Id)
+    local address = getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, -1)
 
     -- Read + update data
