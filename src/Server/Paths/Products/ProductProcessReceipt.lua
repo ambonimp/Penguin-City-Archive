@@ -48,14 +48,34 @@ end
 
 -- Returns true if successfully handled
 local function handlePurchase(player: Player, receiptInfo: ReceiptInfo)
+    -- Developer Product Product
     local product = ProductUtil.getProductFromDeveloperProductId(receiptInfo.ProductId)
     if product then
         ProductService.addProduct(player, product, 1)
         return true
-    else
-        warn(("No product found with developerProductId %d"):format(receiptInfo.ProductId))
     end
 
+    -- Generic Product
+    local genericProduct = ProductUtil.getGenericProductFromDeveloperProductId(receiptInfo.ProductId)
+    if genericProduct then
+        local lastPromptedProduct = ProductService.getLastPromptedProduct(player)
+        local lastPromptedProductRobuxCost = lastPromptedProduct and lastPromptedProduct.RobuxData and lastPromptedProduct.RobuxData.Cost
+        if lastPromptedProductRobuxCost == genericProduct.Robux then
+            ProductService.addProduct(player, lastPromptedProduct, 1)
+            return true
+        else
+            warn(
+                ("Could not handle genericProduct purchase; last prompted product was %s with a cost of %d. This generic product cost %d!"):format(
+                    tostring(lastPromptedProduct and lastPromptedProduct.DisplayName),
+                    tostring(lastPromptedProductRobuxCost),
+                    genericProduct.Robux
+                )
+            )
+            return false
+        end
+    end
+
+    warn(("No product found with developerProductId %d"):format(receiptInfo.ProductId))
     return false
 end
 

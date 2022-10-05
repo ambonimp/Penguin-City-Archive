@@ -48,6 +48,14 @@ function ProductUtil.getGenericProduct(robux: number): Products.GenericProduct |
     end
 end
 
+function ProductUtil.getGenericProductFromDeveloperProductId(developerProductId: number): Products.GenericProduct | nil
+    for _, genericProduct in pairs(Products.GenericProducts) do
+        if genericProduct.DeveloperProductId == developerProductId then
+            return genericProduct
+        end
+    end
+end
+
 function ProductUtil.getAllGamepassProducts()
     local gamepassProducts: { Products.Product } = {}
 

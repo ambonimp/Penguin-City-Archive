@@ -23,6 +23,7 @@ local DataService = require(Paths.Server.Data.DataService)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Output = require(Paths.Shared.Output)
 local CurrencyService = require(Paths.Server.CurrencyService)
+local PlayerService = require(Paths.Server.PlayerService)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
@@ -30,7 +31,7 @@ local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; 
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
-local lastPromptedProductByPlayer: { [Player]: { LastProduct: Products.Product?, LastGenericProduct: Products.Product? } } = {}
+local lastPromptedProductByPlayer: { [Player]: Products.Product | nil } = {} -- Used for having a genericProduct purchase an arbritary product
 
 -------------------------------------------------------------------------------
 -- Internal Getters
@@ -95,6 +96,10 @@ function ProductService.getOwnedProducts(player: Player)
     return ownedProducts
 end
 
+function ProductService.getLastPromptedProduct(player: Player)
+    return lastPromptedProductByPlayer[player]
+end
+
 --[[
     Will clear stored product(s).
     Could cause unintended behaviour.
@@ -149,14 +154,28 @@ function ProductService.loadPlayer(player: Player)
             ProductService.addProduct(player, gamepassProduct)
         end
     end
+
+    -- Cache Management
+    PlayerService.getPlayerMaid(player):GiveTask(function()
+        lastPromptedProductByPlayer[player] = nil
+    end)
 end
 
+-- Returns true if successfully prompted
 function ProductService.promptProductPurchase(player: Player, product: Products.Product, currency: ("Robux" | "Coins")?)
     -- WARN: Cannot prompt purchase of a product if it is 1) already owned 2) not consumable (you either own it or you dont)
     if ProductService.hasProduct(player, product) and not product.IsConsumable then
         warn(("Cannot prompt %s to purchase %s; they already own it, and it is not consumable"):format(player.Name, product.DisplayName))
-        return
+        return false
     end
+
+    -- WARN: Will not prompt user to purchase; no handler or consumer!
+    if not (getHandler(product.Type, product.Id) or getConsumer(product.Type, product.Id)) then
+        warn(("Will not prompt %s to purchase %s; it has no handler and no consumer!"):format(player.Name, product.DisplayName))
+        return false
+    end
+
+    lastPromptedProductByPlayer[player] = product
 
     -- First pick a currency
     if product.CoinData and product.RobuxData then
@@ -169,13 +188,14 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
     elseif product.RobuxData then
         currency = "Robux"
     else
-        error(("Product %s.%S has neither CoinData or RobuxData. WAT?"):format(product.Type, product.Id))
+        warn(("Product %s.%S has neither CoinData or RobuxData. WAT?"):format(product.Type, product.Id))
+        return false
     end
 
     -- Prompt Coins
     if currency == "Coins" then
         warn("todo")
-        return
+        return false
     end
 
     --!! Assume currency == "Robux" from here
@@ -183,19 +203,20 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
     -- Prompt Gamepass
     if product.RobuxData.GamepassId then
         MarketplaceService:PromptGamePassPurchase(player, product.RobuxData.GamepassId)
-        return
+        return true
     end
 
     -- Prompt Generic Developer Product
     if product.RobuxData.Cost then
-        warn("todo")
-        return
+        local genericProduct = ProductUtil.getGenericProduct(product.RobuxData.Cost)
+        MarketplaceService:PromptProductPurchase(player, genericProduct.DeveloperProductId)
+        return true
     end
 
     -- Prompt Developer Product
     if product.RobuxData.DeveloperProductId then
         MarketplaceService:PromptProductPurchase(player, product.RobuxData.DeveloperProductId)
-        return
+        return true
     end
 end
 
