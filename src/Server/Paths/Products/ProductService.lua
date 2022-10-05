@@ -13,6 +13,7 @@
 ]]
 local ProductService = {}
 
+local MarketplaceService = game:GetService("MarketplaceService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Products = require(Paths.Shared.Products.Products)
@@ -21,6 +22,7 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Output = require(Paths.Shared.Output)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
@@ -122,7 +124,7 @@ function ProductService.clearProducts(player: Player, kickPlayer: boolean?)
 end
 
 -------------------------------------------------------------------------------
--- Player Join
+-- Player Stuff
 -------------------------------------------------------------------------------
 
 function ProductService.loadPlayer(player: Player)
@@ -135,6 +137,48 @@ function ProductService.loadPlayer(player: Player)
         if handler then
             handler(player, true)
         end
+    end
+end
+
+function ProductService.promptProductPurchase(player: Player, product: Products.Product, currency: ("Robux" | "Coins")?)
+    -- First pick a currency
+    if product.CoinData and product.RobuxData then
+        if currency == nil then
+            local playerCanAffordCoins = product.CoinData.Cost <= CurrencyService.getCoins(player)
+            currency = playerCanAffordCoins and "Coins" or "Robux"
+        end
+    elseif product.CoinData then
+        currency = "Coins"
+    elseif product.RobuxData then
+        currency = "Robux"
+    else
+        error(("Product %s.%S has neither CoinData or RobuxData. WAT?"):format(product.Type, product.Id))
+    end
+
+    -- Prompt Coins
+    if currency == "Coins" then
+        warn("todo")
+        return
+    end
+
+    --!! Assume currency == "Robux" from here
+
+    -- Prompt Gamepass
+    if product.RobuxData.GamepassId then
+        MarketplaceService:PromptGamePassPurchase(player, product.RobuxData.GamepassId)
+        return
+    end
+
+    -- Prompt Generic Developer Product
+    if product.RobuxData.Cost then
+        warn("todo")
+        return
+    end
+
+    -- Prompt Developer Product
+    if product.RobuxData.DeveloperProductId then
+        MarketplaceService:PromptProductPurchase(player, product.RobuxData.DeveloperProductId)
+        return
     end
 end
 

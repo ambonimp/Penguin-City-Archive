@@ -20,6 +20,16 @@ function ProductUtil.getProduct(productType: string, productId: string): Product
     return product
 end
 
+function ProductUtil.getProductFromDeveloperProductId(developerProductId: number): Products.Product | nil
+    for _productType, products in pairs(Products.Products) do
+        for _productId, product in pairs(products) do
+            if product.RobuxData and product.RobuxData.DeveloperProductId == developerProductId then
+                return product
+            end
+        end
+    end
+end
+
 function ProductUtil.getGenericProduct(robux: number): Products.GenericProduct | nil
     for _, genericProduct in pairs(Products.GenericProducts) do
         if genericProduct.Robux == robux then
