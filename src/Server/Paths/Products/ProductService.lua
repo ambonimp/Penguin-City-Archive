@@ -30,6 +30,7 @@ local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; 
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
+local lastPromptedProductByPlayer: { [Player]: { LastProduct: Products.Product?, LastGenericProduct: Products.Product? } } = {}
 
 -------------------------------------------------------------------------------
 -- Internal Getters
@@ -151,6 +152,12 @@ function ProductService.loadPlayer(player: Player)
 end
 
 function ProductService.promptProductPurchase(player: Player, product: Products.Product, currency: ("Robux" | "Coins")?)
+    -- WARN: Cannot prompt purchase of a product if it is 1) already owned 2) not consumable (you either own it or you dont)
+    if ProductService.hasProduct(player, product) and not product.IsConsumable then
+        warn(("Cannot prompt %s to purchase %s; they already own it, and it is not consumable"):format(player.Name, product.DisplayName))
+        return
+    end
+
     -- First pick a currency
     if product.CoinData and product.RobuxData then
         if currency == nil then

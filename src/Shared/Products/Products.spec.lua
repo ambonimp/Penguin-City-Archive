@@ -26,6 +26,11 @@ return function()
             end
         end
 
+        -- Gamepass products cannot be consumable!
+        if product.RobuxData and product.RobuxData.GamepassId and product.IsConsumable then
+            addIssue("Gamepass products cannot be consumable!")
+        end
+
         -- Needs a type
         if product.Type == nil then
             addIssue("Needs a .Type (should be automatically populated though)")
