@@ -5,7 +5,7 @@ return {
     Name = "hasProduct",
     Aliases = {},
     Description = "Does a player own a product?",
-    Group = "zAdmin",
+    Group = "|productsAdmin",
     Args = {
         {
             Type = "players",

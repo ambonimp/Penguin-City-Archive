@@ -2,7 +2,7 @@ return {
     Name = "startMinigame",
     Aliases = { "sm" },
     Description = "Starts a minigame for the passed players",
-    Group = "zAdmin",
+    Group = "|minigameAdmin",
     Args = {
         {
             Type = "minigame",

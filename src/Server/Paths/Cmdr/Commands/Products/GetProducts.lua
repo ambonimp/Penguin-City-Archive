@@ -2,7 +2,7 @@ return {
     Name = "getProducts",
     Aliases = {},
     Description = "Outputs what products a player owns",
-    Group = "zAdmin",
+    Group = "|productsAdmin",
     Args = {
         {
             Type = "players",

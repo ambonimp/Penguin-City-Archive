@@ -2,7 +2,7 @@ return {
     Name = "addCoins",
     Aliases = {},
     Description = "Adds coins",
-    Group = "zAdmin",
+    Group = "|coinsAdmin",
     Args = {
         {
             Type = "players",

@@ -5,7 +5,7 @@ return {
     Name = "addProduct",
     Aliases = {},
     Description = "Adds a product to a player",
-    Group = "zAdmin",
+    Group = "|productsAdmin",
     Args = {
         {
             Type = "players",

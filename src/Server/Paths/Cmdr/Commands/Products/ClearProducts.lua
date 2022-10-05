@@ -2,7 +2,7 @@ return {
     Name = "clearProducts",
     Aliases = {},
     Description = "Clears all products from players",
-    Group = "zAdmin",
+    Group = "|productsAdmin",
     Args = {
         {
             Type = "players",
