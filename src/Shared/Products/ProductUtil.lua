@@ -30,12 +30,36 @@ function ProductUtil.getProductFromDeveloperProductId(developerProductId: number
     end
 end
 
+function ProductUtil.getProductFromGamepassId(gamepassId: number): Products.Product | nil
+    for _productType, products in pairs(Products.Products) do
+        for _productId, product in pairs(products) do
+            if product.RobuxData and product.RobuxData.GamepassId == gamepassId then
+                return product
+            end
+        end
+    end
+end
+
 function ProductUtil.getGenericProduct(robux: number): Products.GenericProduct | nil
     for _, genericProduct in pairs(Products.GenericProducts) do
         if genericProduct.Robux == robux then
             return genericProduct
         end
     end
+end
+
+function ProductUtil.getAllGamepassProducts()
+    local gamepassProducts: { Products.Product } = {}
+
+    for _productType, products in pairs(Products.Products) do
+        for _productId, product in pairs(products) do
+            if product.RobuxData and product.RobuxData.GamepassId then
+                table.insert(gamepassProducts, product)
+            end
+        end
+    end
+
+    return gamepassProducts
 end
 
 function ProductUtil.getProductIdCmdrArgument(productTypeArgument)

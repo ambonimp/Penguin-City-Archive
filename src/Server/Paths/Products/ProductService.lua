@@ -138,6 +138,16 @@ function ProductService.loadPlayer(player: Player)
             handler(player, true)
         end
     end
+
+    -- Read gamepasses
+    for _, gamepassProduct in pairs(ProductUtil.getAllGamepassProducts()) do
+        local gamepassId = gamepassProduct.RobuxData.GamepassId
+        local isOwned = MarketplaceService:UserOwnsGamePassAsync(player.UserId, gamepassId)
+        if isOwned and not ProductService.hasProduct(player, gamepassProduct) then
+            Output.doDebug(ProductConstants.DoDebug, "loadPlayer", player, "Owns gamepass product; adding", gamepassProduct.DisplayName)
+            ProductService.addProduct(player, gamepassProduct)
+        end
+    end
 end
 
 function ProductService.promptProductPurchase(player: Player, product: Products.Product, currency: ("Robux" | "Coins")?)
@@ -186,7 +196,10 @@ end
 -- Product Logic
 -------------------------------------------------------------------------------
 
--- Goes through the products this player currently owns, and checks if we need to do anything (e.g., immediately consume)
+--[[
+    Goes through the products this player currently owns, and checks if we need to do anything (e.g., immediately consume)
+    Recursion-esque; not performatic, but convenient. Deals with a small data set so we're okay
+]]
 function ProductService.readProducts(player: Player)
     local storedProducts = DataService.get(player, ProductConstants.DataAddress)
     Output.doDebug(ProductConstants.DoDebug, "readProducts", "Stored Products:", storedProducts)
