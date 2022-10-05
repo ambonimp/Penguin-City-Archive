@@ -57,6 +57,7 @@ local products: { [string]: { [string]: Product } } = {
             },
         },
     },
+    --#endregion
     Test = {
         coin_login_reward = {
             Id = "coin_login_reward",
@@ -77,7 +78,6 @@ local products: { [string]: { [string]: Product } } = {
             },
         },
     },
-    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {

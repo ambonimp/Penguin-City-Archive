@@ -1,7 +1,6 @@
 local ProductConstants = {}
 
 ProductConstants.DataAddress = "Products"
-
-ProductConstants.DoDebug = true
+ProductConstants.DoDebug = false
 
 return ProductConstants
