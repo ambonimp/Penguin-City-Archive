@@ -1,13 +1,19 @@
 local CmdrController = {}
 
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CmdrUtil = require(Paths.Shared.Cmdr.CmdrUtil)
 local Remotes = require(Paths.Shared.Remotes)
+local Permissions = require(Paths.Shared.Permissions)
+local GameUtil = require(Paths.Shared.Utils.GameUtil)
 local CmdrClient = require(ReplicatedStorage:WaitForChild("CmdrClient"))
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 
 local CLIENT_SUFFIX = "Client"
+local ACTIVATION_KEYS = { Enum.KeyCode.Semicolon, Enum.KeyCode.ButtonY }
+local ACTION_NAME = "CMDR"
 
 local commandNameToInvokeCallback: { [string]: (...any) -> nil } = {}
 
@@ -41,7 +47,30 @@ end
 
 -- Cmdr Setup
 do
-    CmdrClient:SetActivationKeys({ Enum.KeyCode.Semicolon })
+    if Permissions.isAdmin(Players.LocalPlayer) then
+        CmdrClient:SetActivationKeys(ACTIVATION_KEYS)
+        CmdrClient:SetPlaceName(GameUtil.getPlaceName())
+        CmdrClient:SetHideOnLostFocus(true)
+
+        -- Create mobile button
+        if DeviceUtil.isMobile() then
+            -- Add mobile button
+            ContextActionService:BindAction(ACTION_NAME, function()
+                CmdrClient:Show()
+            end, true)
+            ContextActionService:SetTitle(ACTION_NAME, "Cmdr")
+            local button = ContextActionService:GetButton(ACTION_NAME) ---@type ImageButton
+
+            -- Configure appearance
+            local uiAspectRatio = Instance.new("UIAspectRatioConstraint") -- Make the button square
+            uiAspectRatio.Parent = button
+            button.AnchorPoint = Vector2.new(1, 1) -- Reposition
+            button.Position = UDim2.new(0.98, 0, 0.5, 0) -- Reposition
+            button.Size = UDim2.new(0.25, 0, 0.25, 0) -- Resize
+        end
+    else
+        CmdrClient:SetEnabled(false)
+    end
 
     CmdrClient.Registry:RegisterHook("BeforeRun", function(context)
         local player: Player = context.Executor
