@@ -1,4 +1,4 @@
-local ProcessReceipt = {}
+local ProductProcessReceipt = {}
 
 local DataStoreService = game:GetService("DataStoreService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -7,6 +7,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ProductService = require(Paths.Server.Products.ProductService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local DataService = require(Paths.Server.Data.DataService)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 export type ReceiptInfo = {
     PurchaseId: string,
@@ -17,6 +19,8 @@ export type ReceiptInfo = {
 }
 
 local PURCHASE_HISTORY_STORE_NAME = "PurchaseHistory"
+local MAX_STORED_PURCHASE_KEYS = 100
+local DATA_ADDRESS = "ProductPurchaseReceiptKeys"
 
 local purchaseHistoryStore = DataStoreService:GetDataStore(PURCHASE_HISTORY_STORE_NAME)
 
@@ -36,28 +40,21 @@ end
 local function processReceipt(receiptInfo)
     receiptInfo = receiptInfo :: ReceiptInfo -- MarketplaceService.ProcessReceipt doesn't like our custom type
 
-    -- Determine if product was already granted (stored in datastore)
-    local playerPurchaseKey = ("%d_%d_%s"):format(receiptInfo.PlayerId, receiptInfo.ProductId, receiptInfo.PurchaseId)
-    local isPurchased = false
-    local getDatastoreSuccess, getDatastoreErrorMessage = pcall(function()
-        isPurchased = purchaseHistoryStore:GetAsync(playerPurchaseKey)
-    end)
-
-    -- SUCCESS: Already in datastore aka granted
-    -- FAILURE: Datastore error
-    if getDatastoreSuccess and isPurchased then
-        return Enum.ProductPurchaseDecision.PurchaseGranted
-    elseif getDatastoreErrorMessage then
-        warn(("%s DataStore error: \n%s"):format(PURCHASE_HISTORY_STORE_NAME, getDatastoreErrorMessage))
-        return Enum.ProductPurchaseDecision.NotProcessedYet
-    end
-
     -- FAILURE: Player not online
     local player = Players:GetPlayerByUserId(receiptInfo.PlayerId)
     if not player then
         -- The player probably left the game
         -- If they come back, the callback will be called again
         return Enum.ProductPurchaseDecision.NotProcessedYet
+    end
+
+    -- Determine if product was already granted (stored in datastore)
+    local purchaseReceiptKey = ("%s_%d"):format(receiptInfo.PurchaseId, receiptInfo.ProductId)
+    local isPurchaseReceiptKeyStored = ProductProcessReceipt.isPurchaseReceiptKeyStored(player, purchaseReceiptKey)
+
+    -- SUCCESS: Already in datastore aka granted
+    if isPurchaseReceiptKeyStored then
+        return Enum.ProductPurchaseDecision.PurchaseGranted
     end
 
     -- FAILURE: Handler failed
@@ -67,22 +64,38 @@ local function processReceipt(receiptInfo)
         return Enum.ProductPurchaseDecision.NotProcessedYet
     end
 
-    -- FALIURE: Datastore error
-    local setDatastoreSuccess, setDatastoreErrorMessage = pcall(function()
-        purchaseHistoryStore:SetAsync(playerPurchaseKey, true)
-    end)
-    if not setDatastoreSuccess then
-        warn("Error saving purchase to datastore: " .. setDatastoreErrorMessage)
-        return Enum.ProductPurchaseDecision.NotProcessedYet
-    end
+    -- Store purchase Key
+    ProductProcessReceipt.storePurchaseReceiptKey(player, purchaseReceiptKey)
 
     -- SUCCESS
-    -- We got our `player` object
-    -- Our handler ran without failure
-    -- We recorded this purchase without failure
-
     return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 MarketplaceService.ProcessReceipt = processReceipt
 
-return ProcessReceipt
+function ProductProcessReceipt.isPurchaseReceiptKeyStored(player: Player, purchaseReceiptKey: string)
+    local purchaseReceiptKeys = DataService.get(player, DATA_ADDRESS)
+    return TableUtil.find(purchaseReceiptKeys, purchaseReceiptKey) and true or false
+end
+
+function ProductProcessReceipt.storePurchaseReceiptKey(player: Player, purchaseReceiptKey: string)
+    -- Store
+    local storeKey = DataService.append(player, DATA_ADDRESS, purchaseReceiptKey)
+
+    -- Clamp amount of keys stored
+    local purchaseReceiptKeys = DataService.get(player, DATA_ADDRESS)
+    local totalKeys = 0
+    for i = tonumber(storeKey), 1, -1 do
+        if purchaseReceiptKeys[tostring(i)] then
+            totalKeys += 1
+
+            if totalKeys > MAX_STORED_PURCHASE_KEYS then
+                purchaseReceiptKeys[tostring(i)] = nil
+            end
+        else
+            -- Reached end
+            break
+        end
+    end
+end
+
+return ProductProcessReceipt

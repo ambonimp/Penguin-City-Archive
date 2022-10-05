@@ -19,6 +19,7 @@ function DataConfig.getDefaults()
         Inventory = defaultInventory,
         Igloo = {},
         Products = {},
+        ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
         Coins = 0,
