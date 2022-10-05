@@ -29,9 +29,6 @@ function CurrencyController.Init()
             end
         end
     end)
-
-    --!! TEMP
-    CurrencyController.CoinsUpdated:Connect(print)
 end
 
 function CurrencyController.getCoins()

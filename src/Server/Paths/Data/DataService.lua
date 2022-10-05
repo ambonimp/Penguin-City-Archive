@@ -35,7 +35,7 @@ function DataService.set(player: Player, address: string, newValue: any, event: 
     local profile = DataService.Profiles[player]
 
     if profile then
-        newValue = DataUtil.setFromAddress(profile.Data, DataUtil.keysFromAddress(address), newValue)
+        DataUtil.setFromAddress(profile.Data, address, newValue)
         Remotes.fireClient(player, "DataUpdated", address, newValue, event, eventMeta)
 
         if event then

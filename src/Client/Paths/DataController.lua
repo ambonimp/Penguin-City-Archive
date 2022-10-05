@@ -12,7 +12,8 @@ DataController.Updated = Signal.new() -- {event: string, newValue: any, eventMet
 
 -- We use addresses on client too only bc it's convinient to copy same addresses as client
 function DataController.get(address: string)
-    return DataUtil.getFromAddress(bank, address)
+    local value = DataUtil.getFromAddress(bank, address)
+    return value
 end
 
 local loader = Promise.new(function(resolve)
@@ -27,7 +28,7 @@ end)
 Remotes.bindEvents({
     DataUpdated = function(address: string, newValue: any, event: string?, eventMeta: table?)
         loader:andThen(function() --- Ensures data has loaded before any changes are made, just in case
-            DataUtil.setFromAddress(bank, DataUtil.keysFromAddress(address), newValue)
+            DataUtil.setFromAddress(bank, address, newValue)
             if event then
                 DataController.Updated:Fire(event, newValue, eventMeta)
             end
