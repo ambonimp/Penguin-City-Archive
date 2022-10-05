@@ -11,7 +11,7 @@ local Paths = require(ServerScriptService.Paths)
 local defaultInventory = {}
 
 DataConfig.DataKey = "DEV_2"
-function DataConfig.getDefaults(player)
+function DataConfig.getDefaults()
     return {
         Appearance = {
             BodyType = "Teen",

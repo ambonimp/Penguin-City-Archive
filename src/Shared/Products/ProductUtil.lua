@@ -20,6 +20,14 @@ function ProductUtil.getProduct(productType: string, productId: string): Product
     return product
 end
 
+function ProductUtil.getGenericProduct(robux: number): Products.GenericProduct | nil
+    for _, genericProduct in pairs(Products.GenericProducts) do
+        if genericProduct.Robux == robux then
+            return genericProduct
+        end
+    end
+end
+
 function ProductUtil.getProductIdCmdrArgument(productTypeArgument)
     local productType = productTypeArgument:GetValue()
     return {

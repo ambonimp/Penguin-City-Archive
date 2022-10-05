@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Products = require(ReplicatedStorage.Shared.Products.Products)
+local ProductUtil = require(ReplicatedStorage.Shared.Products.ProductUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 return function()
@@ -11,14 +12,18 @@ return function()
             table.insert(issues, ("[%s] %s"):format(productName, issue))
         end
 
-        -- IsConsumable => ConsumeImmediately ~= nil
-        if product.IsConsumable and product.ConsumeImmediately == nil then
-            addIssue("IsConsumable == true - please define ConsumeImmediately (currently nil)")
-        end
-
         -- Members of ProductRobuxData cannot mutually coexist
         if product.RobuxData and TableUtil.length(product.RobuxData) ~= 1 then
             addIssue("RobuxData must have exactly 1 entry (Cost/DeveloperProductId/GamepassId)")
+        end
+
+        -- If RobuxData.Cost, do we have a matching generic product?
+        if product.RobuxData and product.RobuxData.Cost then
+            local robux = product.RobuxData.Cost
+            local genericProduct = ProductUtil.getGenericProduct(robux)
+            if not genericProduct then
+                addIssue(("No matching genericProduct found for a RobuxData.Cost of %d"):format(robux))
+            end
         end
 
         -- Needs a type
