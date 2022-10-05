@@ -36,7 +36,7 @@ for _, hat: Model in assets.Hats:GetChildren() do
 end
 
 Remotes.bindFunctions({
-    UpdateCharacterAppearance = function(client, changes: { [string]: string })
+    UpdateCharacterAppearance = function(client, changes: { [string]: { string } })
         -- RETURN: No character
         local character = client.Character
         if not character then
@@ -44,12 +44,23 @@ Remotes.bindFunctions({
         end
 
         local inventory = DataService.get(client, "Inventory")
+
         -- Verify that every item that's being changed into is owned or free
-        for category, item in changes do
+        for category, items in changes do
             local constants = CharacterItems[category]
-            if constants and (constants.All[item].Price == 0 or inventory[constants.InventoryPaths][item]) then
-                CharacterUtil.applyAppearance(character, { [category] = item })
-                DataService.set(client, "Appearance." .. category, item, "OnCharacterAppareanceChanged_" .. category)
+            if constants and #items < constants.MaxEquippables then
+                local allItemsAreValid = true
+                for _, item in items do
+                    if not (constants.Items[item].Price == 0 or inventory[constants.InventoryPath][item]) then
+                        allItemsAreValid = false
+                        break
+                    end
+                end
+
+                if allItemsAreValid then
+                    DataService.set(client, "CharacterAppearance." .. category, items, "OnCharacterAppareanceChanged_" .. category)
+                    CharacterUtil.applyAppearance(character, { [category] = items })
+                end
             end
         end
     end,

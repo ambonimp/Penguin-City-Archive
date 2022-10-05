@@ -2,40 +2,44 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local FurColorConstants = {}
-
-export type FurColor = {
+export type Item = {
     Price: number,
     Icon: string,
     Color: Color3,
 }
 
-FurColorConstants.InventoryPath = "FurColors" -- Key in data stores
-FurColorConstants.All = {
-    ["Matte"] = {
+FurColorConstants.InventoryPath = "FurColors"
+FurColorConstants.TabOrder = 3
+FurColorConstants.TabIcon = Images.Icons.PaintBucket
+FurColorConstants.SortOrder = Enum.SortOrder.Name
+FurColorConstants.MaxEquippables = 1
+FurColorConstants.CanUnequip = false
+FurColorConstants.Items = {
+    ["Black"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(27, 42, 53),
-    } :: FurColor,
+    } :: Item,
     ["Red"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(255, 0, 0),
-    } :: FurColor,
+    } :: Item,
     ["Blue"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(0, 0, 255),
-    } :: FurColor,
+    } :: Item,
     ["Green"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(0, 255, 0),
-    } :: FurColor,
+    } :: Item,
     ["Yellow"] = {
         Price = 0,
         Icon = Images.Icons.Paint,
         Color = Color3.fromRGB(255, 255, 0),
-    } :: FurColor,
+    } :: Item,
 }
 
 return FurColorConstants

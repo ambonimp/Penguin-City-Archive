@@ -11,13 +11,13 @@ local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 
 local defaultInventory = {}
 
-DataConfig.DataKey = "DEV_2"
+DataConfig.DataKey = "DEV_5"
 function DataConfig.getDefaults(player)
     return {
-        Appearance = {
-            BodyType = "Teen",
-            FurColor = "Matte",
-            Hat = "None",
+        CharacterAppearance = {
+            BodyType = { "Teen" },
+            FurColor = { "Black" },
+            Hat = {},
         },
         Inventory = defaultInventory,
         Igloo = {},

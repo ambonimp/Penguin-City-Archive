@@ -8,7 +8,6 @@ local Maid = require(Packages.maid)
 local Shared = ReplicatedStorage.Shared
 local CharacterItems = require(Shared.Constants.CharacterItems)
 local Toggle = require(Shared.Toggle)
-local InstanceUtil = require(Shared.Utils.InstanceUtil)
 
 local HIDEABLE_CLASSES = {
     BasePart = {
@@ -17,10 +16,6 @@ local HIDEABLE_CLASSES = {
     },
     Decal = { Name = "Transparency", HideValue = 1 },
     BillboardGui = { Name = "Enabled", HideValue = false },
-}
-
-export type CharacterAppearance = {
-    BodyType: string,
 }
 
 local assets = ReplicatedStorage.Assets.Character
@@ -83,47 +78,48 @@ function CharacterUtil.showCharacters(requester: string)
     areCharactersHidden:Set(false, requester)
 end
 
---[[
-    Modifies a character's appearance based on their appearance description
-    Partical description for changes, full descriptions for initialization
-]]
-function CharacterUtil.applyAppearance(character: Model, description: { [string]: string })
+-- Modifies a character's appearance based on the items based
+function CharacterUtil.applyAppearance(character: Model, description: { [string]: { string } })
     local bodyType = description.BodyType
     if bodyType then
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.All[bodyType].Height
+        bodyType = bodyType[1]
+        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.Items[bodyType].Height
     end
 
     local furColor = description.FurColor
     if furColor then
-        local color = CharacterItems.FurColor.All[furColor].Color
+        furColor = furColor[1]
+
+        local color = CharacterItems.FurColor.Items[furColor].Color
         character.Body.Color = color
         character.Arms.Color = color
         character.EyeLids.Color = color
     end
 
-    local hat = description.Hat
-    if hat then
+    local hats = description.Hat
+    if hats then
         local alreadyEquippedHats: { [string]: true } = {}
-        for _, child in character:GetChildren() do
-            if child:GetAttribute("AccessoryType") == "Hat" then
-                local name: string = child.Name
-                if name == hat then
-                    alreadyEquippedHats[name] = true
+        for _, hat in character:GetChildren() do
+            if hat:GetAttribute("AccessoryType") == "Hat" then
+                if table.find(hats, hat.Name) then
+                    alreadyEquippedHats[hat.Name] = true
                 else
-                    child:Destroy()
+                    hat:Destroy()
                 end
             end
         end
 
-        if hat ~= "None" and not alreadyEquippedHats[hat] then
-            local model: Accessory = assets.Hats[hat]:Clone()
+        for _, hatName: string in hats do
+            if not alreadyEquippedHats[hatName] then
+                local model: Accessory = assets.Hats[hatName]:Clone()
 
-            local rigidConstraint = Instance.new("RigidConstraint")
-            rigidConstraint.Attachment0 = model.Handle.HatAttachment
-            rigidConstraint.Attachment1 = character.Body.Main_Bone.Belly["Belly.001"].HEAD
-            rigidConstraint.Parent = model
+                local rigidConstraint = Instance.new("RigidConstraint")
+                rigidConstraint.Attachment0 = model.Handle.HatAttachment
+                rigidConstraint.Attachment1 = character.Body.Main_Bone.Belly["Belly.001"].HEAD
+                rigidConstraint.Parent = model
 
-            model.Parent = character
+                model.Parent = character
+            end
         end
     end
 end

@@ -96,6 +96,13 @@ Images.Hats = {
     ["Boot_Hat"] = "rbxassetid://10534511175",
     ["Bird_Hat"] = "rbxassetid://10534511478",
     ["Backwards_Cap"] = "rbxassetid://10534516561",
+    ["100k_Glasses"] = "rbxassetid://10534768113",
+    ["Thug_Life_Glasses"] = "rbxassetid://10534758204",
+    ["Propeller_Hat"] = "rbxassetid://10534493556",
+    ["Umbrella"] = "rbxassetid://10534489856",
+    ["Green_Headphones"] = "rbxassetid://10534501657",
+    ["Wizard_Hat"] = "rbxassetid://10534488235",
+    ["Witch_Hat"] = "rbxassetid://10534488506",
 }
 --#endregion
 

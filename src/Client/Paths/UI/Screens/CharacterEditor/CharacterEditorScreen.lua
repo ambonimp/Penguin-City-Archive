@@ -7,6 +7,7 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
@@ -22,7 +23,6 @@ local DataController = require(Paths.Client.DataController)
 local CameraController = require(Paths.Client.CameraController)
 local CoreGui = require(Paths.Client.UI.CoreGui)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
 local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 
 -- Constants
@@ -42,9 +42,8 @@ local player = Players.LocalPlayer
 
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Edit
-local body: Frame = menu.Body
-local categoryTabs: Frame = menu.Tabs
-local selectedTab: Frame = categoryTabs.SelectedTab
+local tabs: Frame = menu.Tabs
+local equippedSlots: Frame = screen.Equipped
 local uiStateMachine = UIController.getStateMachine()
 
 local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
@@ -71,31 +70,22 @@ end
 
 -- Initialize categories
 do
-    for categoryName in CharacterEditorConstants do
-        categories[categoryName] = CharacterEditorCategory.new(categoryName)
+    for categoryName in CharacterItems do
+        local category = CharacterEditorCategory.new(categoryName)
+        categories[categoryName] = category
 
-        -- Routing
-        local page = body[categoryName]
-        local tab = categoryTabs[categoryName]
-
-        local function openTab()
+        tabs[categoryName].MouseButton1Down:Connect(function()
             if currentCategory then
-                body[currentCategory].Visible = false
-                categoryTabs[currentCategory].Visible = true
+                categories[currentCategory]:Close()
             end
 
-            page.Visible = true
-            tab.Visible = false
-            selectedTab.Visible = true
-            selectedTab.Icon.Image = tab.Icon.Image
-            selectedTab.LayoutOrder = tab.LayoutOrder
-
             currentCategory = categoryName
-        end
+            category:Open()
+        end)
 
-        tab.MouseButton1Down:Connect(openTab)
         if categoryName == DEFAULT_CATEGORY then
-            openTab()
+            currentCategory = categoryName
+            category:Open()
         end
     end
 end
@@ -158,29 +148,35 @@ do
         lookAtPreviewCharacter(camera.ViewportSize)
         session:GiveTask(UIScaleController.ViewportSizeChanged:Connect(lookAtPreviewCharacter))
 
-        -- Make categories aware of starting appearance
-        local appearanceDescription: CharacterEditorCategory.AppearanceChange = DataController.get("Appearance")
-        for name, category in categories do
-            category:EquipItem(appearanceDescription[name])
+        -- Let each category know what to update
+        for _, category in categories do
             category:SetPreviewCharacter(pCharacter)
         end
 
         -- Open menu and hide all other characters
+        ScreenUtil.inLeft(menu)
+        ScreenUtil.inRight(equippedSlots)
+
+        CoreGui.disable()
         InteractionUtil.hideInteractions(script.Name)
         CharacterUtil.hideCharacters(script.Name)
-        ScreenUtil.inLeft(menu)
-        CoreGui.disable()
     end
 
     local function exitMenu()
         yielding = false
 
         if not yielding then
-            --Were changes were made to the character's appearance
-            local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
-            for _, category in categories do
-                TableUtil.merge(appearanceChanges, category:GetChanges())
-                category:SetPreviewCharacter("")
+            --Were changes were made to the character's appearance?
+            local previousAppearance = DataController.get("CharacterAppearance")
+            local appearanceChanges = {}
+            for categoryName, category in categories do
+                local equipped = category:GetEquipped()
+                if TableUtil.shallowEquals(previousAppearance[categoryName], equipped) then
+                    appearanceChanges[categoryName] = equipped
+                end
+
+                -- Prevent memory leaks
+                category:SetPreviewCharacter()
             end
             if TableUtil.length(appearanceChanges) ~= 0 then
                 -- If so, relay them to the server so they can be verified and applied
@@ -192,13 +188,16 @@ do
                 character.HumanoidRootPart.Anchored = false
             end
 
-            session:Cleanup()
+            ScreenUtil.out(menu)
+            ScreenUtil.out(equippedSlots)
+
+            CameraController.setPlayerControl()
 
             CharacterUtil.showCharacters(script.Name)
-            ScreenUtil.out(menu)
-            CameraController.setPlayerControl()
             CoreGui.enable()
             InteractionUtil.showInteractions(script.Name)
+
+            session:Cleanup()
         end
 
         local character = player.Character

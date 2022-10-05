@@ -2,31 +2,58 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local HatConstants = {}
-
-export type Hat = {
+export type Item = {
     Price: number,
     Icon: string,
-} | true
+}
 
-HatConstants.InventoryPath = "Hats" -- Key in data stores
-HatConstants.All = {
+HatConstants.InventoryPath = "Hats"
+HatConstants.TabOrder = 1
+HatConstants.TabIcon = Images.Icons.Hat
+HatConstants.SortOrder = Enum.SortOrder.Name
+HatConstants.MaxEquippables = 3
+HatConstants.CanUnequip = true
+HatConstants.Items = {
     ["Backwards_Cap"] = {
         Price = 0,
         Icon = Images.Hats["Backwards_Cap"],
-    } :: Hat,
+    } :: Item,
     ["Bird_Hat"] = {
         Price = 0,
         Icon = Images.Hats["Bird_Hat"],
-    } :: Hat,
+    } :: Item,
     ["Boot_Hat"] = {
         Price = 0,
         Icon = Images.Hats["Boot_Hat"],
-    } :: Hat,
+    } :: Item,
     ["Detective's_Hat"] = {
         Price = 0,
         Icon = Images.Hats["Detective's_Hat"],
-    } :: Hat,
-    ["None"] = true :: Hat,
+    } :: Item,
+    ["100k_Glasses"] = {
+        Price = 0,
+        Icon = Images.Hats["100k_Glasses"],
+    } :: Item,
+    ["Thug_Life_Glasses"] = {
+        Price = 0,
+        Icon = Images.Hats["Thug_Life_Glasses"],
+    } :: Item,
+    ["Umbrella"] = {
+        Price = 0,
+        Icon = Images.Hats["Umbrella"],
+    } :: Item,
+    ["Witch_Hat"] = {
+        Price = 0,
+        Icon = Images.Hats["Witch_Hat"],
+    } :: Item,
+    ["Wizard_Hat"] = {
+        Price = 0,
+        Icon = Images.Hats["Wizard_Hat"],
+    } :: Item,
+    ["Green_Headphones"] = {
+        Price = 0,
+        Icon = Images.Hats["Green_Headphones"],
+    } :: Item,
 }
 
 return HatConstants
