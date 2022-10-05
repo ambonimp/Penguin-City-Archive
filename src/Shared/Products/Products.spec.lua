@@ -20,6 +20,11 @@ return function()
         if product.RobuxData and TableUtil.length(product.RobuxData) ~= 1 then
             addIssue("RobuxData must have exactly 1 entry (Cost/DeveloperProductId/GamepassId)")
         end
+
+        -- Needs a type
+        if product.Type == nil then
+            addIssue("Needs a .Type (should be automatically populated though)")
+        end
     end
 
     -- ProductType must have key == value

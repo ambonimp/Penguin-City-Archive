@@ -1,6 +1,7 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Products = require(Paths.Shared.Products.Products)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 
@@ -18,7 +19,7 @@ for productId, product in pairs(coinProducts) do
     -- Write callback
     consumers[productId] = function(player: Player)
         CurrencyService.addCoins(player, addCoins, true)
-        Output.info(("Consumed Coin Product %q (%s +%d Coins)"):format(productId, player.Name, addCoins))
+        Output.doDebug(ProductConstants.DoDebug, ("Consumed Coin Product %q (%s +%d Coins)"):format(productId, player.Name, addCoins))
     end
 end
 

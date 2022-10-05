@@ -12,6 +12,7 @@ export type ProductRobuxData = {
 
 export type Product = {
     Id: string,
+    Type: string?,
     DisplayName: string,
     IsConsumable: boolean,
     ConsumeImmediately: boolean?,
@@ -23,7 +24,6 @@ export type Product = {
 local productType: { [string]: string } = {
     Coin = "Coin",
 }
-Products.ProductType = productType
 
 local products: { [string]: { [string]: Product } } = {
     --#region Coin
@@ -43,6 +43,15 @@ local products: { [string]: { [string]: Product } } = {
     },
     --#endregion
 }
+
+-- Append `Type` to each product
+for someProductType, someProducts in pairs(products) do
+    for _, product in pairs(someProducts) do
+        product.Type = someProductType
+    end
+end
+
+Products.ProductType = productType
 Products.Products = products
 
 --[[ EXAMPLES 

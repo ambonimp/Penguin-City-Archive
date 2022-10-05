@@ -18,7 +18,7 @@ function DataConfig.getDefaults(player)
         },
         Inventory = defaultInventory,
         Igloo = {},
-        Gamepasses = {},
+        Products = {},
         Settings = {},
         RedeemedCodes = {},
         Coins = 0,
