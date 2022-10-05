@@ -14,18 +14,25 @@ export type Product = {
     Id: string,
     DisplayName: string,
     IsConsumable: boolean,
+    ConsumeImmediately: boolean?,
     Metadata: table?,
     CoinData: ProductCoinData?,
     RobuxData: ProductRobuxData?,
 }
 
-Products.Products = {
-    --#region Coins
-    Coins = {
-        {
+local productType: { [string]: string } = {
+    Coin = "Coin",
+}
+Products.ProductType = productType
+
+local products: { [string]: { [string]: Product } } = {
+    --#region Coin
+    Coin = {
+        coin_bundle_1 = {
             Id = "coin_bundle_1",
             DisplayName = "Coin Bundle 1",
             IsConsumable = true,
+            ConsumeImmediately = true,
             RobuxData = {
                 DeveloperProductId = 1322070855,
             },
@@ -33,9 +40,14 @@ Products.Products = {
                 AddCoins = 20,
             },
         },
-    } :: { Product },
+    },
     --#endregion
-    --#region Examples (delete before release)
+}
+Products.Products = products
+
+--[[ EXAMPLES 
+
+
     GoodExamples = {
         -- Purchasable/promptable only once - and when owned, will print `JoinMessage` when a player who owns this Product joins the game
         OneTimeDevProduct = {
@@ -73,7 +85,8 @@ Products.Products = {
             },
         },
     },
-    --#endregion
-}
+
+
+]]
 
 return Products

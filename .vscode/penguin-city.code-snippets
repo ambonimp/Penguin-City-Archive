@@ -56,6 +56,14 @@
 			"-------------------------------------------------------------------------------",
 		],
   },
+  "module-function":{
+    "prefix": ["module-function"],
+		"body": [
+			"function ${0:$TM_FILENAME_BASE}.${1:someFunction}(${2:})",
+			"",
+			"end",
+		],
+  },
   "Class": {
       "prefix": "class-closure",
       "body": [
