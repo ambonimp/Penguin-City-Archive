@@ -24,8 +24,8 @@ local Output = require(Paths.Shared.Output)
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
 
-local handlersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } }
-local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } }
+local handlersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
+local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
 
 local function getHandler(productType: string, productId: string): ((player: Player) -> nil) | nil
     return handlersByTypeAndId[productType] and handlersByTypeAndId[productType][productId]

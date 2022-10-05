@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ProductUtil = {}
 
 local Products = require(ReplicatedStorage.Shared.Products.Products)
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 function ProductUtil.getProduct(productType: string, productId: string): Products.Product | nil
     -- ERROR: Bad product type
@@ -17,6 +18,19 @@ function ProductUtil.getProduct(productType: string, productId: string): Product
     end
 
     return product
+end
+
+function ProductUtil.getProductIdCmdrArgument(productTypeArgument)
+    local productType = productTypeArgument:GetValue()
+    return {
+        Type = ProductUtil.getProductIdCmdrTypeName(productType),
+        Name = "productId",
+        Description = ("productId (%s)"):format(productType),
+    }
+end
+
+function ProductUtil.getProductIdCmdrTypeName(productType: string)
+    return StringUtil.toCamelCase(("%sproductId"):format(productType))
 end
 
 return ProductUtil
