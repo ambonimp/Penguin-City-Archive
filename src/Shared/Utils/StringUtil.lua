@@ -130,6 +130,15 @@ function StringUtil.contains(str: string, contains: string)
     return str:find(contains) ~= nil
 end
 
+function StringUtil.chopStart(str: string, start: string)
+    local strStart = str:sub(1, start:len())
+    if strStart == start then
+        return str:sub(start:len() + 1)
+    end
+
+    return nil
+end
+
 --[[
     Returns a table of all the characters in the string, in the same order and including duplicates.
 ]]
