@@ -4,10 +4,12 @@
     When a user purchases a product, this is what happens:
     1) We add this product to their data profile
     2) We call the handler for this product (if it exists)
-        - A handler can be called multiple times; all relevant handlers are called when a player joins the game for example
+        - A handler is called once; either when a product is purchased, or when a player joins the game and owns that product
         - This may hold logic like e.g., informing a service that a player has access to a specific feature
     3) We read through all of the players product data
         3i) If we find any owned products that need to be consumed immediately, consume them!
+        - A consumer is called once, then subtracts 1 from the total of that product owned.
+        - This may hold logic like adding coins to a player
 ]]
 local ProductService = {}
 
@@ -18,17 +20,20 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Output = require(Paths.Shared.Output)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
 local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; please rejoin."
 
-local handlersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
+local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
 
-local function getHandler(productType: string, productId: string): ((player: Player) -> nil) | nil
+-------------------------------------------------------------------------------
+-- Internal Getters
+-------------------------------------------------------------------------------
+
+local function getHandler(productType: string, productId: string): ((player: Player, isJoining: boolean) -> nil) | nil
     return handlersByTypeAndId[productType] and handlersByTypeAndId[productType][productId]
 end
 
@@ -39,6 +44,10 @@ end
 local function getProductDataAddress(productType: string, productId: string)
     return ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
 end
+
+-------------------------------------------------------------------------------
+-- Data Getters/Setters
+-------------------------------------------------------------------------------
 
 -- `amount` defaults to 1
 function ProductService.addProduct(player: Player, product: Products.Product, amount: number?)
@@ -52,7 +61,7 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
     -- Run Handler
     local handler = getHandler(product.Type, product.Id)
     if handler then
-        handler(player)
+        handler(player, false)
     end
 
     -- Read
@@ -66,6 +75,21 @@ end
 
 function ProductService.hasProduct(player: Player, product: Products.Product)
     return ProductService.getProductCount(player, product) > 0
+end
+
+-- Returns a dictionary of all products this player currently owns, and how many of each
+function ProductService.getOwnedProducts(player: Player)
+    local ownedProducts: { [Products.Product]: number } = {}
+
+    local storedProducts = DataService.get(player, ProductConstants.DataAddress)
+    for productType, products in pairs(storedProducts) do
+        for productId, amount in pairs(products) do
+            local product = ProductUtil.getProduct(productType, productId)
+            ownedProducts[product] = amount
+        end
+    end
+
+    return ownedProducts
 end
 
 --[[
@@ -96,6 +120,27 @@ function ProductService.clearProducts(player: Player, kickPlayer: boolean?)
         player:Kick(CLEARED_PRODUCT_KICK_MESSAGE)
     end
 end
+
+-------------------------------------------------------------------------------
+-- Player Join
+-------------------------------------------------------------------------------
+
+function ProductService.loadPlayer(player: Player)
+    -- Read Products
+    ProductService.readProducts(player)
+
+    -- Run handlers
+    for product, _ in pairs(ProductService.getOwnedProducts(player)) do
+        local handler = getHandler(product.Type, product.Id)
+        if handler then
+            handler(player, true)
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Product Logic
+-------------------------------------------------------------------------------
 
 -- Goes through the products this player currently owns, and checks if we need to do anything (e.g., immediately consume)
 function ProductService.readProducts(player: Player)

@@ -6,9 +6,9 @@ local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 
 local coinProducts = Products.Products.Coin
-local consumers: { [string]: (player: Player) -> nil } = {}
+local consumersById: { [string]: (player: Player) -> nil } = {}
 
--- Generate consumers table
+-- Generate consumersById table
 for productId, product in pairs(coinProducts) do
     -- ERROR: Missing meta data!
     local addCoins = product.Metadata and product.Metadata.AddCoins
@@ -17,10 +17,10 @@ for productId, product in pairs(coinProducts) do
     end
 
     -- Write callback
-    consumers[productId] = function(player: Player)
+    consumersById[productId] = function(player: Player)
         CurrencyService.addCoins(player, addCoins, true)
         Output.doDebug(ProductConstants.DoDebug, ("Consumed Coin Product %q (%s +%d Coins)"):format(productId, player.Name, addCoins))
     end
 end
 
-return consumers
+return consumersById

@@ -38,7 +38,7 @@ export type GenericProduct = {
 
 local productType: { [string]: string } = {
     Coin = "Coin",
-    Developer = "Developer",
+    Test = "Test",
 }
 
 local products: { [string]: { [string]: Product } } = {
@@ -57,7 +57,7 @@ local products: { [string]: { [string]: Product } } = {
             },
         },
     },
-    Developer = {
+    Test = {
         coin_login_reward = {
             Id = "coin_login_reward",
             DisplayName = "+5 Coin Login Reward",
