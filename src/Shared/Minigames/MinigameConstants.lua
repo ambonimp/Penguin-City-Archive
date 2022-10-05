@@ -11,7 +11,7 @@ MinigameConstants.Minigames = {
     Pizza = "Pizza",
 }
 
-MinigameConstants.DoDebug = true -- Set to false to stop getting minigame debug messages
+MinigameConstants.DoDebug = false -- Set to false to stop getting minigame debug messages
 
 MinigameConstants.BlurSize = 8
 

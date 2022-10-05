@@ -179,15 +179,4 @@ end, function(descendant)
     newUIScale(descendant)
 end, { Paths.UI }, false)
 
-Paths.UI.DescendantAdded:Connect(function(descendant)
-    if descendant:IsA("UICorner") then
-        initUICornerRadi[descendant] = descendant.CornerRadius
-        scaleUICorner(descendant)
-    end
-end)
-
-Paths.UI.DescendantRemoving:Connect(function(descendant)
-    initUICornerRadi[descendant] = nil
-end)
-
 return UIScaleController
