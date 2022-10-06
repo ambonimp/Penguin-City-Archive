@@ -1,6 +1,6 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ProductUtil = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
@@ -80,7 +80,7 @@ function ProductUtil.getProductIdCmdrArgument(productTypeArgument)
 end
 
 function ProductUtil.getProductIdCmdrTypeName(productType: string)
-    return StringUtil.toCamelCase(("%sproductId"):format(productType))
+    return StringUtil.toCamelCase(("%sProductId"):format(productType))
 end
 
 return ProductUtil
