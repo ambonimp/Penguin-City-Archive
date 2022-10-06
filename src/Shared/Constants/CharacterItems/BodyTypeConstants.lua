@@ -10,7 +10,7 @@ export type Item = {
 }
 
 BodyTypeConstants.InventoryPath = "BodyTypes"
-BodyTypeConstants.TabOrder = 2
+BodyTypeConstants.TabOrder = 6
 BodyTypeConstants.TabIcon = Images.Icons.Face
 BodyTypeConstants.SortOrder = Enum.SortOrder.LayoutOrder
 BodyTypeConstants.MaxEquippables = 1
@@ -19,19 +19,19 @@ BodyTypeConstants.Items = {
     ["Kid"] = {
         Height = Vector3.new(0, -0.4, 0),
         Price = 0,
-        Icon = "",
+        Icon = Images.BodyTypes.Kid,
         LayoutOrder = 1,
     } :: Item,
     ["Teen"] = {
         Height = Vector3.new(0, 0, 0),
         Price = 0,
-        Icon = "",
+        Icon = Images.BodyTypes.Teen,
         LayoutOrder = 2,
     } :: Item,
     ["Adult"] = {
         Height = Vector3.new(0, 0.4, 0),
         Price = 0,
-        Icon = "",
+        Icon = Images.BodyTypes.Adult,
         LayoutOrder = 3,
     } :: Item,
 }

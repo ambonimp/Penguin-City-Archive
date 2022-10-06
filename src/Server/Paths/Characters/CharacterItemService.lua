@@ -12,28 +12,34 @@ local DataService = require(Paths.Server.Data.DataService)
 
 local assets = ReplicatedStorage.Assets.Character
 
-for _, hat: Model in assets.Hats:GetChildren() do
-    hat:SetAttribute("AccessoryType", "Hat")
+local function initAccessoryModels(type: string)
+    for _, model: Model in assets[CharacterItems[type].InventoryPath]:GetChildren() do
+        model:SetAttribute("AccessoryType", type)
 
-    local handle: BasePart = hat:FindFirstChild("Handle")
-    -- CONTINUE: Handle does not exist, already caught in testing
-    if not handle then
-        continue
-    end
+        local handle: BasePart = model:FindFirstChild("Handle")
+        -- CONTINUE: Handle does not exist, already caught in testing
+        if not handle then
+            continue
+        end
 
-    for _, descendant in hat:GetDescendants() do
-        if descendant:IsA("BasePart") then
-            descendant.CanCollide = false
-            descendant.CanQuery = false
-            descendant.CanTouch = false
-            descendant.Massless = true
+        for _, descendant in model:GetDescendants() do
+            if descendant:IsA("BasePart") then
+                descendant.CanCollide = false
+                descendant.Anchored = false
+                descendant.CanQuery = false
+                descendant.CanTouch = false
+                descendant.Massless = true
 
-            if descendant ~= handle then
-                InstanceUtil.tree("WeldConstraint", { Part0 = descendant, Part1 = handle, Parent = handle })
+                if descendant ~= handle then
+                    InstanceUtil.tree("WeldConstraint", { Part0 = descendant, Part1 = handle, Parent = handle })
+                end
             end
         end
     end
 end
+
+initAccessoryModels("Hat")
+initAccessoryModels("Backpack")
 
 Remotes.bindFunctions({
     UpdateCharacterAppearance = function(client, changes: { [string]: { string } })

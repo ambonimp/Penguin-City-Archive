@@ -56,7 +56,13 @@ return function()
     if doesModelContainerExist(issues, "Hat") then
         doModelsExist(issues, "Hat")
         doModelsHaveA(issues, "Hat", "Handle")
-        doModelsHaveA(issues, "Hat", "HatAttachment")
+        doModelsHaveA(issues, "Hat", "AccessoryAttachment")
+    end
+
+    if doesModelContainerExist(issues, "Backpack") then
+        doModelsExist(issues, "Backpack")
+        doModelsHaveA(issues, "Backpack", "Handle")
+        doModelsHaveA(issues, "Backpack", "AccessoryAttachment")
     end
 
     return issues

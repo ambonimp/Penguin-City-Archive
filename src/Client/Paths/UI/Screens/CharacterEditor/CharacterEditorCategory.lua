@@ -40,7 +40,7 @@ function CharacterEditorCategory.new(categoryName: string)
 
     local tab: ImageButton = templates.Tab:Clone()
     tab.Name = categoryName
-    tab.Icon.Image = constants.TabIcon
+    tab.Icon.Image = assert(constants.TabIcon, string.format("%s character editor tab icon is nil: %s", categoryName, categoryName))
     tab.LayoutOrder = constants.TabOrder
 
     local function updateAppearance()
@@ -108,7 +108,7 @@ function CharacterEditorCategory.new(categoryName: string)
         local buttonObject = templates.Item:Clone()
         buttonObject.Name = itemName
         buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
-        buttonObject.Icon.Image = assert(itemConstants.Icon, string.format("%s icon does not exist: %s", categoryName, itemName))
+        buttonObject.Icon.Image = assert(itemConstants.Icon, string.format("%s character item icon is nil: %s", categoryName, itemName))
         buttonObject.Icon.ImageColor3 = itemConstants.Color or Color3.fromRGB(255, 255, 255)
 
         local button = Button.new(buttonObject)

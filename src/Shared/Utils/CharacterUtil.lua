@@ -20,101 +20,89 @@ local HIDEABLE_CLASSES = {
 
 local assets = ReplicatedStorage.Assets.Character
 
-local hidingSession = Maid.new()
-local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
-local areCharactersHidden = Toggle.new(false, function(value)
-    if value then
-        hidden = {}
-        hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
-        for _, player in Players:GetPlayers() do
-            hidePlayer(player)
+-- Modify visibility
+do
+    local hidingSession = Maid.new()
+    local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
+    local areCharactersHidden = Toggle.new(false, function(value)
+        if value then
+            hidden = {}
+            hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
+            for _, player in Players:GetPlayers() do
+                hidePlayer(player)
+            end
+        else
+            for instance, unhidingProperties in hidden do
+                for _, property in unhidingProperties do
+                    instance[property.Name] = property.UnhideValue
+                end
+            end
+
+            hidden = nil
+            hidingSession:Cleanup()
         end
-    else
-        for instance, unhidingProperties in hidden do
-            for _, property in unhidingProperties do
-                instance[property.Name] = property.UnhideValue
+    end)
+
+    function hideInstance(instance: Instance)
+        -- Iterate through the classes rather than use ClassName in order to account for parent classes
+        for class, hiddingProperties in HIDEABLE_CLASSES do
+            if instance:IsA(class) then
+                hidden[instance] = {}
+                for _, property in hiddingProperties do
+                    local name: string = property.Name
+
+                    table.insert(hidden[instance], { Name = name, UnhideValue = instance[name] })
+                    instance[name] = property.HideValue
+                end
             end
         end
-
-        hidden = nil
-        hidingSession:Cleanup()
     end
-end)
 
-function hideInstance(instance: Instance)
-    -- Iterate through the classes rather than use ClassName in order to account for parent classes
-    for class, hiddingProperties in HIDEABLE_CLASSES do
-        if instance:IsA(class) then
-            hidden[instance] = {}
-            for _, property in hiddingProperties do
-                local name: string = property.Name
-
-                table.insert(hidden[instance], { Name = name, UnhideValue = instance[name] })
-                instance[name] = property.HideValue
+    function hideCharacter(char: Model)
+        if char then
+            hidingSession:GiveTask(char.DescendantAdded:Connect(hideInstance))
+            for _, descendant in pairs(char:GetDescendants()) do
+                hideInstance(descendant)
             end
         end
     end
-end
 
-function hideCharacter(char: Model)
-    if char then
-        hidingSession:GiveTask(char.DescendantAdded:Connect(hideInstance))
-        for _, descendant in pairs(char:GetDescendants()) do
-            hideInstance(descendant)
-        end
+    function hidePlayer(player: Player)
+        hideCharacter(player.Character)
+        hidingSession:GiveTask(player.CharacterAdded:Connect(hideCharacter))
+    end
+
+    function CharacterUtil.hideCharacters(requester: string)
+        areCharactersHidden:Set(true, requester)
+    end
+
+    function CharacterUtil.showCharacters(requester: string)
+        areCharactersHidden:Set(false, requester)
     end
 end
 
-function hidePlayer(player: Player)
-    hideCharacter(player.Character)
-    hidingSession:GiveTask(player.CharacterAdded:Connect(hideCharacter))
-end
+-- Modify apperance
+do
+    local function applyAccessoryApperance(character: Model, type: string, accessories: { string })
+        local categoryConstant = CharacterItems[type]
 
-function CharacterUtil.hideCharacters(requester: string)
-    areCharactersHidden:Set(true, requester)
-end
-
-function CharacterUtil.showCharacters(requester: string)
-    areCharactersHidden:Set(false, requester)
-end
-
--- Modifies a character's appearance based on the items based
-function CharacterUtil.applyAppearance(character: Model, description: { [string]: { string } })
-    local bodyType = description.BodyType
-    if bodyType then
-        bodyType = bodyType[1]
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.Items[bodyType].Height
-    end
-
-    local furColor = description.FurColor
-    if furColor then
-        furColor = furColor[1]
-
-        local color = CharacterItems.FurColor.Items[furColor].Color
-        character.Body.Color = color
-        character.Arms.Color = color
-        character.EyeLids.Color = color
-    end
-
-    local hats = description.Hat
-    if hats then
-        local alreadyEquippedHats: { [string]: true } = {}
-        for _, hat in character:GetChildren() do
-            if hat:GetAttribute("AccessoryType") == "Hat" then
-                if table.find(hats, hat.Name) then
-                    alreadyEquippedHats[hat.Name] = true
+        local alreadyEquippedAccessories: { [string]: true } = {}
+        for _, accessory in character:GetChildren() do
+            if accessory:GetAttribute("AccessoryType") == type then
+                if table.find(accessories, accessory.Name) then
+                    alreadyEquippedAccessories[accessory.Name] = true
                 else
-                    hat:Destroy()
+                    accessory:Destroy()
                 end
             end
         end
 
-        for _, hatName: string in hats do
-            if not alreadyEquippedHats[hatName] then
-                local model: Accessory = assets.Hats[hatName]:Clone()
+        for _, accessoryName: string in accessories do
+            if not alreadyEquippedAccessories[accessoryName] and categoryConstant.Items[accessoryName] then
+                local model: Accessory = assets[categoryConstant.InventoryPath][accessoryName]:Clone()
 
                 local rigidConstraint = Instance.new("RigidConstraint")
-                rigidConstraint.Attachment0 = model.Handle.HatAttachment
+                rigidConstraint.Attachment0 = model.Handle.AccessoryAttachment
                 rigidConstraint.Attachment1 = character.Body.Main_Bone.Belly["Belly.001"].HEAD
                 rigidConstraint.Parent = model
 
@@ -122,6 +110,34 @@ function CharacterUtil.applyAppearance(character: Model, description: { [string]
             end
         end
     end
-end
 
+    function CharacterUtil.applyAppearance(character: Model, description: { [string]: { string } })
+        local bodyType = description.BodyType
+        if bodyType then
+            bodyType = bodyType[1]
+            character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0)
+                + CharacterItems.BodyType.Items[bodyType].Height
+        end
+
+        local furColor = description.FurColor
+        if furColor then
+            furColor = furColor[1]
+
+            local color = CharacterItems.FurColor.Items[furColor].Color
+            character.Body.Color = color
+            character.Arms.Color = color
+            character.EyeLids.Color = color
+        end
+
+        local hats = description.Hat
+        if hats then
+            applyAccessoryApperance(character, "Hat", hats)
+        end
+
+        local backpacks = description.Backpack
+        if backpacks then
+            applyAccessoryApperance(character, "Backpack", backpacks)
+        end
+    end
+end
 return CharacterUtil

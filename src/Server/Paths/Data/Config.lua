@@ -18,6 +18,7 @@ function DataConfig.getDefaults(player)
             BodyType = { "Teen" },
             FurColor = { "Black" },
             Hat = {},
+            Backpack = {},
         },
         Inventory = defaultInventory,
         Igloo = {},
