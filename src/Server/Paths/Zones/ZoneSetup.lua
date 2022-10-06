@@ -4,6 +4,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 local GRID_PADDING = 50
 
@@ -48,6 +49,48 @@ local function convertToModels()
 
             folder:Destroy()
         end
+    end
+end
+
+--[[
+    Ensures models all have the required pre-requisites
+]]
+local function verifyAndCleanModels()
+    local function verifyModel(zoneType: string, model: Model)
+        local zoneId = model.Name
+
+        -- WARN: No ZoneInstances!
+        local zoneInstancesInstance = model:FindFirstChild("ZoneInstances")
+        if not zoneInstancesInstance then
+            warn(("ZoneModel %s missing 'ZoneInstances'"):format(model:GetFullName()))
+            return
+        end
+
+        -- Clean instances
+        for _, instance in pairs(zoneInstancesInstance:GetDescendants()) do
+            if instance:IsA("BasePart") then
+                -- WARN: Not anchored
+                if not instance.Anchored then
+                    warn(("ZoneInstance %s is not anchored!"):format(instance:GetFullName()))
+                end
+
+                instance.Transparency = 1
+                instance.CanCollide = false
+            end
+        end
+
+        -- WARN: Needs spawnpoint!
+        local zoneInstances = ZoneUtil.getZoneInstances(ZoneUtil.zone(zoneType, zoneId))
+        if not (zoneInstances.Spawnpoint and zoneInstances.Spawnpoint:IsA("BasePart")) then
+            warn(("ZoneModel %s missing 'ZoneInstances.Spawnpoint (BasePart)'"):format(model:GetFullName()))
+        end
+    end
+
+    for _, model in pairs(rooms:GetChildren()) do
+        verifyModel(ZoneConstants.ZoneType.Room, model)
+    end
+    for _, model in pairs(minigames:GetChildren()) do
+        verifyModel(ZoneConstants.ZoneType.Minigame, model)
     end
 end
 
@@ -157,6 +200,7 @@ end
 function ZoneSetup.setup()
     verifyDirectories()
     convertToModels()
+    verifyAndCleanModels()
     writeBasePartTotals()
     verifyStreamingRadius()
     setupGrid()
