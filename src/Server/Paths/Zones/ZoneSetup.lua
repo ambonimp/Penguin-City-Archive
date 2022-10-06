@@ -63,6 +63,7 @@ local function writeBasePartTotals()
     end
 
     local function processInstance(instance: Instance)
+        -- Children
         local totalBasePartChildren = 0
         for _, child in pairs(instance:GetChildren()) do
             processInstance(child)
@@ -71,16 +72,26 @@ local function writeBasePartTotals()
                 totalBasePartChildren += 1
             end
         end
-
         if totalBasePartChildren > 0 then
-            -- ERROR: BaseParts cannot have children that are BaseParts!
+            instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
+        end
+
+        -- Descendants
+        local totalBasePartDescendants = 0
+        for _, descendant in pairs(instance:GetDescendants()) do
+            if descendant:IsA("BasePart") then
+                totalBasePartDescendants += 1
+            end
+        end
+        if totalBasePartDescendants > 0 then
+            -- ERROR: BaseParts cannot have descendants that are BaseParts!
             if instance:IsA("BasePart") then
                 error(
-                    ("BasePart %s has children that are BaseParts - naughty! This harms content streaming"):format(instance:GetFullName())
+                    ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
+                        instance:GetFullName()
+                    )
                 )
             end
-
-            instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
         end
     end
 
