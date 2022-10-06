@@ -125,10 +125,7 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
 
     function button:Mount(parent: GuiObject, hideParent: boolean?)
         buttonObject.Parent = parent
-<<<<<<< HEAD
-=======
         buttonObject.ZIndex = parent.ZIndex
->>>>>>> 77793670af4f406ef445b8b6c2c160aa65e301ca
 
         if hideParent then
             parent.Transparency = 1
