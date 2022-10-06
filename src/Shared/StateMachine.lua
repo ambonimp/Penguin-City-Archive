@@ -368,8 +368,8 @@ end
 ]]
 function StateMachine:RegisterStateCallbacks(
     state: string,
-    enterCallback: (data: table?) -> (),
-    exitCallback: (data: table?) -> (),
+    enterCallback: ((data: table?) -> ())?,
+    exitCallback: ((data: table?) -> ())?,
     callNow: boolean | nil,
     callNowData: table | nil
 ): RBXScriptConnection
