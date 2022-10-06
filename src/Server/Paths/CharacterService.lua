@@ -35,8 +35,6 @@ function CharacterService.loadPlayer(player: Player)
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed
     humanoid.JumpPower = CharacterConstants.JumpPower
-
-    CharacterService.standOn(character, Workspace:FindFirstChildWhichIsA("SpawnLocation", true))
 end
 
 Remotes.bindFunctions({

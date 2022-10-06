@@ -5,14 +5,9 @@ local ZoneConstants = {}
 -------------------------------------------------------------------------------
 
 export type PlayerZoneState = {
-    Room: {
-        Id: string,
-        Metadata: table?,
-    },
-    Minigame: {
-        Id: string?,
-        Metadata: table?,
-    },
+    RoomId: string,
+    MinigameId: string?,
+    TotalTeleports: number,
 }
 
 export type Zone = {
@@ -39,10 +34,9 @@ ZoneConstants.ZoneId = {
 }
 
 local defaultPlayerZoneState: PlayerZoneState = {
-    Room = {
-        Id = ZoneConstants.ZoneId.Room.Start,
-    },
-    Minigame = {},
+    RoomId = ZoneConstants.ZoneId.Room.Start,
+    MinigameId = nil,
+    TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
@@ -51,5 +45,9 @@ ZoneConstants.StreamingTargetRadius = 1024
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
+-- How long between informing client they're being teleported, and actually teleporting
+ZoneConstants.TeleportBuffer = 1
+
+ZoneConstants.DoDebug = true
 
 return ZoneConstants
