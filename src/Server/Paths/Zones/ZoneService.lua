@@ -89,7 +89,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
     -- Content Streaming
-    local spawnpoint = ZoneUtil.getZoneInstances(zone).Spawnpoint
+    local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
 
     -- Teleport player (after a delay) (as long as we're still on the same request)

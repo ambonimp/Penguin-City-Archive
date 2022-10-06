@@ -44,6 +44,20 @@ function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
     return zoneInstances
 end
 
+-- Returns a spawnpoint in the context of the zone we're leaving
+function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+    local zoneInstances = ZoneUtil.getZoneInstances(toZone)
+    local arrivals = zoneInstances[("%sArrivals"):format(fromZone.ZoneType)]
+    if arrivals then
+        local arrivalSpawnpoint = arrivals:FindFirstChild(fromZone.ZoneId)
+        if arrivalSpawnpoint then
+            return arrivalSpawnpoint
+        end
+    end
+
+    return zoneInstances.Spawnpoint
+end
+
 function ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
     local zoneType = zoneTypeArgument:GetValue()
     return {
