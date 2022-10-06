@@ -28,6 +28,7 @@ task.delay(0, function()
         require(server.VehicleService),
         require(server.Cmdr.CmdrService),
         require(server.PlayerService),
+        require(server.Minigames.MinigameService),
 
         -- UnitTest
         require(server.UnitTestingService),

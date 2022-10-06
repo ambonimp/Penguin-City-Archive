@@ -9,6 +9,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local StateMachine = require(Paths.Shared.StateMachine)
+local CoreGui = require(Paths.Client.UI.CoreGui)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
@@ -30,6 +31,15 @@ do
         local isIgnoreState = table.find(UIConstants.DontPopStatesFromKeybind, stateMachine:GetState())
         if isPopKeybind and not isIgnoreState then
             stateMachine:Pop()
+        end
+    end)
+
+    -- Toggle CoreGui
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string)
+        if table.find(UIConstants.EnableCoreGuiInStates, toState) then
+            CoreGui.enable()
+        else
+            CoreGui.disable()
         end
     end)
 end
