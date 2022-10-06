@@ -5,7 +5,6 @@ local Hitbox = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RotatedRegion3 = require(ReplicatedStorage.Shared.RotatedRegion3)
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Maid = require(ReplicatedStorage.Packages.maid)
 local PartUtil = require(ReplicatedStorage.Shared.Utils.PartUtil)
@@ -20,7 +19,6 @@ function Hitbox.new()
     -------------------------------------------------------------------------------
 
     local parts: { BasePart } = {}
-    local cframeSizePairs: { { CFrame: CFrame, Size: Vector3 } } = {}
     local rotatedRegions: { typeof(RotatedRegion3.new(CFrame.new(), Vector3.new())) } = {}
     local maid = Maid.new()
     local isDestroyed = false

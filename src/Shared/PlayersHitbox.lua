@@ -126,6 +126,7 @@ function PlayersHitbox.new()
         for _, part in pairs(addParts) do
             self:AddPart(part)
         end
+
         return self
     end
 
