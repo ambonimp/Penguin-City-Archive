@@ -426,4 +426,50 @@ function MathUtil.subtractModulo(num0: number, num1: number, modulo: number)
     return minus
 end
 
+--[[
+    https://stackoverflow.com/a/19287714 <3 (I did the difficult job of rewriting it in lua)
+
+    n >= 1
+]]
+function MathUtil.getSquaredSpiralPosition(n: number): Vector2
+    -- given n an index in the squared spiral
+    -- p the sum of point in inner square
+    -- a the position on the current square
+    -- n = p + a
+
+    -- Edge Cases
+    n -= 2
+    if n == -1 then
+        return Vector2.new(0, 0)
+    end
+
+    -- compute radius: inverse arithmetic sum of 8 + 16 + 24..
+    local r = math.floor((math.sqrt(n + 1) - 1) / 2) + 1
+    -- compute total points on radius-1: arithmetic sum of 8+16+24..
+    local p = (8 * r * (r - 1)) / 2
+    -- points by face
+    local en = r * 2
+    -- compute de position and shift it so the first if (-r,r) but (-r+1,-r) so square can connect
+    local a = (1 + n - p) % (r * 8)
+
+    -- find the face
+    local pos = { 0, 0, r }
+    local faceValue = math.floor(a / (r * 2))
+    if faceValue == 0 then
+        pos[1] = a - r
+        pos[2] = -r
+    elseif faceValue == 1 then
+        pos[1] = r
+        pos[2] = (a % en) - r
+    elseif faceValue == 2 then
+        pos[1] = r - (a % en)
+        pos[2] = r
+    elseif faceValue == 3 then
+        pos[1] = -r
+        pos[2] = r - (a % en)
+    end
+
+    return Vector2.new(pos[1], pos[2])
+end
+
 return MathUtil

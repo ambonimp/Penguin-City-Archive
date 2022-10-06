@@ -13,7 +13,5 @@ return function()
         end
     end
 
-    --todo
-
     return issues
 end

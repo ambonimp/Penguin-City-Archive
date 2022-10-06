@@ -38,4 +38,6 @@ local defaultPlayerZoneState: PlayerZoneState = {
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
+ZoneConstants.StreamingTargetRadius = 1024 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
+
 return ZoneConstants
