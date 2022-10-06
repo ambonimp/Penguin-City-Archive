@@ -103,11 +103,12 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
                 local interior = PlotService.PlayerHasPlot(oldPlayer or player, "House")
                 CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
             elseif
-                zone.ZoneId == "Neighborhood"
-                and PlotService.PlayerHasPlot(oldPlayer or player, "Plot")
+                oldPlayer
+                and zone.ZoneId == "Neighborhood"
+                and PlotService.PlayerHasPlot(oldPlayer, "Plot")
                 and oldZone.ZoneId == "Start"
             then
-                local exterior = PlotService.PlayerHasPlot(oldPlayer or player, "Plot")
+                local exterior = PlotService.PlayerHasPlot(oldPlayer, "Plot")
                 CharacterService.standOn(player.Character, exterior.Spawn)
             else
                 CharacterService.standOn(player.Character, spawnpoint)
