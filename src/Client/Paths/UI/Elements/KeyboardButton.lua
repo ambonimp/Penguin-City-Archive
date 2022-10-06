@@ -363,6 +363,14 @@ function KeyboardButton.new()
         textLabel.ZIndex = imageButton.ZIndex + 1
         back.ZIndex = imageButton.ZIndex - 1
         back.Parent = parent
+
+        back.ZIndex = imageButton.ZIndex - 1
+        if icon then
+            icon.ZIndex = imageButton.ZIndex + 1
+        end
+        if textLabel then
+            textLabel.ZIndex = imageButton.ZIndex + 1
+        end
     end)
     keyboardButton.InternalPress:Connect(function()
         pressKeyboardButton()

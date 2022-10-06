@@ -15,16 +15,18 @@ DataConfig.ReconcileExceptions = {
 }]]
 
 DataConfig.DataKey = "DEV_3"
-function DataConfig.getDefaults(player)
+function DataConfig.getDefaults()
     return {
         Appearance = {
             BodyType = "Teen",
         },
         Inventory = defaultInventory,
-        Igloo = houseDefaults.getIglooDefaults(),
-        Gamepasses = {},
+        Igloo = {},
+        Products = {},
+        ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
+        Coins = 0,
     }
 end
 
