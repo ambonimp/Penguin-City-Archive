@@ -84,6 +84,28 @@ local function verifyAndCleanModels()
         if not (zoneInstances.Spawnpoint and zoneInstances.Spawnpoint:IsA("BasePart")) then
             warn(("ZoneModel %s missing 'ZoneInstances.Spawnpoint (BasePart)'"):format(model:GetFullName()))
         end
+
+        -- Verify arrivals/departures
+        for _, someZoneType in pairs(ZoneConstants.ZoneType) do
+            for _, direction in pairs({ "Arrivals", "Departures" }) do
+                local folder = zoneInstances[("%s%s"):format(someZoneType, direction)]
+                if folder then
+                    for _, child in pairs(folder:GetChildren()) do
+                        -- ERROR: Not a base part
+                        if not child:IsA("BasePart") then
+                            warn(("%s should only contains parts! (%s)"):format(folder:GetFullName(), child:GetFullName()))
+                        end
+
+                        -- ERROR: Bad zoneid
+                        local someZoneId = child.Name
+                        local isGoodId = ZoneConstants.ZoneId[someZoneType][someZoneId] and true or false
+                        if not isGoodId then
+                            warn(("%s does not match any known %s Id!"):format(child:GetFullName(), someZoneType))
+                        end
+                    end
+                end
+            end
+        end
     end
 
     for _, model in pairs(rooms:GetChildren()) do

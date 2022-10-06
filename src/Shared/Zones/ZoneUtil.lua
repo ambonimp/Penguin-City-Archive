@@ -6,6 +6,10 @@ local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
+    MinigameDepartures: Folder?,
+    MinigameArrivals: Folder?,
+    RoomArrivals: Folder?,
+    RoomDepartures: Folder?,
 }
 
 function ZoneUtil.zone(zoneType: string, zoneId: string)
@@ -31,6 +35,10 @@ function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
     local instance = ZoneUtil.getZoneModel(zone).ZoneInstances
     local zoneInstances: ZoneInstances = {
         Spawnpoint = instance:FindFirstChild("Spawnpoint"),
+        MinigameDepartures = instance:FindFirstChild("MinigameDepartures"),
+        MinigameArrivals = instance:FindFirstChild("MinigameArrivals"),
+        RoomArrivals = instance:FindFirstChild("RoomArrivals"),
+        RoomDepartures = instance:FindFirstChild("RoomDepartures"),
     }
 
     return zoneInstances
