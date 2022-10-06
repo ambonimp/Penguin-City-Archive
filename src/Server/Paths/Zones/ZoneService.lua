@@ -109,7 +109,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
                 and oldZone.ZoneId == "Start"
             then
                 local exterior = PlotService.PlayerHasPlot(oldPlayer, "Plot")
-                CharacterService.standOn(player.Character, exterior.Spawn)
+                CharacterService.standOn(player.Character, exterior:FindFirstChildOfClass("Model").Spawn)
             else
                 CharacterService.standOn(player.Character, spawnpoint)
             end
