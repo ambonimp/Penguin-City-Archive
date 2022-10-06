@@ -61,8 +61,8 @@ end
     Returns true if successful
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
-function ZoneService.sendPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
-    Output.doDebug(ZoneConstants.DoDebug, "sendPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
+    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
 
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
 
@@ -121,7 +121,7 @@ function ZoneService.sendPlayerToRoom(player: Player, roomZone: ZoneConstants.Zo
         return
     end
 
-    ZoneService.sendPlayerToZone(player, roomZone)
+    ZoneService.teleportPlayerToZone(player, roomZone)
 end
 
 --[[
@@ -140,7 +140,7 @@ function ZoneService.sendPlayerToMinigame(player: Player, minigameZone: ZoneCons
         return
     end
 
-    ZoneService.sendPlayerToZone(player, minigameZone)
+    ZoneService.teleportPlayerToZone(player, minigameZone)
 
     -- EDGE CASE: Update room zone
     if fromRoomZone then
@@ -156,7 +156,7 @@ function ZoneService.loadPlayer(player: Player)
     playerZoneStatesByPlayer[player] = TableUtil.deepClone(ZoneConstants.DefaultPlayerZoneState) :: ZoneConstants.PlayerZoneState
 
     -- Send to zone
-    ZoneService.sendPlayerToZone(player, ZoneService.getPlayerZone(player), 0) -- invokedTime of 0 to immediately move the player Character
+    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), 0) -- invokedTime of 0 to immediately move the player Character
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()

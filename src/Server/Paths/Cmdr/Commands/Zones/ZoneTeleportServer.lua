@@ -8,7 +8,7 @@ return function(_context, players: { Player }, zoneType: string, zoneId: string)
 
     local output = ""
     for _, player in pairs(players) do
-        task.spawn(ZoneService.sendPlayerToZone, player, zone)
+        task.spawn(ZoneService.teleportPlayerToZone, player, zone)
 
         output ..= (" > %s is off to the %s.%s Zone!\n"):format(player.Name, zoneType, zoneId)
     end
