@@ -132,15 +132,15 @@ do
         end
     end
 
-    function CharacterUtil.applyAppearance(character: Model, description: { [string]: { string } })
-        local bodyType = description.BodyType
+    function CharacterUtil.applyAppearance(character: Model, appearance: CharacterItems.Appearance): CharacterItems.Appearance
+        local bodyType = appearance.BodyType
         if bodyType then
             bodyType = bodyType[1]
             character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0)
                 + CharacterItems.BodyType.Items[bodyType].Height
         end
 
-        local furColor = description.FurColor
+        local furColor = appearance.FurColor
         if furColor then
             furColor = furColor[1]
 
@@ -150,17 +150,26 @@ do
             character.EyeLids.Color = color
         end
 
-        local hats = description.Hat
+        local outfit = appearance.Outfit
+        if outfit then
+            outfit = outfit[1]
+            for itemType, items in CharacterItems.Outfit.Items[outfit].Items do
+                appearance[itemType] = items
+            end
+            appearance.Outfit = nil
+        end
+
+        local hats = appearance.Hat
         if hats then
             applyAccessoryApperance(character, "Hat", hats)
         end
 
-        local backpacks = description.Backpack
+        local backpacks = appearance.Backpack
         if backpacks then
             applyAccessoryApperance(character, "Backpack", backpacks)
         end
 
-        local shirt = description.Shirt
+        local shirt = appearance.Shirt
         if shirt then
             shirt = shirt[1]
             if shirt then
@@ -168,7 +177,7 @@ do
             end
         end
 
-        local pants = description.Pants
+        local pants = appearance.Pants
         if pants then
             pants = pants[1]
             if pants then
@@ -176,13 +185,15 @@ do
             end
         end
 
-        local shoes = description.Shoes
+        local shoes = appearance.Shoes
         if shoes then
             shoes = shoes[1]
             if shoes then
                 applyClothingAppearance(character, "Shoes", shoes)
             end
         end
+
+        return appearance
     end
 end
 return CharacterUtil

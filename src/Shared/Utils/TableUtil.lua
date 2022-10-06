@@ -160,7 +160,7 @@ function TableUtil.isArray(tbl: table)
 end
 
 -- Checks that two tables share the same values
-function TableUtil.shallowEquals(tbl1: table, tbl2: table)
+function TableUtil.shallowEquals(tbl1: table?, tbl2: table?)
     if not tbl1 or not tbl2 then
         return false
     end

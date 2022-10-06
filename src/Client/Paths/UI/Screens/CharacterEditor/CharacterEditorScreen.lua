@@ -66,6 +66,15 @@ do
             category:Open()
         end
     end
+
+    categories.Outfit.Changed:Connect(function(appearance: CharacterItems.Appearance)
+        for categoryName, category in categories do
+            local equippedItems: CharacterEditorCategory.EquippedItems = appearance[categoryName]
+            if equippedItems then
+                category:Equip(equippedItems)
+            end
+        end
+    end)
 end
 
 -- Register UIState
@@ -120,13 +129,12 @@ do
         preview.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
         session:GiveTask(preview)
 
-        -- Make camera look at preview character
-        session:GiveTask(CharacterEditorCamera.look(preview))
-
-        -- Let each category know what to update
         for _, category in categories do
             category:SetPreview(preview)
         end
+
+        -- Make camera look at preview character
+        session:GiveTask(CharacterEditorCamera.look(preview))
 
         -- Open menu and hide all other characters
         ScreenUtil.inLeft(menu)
@@ -142,16 +150,17 @@ do
 
         if not yielding then
             --Were changes were made to the character's appearance?
-            local previousAppearance = DataController.get("CharacterAppearance")
             local appearanceChanges = {}
+            local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
             for categoryName, category in categories do
                 local equipped = category:GetEquipped()
-                if not TableUtil.shallowEquals(previousAppearance[categoryName], equipped) then
+                if not TableUtil.shallowEquals(currentApperance[categoryName], equipped) then
                     appearanceChanges[categoryName] = equipped
                 end
                 -- Prevent memory leaks
                 category:SetPreview()
             end
+
             if TableUtil.length(appearanceChanges) ~= 0 then
                 -- If so, relay them to the server so they can be verified and applied
                 Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)

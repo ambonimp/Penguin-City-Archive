@@ -3,6 +3,7 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local BodyTypeConstants = {}
 export type Item = {
+    Name: string,
     Height: Vector3,
     Price: number,
     Icon: string,
@@ -17,18 +18,21 @@ BodyTypeConstants.MaxEquippables = 1
 BodyTypeConstants.CanUnequip = false
 BodyTypeConstants.Items = {
     ["Kid"] = {
+        Name = "Kid",
         Height = Vector3.new(0, -0.4, 0),
         Price = 0,
         Icon = Images.BodyTypes.Kid,
         LayoutOrder = 1,
     } :: Item,
     ["Teen"] = {
+        Name = "Teen",
         Height = Vector3.new(0, 0, 0),
         Price = 0,
         Icon = Images.BodyTypes.Teen,
         LayoutOrder = 2,
     } :: Item,
     ["Adult"] = {
+        Name = "Adult",
         Height = Vector3.new(0, 0.4, 0),
         Price = 0,
         Icon = Images.BodyTypes.Adult,

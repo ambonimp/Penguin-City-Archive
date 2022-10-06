@@ -3,6 +3,7 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local PantsConstants = {}
 export type Item = {
+    Name: string,
     Price: number,
     Icon: string,
 }
@@ -15,10 +16,12 @@ PantsConstants.MaxEquippables = 1
 PantsConstants.CanUnequip = true
 PantsConstants.Items = {
     ["Overalls"] = {
+        Name = "Overalls",
         Price = 0,
         Icon = Images.Pants["Overalls"],
     } :: Item,
     ["White_Pants"] = {
+        Name = "White_Pants",
         Price = 0,
         Icon = Images.Pants["White_Pants"],
     } :: Item,

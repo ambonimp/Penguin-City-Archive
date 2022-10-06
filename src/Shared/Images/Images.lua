@@ -107,6 +107,11 @@ Images.Shoes = {
     ["Red_Sneakers"] = "rbxassetid://11193126851",
 }
 --#endregion
+--#region Outfits
+Images.Outfits = {
+    ["Farmer"] = "rbxassetid://11193326756",
+}
+--#endregion
 --#region Hats
 Images.Hats = {
     ["Detective's_Hat"] = "rbxassetid://10534508114",

@@ -1,0 +1,37 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Images = require(ReplicatedStorage.Shared.Images.Images)
+local CharacterItems = ReplicatedStorage.Shared.Constants.CharacterItems
+local ShirtConstants = require(CharacterItems.ShirtConstants)
+local PantsConstants = require(CharacterItems.PantsConstants)
+
+local OutfitConstants = {}
+export type Item = {
+    Price: number,
+    Icon: string,
+}
+
+type contents = {
+    Shirt: { string }?,
+    Hat: { string }?,
+    Pants: { string }?,
+    Shoes: { string }?,
+}
+
+OutfitConstants.InventoryPath = "Outfits"
+OutfitConstants.TabOrder = 4
+OutfitConstants.TabIcon = Images.Icons.Outfit
+OutfitConstants.SortOrder = Enum.SortOrder.LayoutOrder
+OutfitConstants.MaxEquippables = 0
+OutfitConstants.CanUnequip = false
+OutfitConstants.Items = {
+    ["Farmer"] = {
+        Price = 0,
+        Icon = Images.Outfits["Farmer"],
+        Items = {
+            Shirt = { ShirtConstants.Items["Flannel_Shirt"].Name },
+            Pants = { PantsConstants.Items["Overalls"].Name },
+        } :: contents,
+    } :: Item,
+}
+
+return OutfitConstants
