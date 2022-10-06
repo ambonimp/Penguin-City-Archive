@@ -69,14 +69,27 @@ end
 VehicleController.DrivingSession = Maid.new()
 
 Remotes.bindEvents({
-    MountVehicle = function(owner, vehicle)
-        local driverSeat = vehicle.Seats:WaitForChild("Driver", 2)
+    VehicleMounted = function(owner, vehicle)
+        InteractionUtil.hideInteractions(script.Name)
 
-        if owner == player and driverSeat then
-            InteractionUtil.createInteraction(driverSeat, {
-                ActionText = "Drive",
-                ObjectText = "DriverSeat",
-            })
+        local driving = owner == player
+        if driving then
+            drive(vehicle)
+        end
+
+        local dismountConn
+        dismountConn = player.Character.Humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
+            dismountConn:Disconnect()
+            InteractionUtil.showInteractions(script.Name)
+
+            VehicleController.DrivingSession:Cleanup()
+        end)
+    end,
+    VehicleCreated = function(owner, vehicle)
+        local driverSeat = vehicle.Seats.Driver
+
+        if owner == player then
+            driverSeat:FindFirstChildOfClass("ProximityPrompt").ActionText = "Drive"
 
             if driverSeat.Occupant then
                 drive(vehicle)
@@ -89,7 +102,7 @@ Remotes.bindEvents({
                     VehicleController.DrivingSession:Cleanup()
                 end
             end)
-        elseif driverSeat then
+        else
             driverSeat:FindFirstChildOfClass("ProximityPrompt"):Destroy()
         end
     end,
