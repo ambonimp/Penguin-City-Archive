@@ -6,6 +6,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local DataController = require(Paths.Client.DataController)
+local Button = require(Paths.Client.UI.Elements.Button)
 
 type EquippedItems = { string }
 
@@ -41,7 +42,6 @@ function CharacterEditorCategory.new(categoryName: string)
     tab.Name = categoryName
     tab.Icon.Image = constants.TabIcon
     tab.LayoutOrder = constants.TabOrder
-    tab.Parent = menu.Tabs
 
     local function updateAppearance()
         CharacterUtil.applyAppearance(preview, { [categoryName] = equippedItems })
@@ -105,20 +105,22 @@ function CharacterEditorCategory.new(categoryName: string)
 
     -- Items
     for itemName, itemConstants in constants.Items do
-        local itemButton: Frame = templates.Item:Clone()
-        itemButton.Name = itemName
-        itemButton.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
-        itemButton.Icon.Image = assert(itemConstants.Icon, string.format("%s icon does not exist: %s", categoryName, itemName))
-        itemButton.Icon.ImageColor3 = itemConstants.Color or Color3.fromRGB(255, 255, 255)
-        itemButton.Parent = page
+        local buttonObject = templates.Item:Clone()
+        buttonObject.Name = itemName
+        buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+        buttonObject.Icon.Image = assert(itemConstants.Icon, string.format("%s icon does not exist: %s", categoryName, itemName))
+        buttonObject.Icon.ImageColor3 = itemConstants.Color or Color3.fromRGB(255, 255, 255)
+
+        local button = Button.new(buttonObject)
+        button:Mount(page)
 
         if isItemOwned(itemName) then
             onItemOwned(itemName)
         else
-            itemButton.LayoutOrder = itemConstants.LayoutOrder or itemCount
+            buttonObject.LayoutOrder = itemConstants.LayoutOrder or itemCount
         end
 
-        itemButton.MouseButton1Down:Connect(function()
+        button.InternalPress:Connect(function()
             if isItemOwned(itemName) then
                 local isEquipped = table.find(equippedItems, itemName)
                 if constants.CanUnequip and isEquipped then
@@ -136,6 +138,10 @@ function CharacterEditorCategory.new(categoryName: string)
     -- Load equipped
     for _, item in DataController.get("CharacterAppearance." .. categoryName) do
         equipItem(item, true)
+    end
+
+    function category:GetTab(): ImageButton
+        return tab
     end
 
     function category:GetEquipped(): EquippedItems

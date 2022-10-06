@@ -18,6 +18,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
 local CoreGui = require(Paths.Client.UI.CoreGui)
+local Button = require(Paths.Client.UI.Elements.Button)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
@@ -49,7 +50,9 @@ do
         local category = CharacterEditorCategory.new(categoryName)
         categories[categoryName] = category
 
-        tabs[categoryName].MouseButton1Down:Connect(function()
+        local tabButton = Button.new(category:GetTab())
+        tabButton:Mount(tabs)
+        tabButton.InternalPress:Connect(function()
             if currentCategory then
                 categories[currentCategory]:Close()
             end
