@@ -15,7 +15,7 @@ local COLOR_TWEEN_INFO = TweenInfo.new(0.08, Enum.EasingStyle.Linear)
 local TEXT_TWEEN_INFO = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 local INSTANT_TWEEN = TweenInfo.new(0)
 local TEXT_POSITION = UDim2.fromScale(0.5, 0.5)
-local TEXT_SIZE = UDim2.fromScale(0.75, 0.75)
+local TEXT_SIZE = UDim2.fromScale(0.7, 0.7)
 local ICON_SIZE = UDim2.fromScale(0.7, 0.7)
 local ICON_POSITION = UDim2.fromScale(0.5, 0.48)
 local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
@@ -32,6 +32,8 @@ KeyboardButton.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
     IconColor = Color3.fromRGB(255, 255, 255),
     IconAlign = "Left",
+    OutlineThickness = 0,
+    OutlineColor = Color3.fromRGB(255, 255, 255),
 }
 
 -- Applies a UICorner to the passed Instance with the default CornerRadius
@@ -59,6 +61,8 @@ function KeyboardButton.new()
     local iconColor = KeyboardButton.Defaults.IconColor
     local iconAlign: "Left" | "Right" = KeyboardButton.Defaults.IconAlign
     local iconImageId = ""
+    local outlineThickness = KeyboardButton.Defaults.OutlineThickness
+    local outlineColor = KeyboardButton.Defaults.OutlineColor
 
     local imageButton: ImageButton = keyboardButton:GetButtonObject()
     imageButton.AnchorPoint = Vector2.new(0.5, 0)
@@ -85,6 +89,8 @@ function KeyboardButton.new()
     textLabel.Parent = imageButton
 
     local icon: ImageLabel?
+    local buttonOutline: Frame?
+    local backOutline: Frame?
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -202,6 +208,20 @@ function KeyboardButton.new()
         end
     end
 
+    local function createOutlineFrame()
+        local frame = Instance.new("Frame")
+        frame.Name = "OutlineFrame"
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.Position = UDim2.fromScale(0.5, 0.5)
+
+        local uICorner = Instance.new("UICorner")
+        uICorner.Name = "UICorner"
+        uICorner.CornerRadius = UDim.new(cornerRadius, 0)
+        uICorner.Parent = frame
+
+        return frame
+    end
+
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
@@ -244,6 +264,19 @@ function KeyboardButton.new()
 
         imageButtonUICorner.CornerRadius = UDim.new(cornerRadius, 0)
         backUICorner.CornerRadius = UDim.new(cornerRadius, 0)
+
+        -- Update outlines
+        if buttonOutline then
+            buttonOutline.UICorner.CornerRadius = UDim.new(cornerRadius, 0)
+            backOutline.UICorner.CornerRadius = UDim.new(cornerRadius, 0)
+        end
+
+        return self
+    end
+
+    -- Makes the button corners as curved as possible. Will make square buttons circular.
+    function keyboardButton:RoundOff()
+        self:SetCornerRadius(0.5)
 
         return self
     end
@@ -308,12 +341,8 @@ function KeyboardButton.new()
     function keyboardButton:SetTextColor(newColor: Color3, skipTween: boolean?)
         textColor = newColor
 
-        if not skipTween then
-            local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
-            TweenUtil.tween(textLabel, tweenInfo, { TextColor3 = textColor })
-        else
-            textLabel.TextColor3 = textColor
-        end
+        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+        TweenUtil.tween(textLabel, tweenInfo, { TextColor = textColor })
 
         return self
     end
@@ -329,16 +358,14 @@ function KeyboardButton.new()
             icon.Position = ICON_POSITION
             icon.AnchorPoint = ICON_ANCHOR_POINT
             icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-            icon.ZIndex = imageButton.ZIndex + 1
             icon.Parent = imageButton
-
-            adjustIconAndText()
         end
 
         iconAlign = align
         iconImageId = imageId
 
         icon.Image = iconImageId
+        adjustIconAndText()
 
         return self
     end
@@ -352,25 +379,47 @@ function KeyboardButton.new()
         return self
     end
 
+    function keyboardButton:Outline(thickness: number, newColor: Color3?)
+        outlineThickness = thickness
+        outlineColor = outlineColor or newColor
+
+        if not buttonOutline then
+            -- WARN: Parent needs Global ZIndexing
+            local screenGui = imageButton:FindFirstAncestorOfClass("ScreenGui")
+            if screenGui and screenGui.ZIndexBehavior ~= Enum.ZIndexBehavior.Global then
+                warn(
+                    ("Parent ScreenGui %q needs Enum.ZIndexBehavior.Global for KeyboardButton outline to work properly"):format(
+                        screenGui:GetFullName()
+                    )
+                )
+            end
+
+            buttonOutline = createOutlineFrame()
+            buttonOutline.ZIndex = back.ZIndex - 1
+            buttonOutline.Parent = imageButton
+
+            backOutline = createOutlineFrame()
+            backOutline.ZIndex = back.ZIndex - 1
+            backOutline.Parent = back
+        end
+
+        buttonOutline.BackgroundColor3 = outlineColor
+        buttonOutline.Size = UDim2.new(1, outlineThickness * 2, 1, outlineThickness * 2)
+
+        backOutline.BackgroundColor3 = outlineColor
+        backOutline.Size = UDim2.new(1, outlineThickness * 2, 1, outlineThickness * 2)
+
+        return self
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
 
     keyboardButton.InternalMount:Connect(function(parent: Instance, _hideParent: boolean?)
-        if icon then
-            icon.ZIndex = imageButton.ZIndex + 1
-        end
-        textLabel.ZIndex = imageButton.ZIndex + 1
-        back.ZIndex = imageButton.ZIndex - 1
         back.Parent = parent
 
         back.ZIndex = imageButton.ZIndex - 1
-        if icon then
-            icon.ZIndex = imageButton.ZIndex + 1
-        end
-        if textLabel then
-            textLabel.ZIndex = imageButton.ZIndex + 1
-        end
     end)
     keyboardButton.InternalPress:Connect(function()
         pressKeyboardButton()

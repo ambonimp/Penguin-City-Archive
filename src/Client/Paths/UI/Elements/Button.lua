@@ -124,13 +124,13 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
     end
 
     function button:Mount(parent: GuiObject, hideParent: boolean?)
-        buttonObject.ZIndex = parent.ZIndex + 2
         buttonObject.Parent = parent
         buttonObject.ZIndex = parent.ZIndex
 
         if hideParent then
             parent.Transparency = 1
         end
+
         button.InternalMount:Fire(parent, hideParent)
 
         return self
