@@ -13,6 +13,8 @@ local Output = require(Paths.Shared.Output)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
+ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
 end
@@ -71,6 +73,7 @@ function ZoneService.sendPlayerToZone(player: Player, zone: ZoneConstants.Zone, 
     end
 
     -- Update State
+    local oldZone = ZoneService.getPlayerZone(player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if zone.ZoneType == ZoneConstants.ZoneType.Room then
         playerZoneState.RoomId = zone.ZoneId
@@ -81,6 +84,9 @@ function ZoneService.sendPlayerToZone(player: Player, zone: ZoneConstants.Zone, 
         return false
     end
     playerZoneState.TotalTeleports += 1
+
+    -- Inform Server
+    ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
     -- Content Streaming
     local spawnpoint = ZoneUtil.getZoneInstances(zone).Spawnpoint
