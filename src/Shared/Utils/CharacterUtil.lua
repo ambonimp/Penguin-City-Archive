@@ -22,6 +22,7 @@ local HIDEABLE_CLASSES = {
     Decal = { Name = "Transparency", HideValue = 1 },
     BillboardGui = { Name = "Enabled", HideValue = false },
 }
+local MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH = 2
 
 local hidingSession = Maid.new()
 local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
@@ -90,6 +91,22 @@ function CharacterUtil.applyAppearance(character: Model, description: { [string]
     if bodyType then
         character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + BodyTypeConstants.All[bodyType].Height
     end
+end
+
+function CharacterUtil.getPlayerFromCharacterPart(part: BasePart)
+    local character: Model
+    for _ = 1, MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH do
+        part = part.Parent
+        character = part and part:IsA("Model") and part :: Model
+
+        if character then
+            return Players:GetPlayerFromCharacter(character)
+        elseif not part then
+            return nil
+        end
+    end
+
+    return nil
 end
 
 return CharacterUtil
