@@ -21,6 +21,9 @@ Paths.Initialized = false
 task.delay(0, function()
     -- Require necessary files
     local requiredModulesInOrder = {
+        -- Developer -> Live
+        require(server.DeveloperToLive),
+
         -- Systems
         require(server.PhysicsService),
         require(server.Data.DataService),
@@ -31,6 +34,7 @@ task.delay(0, function()
         require(server.PlayerService),
         require(server.Minigames.MinigameService),
         require(server.Products.ProductProcessReceipt),
+        require(server.Zones.ZoneService),
 
         -- UnitTest
         require(server.UnitTestingService),

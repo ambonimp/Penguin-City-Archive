@@ -42,6 +42,7 @@ task.delay(0, function()
         require(client.Minigames.MinigameController),
         require(client.UI.CoreGui),
         require(client.CurrencyController),
+        require(client.ZoneController),
 
         -- UnitTest
         require(client.UnitTestingController),
