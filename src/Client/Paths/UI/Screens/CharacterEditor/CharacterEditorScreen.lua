@@ -25,7 +25,7 @@ local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.Ch
 
 -- Constants
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
-local DEFAULT_CATEGORY = "Hat"
+local DEFAULT_CATEGORY = "Shirt"
 
 -- Members
 local canOpen: boolean = true

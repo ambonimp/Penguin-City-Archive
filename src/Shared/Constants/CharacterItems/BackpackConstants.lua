@@ -8,7 +8,7 @@ export type Item = {
 }
 
 BackpackConstant.InventoryPath = "Backpacks"
-BackpackConstant.TabOrder = 5
+BackpackConstant.TabOrder = 6
 BackpackConstant.TabIcon = Images.Icons.Bag
 BackpackConstant.SortOrder = Enum.SortOrder.Name
 BackpackConstant.MaxEquippables = 2

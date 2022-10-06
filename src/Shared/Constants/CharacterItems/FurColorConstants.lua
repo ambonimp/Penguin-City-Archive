@@ -9,7 +9,7 @@ export type Item = {
 }
 
 FurColorConstants.InventoryPath = "FurColors"
-FurColorConstants.TabOrder = 7
+FurColorConstants.TabOrder = 8
 FurColorConstants.TabIcon = Images.Icons.PaintBucket
 FurColorConstants.SortOrder = Enum.SortOrder.Name
 FurColorConstants.MaxEquippables = 1

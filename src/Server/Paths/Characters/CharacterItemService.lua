@@ -38,8 +38,27 @@ local function initAccessoryModels(type: string)
     end
 end
 
+local function initClothingModels(type: string)
+    for _, model: Model in assets[CharacterItems[type].InventoryPath]:GetChildren() do
+        for _, piece in model:GetChildren() do
+            piece:SetAttribute("ClothingType", type)
+            if piece:IsA("BasePart") then
+                piece.CanCollide = false
+                piece.Anchored = false
+                piece.CanQuery = false
+                piece.CanTouch = false
+                piece.Massless = true
+            end
+        end
+    end
+end
+
 initAccessoryModels("Hat")
 initAccessoryModels("Backpack")
+
+initClothingModels("Shirt")
+initClothingModels("Pants")
+initClothingModels("Shoes")
 
 Remotes.bindFunctions({
     UpdateCharacterAppearance = function(client, changes: { [string]: { string } })

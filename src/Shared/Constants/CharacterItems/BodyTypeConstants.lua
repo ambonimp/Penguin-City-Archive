@@ -10,7 +10,7 @@ export type Item = {
 }
 
 BodyTypeConstants.InventoryPath = "BodyTypes"
-BodyTypeConstants.TabOrder = 6
+BodyTypeConstants.TabOrder = 7
 BodyTypeConstants.TabIcon = Images.Icons.Face
 BodyTypeConstants.SortOrder = Enum.SortOrder.LayoutOrder
 BodyTypeConstants.MaxEquippables = 1

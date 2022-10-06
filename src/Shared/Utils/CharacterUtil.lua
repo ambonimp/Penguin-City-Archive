@@ -111,6 +111,27 @@ do
         end
     end
 
+    local function applyClothingAppearance(character: Model, type: string, clothingName: string)
+        for _, clothing in character:GetChildren() do
+            if clothing:GetAttribute("ClothingType") == type then
+                clothing:Destroy()
+            end
+        end
+
+        local body = character.Body
+        local bodyPosition = body.Position
+        for _, pieceTemplate in assets[CharacterItems[type].InventoryPath][clothingName]:GetChildren() do
+            local piece = pieceTemplate:Clone()
+            piece.Position = bodyPosition
+            piece.Parent = character
+
+            local weldConstraint = Instance.new("WeldConstraint")
+            weldConstraint.Part0 = body
+            weldConstraint.Part1 = piece
+            weldConstraint.Parent = piece
+        end
+    end
+
     function CharacterUtil.applyAppearance(character: Model, description: { [string]: { string } })
         local bodyType = description.BodyType
         if bodyType then
@@ -137,6 +158,30 @@ do
         local backpacks = description.Backpack
         if backpacks then
             applyAccessoryApperance(character, "Backpack", backpacks)
+        end
+
+        local shirt = description.Shirt
+        if shirt then
+            shirt = shirt[1]
+            if shirt then
+                applyClothingAppearance(character, "Shirt", shirt)
+            end
+        end
+
+        local pants = description.Pants
+        if pants then
+            pants = pants[1]
+            if pants then
+                applyClothingAppearance(character, "Pants", pants)
+            end
+        end
+
+        local shoes = description.Shoes
+        if shoes then
+            shoes = shoes[1]
+            if shoes then
+                applyClothingAppearance(character, "Shoes", shoes)
+            end
         end
     end
 end

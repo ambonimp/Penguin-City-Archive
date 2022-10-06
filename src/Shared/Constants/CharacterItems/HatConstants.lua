@@ -8,10 +8,10 @@ export type Item = {
 }
 
 HatConstants.InventoryPath = "Hats"
-HatConstants.TabOrder = 1
+HatConstants.TabOrder = 3
 HatConstants.TabIcon = Images.Icons.Hat
 HatConstants.SortOrder = Enum.SortOrder.Name
-HatConstants.MaxEquippables = 4
+HatConstants.MaxEquippables = 3
 HatConstants.CanUnequip = true
 HatConstants.Items = {
     ["Backwards_Cap"] = {

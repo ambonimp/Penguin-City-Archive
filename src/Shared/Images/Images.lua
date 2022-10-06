@@ -90,7 +90,23 @@ Images.CharacterEditor = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",
 }
 --#endregion
-
+--#region Shirts
+Images.Shirts = {
+    ["Purple_Shirt"] = "rbxassetid://11192098373",
+    ["Flannel_Shirt"] = "rbxassetid://11192098649",
+}
+--#endregion
+--#region Pants
+Images.Pants = {
+    ["White_Pants"] = "rbxassetid://11193127548",
+    ["Overalls"] = "rbxassetid://11193127249",
+}
+--#endregion
+--#region Shoes
+Images.Shoes = {
+    ["Red_Sneakers"] = "rbxassetid://11193126851",
+}
+--#endregion
 --#region Hats
 Images.Hats = {
     ["Detective's_Hat"] = "rbxassetid://10534508114",
@@ -119,6 +135,7 @@ Images.BodyTypes = {
     ["Adult"] = "rbxassetid://11191456133",
 }
 --#endregion
+
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images
