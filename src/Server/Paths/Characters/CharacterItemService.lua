@@ -48,7 +48,7 @@ Remotes.bindFunctions({
         -- Verify that every item that's being changed into is owned or free
         for category, items in changes do
             local constants = CharacterItems[category]
-            if constants and #items < constants.MaxEquippables then
+            if constants and #items <= constants.MaxEquippables then
                 local allItemsAreValid = true
                 for _, item in items do
                     if not (constants.Items[item].Price == 0 or inventory[constants.InventoryPath][item]) then

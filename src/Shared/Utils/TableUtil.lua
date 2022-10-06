@@ -171,6 +171,12 @@ function TableUtil.shallowEquals(tbl1: table, tbl2: table)
         end
     end
 
+    for _, v in tbl2 do
+        if not TableUtil.find(tbl1, v) then
+            return false
+        end
+    end
+
     return true
 end
 

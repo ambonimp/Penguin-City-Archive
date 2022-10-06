@@ -143,7 +143,7 @@ do
             local appearanceChanges = {}
             for categoryName, category in categories do
                 local equipped = category:GetEquipped()
-                if TableUtil.shallowEquals(previousAppearance[categoryName], equipped) then
+                if not TableUtil.shallowEquals(previousAppearance[categoryName], equipped) then
                     appearanceChanges[categoryName] = equipped
                 end
                 -- Prevent memory leaks
