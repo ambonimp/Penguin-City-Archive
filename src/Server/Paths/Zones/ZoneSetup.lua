@@ -6,7 +6,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
-local GRID_PADDING = 50
+local GRID_PADDING = 128
 
 local rooms = game.Workspace.Rooms
 local minigames = game.Workspace.Minigames
@@ -177,7 +177,7 @@ end
     Moves all our zones onto a spaced out grid to ensure we only streaming in one zone at a time
 ]]
 local function setupGrid()
-    local gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius / 2 + GRID_PADDING
+    local gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
 
     local function moveModelToIndex(model: Model, xIndex: number, zIndex: number)
         local position = Vector3.new(gridSideLength * xIndex, 0, gridSideLength * zIndex)

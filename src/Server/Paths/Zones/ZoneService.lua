@@ -13,8 +13,6 @@ local Output = require(Paths.Shared.Output)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
-ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
-
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
 end
@@ -152,7 +150,7 @@ function ZoneService.loadPlayer(player: Player)
     playerZoneStatesByPlayer[player] = TableUtil.deepClone(ZoneConstants.DefaultPlayerZoneState) :: ZoneConstants.PlayerZoneState
 
     -- Send to zone
-    ZoneService.sendPlayerToZone(player, ZoneService.getPlayerZone(player))
+    ZoneService.sendPlayerToZone(player, ZoneService.getPlayerZone(player), 0) -- invokedTime of 0 to immediately move the player Character
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()
