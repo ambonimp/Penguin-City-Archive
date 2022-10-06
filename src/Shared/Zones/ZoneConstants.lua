@@ -1,5 +1,9 @@
 local ZoneConstants = {}
 
+-------------------------------------------------------------------------------
+-- Types
+-------------------------------------------------------------------------------
+
 export type PlayerZoneState = {
     Room: {
         Id: string,
@@ -15,6 +19,10 @@ export type Zone = {
     ZoneType: string,
     ZoneId: string,
 }
+
+-------------------------------------------------------------------------------
+-- Constants
+-------------------------------------------------------------------------------
 
 ZoneConstants.ZoneType = {
     Room = "Room",
@@ -38,6 +46,10 @@ local defaultPlayerZoneState: PlayerZoneState = {
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
-ZoneConstants.StreamingTargetRadius = 1024 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
+--!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
+ZoneConstants.StreamingTargetRadius = 1024
+
+-- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
+ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 
 return ZoneConstants

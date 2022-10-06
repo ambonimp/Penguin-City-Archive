@@ -13,6 +13,9 @@ local minigames = game.Workspace.Minigames
 local models: { Model } = {}
 local largestDiameter = 1
 
+--[[
+    Rooms and Minigames Instances must have a corresponding ZoneId
+]]
 local function verifyDirectories()
     for _, roomFolder in pairs(rooms:GetChildren()) do
         local roomId = roomFolder.Name
@@ -28,6 +31,9 @@ local function verifyDirectories()
     end
 end
 
+--[[
+    Convert folders to models; give us nice API (easy moving, can query extents size)
+]]
 local function convertToModels()
     for _, directory: Instance in pairs({ rooms, minigames }) do
         for _, folder in pairs(directory:GetChildren()) do
@@ -45,10 +51,47 @@ local function convertToModels()
     end
 end
 
+--[[
+    Appends instances with an attribute detailing how many BasePart children it has.
+    Used to help the client detect when a Zone has been fully loaded
+    https://create.roblox.com/docs/optimization/content-streaming#streaming-in
+]]
 local function writeBasePartTotals()
-    --todo
+    -- ERROR: Models is empty (ensure we're doing *something*)
+    if #models == 0 then
+        error("Models is empty")
+    end
+
+    local function processInstance(instance: Instance)
+        local totalBasePartChildren = 0
+        for _, child in pairs(instance:GetChildren()) do
+            processInstance(child)
+
+            if child:IsA("BasePart") then
+                totalBasePartChildren += 1
+            end
+        end
+
+        if totalBasePartChildren > 0 then
+            -- ERROR: BaseParts cannot have children that are BaseParts!
+            if instance:IsA("BasePart") then
+                error(
+                    ("BasePart %s has children that are BaseParts - naughty! This harms content streaming"):format(instance:GetFullName())
+                )
+            end
+
+            instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
+        end
+    end
+
+    for _, model in pairs(models) do
+        processInstance(model)
+    end
 end
 
+--[[
+    Will push a warning to the output if our streaming radius is too small for any of our zones (could risk content being streamed out)
+]]
 local function verifyStreamingRadius()
     -- ERROR: Models is empty (ensure we're verifying *something*)
     if #models == 0 then
@@ -76,6 +119,9 @@ local function verifyStreamingRadius()
     return largestDiameter
 end
 
+--[[
+    Moves all our zones onto a spaced out grid to ensure we only streaming in one zone at a time
+]]
 local function setupGrid()
     local gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius / 2 + GRID_PADDING
 
