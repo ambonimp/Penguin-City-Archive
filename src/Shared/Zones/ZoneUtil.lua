@@ -1,7 +1,8 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneUtil = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
@@ -33,6 +34,19 @@ function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
     }
 
     return zoneInstances
+end
+
+function ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
+    local zoneType = zoneTypeArgument:GetValue()
+    return {
+        Type = ZoneUtil.getZoneIdCmdrTypeName(zoneType),
+        Name = "zoneId",
+        Description = ("zoneId (%s)"):format(zoneType),
+    }
+end
+
+function ZoneUtil.getZoneIdCmdrTypeName(zoneType: string)
+    return StringUtil.toCamelCase(("%sZoneId"):format(zoneType))
 end
 
 return ZoneUtil
