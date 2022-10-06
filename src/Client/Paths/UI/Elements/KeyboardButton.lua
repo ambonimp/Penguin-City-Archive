@@ -341,8 +341,12 @@ function KeyboardButton.new()
     function keyboardButton:SetTextColor(newColor: Color3, skipTween: boolean?)
         textColor = newColor
 
-        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
-        TweenUtil.tween(textLabel, tweenInfo, { TextColor = textColor })
+        if not skipTween then
+            local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+            TweenUtil.tween(textLabel, tweenInfo, { TextColor3 = textColor })
+        else
+            textLabel.TextColor3 = textColor
+        end
 
         return self
     end
