@@ -101,6 +101,7 @@ function CharacterEditorCategory.new(categoryName: string)
                     onAppearanceChanged(itemName)
                 end
             else
+                warn("todo prompt purchase")
                 -- TODO: Prompt purchase
             end
         end)
