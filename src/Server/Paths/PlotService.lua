@@ -1,5 +1,5 @@
---Gives a player a housing plot when they rejoin, and empties it when they leave.
-local PlotLoader = {}
+--Gives a player a housing plot when they rejoin, and empties it when they leave. Handles all housing server/client communication with plots and furniutre
+local PlotService = {}
 local Paths = require(script.Parent)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,8 +9,8 @@ local PlayerData: typeof(require(Paths.Server.DataService))
 local Limiter: typeof(require(Paths.Shared.Limiter))
 local Remotes: typeof(require(Paths.Shared.Remotes))
 
-PlotLoader.PlayerPlot = {}
-PlotLoader.PlayerHouse = {}
+PlotService.PlayerPlot = {}
+PlotService.PlayerHouse = {}
 
 local DEBOUNCE_SCOPE = "PlayerTeleport"
 local DEBOUNCE_MOUNT = {
@@ -21,7 +21,7 @@ local DEBOUNCE_MOUNT = {
 local assets: Folder
 local folders
 
-function PlotLoader.Init()
+function PlotService.Init()
     assets = ReplicatedStorage:WaitForChild("Assets")
     folders = {
         ["Plot"] = workspace:WaitForChild("HousingPlots"),
@@ -33,29 +33,54 @@ function PlotLoader.Init()
     Remotes = require(Paths.Shared.Remotes)
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
+    Remotes.declareEvent("PlotChanged")
+    Remotes.declareEvent("UpdateHouseUI")
 end
 
-function PlotLoader.Start()
+local function findInPlacements(id: number, placements)
+    for _, data in placements do
+        if data.Id == id then
+            return true
+        end
+    end
+    return false
+end
+
+local function getEmptyId(placements)
+    for i = 1, 1000 do
+        if not findInPlacements(i, placements) then
+            return i
+        end
+    end
+    return #placements + 1
+end
+
+function PlotService.Start()
     Remotes.bindEvents({
         ChangeObject = function(player: Player, id: number, position: CFrame, rotation: Vector3, color: Color3, object: Model)
-            local plot = PlotLoader.PlayerHasPlot(player, "House")
-            local items = PlayerData.get(player, "Igloo.Placements")
-            local houseCFrame = CFrame.new(plot.Plot.Position)
-            if object and object:IsDescendantOf(plot) and (houseCFrame.Position - position.Position).magnitude < 150 then
-                local realPosition = houseCFrame:ToObjectSpace(position)
-                realPosition = CFrame.new(realPosition.Position)
-                object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
-                for _, itemData in items do
-                    if itemData.Id == id then
-                        itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
-                        itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
-                        itemData.Color = { color.R, color.G, color.B }
-                        break
-                    end
-                end
-            end
+            PlotService.ChangeObject(player, id, position, rotation, color, object)
+        end,
+        RemoveObject = function(player: Player, id: number, type: string)
+            PlotService.RemoveObject(player, id, type)
+        end,
+        NewObject = function(player: Player, name: string, type: string, position: CFrame, rotation: Vector3, color: Color3)
+            PlotService.NewObject(player, name, type, position, rotation, color)
+        end,
+        ChangePlot = function(player: Player, newPlot: Model)
+            PlotService.ChangePlot(player, newPlot)
+        end,
+        ChangePlotModel = function(player: Player, name: string)
+            PlotService.ChangePlotModel(player, name)
         end,
     })
+end
+
+function SetModelColor(object: Model, color: Color3)
+    for _, part in object:GetDescendants() do
+        if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
+            part.Color = color
+        end
+    end
 end
 
 --Finds an empty plot for exterior/interior
@@ -72,9 +97,8 @@ end
 
 --Handles unloading a house interior or exterior : type; "House" for interior, "Plot" for exterior
 local function UnloadPlot(player: Player, plot: Model, type: string)
-    print(player, plot, type)
     --checks for given plot, if player house plot of type, or if it's in the plots table
-    local plotModel: Model = plot or PlotLoader.PlayerHasPlot(player, type) or PlotLoader["Player" .. type][player.Name]
+    local plotModel: Model = plot or PlotService.PlayerHasPlot(player, type) or PlotService["Player" .. type][player.Name]
 
     if plotModel then
         if plotModel:GetAttribute("Owner") then
@@ -90,7 +114,7 @@ local function UnloadPlot(player: Player, plot: Model, type: string)
         end
     end
 
-    PlotLoader["Player" .. type][player.Name] = nil
+    PlotService["Player" .. type][player.Name] = nil
 end
 
 --Loads objects in players house
@@ -98,8 +122,8 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
     local houseCFrame = CFrame.new(plot.Plot.Position)
     player:SetAttribute("HouseSpawn", Model.Spawn.Position)
     local furniture = PlayerData.get(player, "Igloo.Placements")
-    for itemName, objectData in furniture do
-        --if ObjectModule[itemName].interactable then
+    for _, objectData in furniture do
+        local itemName = objectData.Name
         local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
 
         if Object then
@@ -110,21 +134,21 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
                     * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
             )
             Object:SetAttribute("Id", objectData.Id)
+            SetModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
             Object.Parent = plot.Furniture
         end
-        --end
     end
 end
 --Loads a house interior or exterior
-local function LoadPlot(player: Player, plot: Model, type: string)
-    local PlayerPlot: Model = PlotLoader.PlayerHasPlot(player, type)
-    if PlayerPlot ~= plot and PlayerPlot ~= nil then
+local function LoadPlot(player: Player, plot: Model, type: string, isChange: boolean?)
+    local PlayerPlot: Model = PlotService.PlayerHasPlot(player, type)
+    if PlayerPlot ~= plot and PlayerPlot ~= nil and not isChange then
         UnloadPlot(player, PlayerPlot, type)
-    elseif PlayerPlot == plot then
+    elseif PlayerPlot == plot and not isChange then
         return false
     else
         plot:SetAttribute("Owner", player.UserId)
-        PlotLoader["Player" .. type][player.Name] = plot
+        PlotService["Player" .. type][player.Name] = plot
 
         --load interior and exterior model of houses on server, furniture is loaded on client
         local data = PlayerData.get(player, "Igloo.Igloo" .. type)
@@ -170,11 +194,11 @@ local function LoadPlot(player: Player, plot: Model, type: string)
 end
 
 --Returns a players plot model
-function PlotLoader.PlayerHasPlot(player: Player, type: string)
+function PlotService.PlayerHasPlot(player: Player, type: string): Model | nil
     local plotModel: Model
     if player:GetAttribute(type) then
-        if PlotLoader["Player" .. type][player.Name] then
-            plotModel = PlotLoader["Player" .. type][player.Name]
+        if PlotService["Player" .. type][player.Name] then
+            plotModel = PlotService["Player" .. type][player.Name]
         end
         if not plotModel then
             for _, plot in folders[type]:GetChildren() do
@@ -189,8 +213,8 @@ function PlotLoader.PlayerHasPlot(player: Player, type: string)
 end
 
 --Runs once per player on join
-function PlotLoader.PlayerAdded(player: Player)
-    if PlotLoader.PlayerHasPlot(player, "Plot") then
+function PlotService.PlayerAdded(player: Player)
+    if PlotService.PlayerHasPlot(player, "Plot") then
         return
     end
     local loaded = false
@@ -209,12 +233,125 @@ function PlotLoader.PlayerAdded(player: Player)
     end
 end
 
---Runs once per player on leave
-function PlotLoader.PlayerRemoving(player: Player)
-    local plot: Model = PlotLoader.PlayerHasPlot(player, "Plot")
-    local house: Model = PlotLoader.PlayerHasPlot(player, "House")
+--Handles removing models and resetting plots on leave
+function PlotService.PlayerRemoving(player: Player)
+    local plot: Model = PlotService.PlayerHasPlot(player, "Plot")
+    local house: Model = PlotService.PlayerHasPlot(player, "House")
     UnloadPlot(player, plot, "Plot")
     UnloadPlot(player, house, "House")
 end
 
-return PlotLoader
+--change the location of a players plot
+--todo: add prices and price checks on server/client
+function PlotService.ChangePlotModel(player: Player, name: string)
+    local plot = PlotService.PlayerHasPlot(player, "Plot")
+    if assets.Housing.Plot:FindFirstChild(name) then
+        plot:FindFirstChildOfClass("Model"):Destroy()
+        PlayerData.set(player, "Igloo.IglooPlot", name)
+        LoadPlot(player, plot, "Plot", true)
+    end
+end
+
+--change the location of a players plot
+--todo: add gamepass where you can place your house in plots outside of neighborhood
+function PlotService.ChangePlot(player: Player, newPlot: Model)
+    if newPlot:GetAttribute("Owner") == nil and newPlot.Parent == workspace.HousingPlots then
+        UnloadPlot(player, PlotService.PlayerHasPlot(player, "Plot"), "Plot")
+        LoadPlot(player, newPlot, "Plot")
+        Remotes.fireClient(player, "PlotChanged", PlotService.PlayerHasPlot(player, "Plot"))
+    end
+end
+
+--Change an existing objects' position, color, or rotation
+function PlotService.ChangeObject(player: Player, id: number, position: CFrame, rotation: Vector3, color: Color3, object: Model)
+    local plot = PlotService.PlayerHasPlot(player, "House")
+    local items = PlayerData.get(player, "Igloo.Placements")
+    local houseCFrame = CFrame.new(plot.Plot.Position)
+    if (object and object:IsDescendantOf(plot)) and (houseCFrame.Position - position.Position).magnitude < 150 then --todo: swap to InBounds method
+        local realPosition = houseCFrame:ToObjectSpace(position)
+        realPosition = CFrame.new(realPosition.Position)
+
+        object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
+        SetModelColor(object, color)
+
+        for _, itemData in items do
+            if itemData.Id == id then
+                itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
+                itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
+                itemData.Color = { color.R * 255, color.G * 255, color.B * 255 }
+                break
+            end
+        end
+
+        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", items)
+    end
+end
+
+--remove an object from players house
+function PlotService.RemoveObject(player: Player, id: number, type: string)
+    local plot = PlotService.PlayerHasPlot(player, "House")
+    local items = PlayerData.get(player, "Igloo.Placements")
+    local name = nil
+    for _, object in plot.Furniture:GetChildren() do
+        if object:GetAttribute("Id") == id then
+            name = object.Name
+            object:Destroy()
+        end
+    end
+
+    for num, data in items do
+        if data.Id == id then
+            PlayerData.set(player, "Igloo.Placements." .. tostring(num), nil)
+            break
+        end
+    end
+
+    if name then
+        if PlayerData.get(player, "Igloo.OwnedItems." .. name) then
+            PlayerData.increment(player, "Igloo.OwnedItems." .. name, 1)
+        else
+            PlayerData.set(player, "Igloo.OwnedItems." .. name, 1)
+        end
+        Remotes.fireClient(player, "UpdateHouseUI", name, PlayerData.get(player, "Igloo.OwnedItems." .. name), type)
+    end
+
+    Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", PlayerData.get(player, "Igloo.Placements"))
+end
+
+--add an object to the players house
+--todo: add buying objects you have 0 of
+function PlotService.NewObject(player: Player, name: string, type: string, position: CFrame, rotation: Vector3, color: Color3)
+    local plot = PlotService.PlayerHasPlot(player, "House")
+    local items = PlayerData.get(player, "Igloo.Placements")
+    local owned = PlayerData.get(player, "Igloo.OwnedItems")
+    local houseCFrame = CFrame.new(plot.Plot.Position)
+    if
+        (houseCFrame.Position - position.Position).magnitude < 150 --todo: swap to InBounds method
+        and (assets.Housing:FindFirstChild(type) and assets.Housing:FindFirstChild(type):FindFirstChild(name))
+        and (owned[name] and owned[name] > 0)
+    then
+        local object = assets.Housing[type]:FindFirstChild(name):Clone()
+        local realPosition = houseCFrame:ToObjectSpace(position)
+        realPosition = CFrame.new(realPosition.Position)
+
+        SetModelColor(object, color)
+
+        local itemData = {}
+        itemData.Id = getEmptyId(items)
+        itemData.Name = name
+        itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
+        itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
+        itemData.Color = { color.R * 255, color.G * 255, color.B * 255 }
+
+        object:SetAttribute("Id", itemData.Id)
+        object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
+        object.Parent = plot.Furniture
+
+        PlayerData.increment(player, "Igloo.OwnedItems." .. name, -1)
+        PlayerData.append(player, "Igloo.Placements", itemData)
+        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", PlayerData.get(player, "Igloo.Placements"))
+        Remotes.fireClient(player, "UpdateHouseUI", name, PlayerData.get(player, "Igloo.OwnedItems." .. name), type)
+    end
+end
+
+return PlotService

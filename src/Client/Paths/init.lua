@@ -18,6 +18,7 @@ Paths.Client = client
 -- Misc
 Paths.UI = Players.LocalPlayer.PlayerGui
 Paths.Templates = ReplicatedStorage.Templates
+Paths.Assets = ReplicatedStorage.Assets
 Paths.Initialized = false
 
 -- Loading Coroutine

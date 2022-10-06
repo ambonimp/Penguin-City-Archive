@@ -28,7 +28,7 @@ end
 --[[
     Retrieves a value stored in an array
 ]]
-function DataUtil.getFromAddress(store: Data, address: string)
+function DataUtil.getFromAddress(store: Data, address: string): any
     local keys = DataUtil.keysFromAddress(address)
     for i = 1, #keys do -- master directory is 1
         store = store[keys[i]]

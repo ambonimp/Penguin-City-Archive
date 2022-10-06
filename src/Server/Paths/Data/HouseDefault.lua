@@ -4,12 +4,31 @@
 ]]
 --
 
-local HouseDefaullt = {}
+local HouseDefault = {}
 
-function HouseDefaullt.getDefaults()
+function HouseDefault.getDefaults()
     return {
-        ["Chair"] = { Id = 0, Position = { 0, 2.6, 0 }, Rotation = { 0, 0, 0 }, Color = { 124, 92, 70 } },
+        ["1"] = { Id = 1, Position = { 0, 2.6, -8 }, Rotation = { 0, 0, 0 }, Color = { 124, 92, 70 }, Name = "Chair" },
     }
 end
 
-return HouseDefaullt
+function HouseDefault.getFurnitureDefaults()
+    return {
+        ["Chair"] = 3,
+        ["Couch"] = 3,
+        ["Plant"] = 3,
+        ["Table"] = 3,
+        ["Table_Lamp"] = 3,
+    }
+end
+
+function HouseDefault.getIglooDefaults()
+    return {
+        IglooPlot = "Default",
+        IglooHouse = "Default",
+        Placements = HouseDefault.getDefaults(),
+        OwnedItems = HouseDefault.getFurnitureDefaults(),
+    }
+end
+
+return HouseDefault

@@ -81,12 +81,23 @@ function DataService.wipe(player: Player)
     player:Kick("DATA WIPE " .. player.Name)
 end
 
+local function Reconcile(Data, Default)
+    for k, v in pairs(Default) do
+        if not tonumber(k) and Data[k] == nil then
+            Data[k] = v
+        elseif not tonumber(k) and typeof(v) == "table" then
+            Reconcile(Data[k], v)
+        end
+    end
+end
+
 function DataService.loadPlayer(player)
     local profile = ProfileService.GetProfileStore(Config.DataKey, Config.getDefaults(player))
         :LoadProfileAsync(tostring(player.UserId), "ForceLoad")
 
     if profile then
-        profile:Reconcile()
+        Reconcile(profile.Data, Config.getDefaults(player))
+        --profile:Reconcile()
 
         profile:ListenToRelease(function()
             DataService.Profiles[player] = nil
