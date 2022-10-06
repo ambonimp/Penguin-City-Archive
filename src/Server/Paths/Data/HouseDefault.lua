@@ -8,7 +8,7 @@ local HouseDefault = {}
 
 function HouseDefault.getDefaults()
     return {
-        ["1"] = { Id = 1, Position = { 0, 2.6, -8 }, Rotation = { 0, 0, 0 }, Color = { 124, 92, 70 }, Name = "Chair" },
+        ["1"] = { Id = 1, Position = { 0, 2.6, -16 }, Rotation = { 0, 0, 0 }, Color = { 124, 92, 70 }, Name = "Chair" },
     }
 end
 

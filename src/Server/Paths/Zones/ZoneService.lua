@@ -62,7 +62,7 @@ end
     Returns true if successful
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
-function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?, oldPlayer: Player?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
 
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
@@ -99,11 +99,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            if zone.ZoneId == "Start" and PlotService.PlayerHasPlot(player, "House") then
-                local interior = PlotService.PlayerHasPlot(player, "House")
+            if zone.ZoneId == "Start" and PlotService.PlayerHasPlot(oldPlayer or player, "House") then
+                local interior = PlotService.PlayerHasPlot(oldPlayer or player, "House")
                 CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
-            elseif zone.ZoneId == "Neighborhood" and PlotService.PlayerHasPlot(player, "Plot") and oldZone.ZoneId == "Start" then
-                local exterior = PlotService.PlayerHasPlot(player, "Plot")
+            elseif
+                zone.ZoneId == "Neighborhood"
+                and PlotService.PlayerHasPlot(oldPlayer or player, "Plot")
+                and oldZone.ZoneId == "Start"
+            then
+                local exterior = PlotService.PlayerHasPlot(oldPlayer or player, "Plot")
                 CharacterService.standOn(player.Character, exterior.Spawn)
             else
                 CharacterService.standOn(player.Character, spawnpoint)

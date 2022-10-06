@@ -180,7 +180,7 @@ local function LoadPlot(player: Player, plot: Model, type: string, isChange: boo
                     end
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(player, houseZone, 0)
+                        ZoneService.teleportPlayerToZone(newPlayer, houseZone, 0, player)
                         Remotes.fireClient(newPlayer, "ExitedHouse", newPlayer)
                     end
                 end)
@@ -192,7 +192,7 @@ local function LoadPlot(player: Player, plot: Model, type: string, isChange: boo
                     end
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(player, startZone, 0)
+                        ZoneService.teleportPlayerToZone(newPlayer, startZone, 0, player)
                         Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
                     end
                 end)
