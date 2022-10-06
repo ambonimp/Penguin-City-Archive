@@ -8,6 +8,7 @@ UIConstants.States = {
     PizzaMinigame = "PizzaMinigame",
     HUD = "HUD",
     Results = "Results",
+    ZoneTransition = "ZoneTransition",
 }
 
 UIConstants.Keybinds = {
