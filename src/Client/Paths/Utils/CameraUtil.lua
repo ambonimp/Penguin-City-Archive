@@ -30,13 +30,13 @@ end
 --[[
     Locks the camera and pans over to the subject
 ]]
-function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: Vector3, tweenInfo: TweenInfo?): (Tween, CFrame)
+function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame, tweenInfo: TweenInfo?): (Tween, CFrame)
     camera.CameraType = Enum.CameraType.Scriptable
 
     offset = offset or Vector3.new(0, 0, 10)
     tweenInfo = tweenInfo or TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
-    local goal = subjectCFrame * CFrame.fromEulerAnglesYXZ(0, math.pi, 0) * CFrame.new(offset)
+    local goal = subjectCFrame * CFrame.fromEulerAnglesYXZ(0, math.pi, 0) * offset.Rotation * CFrame.new(offset.Position)
 
     local tween = TweenUtil.tween(camera, tweenInfo, { CFrame = goal })
 

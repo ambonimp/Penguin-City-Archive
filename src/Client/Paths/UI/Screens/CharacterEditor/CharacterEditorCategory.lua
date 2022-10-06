@@ -18,7 +18,7 @@ local selectedTab: Frame = tabs.SelectedTab
 function CharacterEditorCategory.new(categoryName: string)
     local category = {}
 
-    local previewCharacter: Model?
+    local preview: Model?
     local equippedItems: EquippedItems = {}
 
     local constants = CharacterItems[categoryName]
@@ -44,7 +44,7 @@ function CharacterEditorCategory.new(categoryName: string)
     tab.Parent = menu.Tabs
 
     local function updateAppearance()
-        CharacterUtil.applyAppearance(previewCharacter, { [categoryName] = equippedItems })
+        CharacterUtil.applyAppearance(preview, { [categoryName] = equippedItems })
     end
 
     local function isItemOwned(itemName: string)
@@ -142,8 +142,8 @@ function CharacterEditorCategory.new(categoryName: string)
         return equippedItems
     end
 
-    function category:SetPreviewCharacter(character: Model?)
-        previewCharacter = character
+    function category:SetPreview(character: Model?)
+        preview = character
     end
 
     function category:Open()
