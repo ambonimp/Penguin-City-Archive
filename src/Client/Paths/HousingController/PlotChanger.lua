@@ -11,12 +11,12 @@ local Player = Players.LocalPlayer
 
 local Camera = workspace.CurrentCamera
 local CurrentPlot: Model | nil
-local Plots = workspace.HousingPlots
+local Plots = workspace.Rooms.Neighborhood.HousingPlots
 local total = #Plots:GetChildren()
 local current = 1
 
 local function GetPlot()
-    CurrentPlot = HousingController.GetPlayerPlot(Player, workspace.HousingPlots)
+    CurrentPlot = HousingController.GetPlayerPlot(Player, workspace.Rooms.Neighborhood.HousingPlots)
 end
 
 local function moveCameraTo(position: number)

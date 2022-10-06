@@ -8,14 +8,19 @@ local ObjectModule: typeof(require(Paths.Shared.HousingObjectData))
 local PlayerData: typeof(require(Paths.Server.DataService))
 local Limiter: typeof(require(Paths.Shared.Limiter))
 local Remotes: typeof(require(Paths.Shared.Remotes))
+local ZoneService: typeof(require(Paths.Server.Zones.ZoneService))
+local ZoneConstants: typeof(require(Paths.Shared.Zones.ZoneConstants))
+local ZoneUtil: typeof(require(Paths.Shared.Zones.ZoneUtil))
 
 PlotService.PlayerPlot = {}
 PlotService.PlayerHouse = {}
 
+local startZone: ZoneConstants.Zone
+local houseZone: ZoneConstants.Zone
 local DEBOUNCE_SCOPE = "PlayerTeleport"
 local DEBOUNCE_MOUNT = {
     Key = "Teleport",
-    Timeframe = 0.25,
+    Timeframe = 0.5,
 }
 
 local assets: Folder
@@ -24,13 +29,18 @@ local folders
 function PlotService.Init()
     assets = ReplicatedStorage:WaitForChild("Assets")
     folders = {
-        ["Plot"] = workspace:WaitForChild("HousingPlots"),
-        ["House"] = workspace:WaitForChild("Houses"),
+        ["Plot"] = workspace.Rooms.Neighborhood:WaitForChild("HousingPlots"),
+        ["House"] = workspace.Rooms.Start:WaitForChild("Houses"),
     }
     ObjectModule = require(Paths.Shared.HousingObjectData)
     PlayerData = require(Paths.Server.Data.DataService)
     Limiter = require(Paths.Shared.Limiter)
     Remotes = require(Paths.Shared.Remotes)
+    ZoneService = require(Paths.Server.Zones.ZoneService)
+    ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+    ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+    houseZone = ZoneUtil.zone("Room", "Neighborhood")
+    startZone = ZoneUtil.zone("Room", "Start")
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
     Remotes.declareEvent("PlotChanged")
@@ -170,7 +180,7 @@ local function LoadPlot(player: Player, plot: Model, type: string, isChange: boo
                     end
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        newPlayer.Character:PivotTo(CFrame.new(player:GetAttribute("Plot")))
+                        ZoneService.teleportPlayerToZone(player, houseZone, 0)
                         Remotes.fireClient(newPlayer, "ExitedHouse", newPlayer)
                     end
                 end)
@@ -182,7 +192,7 @@ local function LoadPlot(player: Player, plot: Model, type: string, isChange: boo
                     end
                     if game.Players:GetPlayerFromCharacter(part.Parent) then
                         local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        newPlayer.Character:PivotTo(CFrame.new(player:GetAttribute("House")))
+                        ZoneService.teleportPlayerToZone(player, startZone, 0)
                         Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
                     end
                 end)
@@ -255,7 +265,7 @@ end
 --change the location of a players plot
 --todo: add gamepass where you can place your house in plots outside of neighborhood
 function PlotService.ChangePlot(player: Player, newPlot: Model)
-    if newPlot:GetAttribute("Owner") == nil and newPlot.Parent == workspace.HousingPlots then
+    if newPlot:GetAttribute("Owner") == nil and newPlot.Parent == workspace.Rooms.Neighborhood.HousingPlots then
         UnloadPlot(player, PlotService.PlayerHasPlot(player, "Plot"), "Plot")
         LoadPlot(player, newPlot, "Plot")
         Remotes.fireClient(player, "PlotChanged", PlotService.PlayerHasPlot(player, "Plot"))

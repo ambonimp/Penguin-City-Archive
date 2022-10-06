@@ -145,7 +145,7 @@ function HousingUI.HouseExited()
     HousingUI.EnableHousePrompts()
 end
 
---called when player enters neigherhood zone
+--called when player enters Neighborhood zone
 function HousingUI.EnableHousePrompts()
     local state = uiStateMachine:GetState()
     if
@@ -155,7 +155,7 @@ function HousingUI.EnableHousePrompts()
     then
         return
     end
-    local plots = workspace:WaitForChild("HousingPlots"):GetChildren()
+    local plots = workspace.Rooms.Neighborhood:WaitForChild("HousingPlots"):GetChildren()
     local promptsDone = 0
     for _, plot in plots do
         task.spawn(function() --use this to handle zone loading streamingenabled
@@ -185,7 +185,7 @@ function HousingUI.EnableHousePrompts()
 end
 
 function HousingUI.DisableHousePrompts()
-    local plots = workspace:WaitForChild("HousingPlots"):GetChildren()
+    local plots = workspace.Rooms.Neighborhood:WaitForChild("HousingPlots"):GetChildren()
     for _, plot in plots do
         task.spawn(function()
             local Prompt = plot:WaitForChild("Mailbox"):WaitForChild("Prompt")

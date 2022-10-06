@@ -18,8 +18,8 @@ function PlayerService.Start()
     local DataService = require(Paths.Server.Data.DataService)
     local CharacterService = require(Paths.Server.CharacterService)
     local ProductService = require(Paths.Server.Products.ProductService)
-    local PlotService = require(Paths.Server.PlotService)
     local ZoneService = require(Paths.Server.Zones.ZoneService)
+    local PlotService = require(Paths.Server.PlotService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -42,7 +42,6 @@ function PlayerService.Start()
         -- Unload routines
         DataService.unloadPlayer(player)
         PlotService.PlayerRemoving(player)
-        ZoneService.unloadPlayer(player)
 
         -- Destroy Maid
         maidByPlayer[player]:Destroy()

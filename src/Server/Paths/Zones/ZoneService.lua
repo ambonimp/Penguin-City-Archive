@@ -10,6 +10,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CharacterService = require(Paths.Server.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
+local PlotService = require(Paths.Server.PlotService)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
@@ -98,7 +99,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            CharacterService.standOn(player.Character, spawnpoint)
+            if zone.ZoneId == "Start" and PlotService.PlayerHasPlot(player, "House") then
+                local interior = PlotService.PlayerHasPlot(player, "House")
+                CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
+            elseif zone.ZoneId == "Neighborhood" and PlotService.PlayerHasPlot(player, "Plot") and oldZone.ZoneId == "Start" then
+                local exterior = PlotService.PlayerHasPlot(player, "Plot")
+                CharacterService.standOn(player.Character, exterior.Spawn)
+            else
+                CharacterService.standOn(player.Character, spawnpoint)
+            end
         end
     end)
 

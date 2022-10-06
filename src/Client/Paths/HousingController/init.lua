@@ -74,9 +74,9 @@ end
 
 --Loads a players house and teleports the localplayer to it
 function Housing.LoadPlayerHouse(player: Player, character: Model)
-    local plot = Housing.GetPlayerPlot(player, workspace.Houses)
+    local plot = Housing.GetPlayerPlot(player, workspace.Rooms.Start.Houses)
     --move character to interior of house
-    character:PivotTo(CFrame.new(player:GetAttribute("HouseSpawn")) * CFrame.new(0, Player.Character:GetExtentsSize().Y / 2, 0))
+    --character:PivotTo(CFrame.new(player:GetAttribute("HouseSpawn")) * CFrame.new(0, Player.Character:GetExtentsSize().Y / 2, 0))
     Housing.CurrentHouse = plot:FindFirstChildOfClass("Model")
 end
 

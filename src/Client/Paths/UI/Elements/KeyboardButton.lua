@@ -422,7 +422,12 @@ function KeyboardButton.new()
 
     keyboardButton.InternalMount:Connect(function(parent: Instance, _hideParent: boolean?)
         back.Parent = parent
-
+        if icon then
+            icon.ZIndex = imageButton.ZIndex + 1
+        end
+        if textLabel then
+            textLabel.ZIndex = imageButton.ZIndex + 1
+        end
         back.ZIndex = imageButton.ZIndex - 1
     end)
     keyboardButton.InternalPress:Connect(function()

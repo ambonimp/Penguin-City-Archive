@@ -30,11 +30,11 @@ task.delay(0, function()
         require(server.AnalyticsTracking),
         require(server.VehicleService),
         require(server.Cmdr.CmdrService),
-        require(server.PlotService),
         require(server.PlayerService),
         require(server.Minigames.MinigameService),
         require(server.Products.ProductProcessReceipt),
         require(server.Zones.ZoneService),
+        require(server.PlotService),
 
         -- UnitTest
         require(server.UnitTestingService),

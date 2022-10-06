@@ -27,6 +27,7 @@ ZoneConstants.ZoneId = {
     Room = {
         Start = "Start",
         Narnia = "Narnia",
+        Neighborhood = "Neighborhood",
     },
     Minigame = {
         Pizza = "Pizza",
