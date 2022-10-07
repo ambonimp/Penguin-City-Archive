@@ -263,6 +263,16 @@ function StringUtil.toKebabCase(str: string, uppercase: boolean)
 end
 
 --[[
+    Coverts a name to include an 's or s'
+]]
+function StringUtil.possessiveName(str: string)
+    if StringUtil.endsWith(str:upper(), "S") then
+        return ("%s'"):format(str)
+    end
+    return ("%s's"):format(str)
+end
+
+--[[
     Converts string to uppercase.
     - Does not break richtext like string.upper() does
 ]]

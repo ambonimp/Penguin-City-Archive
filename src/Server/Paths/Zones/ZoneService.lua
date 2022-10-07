@@ -11,6 +11,7 @@ local CharacterService = require(Paths.Server.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
 local PlotService = require(Paths.Server.PlotService)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
@@ -99,16 +100,16 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            if zone.ZoneId == "Start" and PlotService.doesPlayerHavePlot(oldPlayer or player, "House") then
-                local interior = PlotService.doesPlayerHavePlot(oldPlayer or player, "House")
+            if zone.ZoneId == "Start" and PlotService.doesPlayerHavePlot(oldPlayer or player, HousingConstants.HouseType) then
+                local interior = PlotService.doesPlayerHavePlot(oldPlayer or player, HousingConstants.HouseType)
                 CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
             elseif
                 oldPlayer
                 and zone.ZoneId == "Neighborhood"
-                and PlotService.doesPlayerHavePlot(oldPlayer, "Plot")
+                and PlotService.doesPlayerHavePlot(oldPlayer, HousingConstants.PlotType)
                 and oldZone.ZoneId == "Start"
             then
-                local exterior = PlotService.doesPlayerHavePlot(oldPlayer, "Plot")
+                local exterior = PlotService.doesPlayerHavePlot(oldPlayer, HousingConstants.PlotType)
                 CharacterService.standOn(player.Character, exterior:FindFirstChildOfClass("Model").Spawn)
             else
                 CharacterService.standOn(player.Character, spawnpoint)

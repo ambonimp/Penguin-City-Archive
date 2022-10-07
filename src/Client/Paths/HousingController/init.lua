@@ -1,34 +1,50 @@
-local Housing = {}
+local HousingController = {}
 
 local Paths = require(script.Parent)
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-local Remotes
-
-local HousingScreen: typeof(require(Paths.Client.UI.Screens.HousingScreen))
+local Remotes = require(Paths.Shared.Remotes)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
 local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 
-Housing.houseCF = nil
-Housing.currentHouse = nil
+HousingController.houseCF = nil :: CFrame?
+HousingController.currentHouse = nil :: Model?
 
 --Sets the players house CF used to place objects when loading
-local function SetHouseCFrame()
-    if Player:GetAttribute("House") and Player:GetAttribute("HouseSpawn") then
-        Housing.houseCF = CFrame.new(Player:GetAttribute("House"))
+local function setHouseCFrame()
+    if Player:GetAttribute(HousingConstants.HouseType) and Player:GetAttribute(HousingConstants.HouseSpawn) then
+        HousingController.houseCF = CFrame.new(Player:GetAttribute(HousingConstants.HouseType))
     end
 end
 
-function Housing.Init()
-    SetHouseCFrame()
+function HousingController.Init()
+    setHouseCFrame()
 
-    Remotes = require(Paths.Shared.Remotes)
-    HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
-    Housing.isEditing = false
+    HousingController.isEditing = false :: boolean
 end
 
-function Housing.Start()
+function setupPlayerHouse()
+    --set house cf if it hasn't been already
+    if HousingController.houseCF == nil then
+        repeat
+            task.wait()
+        until Player:GetAttribute(HousingConstants.HouseType) and Player:GetAttribute(HousingConstants.HouseSpawn)
+
+        setHouseCFrame()
+    end
+    --wait for character to load house
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    HousingController.loadPlayerHouse(Player, Character)
+    --show edit button, true: has access to edit
+    HousingScreen.houseEntered(true)
+    EditMode = require(Paths.Client.HousingController.EditMode)
+    PlotChanger = require(Paths.Client.HousingController.PlotChanger)
+end
+
+function HousingController.Start()
     Remotes.bindEvents({
         EnteredHouse = function(player: Player, hasAccess: boolean)
             if player == Player then
@@ -44,39 +60,23 @@ function Housing.Start()
             HousingScreen.plotChanged(newPlot)
         end,
     })
-    --set house cf if it hasn't been already
-    if Housing.houseCF == nil then
-        repeat
-            task.wait()
-        until Player:GetAttribute("House") and Player:GetAttribute("HouseSpawn")
-
-        SetHouseCFrame()
-    end
-    --wait for character to load house
-    local Character = Player.Character or Player.CharacterAdded:Wait()
-    Housing.LoadPlayerHouse(Player, Character)
-    --show edit button, true: has access to edit
-    HousingScreen.houseEntered(true)
-    EditMode = require(Paths.Client.HousingController.EditMode)
-    PlotChanger = require(Paths.Client.HousingController.PlotChanger)
+    setupPlayerHouse()
 end
 
 --gets the plot of a house of any player
-function Housing.getPlayerPlot(player: Player, folder: Folder): Model | nil
-    for _, plot in folder:GetChildren() do
-        if plot:GetAttribute("Owner") == player.UserId then
+function HousingController.getPlayerPlot(player: Player, folder: Folder)
+    for _, plot: Model in folder:GetChildren() do
+        if plot:GetAttribute(HousingConstants.PlotOwner) == player.UserId then
             return plot
         end
     end
     return nil
 end
 
---Loads a players house and teleports the localplayer to it
-function Housing.LoadPlayerHouse(player: Player, character: Model)
-    local plot = Housing.getPlayerPlot(player, workspace.Rooms.Start.Houses)
-    --move character to interior of house
-    --character:PivotTo(CFrame.new(player:GetAttribute("HouseSpawn")) * CFrame.new(0, Player.Character:GetExtentsSize().Y / 2, 0))
-    Housing.currentHouse = plot:FindFirstChildOfClass("Model")
+--Loads a players house
+function HousingController.loadPlayerHouse(player: Player, character: Model)
+    local plot = HousingController.getPlayerPlot(player, workspace.Rooms.Start.Houses)
+    HousingController.currentHouse = plot:FindFirstChildOfClass("Model")
 end
 
-return Housing
+return HousingController

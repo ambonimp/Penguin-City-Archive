@@ -27,11 +27,6 @@ function CameraUtil.getFitDeph(viewportSize: Vector2, fov: number, subjectSize: 
     return math.max(CameraUtil.getFitDephY(fov, subjectSize), CameraUtil.getFitDephX(viewportSize, fov, subjectSize))
 end
 
---Resets camera to player
-function CameraUtil.setPlayerControl(camera: Camera)
-    camera.CameraType = Enum.CameraType.Custom
-end
-
 --[[
     Locks the camera and pans over to the subject
 ]]

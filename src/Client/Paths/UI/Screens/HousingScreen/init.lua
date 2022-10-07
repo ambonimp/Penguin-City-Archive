@@ -9,10 +9,12 @@ local HousingController: typeof(require(Paths.Client.HousingController))
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local StringUtil = require(Paths.Client.Utils.StringUtil)
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
 local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 local HousingObjects = require(Paths.Shared.HousingObjectData)
 local PlayerData = require(Paths.Client.DataController)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local DEBOUNCE_TIME = 0.2
 
@@ -39,8 +41,6 @@ local settingsExitButton = KeyboardButton.new()
 local plotChange = KeyboardButton.new()
 local houseChange = KeyboardButton.new()
 local setPlotButton = KeyboardButton.new()
-
---
 
 --creates an exit button button, can move to buttonutil
 function createExitButton(parent, button)
@@ -86,9 +86,9 @@ end
 
 --updates the current selected plot ui info
 function HousingScreen.updatePlotUI(plot: Model)
-    if plot:GetAttribute("Owner") then
-        local owner = Players:GetPlayerByUserId(plot:GetAttribute("Owner"))
-        plotChangerFrame.Owner.Text = owner.DisplayName .. "'s house"
+    if plot:GetAttribute(HousingConstants.PlotOwner) then
+        local owner = Players:GetPlayerByUserId(plot:GetAttribute(HousingConstants.PlotOwner))
+        plotChangerFrame.Owner.Text = StringUtil.possesiveName(owner.DisplayName) .. " house"
         plotChangerFrame.SetPlot.Visible = false
     else
         plotChangerFrame.Owner.Text = "Empty"
@@ -117,22 +117,17 @@ local function editButtonStateChanged()
     if isOpen then
         return
     end
-    if uiStateMachine:HasState(UIConstants.States.HousingEdit) then
-        uiStateMachine:PopTo(UIConstants.States.HousingEdit)
-    else
-        uiStateMachine:Push(UIConstants.States.HousingEdit)
-    end
+    uiStateMachine:PopToAndPush(UIConstants.States.HousingEdit)
 end
 
-function HousingScreen.houseEntered(editPerms: boolean)
-    if editPerms then
+function HousingScreen.houseEntered(hasEditPerms: boolean)
+    if hasEditPerms then
         editButtonStateChanged()
     end
 end
 
 function HousingScreen.houseExited()
-    local state = uiStateMachine:GetState()
-    uiStateMachine:PopIfStateOnTop(state)
+    uiStateMachine:Pop()
 
     if uiStateMachine:HasState(UIConstants.States.HousingEdit) then
         uiStateMachine:Remove(UIConstants.States.HousingEdit)
@@ -144,7 +139,7 @@ end
 --called when player enters Neighborhood zone
 function HousingScreen.enableHousePrompts()
     local state = uiStateMachine:GetState()
-    if
+    if --don't enable house prompts if UI is open that is derived from the prompts
         state == UIConstants.States.PlotSetting
         or state == UIConstants.States.HouseSelectionUI
         or state == UIConstants.States.PlotChanger
@@ -160,11 +155,7 @@ function HousingScreen.enableHousePrompts()
             if not loadedPrompts then
                 Prompt.Triggered:Connect(function()
                     selectedPlot = plot
-                    if uiStateMachine:HasState(UIConstants.States.PlotSetting) then
-                        uiStateMachine:PopTo(UIConstants.States.PlotSetting)
-                    else
-                        uiStateMachine:Push(UIConstants.States.PlotSetting)
-                    end
+                    uiStateMachine:PopToAndPush(UIConstants.States.PlotSetting)
                 end)
                 promptsDone += 1
             end
@@ -191,8 +182,8 @@ function HousingScreen.disableHousePrompts()
 end
 
 function HousingScreen.itemSelected(item: Model)
-    local Height = item:GetExtentsSize().Y
-    HousingScreen.itemMove.StudsOffset = Vector3.new(0, (Height / 2 * -1), 0)
+    local height = item:GetExtentsSize().Y
+    HousingScreen.itemMove.StudsOffset = Vector3.new(0, (height / 2 * -1), 0)
     HousingScreen.itemMove.Adornee = item.PrimaryPart
     HousingScreen.itemMove.Enabled = true
 end
@@ -228,22 +219,22 @@ do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.EditingHouse, HousingScreen.enterEdit, HousingScreen.exitEdit)
 
     function HousingScreen.openSettings()
-        ScreenUtil.SizeOut(settingsUI)
+        ScreenUtil.sizeOut(settingsUI)
         HousingScreen.disableHousePrompts()
     end
 
     function HousingScreen.closeSettings()
-        ScreenUtil.SizeIn(settingsUI)
+        ScreenUtil.sizeIn(settingsUI)
         HousingScreen.enableHousePrompts()
     end
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotSetting, HousingScreen.openSettings, HousingScreen.closeSettings)
 
     function HousingScreen.openHouseChange()
-        ScreenUtil.SizeOut(changeHouse)
+        ScreenUtil.sizeOut(changeHouse)
     end
 
     function HousingScreen.closeHouseChange()
-        ScreenUtil.SizeIn(changeHouse)
+        ScreenUtil.sizeIn(changeHouse)
     end
     uiStateMachine:RegisterStateCallbacks(
         UIConstants.States.HouseSelectionUI,
@@ -253,11 +244,11 @@ do
 
     function HousingScreen.openPlotChanger()
         PlotChanger.enterPlot(selectedPlot)
-        ScreenUtil.SizeOut(plotChangerFrame)
+        ScreenUtil.sizeOut(plotChangerFrame)
     end
 
     function HousingScreen.closePlotChanger()
-        ScreenUtil.SizeIn(plotChangerFrame)
+        ScreenUtil.sizeIn(plotChangerFrame)
         PlotChanger.resetCamera()
     end
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, HousingScreen.openPlotChanger, HousingScreen.closePlotChanger)
@@ -267,11 +258,7 @@ end
 do
     --open buttons
     enterEdit.MouseButton1Down:Connect(function()
-        if uiStateMachine:HasState(UIConstants.States.EditingHouse) then
-            uiStateMachine:PopTo(UIConstants.States.EditingHouse)
-        else
-            uiStateMachine:Push(UIConstants.States.EditingHouse)
-        end
+        uiStateMachine:PopToAndPush(UIConstants.States.EditingHouse)
     end)
     houseChange.Pressed:Connect(function()
         uiStateMachine:Push(UIConstants.States.HouseSelectionUI)
@@ -304,7 +291,7 @@ do
     end)
     setPlotButton.Pressed:Connect(function()
         local plot = PlotChanger:GetCurrentPlot()
-        if plot and plot:GetAttribute("Owner") == nil then
+        if plot and plot:GetAttribute(HousingConstants.PlotOwner) == nil then
             Remotes.fireServer("ChangePlot", plot)
         end
     end)
@@ -318,7 +305,7 @@ do
         return nil
     end
 
-    local SelectionTemplate = templates.PaintSelected:Clone()
+    local selectionTemplate = templates.PaintSelected:Clone()
 
     function HousingScreen.setDefaultColor(color: Color3)
         paint.Center.Colors.Default.Button.ImageLabel.ImageColor3 = color
@@ -328,7 +315,7 @@ do
         local ui = getPaintColorUI(color)
 
         if ui then
-            SelectionTemplate.Parent = ui
+            selectionTemplate.Parent = ui
         end
     end
 
@@ -387,7 +374,7 @@ do
     })
 
     local OldSelection = nil
-    local ObjectSelectionTemplate = templates.EditSelected:Clone()
+    local objectSelectionTemplate = templates.EditSelected:Clone()
     local function SetEditObjectsSelected(name: string)
         if OldSelection then
             if OldSelection[1].Name == name then
@@ -403,7 +390,7 @@ do
         button.AutoButtonColor = false
         button.BackgroundColor3 = Color3.fromRGB(185, 218, 253)
         button.ImageLabel.ImageColor3 = Color3.fromRGB(50, 97, 161)
-        ObjectSelectionTemplate.Parent = button
+        objectSelectionTemplate.Parent = button
         OldSelection = { button, edit.Center[name] }
     end
 
@@ -439,7 +426,6 @@ end
 do
     -- Show
     screenGui.Enabled = true
-    edit.Visible = false
 end
 
 return HousingScreen

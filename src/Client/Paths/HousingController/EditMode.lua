@@ -12,14 +12,19 @@ local Remotes = require(Paths.Shared.Remotes)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local ATTRIBUTE_IS_SETUP = "Setup"
 local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
 local MOVE_TWEEN_INFO = TweenInfo.new(0.146, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-local ITEM_MOVE = HousingScreen.itemMove
-local ITEM_MOVE_BUTTONS = ITEM_MOVE.Frame.Center.Buttons
 
 local player = Players.LocalPlayer
+local housingScreenItemMove: Frame = HousingScreen.itemMove
+local housingScreenItemButtons: Frame = housingScreenItemMove.Frame.Center.Buttons
+local moveButton: TextButton = housingScreenItemMove.Frame.Move.Button
+local closeButton: TextButton = housingScreenItemButtons.Close.Button
+local okayButton: TextButton = housingScreenItemButtons.Okay.Button
+local rotateButton: TextButton = housingScreenItemButtons.Rotate.Button
 local hasObjectMoved = false
 local isMovingObject = false
 local rotationDeg = 0
@@ -28,11 +33,21 @@ local colorSelected: Color3?
 local lastPosition: Vector3?
 local selectedModel: Model?
 local startingCFrame: CFrame?
-local itemData = nil
+local itemData: {
+    Id: number,
+    Position: { [number]: number },
+    Color: { [number]: number },
+    Rotation: { [number]: number },
+    Name: string,
+}?
+
+local function getDataColor()
+    return Color3.fromRGB(itemData.Color[1], itemData.Color[2], itemData.Color[3])
+end
 
 local function getItemInData(item: Model): any | nil
     if item then
-        local Id = item:GetAttribute("Id")
+        local Id = item:GetAttribute(HousingConstants.ModelId)
         local objects = PlayerData.get("Igloo.Placements")
         for _, data in objects do
             if data.Id == Id then
@@ -71,7 +86,7 @@ end
 --resets to original/selected color of model
 local function resetModel()
     if itemData then
-        local color = colorSelected or Color3.fromRGB(itemData.Color[1], itemData.Color[2], itemData.Color[3])
+        local color = colorSelected or getDataColor()
 
         for _, part: BasePart in (selectedModel:GetDescendants()) do
             if part:IsA("BasePart") and part ~= selectedModel.PrimaryPart and part.Parent.Name == "CanColor" then
@@ -113,12 +128,14 @@ local function itemSelected(item: Model)
 
     if objectType == "OldObject" then
         rotationDeg = itemData.Rotation[2]
-        colorSelected = Color3.fromRGB(itemData.Color[1], itemData.Color[2], itemData.Color[3])
-        HousingScreen.changePaintSelected(Color3.fromRGB(itemData.Color[1], itemData.Color[2], itemData.Color[3]))
+        colorSelected = getDataColor()
+        HousingScreen.changePaintSelected(getDataColor())
     elseif objectType == "NewObject" then
         rotationDeg = 0
         colorSelected = ObjectModule[item.Name].defaultColor
         HousingScreen.changePaintSelected(colorSelected)
+    else
+        error(("Unexpected objectType %s"):format(objectType))
     end
 end
 
@@ -212,7 +229,7 @@ function EditMode.newObjectSelected(object: Model)
     itemSelected(object)
 end
 
-ITEM_MOVE.Frame.Move.Button.MouseButton1Down:Connect(function()
+moveButton.MouseButton1Down:Connect(function()
     if selectedModel then
         isMovingObject = true
         RunService:BindToRenderStep("MoveObject", Enum.RenderPriority.First.Value, function()
@@ -237,41 +254,45 @@ ITEM_MOVE.Frame.Move.Button.MouseButton1Down:Connect(function()
     end
 end)
 
-ITEM_MOVE.Frame.Move.Button.MouseButton1Up:Connect(function()
+moveButton.MouseButton1Up:Connect(function()
     RunService:UnbindFromRenderStep("MoveObject")
     isMovingObject = false
 end)
 
-ITEM_MOVE_BUTTONS.Close.Button.MouseButton1Down:Connect(function()
+closeButton.MouseButton1Down:Connect(function()
     if objectType == "NewObject" then
         selectedModel:Destroy()
     elseif not hasObjectMoved then
-        Remotes.fireServer("RemoveObject", selectedModel:GetAttribute("Id"), ObjectModule[selectedModel.Name].type)
+        Remotes.fireServer("RemoveObject", selectedModel:GetAttribute(HousingConstants.ModelId), ObjectModule[selectedModel.Name].type)
     end
     EditMode.reset()
 end)
 
-ITEM_MOVE_BUTTONS.Rotate.Button.MouseButton1Down:Connect(function()
+rotateButton.MouseButton1Down:Connect(function()
     if selectedModel then
-        rotationDeg += 45
-        if rotationDeg >= 360 then
-            rotationDeg = 0
-        end
+        rotationDeg = (rotationDeg + 45) % 360
         moveSelected(lastPosition)
     end
 end)
 
-ITEM_MOVE_BUTTONS.Okay.Button.MouseButton1Down:Connect(function()
+okayButton.MouseButton1Down:Connect(function()
     if not itemIsTouching(selectedModel) then
-        local CFram = selectedModel:GetPivot()
-        local Rot = Vector3.new(0, rotationDeg, 0)
-        local Color = colorSelected
-        startingCFrame = CFram
+        local cframe = selectedModel:GetPivot()
+        local rotationVector = Vector3.new(0, rotationDeg, 0)
+        local color = colorSelected
+        startingCFrame = cframe
         if objectType == "NewObject" then
-            Remotes.fireServer("NewObject", selectedModel.Name, ObjectModule[selectedModel.Name].type, CFram, Rot, Color)
+            Remotes.fireServer("NewObject", selectedModel.Name, ObjectModule[selectedModel.Name].type, cframe, rotationVector, color)
             selectedModel:Destroy()
         elseif objectType == "OldObject" then
-            Remotes.fireServer("ChangeObject", selectedModel:GetAttribute("Id"), CFram, Rot, Color, selectedModel)
+            Remotes.fireServer(
+                "ChangeObject",
+                selectedModel:GetAttribute(HousingConstants.ModelId),
+                cframe,
+                rotationVector,
+                color,
+                selectedModel
+            )
         end
         EditMode.reset()
         HousingScreen.openBottomEdit()
@@ -287,36 +308,38 @@ InputController.CursorUp:Connect(function()
 end)
 
 InputController.CursorDown:Connect(function()
-    if HousingController.isEditing and HousingController.currentHouse then
-        local OldSelected = selectedModel
-        if OldSelected then
-            itemDeselected(OldSelected, true)
-            if objectType == "NewObject" then
-                selectedModel:Destroy()
-                EditMode.reset()
-                return
-            end
-        end
-
-        local result = MouseUtil.getMouseTarget({ player.Character }, true)
-        local Target = result.Instance
-
-        if Target and Target:IsDescendantOf(HousingController.currentHouse.Parent.Furniture) then
-            if Target.Parent.Name == "CanColor" then
-                Target = Target.Parent
-            end
-            local Model = Target.Parent
-            if OldSelected == Model then
-                EditMode.reset()
-                return
-            end
-
-            objectType = "OldObject"
-            itemSelected(Model)
-            setModelColor(Model, Color3.fromRGB(150, 0, 0))
-        else
+    -- RETURN: Not in a fit state to be editing
+    if not (HousingController.isEditing and HousingController.currentHouse) then
+        return
+    end
+    local OldSelected = selectedModel
+    if OldSelected then
+        itemDeselected(OldSelected, true)
+        if objectType == "NewObject" then
+            selectedModel:Destroy()
             EditMode.reset()
+            return
         end
+    end
+
+    local result = MouseUtil.getMouseTarget({ player.Character }, true)
+    local target = result.Instance
+
+    if target and target:IsDescendantOf(HousingController.currentHouse.Parent.Furniture) then
+        if target.Parent.Name == "CanColor" then
+            target = target.Parent
+        end
+        local model = target.Parent
+        if OldSelected == model then
+            EditMode.reset()
+            return
+        end
+
+        objectType = "OldObject"
+        itemSelected(model)
+        setModelColor(model, Color3.fromRGB(150, 0, 0))
+    else
+        EditMode.reset()
     end
 end)
 
