@@ -34,14 +34,14 @@ function PlayerService.Start()
         DataService.loadPlayer(player)
         CharacterService.loadPlayer(player)
         ProductService.loadPlayer(player)
-        PlotService.PlayerAdded(player)
+        PlotService.loadPlayer(player)
         ZoneService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)
         -- Unload routines
         DataService.unloadPlayer(player)
-        PlotService.PlayerRemoving(player)
+        PlotService.unloadPlayer(player)
 
         -- Destroy Maid
         maidByPlayer[player]:Destroy()

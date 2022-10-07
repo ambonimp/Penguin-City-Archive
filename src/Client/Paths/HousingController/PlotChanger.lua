@@ -1,56 +1,54 @@
 local PlotChanger = {}
 
 local Paths = require(script.Parent.Parent)
-local ObjectModule = require(Paths.Shared.HousingObjectData)
+local Players = game:GetService("Players")
 local HousingController = require(Paths.Client.HousingController)
 local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-
-local Camera = workspace.CurrentCamera
-local CurrentPlot: Model | nil
-local Plots = workspace.Rooms.Neighborhood.HousingPlots
-local total = #Plots:GetChildren()
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local currentPlot: Model | nil
+local plots = workspace.Rooms.Neighborhood.HousingPlots
+local total = #plots:GetChildren()
 local current = 1
 
 local function GetPlot()
-    CurrentPlot = HousingController.GetPlayerPlot(Player, workspace.Rooms.Neighborhood.HousingPlots)
+    currentPlot = HousingController.getPlayerPlot(player, workspace.Rooms.Neighborhood.HousingPlots)
 end
 
 local function moveCameraTo(position: number)
-    local plot = Plots:FindFirstChild(tostring(position))
-    HousingScreen.UpdatePlotUI(plot)
-    PlotChanger.SetPlot(plot)
+    local plot = plots:FindFirstChild(tostring(position))
+    HousingScreen.updatePlotUI(plot)
+    PlotChanger.setPlot(plot)
     if plot:GetAttribute("Owner") then
-        CameraUtil.lookAt(Camera, plot, Vector3.new(0, 0, 42), TweenInfo.new(0.2))
+        CameraUtil.lookAt(camera, plot, Vector3.new(0, 0, 42), TweenInfo.new(0.2))
     else
-        CameraUtil.lookAt(Camera, plot, Vector3.new(0, 8, 35), TweenInfo.new(0.2))
+        CameraUtil.lookAt(camera, plot, Vector3.new(0, 8, 35), TweenInfo.new(0.2))
     end
-    CurrentPlot = plot
+    currentPlot = plot
 end
 
-function PlotChanger.ResetCamera()
-    CameraUtil.setPlayerControl(Camera)
-    Player.Character.Humanoid.WalkSpeed = 16
+function PlotChanger.resetCamera()
+    CameraUtil.setPlayerControl(camera)
+    player.Character.Humanoid.WalkSpeed = 16
 end
 
-function PlotChanger.SetPlot(plot: Model?)
+function PlotChanger.setPlot(plot: Model?)
     if plot then
-        CurrentPlot = plot
+        currentPlot = plot
     else
         GetPlot()
     end
 end
 
-function PlotChanger.EnterPlot(plot: Model?)
-    Player.Character.Humanoid.WalkSpeed = 0
+function PlotChanger.enterPlot(plot: Model?)
+    player.Character.Humanoid.WalkSpeed = 0
     current = tonumber(plot.Name)
     moveCameraTo(current)
 end
 
-function PlotChanger.NextPlot()
+function PlotChanger.nextPlot()
     if current + 1 > total then
         current = 1
     else
@@ -59,7 +57,7 @@ function PlotChanger.NextPlot()
     moveCameraTo(current)
 end
 
-function PlotChanger.PreviousPlot()
+function PlotChanger.previousPlot()
     if current - 1 < 1 then
         current = total
     else
@@ -69,7 +67,7 @@ function PlotChanger.PreviousPlot()
 end
 
 function PlotChanger:GetCurrentPlot(): Model | nil
-    return CurrentPlot
+    return currentPlot
 end
 
 return PlotChanger

@@ -99,16 +99,16 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            if zone.ZoneId == "Start" and PlotService.PlayerHasPlot(oldPlayer or player, "House") then
-                local interior = PlotService.PlayerHasPlot(oldPlayer or player, "House")
+            if zone.ZoneId == "Start" and PlotService.doesPlayerHavePlot(oldPlayer or player, "House") then
+                local interior = PlotService.doesPlayerHavePlot(oldPlayer or player, "House")
                 CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
             elseif
                 oldPlayer
                 and zone.ZoneId == "Neighborhood"
-                and PlotService.PlayerHasPlot(oldPlayer, "Plot")
+                and PlotService.doesPlayerHavePlot(oldPlayer, "Plot")
                 and oldZone.ZoneId == "Start"
             then
-                local exterior = PlotService.PlayerHasPlot(oldPlayer, "Plot")
+                local exterior = PlotService.doesPlayerHavePlot(oldPlayer, "Plot")
                 CharacterService.standOn(player.Character, exterior:FindFirstChildOfClass("Model").Spawn)
             else
                 CharacterService.standOn(player.Character, spawnpoint)
