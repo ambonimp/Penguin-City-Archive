@@ -143,7 +143,6 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
-
     local maid = button:GetMaid()
 
     maid:GiveTask(buttonObject)
