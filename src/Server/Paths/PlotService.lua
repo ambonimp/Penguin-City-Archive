@@ -153,6 +153,7 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
         PlayerData.set(player, "Igloo.Placements", {})
     end
 end
+
 --Loads a house interior or exterior
 local function loadPlot(player: Player, plot: Model, type: string, isChange: boolean?)
     local PlayerPlot: Model = PlotService.doesPlayerHavePlot(player, type)
