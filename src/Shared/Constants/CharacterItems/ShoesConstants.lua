@@ -10,7 +10,7 @@ export type Item = {
 
 ShoesConstants.InventoryPath = "Shoes"
 ShoesConstants.TabOrder = 3
-ShoesConstants.TabIcon = ""
+ShoesConstants.TabIcon = Images.Icons.Shoe
 ShoesConstants.SortOrder = Enum.SortOrder.LayoutOrder
 ShoesConstants.MaxEquippables = 1
 ShoesConstants.CanUnequip = true

@@ -28,6 +28,7 @@ Images.Icons = {
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
+    Shoe = "rbxassetid://11200887082",
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
     Hat = "rbxassetid://11152371685",
