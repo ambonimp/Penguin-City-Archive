@@ -12,7 +12,7 @@ function ExitButton.new()
     button:SetIcon(Images.Icons.Close)
     button:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     button:RoundOff()
-    -- button:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
+    button:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
 
     return button
 end

@@ -26,7 +26,7 @@ local CENTER_ALIGN_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 KeyboardButton.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the keyboardButton
     HeightPressed = 0.04, -- Perceived height when the keyboardButton is visually pressed
-    CornerRadius = 0.3, -- Severity of corners (0.5 creates circular sides)
+    CornerRadius = UDim.new(0.3, 0), -- Severity of corners (0.5 creates circular sides)
     Color = Color3.fromRGB(230, 156, 21),
     TextColor = Color3.fromRGB(255, 255, 255),
     IconColor = Color3.fromRGB(255, 255, 255),
@@ -39,7 +39,7 @@ KeyboardButton.Defaults = {
 local function mountUICorner(instance: GuiObject)
     local uiCorner = instance:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
     uiCorner.Parent = instance
-    uiCorner.CornerRadius = UDim.new(KeyboardButton.Defaults.CornerRadius, 0)
+    uiCorner.CornerRadius = KeyboardButton.Defaults.CornerRadius
 
     return uiCorner
 end
@@ -215,7 +215,7 @@ function KeyboardButton.new()
 
         local uICorner = Instance.new("UICorner")
         uICorner.Name = "UICorner"
-        uICorner.CornerRadius = UDim.new(cornerRadius, 0)
+        uICorner.CornerRadius = cornerRadius
         uICorner.Parent = frame
 
         return frame
@@ -258,16 +258,16 @@ function KeyboardButton.new()
         return self
     end
 
-    function keyboardButton:SetCornerRadius(newRadius: number)
+    function keyboardButton:SetCornerRadius(newRadius: UDim)
         cornerRadius = newRadius
 
-        imageButtonUICorner.CornerRadius = UDim.new(cornerRadius, 0)
-        backUICorner.CornerRadius = UDim.new(cornerRadius, 0)
+        imageButtonUICorner.CornerRadius = cornerRadius
+        backUICorner.CornerRadius = cornerRadius
 
         -- Update outlines
         if buttonOutline then
-            buttonOutline.UICorner.CornerRadius = UDim.new(cornerRadius, 0)
-            backOutline.UICorner.CornerRadius = UDim.new(cornerRadius, 0)
+            buttonOutline.UICorner.CornerRadius = cornerRadius
+            backOutline.UICorner.CornerRadius = cornerRadius
         end
 
         return self
@@ -275,7 +275,7 @@ function KeyboardButton.new()
 
     -- Makes the button corners as curved as possible. Will make square buttons circular.
     function keyboardButton:RoundOff()
-        self:SetCornerRadius(0.5)
+        self:SetCornerRadius(UDim.new(0.5, 0))
 
         return self
     end
