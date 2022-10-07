@@ -22,7 +22,7 @@ local templates: Folder = Paths.Templates.Housing
 local screenGui: ScreenGui = Paths.UI.Housing
 local edit: Frame = screenGui.Edit
 local settingsUI: Frame = screenGui.Settings
-local plotChanger: Frame = screenGui.PlotChanger
+local plotChangerFrame: Frame = screenGui.PlotChanger
 local paint: Frame = screenGui.Paint
 local changeHouse: Frame = screenGui.ChangeHouse
 local enterEdit: TextButton = screenGui.EnterEdit
@@ -38,7 +38,7 @@ local changeHouseExit = KeyboardButton.new()
 local settingsExitButton = KeyboardButton.new()
 local plotChange = KeyboardButton.new()
 local houseChange = KeyboardButton.new()
-local setPlot = KeyboardButton.new()
+local setPlotButton = KeyboardButton.new()
 
 --
 
@@ -67,11 +67,11 @@ function HousingScreen.Init()
     createExitButton(edit.ExitButton, exitButton)
     createExitButton(settingsUI.ExitButton, settingsExitButton)
     createExitButton(changeHouse.ExitButton, changeHouseExit)
-    createExitButton(plotChanger.ExitButton, plotChangerExit)
+    createExitButton(plotChangerFrame.ExitButton, plotChangerExit)
 
     createRegularButton(settingsUI.Center.PlotChange, plotChange, "Change Plot")
     createRegularButton(settingsUI.Center.HouseChange, houseChange, "Change House")
-    createRegularButton(PlotChanger.setPlot, setPlot, "Select")
+    createRegularButton(plotChangerFrame.SetPlot, setPlotButton, "Select")
 end
 
 function HousingScreen.Start()
@@ -88,11 +88,11 @@ end
 function HousingScreen.updatePlotUI(plot: Model)
     if plot:GetAttribute("Owner") then
         local owner = Players:GetPlayerByUserId(plot:GetAttribute("Owner"))
-        plotChanger.Owner.Text = owner.DisplayName .. "'s house"
-        PlotChanger.setPlot.Visible = false
+        plotChangerFrame.Owner.Text = owner.DisplayName .. "'s house"
+        plotChangerFrame.SetPlot.Visible = false
     else
-        plotChanger.Owner.Text = "Empty"
-        PlotChanger.setPlot.Visible = true
+        plotChangerFrame.Owner.Text = "Empty"
+        plotChangerFrame.SetPlot.Visible = true
     end
 end
 
@@ -253,11 +253,11 @@ do
 
     function HousingScreen.openPlotChanger()
         PlotChanger.enterPlot(selectedPlot)
-        ScreenUtil.SizeOut(plotChanger)
+        ScreenUtil.SizeOut(plotChangerFrame)
     end
 
     function HousingScreen.closePlotChanger()
-        ScreenUtil.SizeIn(plotChanger)
+        ScreenUtil.SizeIn(plotChangerFrame)
         PlotChanger.resetCamera()
     end
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, HousingScreen.openPlotChanger, HousingScreen.closePlotChanger)
@@ -295,21 +295,21 @@ do
     end)
 
     --action buttons
-    plotChanger.Left.MouseButton1Down:Connect(function()
+    plotChangerFrame.Left.MouseButton1Down:Connect(function()
         PlotChanger.previousPlot()
     end)
 
-    plotChanger.Right.MouseButton1Down:Connect(function()
+    plotChangerFrame.Right.MouseButton1Down:Connect(function()
         PlotChanger.nextPlot()
     end)
-    setPlot.Pressed:Connect(function()
+    setPlotButton.Pressed:Connect(function()
         local plot = PlotChanger:GetCurrentPlot()
         if plot and plot:GetAttribute("Owner") == nil then
             Remotes.fireServer("ChangePlot", plot)
         end
     end)
 
-    local function getPaintColorUI(color: Color3)
+    local function getPaintColorUI(color: Color3): TextButton | nil
         for _, button in paint.Center.Colors:GetChildren() do
             if button:FindFirstChild("Button") and button.Button.ImageLabel.ImageColor3 == color then
                 return button
