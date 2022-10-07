@@ -12,6 +12,8 @@ local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 
+local MAX_YIELD_TIME_ZONE_LOADING = 10
+
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 local zoneMaid = Maid.new()
 local isRunningTeleportRequest = false
@@ -29,7 +31,13 @@ function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBu
     -- Blink Transition
     local blinkDuration = math.min(teleportBuffer, Transitions.BLINK_TWEEN_INFO.Time)
     Transitions.blink(function()
+        -- Wait to be teleported
         task.wait(teleportBuffer - blinkDuration)
+
+        -- Wait for zone to load
+        ZoneController.waitForZoneToLoad(zone)
+
+        -- Announce arrival
         ZoneController.arrivedAtZone(zone)
     end, {
         TweenTime = blinkDuration,
@@ -63,10 +71,8 @@ function ZoneController.teleportRequest(zone: ZoneConstants.Zone)
     isRunningTeleportRequest = true
 
     local requestAssume = Assume.new(function()
-        print("0")
         local teleportBuffer: number? =
             Remotes.invokeServer("ZoneTeleportRequest", zone.ZoneType, zone.ZoneId, game.Workspace:GetServerTimeNow())
-        print("1", teleportBuffer)
         return teleportBuffer
     end)
     requestAssume:Check(function(teleportBuffer: number)
@@ -78,9 +84,17 @@ function ZoneController.teleportRequest(zone: ZoneConstants.Zone)
             -- Wait for Response
             local teleportBuffer = requestAssume:Await()
             if teleportBuffer then
+                -- Wait for teleport
                 local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
                 task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
+
+                -- Wait for zone to load
+                ZoneController.waitForZoneToLoad(zone)
+
+                -- Announce Arrival
                 ZoneController.arrivedAtZone(zone)
+            else
+                warn("Teleport Request not granted")
             end
 
             -- Finished
@@ -112,6 +126,76 @@ function ZoneController.setupTeleporters()
                 end)
             end
         end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Loading
+-------------------------------------------------------------------------------
+
+function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
+    local zoneModel = ZoneUtil.getZoneModel(zone)
+
+    -- Iterate through all instances, checking if all baseparts are loaded
+    for _, instance in pairs(zoneModel:GetDescendants()) do
+        local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
+        if totalBaseParts then
+            local countedBaseParts = 0
+            for _, basePart: BasePart in pairs(instance:GetChildren()) do
+                if basePart:IsA("BasePart") then
+                    countedBaseParts += 1
+                end
+            end
+
+            -- RETURN FALSE: Has not got all base parts yet
+            if countedBaseParts < totalBaseParts then
+                return false
+            end
+        end
+    end
+
+    return true
+end
+
+function ZoneController.getTotalUnloadedBaseParts(zone: ZoneConstants.Zone)
+    local zoneModel = ZoneUtil.getZoneModel(zone)
+
+    local totalUnloadedBaseParts = 0
+    for _, instance in pairs(zoneModel:GetDescendants()) do
+        local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
+        if totalBaseParts then
+            local countedBaseParts = 0
+            for _, basePart: BasePart in pairs(instance:GetChildren()) do
+                if basePart:IsA("BasePart") then
+                    countedBaseParts += 1
+                end
+            end
+
+            totalUnloadedBaseParts += (totalBaseParts - countedBaseParts)
+        end
+    end
+
+    return totalUnloadedBaseParts
+end
+
+function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
+    if ZoneController.isZoneLoaded(zone) then
+        return
+    end
+
+    local zoneModel = ZoneUtil.getZoneModel(zone)
+    local totalLoadedPastParts = 0
+    zoneModel.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("BasePart") then
+            totalLoadedPastParts += 1
+        end
+    end)
+
+    local totalUnloadedBaseParts = ZoneController.getTotalUnloadedBaseParts(zone)
+
+    local startTick = tick()
+    while (totalUnloadedBaseParts > totalLoadedPastParts) and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
+        task.wait()
     end
 end
 
