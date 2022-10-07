@@ -39,17 +39,22 @@ local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId("EtherealCha
 -- Internal Methods
 -------------------------------------------------------------------------------
 
-local function etherealInstance(instance: Instance)
+local function etherealInstance(player: Player, instance: Instance)
     if instance:IsA("BasePart") then
         PropertyStack.setProperty(instance, "CollisionGroupId", etherealCollisionGroupId, PROPERTY_STACK_KEY_ETHEREAL)
+        etherealMaids[player]:GiveTask(function()
+            PropertyStack.clearProperty(instance, "CollisionGroupId", PROPERTY_STACK_KEY_ETHEREAL)
+        end)
     end
 end
 
 local function etherealCharacter(player: Player, character: Model)
     if character then
-        etherealMaids[player]:GiveTask(character.DescendantAdded:Connect(etherealInstance))
+        etherealMaids[player]:GiveTask(character.DescendantAdded:Connect(function(descendant)
+            etherealInstance(player, descendant)
+        end))
         for _, descendant in pairs(character:GetDescendants()) do
-            etherealInstance(descendant)
+            etherealInstance(player, descendant)
         end
     end
 end

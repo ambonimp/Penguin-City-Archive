@@ -12,6 +12,9 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local ZoneService = require(Paths.Server.Zones.ZoneService)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 type MinigameService = {
     startMinigame: (player: Player, ...any) -> nil,
@@ -26,8 +29,9 @@ local minigameToService: { [string]: MinigameService } = {
     [MinigameConstants.Minigames.Pizza] = require(Paths.Server.Minigames.Pizza.PizzaMinigameService),
 }
 
-function MinigameService.requestToPlay(player: Player, minigame: string): MinigameConstants.PlayRequest
+function MinigameService.requestToPlay(player: Player, minigame: string, invokedServerTime: number?)
     Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", player)
+    invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- ERROR: No linked service
     local minigameService = MinigameService.getServiceFromMinigame(minigame)
@@ -35,9 +39,25 @@ function MinigameService.requestToPlay(player: Player, minigame: string): Miniga
         error(("No serviced linked to minigame %q"):format(minigame))
     end
 
+    -- ERROR: Bad zone
+    local zoneId = ZoneConstants.ZoneId.Minigame[minigame]
+    if not zoneId then
+        error(("Could not get ZoneId from minigame %q"):format(minigame))
+    end
+    local minigameZone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, zoneId)
+
     local existingSession = playSessions[player]
     if existingSession then
-        local playRequest = { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
+        local playRequest: MinigameConstants.PlayRequest =
+            { Error = ("%s is already playing %s"):format(player.Name, existingSession.Minigame) }
+        Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", playRequest.Error)
+        return playRequest
+    end
+
+    -- Zone Teleport
+    local teleportBuffer = ZoneService.teleportPlayerToZone(player, minigameZone, invokedServerTime)
+    if not teleportBuffer then
+        local playRequest: MinigameConstants.PlayRequest = { Error = "ZoneTeleport failed" }
         Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", playRequest.Error)
         return playRequest
     end
@@ -55,7 +75,8 @@ function MinigameService.requestToPlay(player: Player, minigame: string): Miniga
     -- Start Minigame
     minigameService.startMinigame(player)
 
-    return { Session = session }
+    local playRequest: MinigameConstants.PlayRequest = { Session = session }
+    return playRequest, teleportBuffer
 end
 
 function MinigameService.getSession(player: Player): MinigameConstants.Session | nil
@@ -66,13 +87,24 @@ function MinigameService.getServiceFromMinigame(minigame: string)
     return minigameToService[minigame]
 end
 
-function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequest
+function MinigameService.stopPlaying(player: Player, invokedServerTime: number?)
     Output.doDebug(MinigameConstants.DoDebug, "stopPlaying", player)
+    invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- WARN: Not playing!
     if not playSessions[player] then
-        local playRequest = { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
+        local playRequest: MinigameConstants.PlayRequest =
+            { Error = ("Cannot stop playing for %s; they weren't playing in the first place!"):format(player.Name) }
         Output.doDebug(MinigameConstants.DoDebug, "stopPlaying", playRequest.Error)
+        return playRequest
+    end
+
+    -- Zone Teleport
+    local roomZone = ZoneService.getPlayerRoom(player)
+    local teleportBuffer = ZoneService.teleportPlayerToZone(player, roomZone, invokedServerTime)
+    if not teleportBuffer then
+        local playRequest: MinigameConstants.PlayRequest = { Error = "ZoneTeleport failed" }
+        Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", playRequest.Error)
         return playRequest
     end
 
@@ -84,7 +116,8 @@ function MinigameService.stopPlaying(player: Player): MinigameConstants.PlayRequ
     -- Clear Cache
     playSessions[player] = nil
 
-    return { Session = session }
+    local playRequest: MinigameConstants.PlayRequest = { Session = session }
+    return playRequest, roomZone.ZoneId, teleportBuffer
 end
 
 function MinigameService.getMinigamesDirectory()
@@ -107,18 +140,25 @@ end
 -- Setup Communication
 do
     Remotes.bindFunctions({
-        RequestToPlayMinigame = function(player: Player, dirtyMinigame: any)
+        RequestToPlayMinigame = function(player: Player, dirtyMinigame: any, dirtyInvokedServerTime: any)
             -- Verify + Clean parameters
             local minigame = TypeUtil.toString(dirtyMinigame)
-            if not (minigame and TableUtil.find(MinigameConstants.Minigames, minigame)) then
+            local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
+            if not (minigame and TableUtil.find(MinigameConstants.Minigames, minigame) and invokedServerTime) then
                 return
             end
 
-            return MinigameService.requestToPlay(player, minigame)
+            return MinigameService.requestToPlay(player, minigame, invokedServerTime)
         end,
 
-        RequestToStopPlaying = function(player: Player)
-            return MinigameService.stopPlaying(player)
+        RequestToStopPlaying = function(player: Player, dirtyInvokedServerTime: any)
+            -- Verify + Clean parameters
+            local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
+            if not invokedServerTime then
+                return
+            end
+
+            return MinigameService.stopPlaying(player, invokedServerTime)
         end,
     })
 end

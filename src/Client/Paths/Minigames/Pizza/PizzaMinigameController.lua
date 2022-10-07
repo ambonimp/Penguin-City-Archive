@@ -18,9 +18,6 @@ local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigam
 local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
 local UIResults = require(Paths.Client.UI.UIResults)
 local Images = require(Paths.Shared.Images.Images)
-local ZoneController = require(Paths.Client.ZoneController)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local FOV = 65
 local FILLER_RECIPE_ORDER = { PizzaMinigameConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
@@ -29,7 +26,6 @@ local minigameFolder: Folder?
 local isStarted = false
 local runner: typeof(PizzaMinigameRunner.new(Instance.new("Folder"), {}, function() end)) | nil
 local cachedStopMinigameCallback: () -> MinigameConstants.PlayRequest
-local pizzaMinigameZone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, ZoneConstants.ZoneId.Minigame.Pizza)
 
 -------------------------------------------------------------------------------
 -- Start/Stop
@@ -40,12 +36,7 @@ function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopM
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 
     minigameFolder = minigamesDirectory:WaitForChild("Pizza")
-    ZoneController.waitForZoneToLoad(pizzaMinigameZone)
-
-    Transitions.blink(function()
-        PizzaMinigameController.setupView()
-    end)
-
+    PizzaMinigameController.setupView()
     cachedStopMinigameCallback = stopMinigameCallback
 end
 

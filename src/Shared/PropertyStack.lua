@@ -1,21 +1,20 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
     This file allows us to "stack" properties on Roblox Instances
-
+    
     Example:
-        We want to disable collisions when a player is in the character editor.
-        We want to disable collisions when a player has teleported to a new zone.
-
-        Both of these require changing the `CollisionGroupId` of the player Character, but could also both be "activated" at the same time
-        (player edits their character just after teleporting to a new zone). How do we handle `CollisionGroupId` when these 2 scopes don't know
+    We want to disable collisions when a player is in the character editor.
+    We want to disable collisions when a player has teleported to a new zone.
+    
+    Both of these require changing the `CollisionGroupId` of the player Character, but could also both be "activated" at the same time
+    (player edits their character just after teleporting to a new zone). How do we handle `CollisionGroupId` when these 2 scopes don't know
         about one another?
-
-        We can set the `CollisionGroupId` property through PropertyStack, which retains memory for us!
+        
+    We can set the `CollisionGroupId` property through PropertyStack, which retains memory for us!
 ]]
 local PropertyStack = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
-local Output = require(ReplicatedStorage.Shared.Output)
 
 type KeyValuePair = { Key: string, Value: any }
 type PropertyState = { DefaultValue: any, KeyData: { [number]: { KeyValuePair } } } -- Keys in KeyData are keyPriority

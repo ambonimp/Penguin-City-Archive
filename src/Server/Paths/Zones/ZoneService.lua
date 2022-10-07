@@ -170,7 +170,7 @@ end
 -- Communcation
 do
     Remotes.bindFunctions({
-        ZoneTeleportRequest = function(player: Player, dirtyZoneType: any, dirtyZoneId: any, dirtyInvokedServerTime: any)
+        RoomZoneTeleportRequest = function(player: Player, dirtyZoneType: any, dirtyZoneId: any, dirtyInvokedServerTime: any)
             -- Clean data
             local zoneType = TypeUtil.toString(dirtyZoneType)
             local zoneId = TypeUtil.toString(dirtyZoneId)

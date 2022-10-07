@@ -4,13 +4,15 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 
-type BlinkOptions = {
+export type BlinkOptions = {
     TweenInfo: TweenInfo?,
     TweenTime: number?, -- Always overrides
     DoAlignCamera: boolean?,
 }
 
-Transitions.BLINK_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+export type noob = "hi"
+
+Transitions.BLINK_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 local ui = Paths.UI
 local specialFx = ui:WaitForChild("SpecialEffects")

@@ -11,7 +11,7 @@ local function createGroup(name: string)
     table.insert(groups, name)
 end
 
-local function setGroupCollideableBlacklist(group: string, blacklist: PhysicsGroups)
+local function _setGroupCollideableBlacklist(group: string, blacklist: PhysicsGroups)
     for _, otherGroup in groups do
         if not table.find(blacklist, otherGroup) then
             PhysicsService:CollisionGroupSetCollidable(group, otherGroup, true)
@@ -31,7 +31,7 @@ local function setGroupCollideableWhitelist(group: string, whitelist: PhysicsGro
     end
 end
 
-local function setCollision(group, collidableGroups: PhysicsGroups?, nonCollidableGroups: PhysicsGroups?)
+local function _setCollision(group, collidableGroups: PhysicsGroups?, nonCollidableGroups: PhysicsGroups?)
     for _, otherGroup in (collidableGroups or {}) do
         PhysicsService:CollisionGroupSetCollidable(group, otherGroup, true)
     end
