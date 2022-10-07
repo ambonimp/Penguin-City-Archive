@@ -10,14 +10,16 @@ local InputController = require(Paths.Client.Input.InputController)
 local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local PlayerData = require(Paths.Client.DataController)
 local Remotes = require(Paths.Shared.Remotes)
+local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 
+local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
 local MOVE_TWEEN_INFO = TweenInfo.new(0.146, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 local ITEM_MOVE = HousingScreen.itemMove
 local ITEM_MOVE_BUTTONS = ITEM_MOVE.Frame.Center.Buttons
 
 local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
 local hasObjectMoved = false
 local isMovingObject = false
 local rotationDeg = 0
@@ -41,24 +43,6 @@ local function getItemInData(item: Model): any | nil
     return nil
 end
 --should move to a mouse Util module when more mouse util is introduced
-local function getMouseTarget(ignore: { Instance }): RaycastResult | nil
-    local cursorPosition = UserInputService:GetMouseLocation()
-
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = ignore or {}
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.IgnoreWater = true
-
-    local CameraRay = workspace.CurrentCamera:ViewportPointToRay(cursorPosition.X, cursorPosition.Y, 0)
-
-    local raycastResult = workspace:Raycast(camera.CFrame.Position, CameraRay.Direction * 50, raycastParams)
-
-    if raycastResult then
-        return raycastResult
-    else
-        return nil
-    end
-end
 
 --sets up the model for tweening // only client sided
 local function setUpModel(model: Model)
@@ -66,20 +50,17 @@ local function setUpModel(model: Model)
         return
     end
     model:SetAttribute("Setup", true)
-    for _, part in (model:GetDescendants()) do
+    for _, part: BasePart in (model:GetDescendants()) do
         if part:IsA("BasePart") and part ~= model.PrimaryPart then
             part.Anchored = false
-            local weld = Instance.new("WeldConstraint")
-            weld.Part0 = model.PrimaryPart
-            weld.Part1 = part
-            weld.Parent = part
+            PartUtil.weld(model.PrimaryPart, part)
         end
     end
 end
 
 --sets the color of a model except primarypart and parts that can't be colored
 local function setModelColor(model: Model, color: Color3)
-    for _, part in (model:GetDescendants()) do
+    for _, part: BasePart in (model:GetDescendants()) do
         if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "CanColor" then
             part.Color = color
         end
@@ -91,10 +72,10 @@ local function resetModel()
     if itemData then
         local color = colorSelected or Color3.fromRGB(itemData.Color[1], itemData.Color[2], itemData.Color[3])
 
-        for _, part in (selectedModel:GetDescendants()) do
+        for _, part: BasePart in (selectedModel:GetDescendants()) do
             if part:IsA("BasePart") and part ~= selectedModel.PrimaryPart and part.Parent.Name == "CanColor" then
                 part.Color = color
-                part.CanCollide = part:GetAttribute("CanCollide")
+                part.CanCollide = part:GetAttribute(ATTRIBUTE_CAN_COLLIDE)
             end
         end
     end
@@ -111,12 +92,12 @@ end
 local function itemSelected(item: Model)
     setUpModel(item)
     startingCFrame = item:GetPivot()
-    for _, part in (item:GetDescendants()) do
+    for _, part: BasePart | Seat in (item:GetDescendants()) do
         if part:IsA("BasePart") then
             if part:IsA("Seat") then
                 part.Disabled = true
             end
-            part:SetAttribute("CanCollide", part.CanCollide)
+            part:SetAttribute(ATTRIBUTE_CAN_COLLIDE, part.CanCollide)
             part.CanCollide = false
         end
     end
@@ -145,7 +126,7 @@ local function itemDeselected(item: Model, fromOld: boolean | nil)
     hasObjectMoved = false
     EditMode.cancelMove()
     resetModel()
-    for _, part in (item:GetDescendants()) do
+    for _, part: Seat in (item:GetDescendants()) do
         if part:IsA("Seat") then
             part.Disabled = false
         end
@@ -179,11 +160,11 @@ function EditMode.cancelMove()
 end
 
 function itemIsTouching(item: Model)
-    for _, part in item:GetDescendants() do
+    for _, part: BasePart in item:GetDescendants() do
         if part:IsA("BasePart") and part.Name ~= "Hitbox" and part.Transparency ~= 1 then
             local parts = workspace:GetPartsInPart(part)
 
-            for _, newPart in parts do
+            for _, newPart: BasePart in parts do
                 if
                     not newPart:IsDescendantOf(item)
                     and newPart.Name ~= "Hitbox"
@@ -239,10 +220,10 @@ ITEM_MOVE.Frame.Move.Button.MouseButton1Down:Connect(function()
                     hasObjectMoved = true
                 end
                 local ignore = { selectedModel, HousingController.currentHouse.Spawn, player.Character }
-                for _, v in HousingController.currentHouse.Parent.Furniture:GetChildren() do
+                for _, v: Model in HousingController.currentHouse.Parent.Furniture:GetChildren() do
                     table.insert(ignore, v.PrimaryPart)
                 end
-                local result = getMouseTarget(ignore)
+                local result = MouseUtil.getMouseTarget(ignore, true)
                 local Target, Position = result.Instance, result.Position
                 if Target and Target:IsDescendantOf(HousingController.currentHouse.Parent) and Position and selectedModel then
                     lastPosition = Position
@@ -314,7 +295,7 @@ InputController.CursorDown:Connect(function()
             end
         end
 
-        local result = getMouseTarget({ player.Character })
+        local result = MouseUtil.getMouseTarget({ player.Character }, true)
         local Target = result.Instance
 
         if Target and Target:IsDescendantOf(HousingController.currentHouse.Parent.Furniture) then

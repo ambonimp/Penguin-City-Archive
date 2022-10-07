@@ -85,7 +85,7 @@ function PlotService.Start()
 end
 
 function setModelColor(object: Model, color: Color3)
-    for _, part in object:GetDescendants() do
+    for _, part: BasePart in object:GetDescendants() do
         if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
             part.Color = color
         end
@@ -95,7 +95,7 @@ end
 --Finds an empty plot for exterior/interior
 local function findEmpty(folder: Folder)
     local plotMoel: Model
-    for _, model in folder:GetChildren() do
+    for _, model: Model in folder:GetChildren() do
         if model:GetAttribute("Owner") == nil then
             plotMoel = model
             break
@@ -214,7 +214,7 @@ function PlotService.doesPlayerHavePlot(player: Player, type: string): Model | n
             plotModel = PlotService["Player" .. type][player.Name]
         end
         if not plotModel then
-            for _, plot in folders[type]:GetChildren() do
+            for _, plot: Model in folders[type]:GetChildren() do
                 if plot.Plot.Position == player:GetAttribute("Plot") then
                     plotModel = plot
                     break
@@ -305,7 +305,7 @@ function PlotService.removeObject(player: Player, id: number, type: string)
     local plot = PlotService.doesPlayerHavePlot(player, "House")
     local items = PlayerData.get(player, "Igloo.Placements")
     local name = nil
-    for _, object in plot.Furniture:GetChildren() do
+    for _, object: Model in plot.Furniture:GetChildren() do
         if object:GetAttribute("Id") == id then
             name = object.Name
             object:Destroy()
