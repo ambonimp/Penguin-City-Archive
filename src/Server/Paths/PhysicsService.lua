@@ -41,7 +41,12 @@ local function setCollision(group, collidableGroups: PhysicsGroups?, nonCollidab
     end
 end
 
+-- Hidden Characters
 createGroup("HiddenCharacters")
 setGroupCollideableWhitelist("HiddenCharacters", { "Default" })
+
+-- Ethereal Characters
+createGroup("EtherealCharacters")
+setGroupCollideableWhitelist("EtherealCharacters", { "Default" })
 
 return Service

@@ -9,70 +9,115 @@ local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
 local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
+local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
+
+local PROPERTY_STACK_KEY_HIDE = "CharacterUtil.Hide"
+local PROPERTY_STACK_KEY_ETHEREAL = "CharacterUtil.Ethereal"
 
 export type CharacterAppearance = {
     BodyType: string,
 }
 
-local HIDEABLE_CLASSES = {
+type HideProperty = { Name: string, Value: any, StackPriority: number }
+
+local HIDEABLE_CLASSES: { [string]: { HideProperty } } = {
     BasePart = {
-        { Name = "Transparency", HideValue = 1 },
-        { Name = "CollisionGroupId", HideValue = PhysicsService:GetCollisionGroupId("HiddenCharacters") },
+        { Name = "Transparency", Value = 1, StackPriority = 10 },
+        { Name = "CollisionGroupId", Value = PhysicsService:GetCollisionGroupId("HiddenCharacters"), StackPriority = 10 },
     },
-    Decal = { Name = "Transparency", HideValue = 1 },
-    BillboardGui = { Name = "Enabled", HideValue = false },
+    Decal = { { Name = "Transparency", Value = 1, StackPriority = 10 } },
+    BillboardGui = { { Name = "Enabled", Value = false, StackPriority = 10 } },
 }
 local MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH = 2
 
 local hidingSession = Maid.new()
-local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
-local areCharactersHidden = Toggle.new(false, function(value)
-    if value then
-        hidden = {}
-        hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
-        for _, player in Players:GetPlayers() do
-            hidePlayer(player)
-        end
-    else
-        for instance, unhidingProperties in hidden do
-            for _, property in unhidingProperties do
-                instance[property.Name] = property.UnhideValue
-            end
-        end
+local areCharactersHidden: typeof(Toggle.new(true, function() end))
+local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
+local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId("EtherealCharacters")
 
-        hidden = nil
-        hidingSession:Cleanup()
+-------------------------------------------------------------------------------
+-- Internal Methods
+-------------------------------------------------------------------------------
+
+local function etherealInstance(instance: Instance)
+    if instance:IsA("BasePart") then
+        PropertyStack.setProperty(instance, "CollisionGroupId", etherealCollisionGroupId, PROPERTY_STACK_KEY_ETHEREAL)
     end
-end)
+end
 
-function hideInstance(instance: Instance)
+local function etherealCharacter(player: Player, character: Model)
+    if character then
+        etherealMaids[player]:GiveTask(character.DescendantAdded:Connect(etherealInstance))
+        for _, descendant in pairs(character:GetDescendants()) do
+            etherealInstance(descendant)
+        end
+    end
+end
+
+local function etherealPlayer(player: Player)
+    etherealMaids[player]:GiveTask(player.CharacterAdded:Connect(function(character)
+        etherealCharacter(player, character)
+    end))
+    etherealCharacter(player, player.Character)
+end
+
+local function hideInstance(instance: Instance)
     -- Iterate through the classes rather than use ClassName in order to account for parent classes
-    for class, hiddingProperties in HIDEABLE_CLASSES do
-        if instance:IsA(class) then
-            hidden[instance] = {}
-            for _, property in hiddingProperties do
-                local name: string = property.Name
-
-                table.insert(hidden[instance], { Name = name, UnhideValue = instance[name] })
-                instance[name] = property.HideValue
+    for className, hidingProperties in pairs(HIDEABLE_CLASSES) do
+        if instance:IsA(className) then
+            for _, hideProperty in pairs(hidingProperties) do
+                PropertyStack.setProperty(
+                    instance,
+                    hideProperty.Name,
+                    hideProperty.Value,
+                    PROPERTY_STACK_KEY_HIDE,
+                    hideProperty.StackPriority
+                )
             end
         end
     end
 end
 
-function hideCharacter(char: Model)
-    if char then
-        hidingSession:GiveTask(char.DescendantAdded:Connect(hideInstance))
-        for _, descendant in pairs(char:GetDescendants()) do
+local function hideCharacter(character: Model)
+    if character then
+        hidingSession:GiveTask(character.DescendantAdded:Connect(hideInstance))
+        for _, descendant in pairs(character:GetDescendants()) do
             hideInstance(descendant)
         end
     end
 end
 
-function hidePlayer(player: Player)
-    hideCharacter(player.Character)
+local function hidePlayer(player: Player)
     hidingSession:GiveTask(player.CharacterAdded:Connect(hideCharacter))
+    hideCharacter(player.Character)
 end
+
+local function showInstance(instance: Instance)
+    -- Iterate through the classes rather than use ClassName in order to account for parent classes
+    for className, hidingProperties in pairs(HIDEABLE_CLASSES) do
+        if instance:IsA(className) then
+            for _, hideProperty in pairs(hidingProperties) do
+                PropertyStack.clearProperty(instance, hideProperty.Name, PROPERTY_STACK_KEY_HIDE)
+            end
+        end
+    end
+end
+
+local function showCharacter(character: Model)
+    if character then
+        for _, descendant in pairs(character:GetDescendants()) do
+            showInstance(descendant)
+        end
+    end
+end
+
+local function showPlayer(player: Player)
+    showCharacter(player.Character)
+end
+
+-------------------------------------------------------------------------------
+-- API
+-------------------------------------------------------------------------------
 
 function CharacterUtil.hideCharacters(requester: string)
     areCharactersHidden:Set(true, requester)
@@ -108,5 +153,51 @@ function CharacterUtil.getPlayerFromCharacterPart(part: BasePart)
 
     return nil
 end
+
+-- When a character is ethereal, it does not collide with any other character
+function CharacterUtil.setEthereal(player: Player, isEthereal: boolean)
+    -- RETURN: Matches current state
+    local etherealMaid = etherealMaids[player]
+    if isEthereal and etherealMaid then
+        return
+    elseif not isEthereal and not etherealMaid then
+        return
+    end
+
+    -- Revert
+    if not isEthereal then
+        etherealMaid:Destroy()
+        etherealMaids[player] = nil
+        return
+    end
+
+    -- Ethereal time baby
+    etherealMaids[player] = Maid.new()
+    etherealPlayer(player)
+end
+
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
+
+Players.PlayerRemoving:Connect(function(player)
+    -- Cleanup Cache
+    CharacterUtil.setEthereal(player, false)
+end)
+
+areCharactersHidden = Toggle.new(false, function(value)
+    if value then
+        hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
+        for _, player in pairs(Players:GetPlayers()) do
+            hidePlayer(player)
+        end
+    else
+        hidingSession:Cleanup()
+
+        for _, player in pairs(Players:GetPlayers()) do
+            showPlayer(player)
+        end
+    end
+end)
 
 return CharacterUtil
