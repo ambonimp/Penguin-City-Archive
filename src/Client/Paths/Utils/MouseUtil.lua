@@ -1,26 +1,16 @@
 local MouseUtil = {}
 
-local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 
-local camera = workspace.CurrentCamera
+local RAYCAST_DEFAULT_LENGTH = 100
 
-function MouseUtil.getMouseTarget(ignore: { Instance }, ignoresWater: boolean): RaycastResult | nil
-    local cursorPosition = UserInputService:GetMouseLocation()
-
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = ignore or {}
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.IgnoreWater = ignoresWater
-
-    local CameraRay = workspace.CurrentCamera:ViewportPointToRay(cursorPosition.X, cursorPosition.Y, 0)
-
-    local raycastResult = workspace:Raycast(camera.CFrame.Position, CameraRay.Direction * 50, raycastParams)
-
-    if raycastResult then
-        return raycastResult
-    else
-        return nil
-    end
+function MouseUtil.getMouseTarget(ignore: { Instance }, ignoresWater: boolean, length: number?): RaycastResult | nil
+    return RaycastUtil.raycastMouse(
+        { FilterDescendantsInstances = ignore, FilterType = Enum.RaycastFilterType.Blacklist, IgnoreWater = ignoresWater },
+        length or RAYCAST_DEFAULT_LENGTH
+    )
 end
 
 return MouseUtil

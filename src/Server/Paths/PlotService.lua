@@ -1,8 +1,9 @@
 --Gives a player a housing plot when they rejoin, and empties it when they leave. Handles all housing server/client communication with plots and furniutre
 local PlotService = {}
 
-local Paths = require(script.Parent)
+local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Paths = require(ServerScriptService.Paths)
 local ObjectModule: typeof(require(Paths.Shared.HousingObjectData))
 local PlayerData: typeof(require(Paths.Server.DataService))
 local Limiter: typeof(require(Paths.Shared.Limiter))

@@ -1,9 +1,8 @@
 local EditMode = {}
 
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
-local Paths = require(script.Parent.Parent)
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
 local HousingController = require(Paths.Client.HousingController)
 local InputController = require(Paths.Client.Input.InputController)
@@ -14,6 +13,7 @@ local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 
+local ATTRIBUTE_IS_SETUP = "Setup"
 local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
 local MOVE_TWEEN_INFO = TweenInfo.new(0.146, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 local ITEM_MOVE = HousingScreen.itemMove
@@ -45,11 +45,12 @@ end
 --should move to a mouse Util module when more mouse util is introduced
 
 --sets up the model for tweening // only client sided
-local function setUpModel(model: Model)
-    if model:GetAttribute("Setup") then
+local function setupModel(model: Model)
+    -- RETURN: Already been setup!
+    if model:GetAttribute(ATTRIBUTE_IS_SETUP) then
         return
     end
-    model:SetAttribute("Setup", true)
+    model:SetAttribute(ATTRIBUTE_IS_SETUP, true)
     for _, part: BasePart in (model:GetDescendants()) do
         if part:IsA("BasePart") and part ~= model.PrimaryPart then
             part.Anchored = false
@@ -90,7 +91,7 @@ end
 
 --selects the item and prepares variables for usage
 local function itemSelected(item: Model)
-    setUpModel(item)
+    setupModel(item)
     startingCFrame = item:GetPivot()
     for _, part: BasePart | Seat in (item:GetDescendants()) do
         if part:IsA("BasePart") then
@@ -221,7 +222,9 @@ ITEM_MOVE.Frame.Move.Button.MouseButton1Down:Connect(function()
                 end
                 local ignore = { selectedModel, HousingController.currentHouse.Spawn, player.Character }
                 for _, v: Model in HousingController.currentHouse.Parent.Furniture:GetChildren() do
-                    table.insert(ignore, v.PrimaryPart)
+                    if v:IsA("Model") then
+                        table.insert(ignore, v.PrimaryPart)
+                    end
                 end
                 local result = MouseUtil.getMouseTarget(ignore, true)
                 local Target, Position = result.Instance, result.Position
