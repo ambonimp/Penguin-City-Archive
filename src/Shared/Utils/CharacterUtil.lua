@@ -118,17 +118,19 @@ do
             end
         end
 
-        local body = character.Body
-        local bodyPosition = body.Position
-        for _, pieceTemplate in assets[CharacterItems[type].InventoryPath][clothingName]:GetChildren() do
-            local piece = pieceTemplate:Clone()
-            piece.Position = bodyPosition
-            piece.Parent = character
+        if clothingName then
+            local body = character.Body
+            local bodyPosition = body.Position
+            for _, pieceTemplate in assets[CharacterItems[type].InventoryPath][clothingName]:GetChildren() do
+                local piece = pieceTemplate:Clone()
+                piece.Position = bodyPosition
+                piece.Parent = character
 
-            local weldConstraint = Instance.new("WeldConstraint")
-            weldConstraint.Part0 = body
-            weldConstraint.Part1 = piece
-            weldConstraint.Parent = piece
+                local weldConstraint = Instance.new("WeldConstraint")
+                weldConstraint.Part0 = body
+                weldConstraint.Part1 = piece
+                weldConstraint.Parent = piece
+            end
         end
     end
 
@@ -172,25 +174,19 @@ do
         local shirt = appearance.Shirt
         if shirt then
             shirt = shirt[1]
-            if shirt then
-                applyClothingAppearance(character, "Shirt", shirt)
-            end
+            applyClothingAppearance(character, "Shirt", shirt)
         end
 
         local pants = appearance.Pants
         if pants then
             pants = pants[1]
-            if pants then
-                applyClothingAppearance(character, "Pants", pants)
-            end
+            applyClothingAppearance(character, "Pants", pants)
         end
 
         local shoes = appearance.Shoes
         if shoes then
             shoes = shoes[1]
-            if shoes then
-                applyClothingAppearance(character, "Shoes", shoes)
-            end
+            applyClothingAppearance(character, "Shoes", shoes)
         end
 
         return appearance
