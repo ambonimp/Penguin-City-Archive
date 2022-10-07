@@ -1,7 +1,7 @@
 local PlotChanger = {}
 
-local Paths = require(script.Parent.Parent)
 local Players = game:GetService("Players")
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local HousingController = require(Paths.Client.HousingController)
 local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
