@@ -10,6 +10,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CharacterService = require(Paths.Server.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
@@ -58,7 +59,7 @@ function ZoneService.getPlayerMinigame(player: Player)
 end
 
 --[[
-    Returns true if successful
+    Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
@@ -69,7 +70,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- WARN: No character!
     if not player.Character then
         warn(("%s has no Character!"):format(player.Name))
-        return false
+        return nil
     end
 
     -- Update State
@@ -81,7 +82,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         playerZoneState.MinigameId = zone.ZoneId
     else
         warn(("Unknown zonetype %s"):format(zone.ZoneType))
-        return false
+        return nil
     end
     playerZoneState.TotalTeleports += 1
 
@@ -103,9 +104,11 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     end)
 
     -- Inform Client
-    Remotes.fireClient(player, "ZoneChanged", zone.ZoneType, zone.ZoneId, teleportBuffer)
+    Remotes.fireClient(player, "ZoneTeleport", zone.ZoneType, zone.ZoneId, teleportBuffer)
+
+    return teleportBuffer
 end
-Remotes.declareEvent("ZoneChanged")
+Remotes.declareEvent("ZoneTeleport")
 
 --[[
     Sends the player to a room - either the one passed, or the one currently stored in their PlayerZoneState
@@ -162,6 +165,32 @@ function ZoneService.loadPlayer(player: Player)
     PlayerService.getPlayerMaid(player):GiveTask(function()
         playerZoneStatesByPlayer[player] = nil
     end)
+end
+
+-- Communcation
+do
+    Remotes.bindFunctions({
+        ZoneTeleportRequest = function(player: Player, dirtyZoneType: any, dirtyZoneId: any, dirtyInvokedServerTime: any)
+            -- Clean data
+            local zoneType = TypeUtil.toString(dirtyZoneType)
+            local zoneId = TypeUtil.toString(dirtyZoneId)
+            local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
+
+            -- RETURN NIL: Bad Zone
+            local isGoodZone = ZoneConstants.ZoneType[zoneType] and ZoneConstants.ZoneId[zoneType][zoneId] and true or false
+            if not isGoodZone then
+                return nil
+            end
+
+            -- RETURN NIL: Bad invokedServerTime
+            if not invokedServerTime then
+                return nil
+            end
+
+            local zone = ZoneUtil.zone(zoneType, zoneId)
+            return ZoneService.teleportPlayerToZone(player, zone, invokedServerTime)
+        end,
+    })
 end
 
 return ZoneService

@@ -9,9 +9,12 @@ local Output = require(Paths.Shared.Output)
 local Signal = require(Paths.Shared.Signal)
 local Maid = require(Paths.Packages.maid)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
+local Assume = require(Paths.Shared.Assume)
+local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 local zoneMaid = Maid.new()
+local isRunningTeleportRequest = false
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
@@ -19,12 +22,18 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 -- Arrivals
 -------------------------------------------------------------------------------
 
-function ZoneController.arrivingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
-    Output.doDebug(ZoneConstants.DoDebug, "arrivingToZoneIn", teleportBuffer, zone.ZoneType, zone.ZoneId)
+-- Only invoked when the server has forcefully teleported us somewhere
+function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
+    Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneType, zone.ZoneId)
 
-    task.wait(teleportBuffer)
-
-    ZoneController.arrivedAtZone(zone)
+    -- Blink Transition
+    local blinkDuration = math.min(teleportBuffer, Transitions.BLINK_TWEEN_INFO.Time)
+    Transitions.blink(function()
+        task.wait(teleportBuffer - blinkDuration)
+        ZoneController.arrivedAtZone(zone)
+    end, {
+        TweenTime = blinkDuration,
+    })
 end
 
 function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
@@ -46,7 +55,38 @@ end
 -------------------------------------------------------------------------------
 
 function ZoneController.teleportRequest(zone: ZoneConstants.Zone)
-    warn("todo teleportRequest")
+    -- WARN: Already requesting
+    if isRunningTeleportRequest then
+        warn("Already running a teleport request!")
+        return
+    end
+    isRunningTeleportRequest = true
+
+    local requestAssume = Assume.new(function()
+        print("0")
+        local teleportBuffer: number? =
+            Remotes.invokeServer("ZoneTeleportRequest", zone.ZoneType, zone.ZoneId, game.Workspace:GetServerTimeNow())
+        print("1", teleportBuffer)
+        return teleportBuffer
+    end)
+    requestAssume:Check(function(teleportBuffer: number)
+        return teleportBuffer and true or false
+    end)
+    requestAssume:Run(function()
+        -- Start blink, resuming onHalfPoint when we get a response
+        task.spawn(Transitions.blink, function()
+            -- Wait for Response
+            local teleportBuffer = requestAssume:Await()
+            if teleportBuffer then
+                local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
+                task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
+                ZoneController.arrivedAtZone(zone)
+            end
+
+            -- Finished
+            isRunningTeleportRequest = false
+        end)
+    end)
 end
 
 function ZoneController.setupTeleporters()
@@ -82,8 +122,14 @@ end
 -- Communication
 do
     Remotes.bindEvents({
-        ZoneChanged = function(zoneType: string, zoneId: string, teleportBuffer: number)
-            ZoneController.arrivingToZoneIn(ZoneUtil.zone(zoneType, zoneId), teleportBuffer)
+        ZoneTeleport = function(zoneType: string, zoneId: string, teleportBuffer: number)
+            -- RETURN: This is part of a teleportRequest, which we are already handling
+            if isRunningTeleportRequest then
+                print("ZoneTeleport return")
+                return
+            end
+
+            ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneType, zoneId), teleportBuffer)
         end,
     })
 end
