@@ -7,10 +7,14 @@ local DataConfig = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-
+local houseDefaults = require(script.Parent.HouseDefault)
 local defaultInventory = {}
+--[[
+DataConfig.ReconcileExceptions = {
+    ["Placements"] = true,
+}]]
 
-DataConfig.DataKey = "DEV_2"
+DataConfig.DataKey = "DEV_3"
 function DataConfig.getDefaults()
     return {
         Appearance = {

@@ -9,6 +9,7 @@ local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
 local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
+local CharacterConstants = require(Shared.Constants.CharacterConstants)
 
 export type CharacterAppearance = {
     BodyType: string,
@@ -82,6 +83,13 @@ function CharacterUtil.showCharacters(requester: string)
     areCharactersHidden:Set(false, requester)
 end
 
+function CharacterUtil.freeze(character: Model)
+    character.Humanoid.WalkSpeed = 0
+end
+
+function CharacterUtil.unfreeze(character: Model)
+    character.Humanoid.WalkSpeed = CharacterConstants.WalkSpeed
+end
 --[[
     Modifies a character's appearance based on their appearance description
     Partical description for changes, full descriptions for initialization

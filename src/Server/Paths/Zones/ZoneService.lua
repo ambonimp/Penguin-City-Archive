@@ -10,6 +10,8 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CharacterService = require(Paths.Server.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
+local PlotService = require(Paths.Server.PlotService)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
@@ -61,7 +63,7 @@ end
     Returns true if successful
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
-function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?, oldPlayer: Player?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
 
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
@@ -98,7 +100,20 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            CharacterService.standOn(player.Character, spawnpoint)
+            if zone.ZoneId == "Start" and PlotService.doesPlayerHavePlot(oldPlayer or player, HousingConstants.HouseType) then
+                local interior = PlotService.doesPlayerHavePlot(oldPlayer or player, HousingConstants.HouseType)
+                CharacterService.standOn(player.Character, interior:FindFirstChildOfClass("Model").Spawn)
+            elseif
+                oldPlayer
+                and zone.ZoneId == "Neighborhood"
+                and PlotService.doesPlayerHavePlot(oldPlayer, HousingConstants.PlotType)
+                and oldZone.ZoneId == "Start"
+            then
+                local exterior = PlotService.doesPlayerHavePlot(oldPlayer, HousingConstants.PlotType)
+                CharacterService.standOn(player.Character, exterior:FindFirstChildOfClass("Model").Spawn)
+            else
+                CharacterService.standOn(player.Character, spawnpoint)
+            end
         end
     end)
 
