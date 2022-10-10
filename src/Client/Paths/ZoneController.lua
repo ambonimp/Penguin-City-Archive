@@ -47,12 +47,10 @@ end
 -------------------------------------------------------------------------------
 
 local function setupTeleporters()
-    local zoneInstances = ZoneUtil.getZoneInstances(currentZone)
     for _, zoneType in pairs(ZoneConstants.ZoneType) do
-        local departuresName = ("%sDepartures"):format(zoneType)
-        local departuresInstances = zoneInstances[departuresName]
-        if departuresInstances then
-            for _, teleporter: BasePart in pairs(departuresInstances:GetChildren()) do
+        local departures = ZoneUtil.getDepartures(currentZone, zoneType)
+        if departures then
+            for _, teleporter: BasePart in pairs(departures:GetChildren()) do
                 local zoneId = teleporter.Name
                 local zone = ZoneUtil.zone(zoneType, zoneId)
 
@@ -77,7 +75,7 @@ local function setupTeleporters()
                     local collisionsName = ("%s_DepartureCollisions"):format(collisionsPart.Name)
                     collisionsPart.Name = collisionsName
                     collisionsPart.Size = collisionsPart.Size + COLLISION_PART_SIZE_GROWTH
-                    collisionsPart.Parent = departuresInstances.Parent
+                    collisionsPart.Parent = departures.Parent
                     zoneMaid:GiveTask(collisionsPart)
 
                     local collisionsHitbox = PlayersHitbox.new():AddPart(collisionsPart)

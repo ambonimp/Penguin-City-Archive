@@ -49,8 +49,7 @@ end
 
 -- Returns a spawnpoint in the context of the zone we're leaving
 function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
-    local zoneInstances = ZoneUtil.getZoneInstances(toZone)
-    local arrivals = zoneInstances[("%sArrivals"):format(fromZone.ZoneType)]
+    local arrivals = ZoneUtil.getArrivals(toZone, fromZone.ZoneType)
     if arrivals then
         local arrivalSpawnpoint = arrivals:FindFirstChild(fromZone.ZoneId)
         if arrivalSpawnpoint then
@@ -58,7 +57,15 @@ function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConsta
         end
     end
 
-    return zoneInstances.Spawnpoint
+    return ZoneUtil.getZoneInstances(toZone).Spawnpoint
+end
+
+function ZoneUtil.getArrivals(zone: ZoneConstants.Zone, zoneType: string)
+    return ZoneUtil.getZoneInstances(zone)[("%sArrivals"):format(zoneType)]
+end
+
+function ZoneUtil.getDepartures(zone: ZoneConstants.Zone, zoneType: string)
+    return ZoneUtil.getZoneInstances(zone)[("%sDepartures"):format(zoneType)]
 end
 
 function ZoneUtil.getSettings(zone: ZoneConstants.Zone)

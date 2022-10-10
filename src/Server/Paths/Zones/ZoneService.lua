@@ -99,7 +99,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            CharacterService.standOn(player.Character, spawnpoint)
+            CharacterService.standOn(player.Character, spawnpoint, true)
         end
     end)
 
