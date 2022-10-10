@@ -93,12 +93,12 @@ function DataService.wipe(player: Player)
     player:Kick("DATA WIPE " .. player.Name)
 end
 
-local function reconcile(Data: { [string | number]: any }, Default: { [string | number]: any })
-    for k, v in pairs(Default) do
-        if not tonumber(k) and Data[k] == nil then
-            Data[k] = v
+local function reconcile(data: { [string | number]: any }, default: { [string | number]: any })
+    for k, v in pairs(default) do
+        if not tonumber(k) and data[k] == nil then
+            data[k] = v
         elseif not tonumber(k) and typeof(v) == "table" then
-            reconcile(Data[k], v)
+            reconcile(data[k], v)
         end
     end
 end
@@ -145,8 +145,8 @@ do
     Remotes.declareEvent("DataUpdated")
 
     Remotes.bindFunctions({
-        GetPlayerData = function(player: Player, path: string)
-            return DataService.get(player, path)
+        GetPlayerData = function(player: Player, address: string)
+            return DataService.get(player, address)
         end,
     })
 end

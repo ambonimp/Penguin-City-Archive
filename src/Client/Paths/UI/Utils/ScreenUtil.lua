@@ -73,7 +73,7 @@ local function outt(directionOut: UDim2, frame: Frame, cosmetics)
     )
 end
 
-function ScreenUtil.sSizeIn(frame: Frame)
+function ScreenUtil.sizeIn(frame: Frame)
     frame.Visible = true
     TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = UDim2.fromScale(0, 0) }), function()
         frame.Visible = false
