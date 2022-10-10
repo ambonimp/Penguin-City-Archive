@@ -103,6 +103,21 @@ function Hitbox.new()
         return false
     end
 
+    --[[
+        Returns true if `part` is inside this Hitbox.
+
+        !! Will not detect if `part` is inside a defined interal region; only inside a defined internal part
+    ]]
+    function hitbox:IsPartInside(part: BasePart)
+        for _, hitboxPart in pairs(parts) do
+            if table.find(hitboxPart:GetTouchingParts(), part) then
+                return true
+            end
+        end
+
+        return false
+    end
+
     function hitbox:Destroy(doDestroyParts: boolean?)
         if isDestroyed then
             return

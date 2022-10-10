@@ -1,7 +1,7 @@
 --[[
-    A `Hitbox` object with added functionality for detecting players being in the hitbox.
+    A `Hitbox` object with added functionality for detecting players being in the hitbox. Uses ONLY HumanoidRootPart (performance reasons)
     
-    Can only be defined by adding parts, as we use Touched and TouchEnded events.
+    Can only be defined by adding parts, as we use Touched+TouchEnded events and BasePart:GetTouchingParts()
 ]]
 local PlayersHitbox = {}
 
@@ -44,6 +44,7 @@ function PlayersHitbox.new()
         if not validator then
             return
         end
+
         validator:Disconnect()
         validator = nil
     end
@@ -78,7 +79,7 @@ function PlayersHitbox.new()
 
     local function partTouched(otherPart: BasePart)
         -- RETURN: No player
-        local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
+        local player = CharacterUtil.getPlayerFromCharacterPart(otherPart, true)
         if not player then
             return
         end
@@ -93,7 +94,7 @@ function PlayersHitbox.new()
 
     local function partTouchEnded(otherPart: BasePart)
         -- RETURN: No player
-        local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
+        local player = CharacterUtil.getPlayerFromCharacterPart(otherPart, true)
         if not player then
             return
         end
@@ -137,7 +138,7 @@ function PlayersHitbox.new()
             return false
         end
 
-        return hitbox:IsPointInside(humanoidRootPart.Position)
+        return hitbox:IsPartInside(humanoidRootPart)
     end
 
     -- Returns internal cache
@@ -145,11 +146,18 @@ function PlayersHitbox.new()
         return TableUtil.deepClone(cachedPlayers)
     end
 
+    --[[
+        Fires .PlayerLeft for all internally cached players too
+    ]]
     function playersHitbox:Destroy(doDestroyParts: boolean?)
         if isDestroyed then
             return
         end
         isDestroyed = true
+
+        for player, _ in pairs(cachedPlayers) do
+            playersHitbox.PlayerLeft:Fire(player)
+        end
 
         hitbox:Destroy(doDestroyParts)
     end

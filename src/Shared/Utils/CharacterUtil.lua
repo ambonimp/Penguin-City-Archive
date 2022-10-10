@@ -144,7 +144,12 @@ function CharacterUtil.applyAppearance(character: Model, description: { [string]
     end
 end
 
-function CharacterUtil.getPlayerFromCharacterPart(part: BasePart)
+function CharacterUtil.getPlayerFromCharacterPart(part: BasePart, mustBeHumanoidRootPart: boolean?)
+    -- RETURN: Must be root part and is not
+    if mustBeHumanoidRootPart and part.Name ~= "HumanoidRootPart" then
+        return
+    end
+
     local character: Model
     for _ = 1, MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH do
         part = part.Parent
@@ -162,13 +167,19 @@ end
 
 --[[
     When a character is ethereal, it does not collide with any other character.
-    Can optionally pass `scope`, so .setEtheral calls in multiple contexts won't override one another
+    Can optionally pass `scope`, so .setEtheral calls in multiple contexts won't override one another - uses an internal Toggle
 ]]
 function CharacterUtil.setEthereal(player: Player, isEthereal: boolean, scope: string?)
     scope = scope or DEFAULT_SCOPE
+    print("setEthereal", player, isEthereal, scope)
+
+    -- RETURN: Nothing to update or change
+    local toggle = etherealToggles[player]
+    if not toggle and not isEthereal then
+        return
+    end
 
     -- Create toggle
-    local toggle = etherealToggles[player]
     if not toggle then
         toggle = Toggle.new(false, function(isEtherealToggle)
             if isEtherealToggle then
@@ -186,6 +197,7 @@ function CharacterUtil.setEthereal(player: Player, isEthereal: boolean, scope: s
             end
             etherealToggles[player] = nil
         end)
+        etherealToggles[player] = toggle
     end
 
     -- Set Toggle

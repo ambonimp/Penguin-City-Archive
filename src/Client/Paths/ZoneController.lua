@@ -17,6 +17,7 @@ local Scope = require(Paths.Shared.Scope)
 local MAX_YIELD_TIME_ZONE_LOADING = 10
 local CHECK_CHARACTER_COLLISIONS_EVERY = 0.5
 local ETHEREAL_SCOPE_TRANSITION = "ZoneTransition"
+local COLLISION_PART_SIZE_GROWTH = Vector3.new(8, 4, 8)
 
 local localPlayer = Players.LocalPlayer
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
@@ -50,21 +51,55 @@ local function setupTeleporters()
         local departuresName = ("%sDepartures"):format(zoneType)
         local departuresInstances = zoneInstances[departuresName]
         if departuresInstances then
-            for _, teleporter in pairs(departuresInstances:GetChildren()) do
+            for _, teleporter: BasePart in pairs(departuresInstances:GetChildren()) do
                 local zoneId = teleporter.Name
                 local zone = ZoneUtil.zone(zoneType, zoneId)
 
-                local playersHitbox = PlayersHitbox.new():AddPart(teleporter)
-                zoneMaid:GiveTask(playersHitbox)
+                -- Teleporter
+                do
+                    local teleporterHitbox = PlayersHitbox.new():AddPart(teleporter)
+                    zoneMaid:GiveTask(teleporterHitbox)
 
-                playersHitbox.PlayerEntered:Connect(function(player: Player)
-                    -- RETURN: Not local player
-                    if player ~= Players.LocalPlayer then
-                        return
-                    end
+                    teleporterHitbox.PlayerEntered:Connect(function(player: Player)
+                        -- RETURN: Not local player
+                        if player ~= Players.LocalPlayer then
+                            return
+                        end
 
-                    ZoneController.teleportToRoomRequest(zone)
-                end)
+                        ZoneController.teleportToRoomRequest(zone)
+                    end)
+                end
+
+                -- Collisions
+                do
+                    local collisionsPart: BasePart = teleporter:Clone()
+                    local collisionsName = ("%s_DepartureCollisions"):format(collisionsPart.Name)
+                    collisionsPart.Name = collisionsName
+                    collisionsPart.Size = collisionsPart.Size + COLLISION_PART_SIZE_GROWTH
+                    collisionsPart.Parent = departuresInstances.Parent
+                    zoneMaid:GiveTask(collisionsPart)
+
+                    local collisionsHitbox = PlayersHitbox.new():AddPart(collisionsPart)
+                    zoneMaid:GiveTask(collisionsHitbox)
+
+                    collisionsHitbox.PlayerEntered:Connect(function(player: Player)
+                        -- RETURN: Not local player
+                        if player ~= Players.LocalPlayer then
+                            return
+                        end
+
+                        CharacterUtil.setEthereal(player, true, collisionsName)
+                    end)
+
+                    collisionsHitbox.PlayerLeft:Connect(function(player: Player)
+                        -- RETURN: Not local player
+                        if player ~= Players.LocalPlayer then
+                            return
+                        end
+
+                        CharacterUtil.setEthereal(player, false, collisionsName)
+                    end)
+                end
             end
         end
     end
