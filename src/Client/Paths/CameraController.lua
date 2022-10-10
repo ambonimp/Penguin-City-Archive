@@ -8,11 +8,13 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TweenableValue = require(Paths.Shared.TweenableValue)
 local Maid = require(Paths.Packages.maid)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 
 -- We transform our followMopuse cframes into this object space for easy calculation
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
 local FOLLOW_MOUSE_OBJECT_SPACE = CFrame.new(ZERO_VECTOR, Vector3.new(1, 0, 0))
+local ALIGN_CHARACTER_HEIGHT_GAIN_PER_UNIT = 0.2
 
 local followMouseMaid = Maid.new()
 local camera = Workspace.CurrentCamera
@@ -37,6 +39,10 @@ function CameraController.isCameraScriptable()
     return camera.CameraType == Enum.CameraType.Scriptable
 end
 
+function CameraController.isPlayerControlled()
+    return camera.CameraType == Enum.CameraType.Custom
+end
+
 function CameraController.lookAt(subject: BasePart | Model, offset: Vector3, fov: number?): (Tween, CFrame)
     fov = fov or tweenableFov:GetGoal()
     local _, size
@@ -52,6 +58,27 @@ function CameraController.lookAt(subject: BasePart | Model, offset: Vector3, fov
         Vector3.new(0, 0, CameraUtil.getFitDeph(camera.ViewportSize, fov, size)) + offset,
         TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     )
+end
+
+function CameraController.alignCharacter()
+    -- RETURN: Must be in control
+    if not CameraController.isPlayerControlled() then
+        return
+    end
+
+    -- RETURN: No character
+    local character = Players.LocalPlayer.Character
+    if not character then
+        return
+    end
+
+    local currentDistance: number = (camera.CFrame.Position - camera.Focus.Position).Magnitude
+
+    local characterLookVectorXZ = VectorUtil.getUnit(VectorUtil.getXZComponents(character.PrimaryPart.CFrame.LookVector))
+    local cameraPosition = characterLookVectorXZ * currentDistance
+        + Vector3.new(0, ALIGN_CHARACTER_HEIGHT_GAIN_PER_UNIT * currentDistance, 0)
+
+    camera.CFrame = CFrame.new(camera.Focus.Position + cameraPosition, camera.Focus.Position)
 end
 
 function CameraController.viewCameraModel(cameraModel: Model)

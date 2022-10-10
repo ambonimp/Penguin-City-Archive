@@ -12,6 +12,7 @@ local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local Scope = require(Paths.Shared.Scope)
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
@@ -133,6 +134,10 @@ function ZoneController.transitionToZone(
     if isPlayingTransition then
         return
     end
+
+    -- Populate blink options
+    blinkOptions = blinkOptions or {}
+    blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
     local scopeId = transitionScope:NewScope()
     isPlayingTransition = true

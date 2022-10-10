@@ -3,14 +3,13 @@ local Transitions = {}
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local CameraController = require(Paths.Client.CameraController)
 
 export type BlinkOptions = {
     TweenInfo: TweenInfo?,
     TweenTime: number?, -- Always overrides
     DoAlignCamera: boolean?,
 }
-
-export type noob = "hi"
 
 Transitions.BLINK_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
@@ -39,7 +38,7 @@ function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOpti
 
     onHalfPoint()
     if doAlignCamera then
-        camera.CFrame = CFrame.new(camera.CFrame.Position) * player.Character.HumanoidRootPart.CFrame.Rotation
+        CameraController.alignCharacter()
     end
 
     -- Tween Out

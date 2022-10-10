@@ -29,4 +29,16 @@ function VectorUtil.nextVector3(min: number, max: number)
     return MathUtil.nextVector3(min, max)
 end
 
+function VectorUtil.getUnit(vector: Vector2 | Vector3)
+    if vector.Magnitude == 0 then
+        return vector
+    end
+
+    return vector.Unit
+end
+
+function VectorUtil.getXZComponents(vector3: Vector3)
+    return Vector3.new(vector3.X, 0, vector3.Z)
+end
+
 return VectorUtil
