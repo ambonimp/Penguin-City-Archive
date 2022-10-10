@@ -226,4 +226,10 @@ function PropertyStack.setProperties(instance: Instance, propertyTable: { [strin
     end
 end
 
+function PropertyStack.clearProperties(instance: Instance, propertyTable: { [string]: any }, key: string)
+    for propertyName, _propertyValue in pairs(propertyTable) do
+        PropertyStack.clearProperty(instance, propertyName, key)
+    end
+end
+
 return PropertyStack

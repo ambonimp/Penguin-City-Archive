@@ -188,6 +188,12 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
         currentRoomZone = currentZone
     end
 
+    -- Zone Settings
+    ZoneUtil.applySettings(zone)
+    zoneMaid:GiveTask(function()
+        ZoneUtil.reverSettings(zone)
+    end)
+
     setupTeleporters()
 
     -- Inform Client

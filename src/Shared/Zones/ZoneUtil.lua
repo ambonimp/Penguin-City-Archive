@@ -1,8 +1,11 @@
 local ZoneUtil = {}
 
+local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
+local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
@@ -56,6 +59,30 @@ function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConsta
     end
 
     return zoneInstances.Spawnpoint
+end
+
+function ZoneUtil.getSettings(zone: ZoneConstants.Zone)
+    return ZoneSettings[zone.ZoneType][zone.ZoneId]
+end
+
+function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
+    local settings = ZoneUtil.getSettings(zone)
+    if settings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        PropertyStack.setProperties(Lighting, settings.Lighting, key)
+    end
+end
+
+function ZoneUtil.reverSettings(zone: ZoneConstants.Zone)
+    local settings = ZoneUtil.getSettings(zone)
+    if settings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        PropertyStack.clearProperties(Lighting, settings.Lighting, key)
+    end
 end
 
 function ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
