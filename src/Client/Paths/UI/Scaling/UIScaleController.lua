@@ -8,15 +8,23 @@ local Signal = require(Paths.Shared.Signal)
 
 local BASE_RESOLUTION = Vector2.new(1920, 1080) -- UI is edited using this aspect ratio
 
+-------------------------------------------------------------------------------
+-- Private Members
+-------------------------------------------------------------------------------
 local initContainerSizes: { [Instance]: UDim2 } = {} -- Containers are children of ScreenGui's
 local initUICornerRadi: { [UICorner]: UDim } = {} -- UICorners don't scale with UIScale, so we need something custom
 
-local scale: number -- Allows for the retention of aspect ratios
-
+local scale: number
 local camera: Camera = Workspace.CurrentCamera
 
+-------------------------------------------------------------------------------
+-- Public Members
+-------------------------------------------------------------------------------
 UIScaleController.ViewportSizeChanged = Signal.new()
 
+-------------------------------------------------------------------------------
+-- Private Methods
+-------------------------------------------------------------------------------
 local function scaleContainer(instance: Instance)
     instance.UIScale.Scale = scale
 
@@ -29,7 +37,6 @@ local function scaleUICorner(instance: UICorner)
     instance.CornerRadius = UDim.new(initCornerRadius.Scale, initCornerRadius.Offset * scale)
 end
 
--- Initialize
 local function updateScale()
     local viewportSize: Vector2 = camera.ViewportSize
     local prevScale = scale
@@ -49,7 +56,16 @@ local function updateScale()
         UIScaleController.ViewportSizeChanged:Fire(viewportSize)
     end
 end
+-------------------------------------------------------------------------------
+-- Public Methods
+-------------------------------------------------------------------------------
+function UIScaleController.getScale()
+    return scale
+end
 
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
 updateScale()
 camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
     Limiter.indecisive(script.Name, 1, updateScale)
