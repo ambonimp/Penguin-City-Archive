@@ -44,6 +44,7 @@ function MinigameController.play(minigame: string)
 
     -- RETURN ERROR: Already playing!
     if currentSession then
+        warn("already playing!")
         return { Error = ("Client is already playing %s"):format(currentSession.Minigame) }
     end
 
@@ -62,7 +63,7 @@ function MinigameController.play(minigame: string)
     end)
     requestAssume:Run(function()
         task.spawn(function()
-            ZoneController.transitionToZone(minigameZone, function()
+            local function yielder()
                 -- Wait for Response
                 local _playRequest, teleportBuffer = requestAssume:Await()
                 if teleportBuffer then
@@ -73,10 +74,14 @@ function MinigameController.play(minigame: string)
                     -- Start Minigame
                     minigameController.startMinigame(minigamesDirectory, MinigameController.stopPlaying)
                 end
-            end, function()
+            end
+
+            local function validator()
                 local playRequest: MinigameConstants.PlayRequest, _teleportBuffer: number? = requestAssume:Await()
                 return playRequest and playRequest.Session and true or false
-            end)
+            end
+
+            ZoneController.transitionToZone(minigameZone, yielder, validator)
         end)
     end)
 
@@ -114,9 +119,11 @@ function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
     end)
     requestAssume:Run(function()
         task.spawn(function()
-            ZoneController.transitionToZone(guessedZone, function()
+            local function yielder()
                 -- Stop Minigame
                 local oldSession = currentSession
+                currentSession = nil
+
                 local minigameController = MinigameController.getControllerFromMinigame(oldSession.Minigame)
                 minigameController.stopMinigame()
 
@@ -127,11 +134,15 @@ function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
                     local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
                     task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
                 end
-            end, function()
+            end
+
+            local function validator()
                 local playRequest: MinigameConstants.PlayRequest, _zone: ZoneConstants.Zone?, _teleportBuffer: number? =
                     requestAssume:Await()
                 return playRequest and playRequest.Session and true or false
-            end)
+            end
+
+            ZoneController.transitionToZone(guessedZone, yielder, validator)
         end)
     end)
 

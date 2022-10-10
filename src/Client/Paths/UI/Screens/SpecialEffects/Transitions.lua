@@ -15,11 +15,11 @@ Transitions.BLINK_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.Ea
 
 local ui = Paths.UI
 local specialFx = ui:WaitForChild("SpecialEffects")
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
 
 -- Yields
 function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOptions?)
+    print(debug.traceback(), "blink")
+
     -- Read blink options
     blinkOptions = blinkOptions or {}
     local tweenInfo = blinkOptions.TweenInfo or Transitions.BLINK_TWEEN_INFO
@@ -38,8 +38,10 @@ function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOpti
 
     onHalfPoint()
     if doAlignCamera then
+        print("align character")
         CameraController.alignCharacter()
     end
+    print("tween out")
 
     -- Tween Out
     do

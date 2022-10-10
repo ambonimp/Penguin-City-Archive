@@ -14,6 +14,7 @@ local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local Scope = require(Paths.Shared.Scope)
+local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
 local CHECK_CHARACTER_COLLISIONS_EVERY = 0.5
@@ -29,6 +30,10 @@ local isPlayingTransition = false
 local transitionScope = Scope.new()
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+
+function ZoneController.Init()
+    MinigameController = require(Paths.Client.Minigames.MinigameController)
+end
 
 -------------------------------------------------------------------------------
 -- Getters
@@ -65,7 +70,13 @@ local function setupTeleporters()
                             return
                         end
 
-                        ZoneController.teleportToRoomRequest(zone)
+                        if zone.ZoneType == ZoneConstants.ZoneType.Room then
+                            ZoneController.teleportToRoomRequest(zone)
+                        elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+                            MinigameController.play(zone.ZoneId)
+                        else
+                            warn(("%s wat"):format(zone.ZoneType))
+                        end
                     end)
                 end
 
@@ -117,7 +128,7 @@ end
 
 --[[
     Centralised logic for playing a transition mid-teleport, when we're not sure if the teleport will be granted - and then runs internal routines!
-    - `yielder`: Stop yielding this function when we can exit the transition (e.g., have recieved server response)
+    - `yielder`: Stop yielding this function when we can exit the transition (e.g., have recieved server response, has been teleported)
     - `verifier` (optional): Return true. Returning false indicates the teleport was aborted, and will not run internal routines
 
     Yields.

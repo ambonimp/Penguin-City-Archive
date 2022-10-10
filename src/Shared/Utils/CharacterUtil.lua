@@ -171,7 +171,6 @@ end
 ]]
 function CharacterUtil.setEthereal(player: Player, isEthereal: boolean, scope: string?)
     scope = scope or DEFAULT_SCOPE
-    print("setEthereal", player, isEthereal, scope)
 
     -- RETURN: Nothing to update or change
     local toggle = etherealToggles[player]

@@ -168,6 +168,8 @@ function PlayersHitbox.new()
 
     -- Cleanup
     maid:GiveTask(stopValidator)
+    maid:GiveTask(playersHitbox.PlayerEntered)
+    maid:GiveTask(playersHitbox.PlayerLeft)
 
     return playersHitbox
 end

@@ -44,13 +44,10 @@ function PizzaMinigameController.stopMinigame()
     isStarted = false
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
-    Transitions.blink(function()
-        if runner and runner:IsRunning() then
-            PizzaMinigameController.finish()
-        end
-
-        PizzaMinigameController.clearView()
-    end)
+    if runner and runner:IsRunning() then
+        PizzaMinigameController.finish()
+    end
+    PizzaMinigameController.clearView()
 end
 
 -------------------------------------------------------------------------------
