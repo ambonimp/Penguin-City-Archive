@@ -1,5 +1,6 @@
 local CharacterService = {}
 
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -11,6 +12,10 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local PlayerService = require(Paths.Server.PlayerService)
+local DescendantLooper = require(Paths.Shared.DescendantLooper)
+local PropertyStack = require(Paths.Shared.PropertyStack)
+local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 Players.CharacterAutoLoads = false
 
@@ -36,6 +41,24 @@ function CharacterService.standOn(character: Model, platform: BasePart, useRando
     character:PivotTo(pivotCFrame)
 end
 
+local function setupCharacter(_player: Player, character: Model)
+    -- Setup Collisions
+    do
+        -- DescendantLooper and PropertyStack listen to instance.Destroying for cache cleanup
+        DescendantLooper.add(function(descendant)
+            return descendant:IsA("BasePart")
+        end, function(part: BasePart)
+            PropertyStack.setProperty(
+                part,
+                "CollisionGroupId",
+                PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.Characters),
+                "CharacterController",
+                -1
+            )
+        end, { character })
+    end
+end
+
 function CharacterService.loadPlayer(player: Player)
     local character = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
     character.Name = player.Name
@@ -48,8 +71,15 @@ function CharacterService.loadPlayer(player: Player)
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed
     humanoid.JumpPower = CharacterConstants.JumpPower
+
+    -- Character Setup
+    setupCharacter(player, character)
+    PlayerService.getPlayerMaid(player):GiveTask(player.CharacterAdded:Connect(function(newCharacter: Model)
+        setupCharacter(player, newCharacter)
+    end))
 end
 
+-- Communication
 Remotes.bindFunctions({
     UpdateCharacterAppearance = function(client, changes: { [string]: string })
         -- RETURN: No character

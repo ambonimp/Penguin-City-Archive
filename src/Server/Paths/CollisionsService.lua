@@ -45,6 +45,10 @@ local function _setCollision(group, collidableGroups: PhysicsGroups?, nonCollida
     end
 end
 
+function CollisionsService.getCollisionGroupId(groupName: string)
+    return PhysicsService:GetCollisionGroupId(groupName)
+end
+
 -- Characters
 createGroup(groupNames.Characters)
 setGroupCollideableWhitelist(groupNames.Characters, { groupNames.Default, groupNames.Characters })
