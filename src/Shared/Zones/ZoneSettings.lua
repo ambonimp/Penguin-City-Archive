@@ -1,4 +1,3 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
     -- Rooms
     Room = {},
@@ -10,6 +9,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
             Lighting = {
                 Ambient = Color3.fromRGB(130, 120, 113),
             },
+            DisableCollisions = true,
         },
     },
 }
@@ -18,6 +18,7 @@ export type ZoneSettings = {
     Lighting: {
         Ambient: Color3?,
     }?,
+    DisableCollisions: boolean?,
 }
 
 return ZoneSettings

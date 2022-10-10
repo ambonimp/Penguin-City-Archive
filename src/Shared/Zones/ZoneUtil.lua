@@ -69,7 +69,7 @@ function ZoneUtil.getDepartures(zone: ZoneConstants.Zone, zoneType: string)
 end
 
 function ZoneUtil.getSettings(zone: ZoneConstants.Zone)
-    return ZoneSettings[zone.ZoneType][zone.ZoneId]
+    return ZoneSettings[zone.ZoneType][zone.ZoneId] or nil
 end
 
 function ZoneUtil.applySettings(zone: ZoneConstants.Zone)

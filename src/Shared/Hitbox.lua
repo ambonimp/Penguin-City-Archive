@@ -4,6 +4,7 @@
 local Hitbox = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local RotatedRegion3 = require(ReplicatedStorage.Shared.RotatedRegion3)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Maid = require(ReplicatedStorage.Packages.maid)
@@ -110,7 +111,8 @@ function Hitbox.new()
     ]]
     function hitbox:IsPartInside(part: BasePart)
         for _, hitboxPart in pairs(parts) do
-            if table.find(hitboxPart:GetTouchingParts(), part) then
+            local partsInPart = Workspace:GetPartsInPart(hitboxPart)
+            if table.find(partsInPart, part) then
                 return true
             end
         end

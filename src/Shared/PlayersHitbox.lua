@@ -1,10 +1,11 @@
 --[[
     A `Hitbox` object with added functionality for detecting players being in the hitbox. Uses ONLY HumanoidRootPart (performance reasons)
     
-    Can only be defined by adding parts, as we use Touched+TouchEnded events and BasePart:GetTouchingParts()
+    Can only be defined by adding parts, as we use Touched+TouchEnded events and GetPartsInPart
 ]]
 local PlayersHitbox = {}
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
@@ -12,7 +13,7 @@ local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local CharacterUtil = require(ReplicatedStorage.Shared.Utils.CharacterUtil)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 
-local VALIDATE_EVERY = 1
+local VALIDATE_EVERY = 0.5
 
 function PlayersHitbox.new()
     local playersHitbox = {}
@@ -65,7 +66,8 @@ function PlayersHitbox.new()
 
             -- Validate cachedPlayers
             for player, _ in pairs(cachedPlayers) do
-                if not playersHitbox:IsPlayerInside(player) then
+                if (not player:IsDescendantOf(Players)) or not playersHitbox:IsPlayerInside(player) then
+                    playersHitbox.PlayerLeft:Fire(player)
                     cachedPlayers[player] = nil
                 end
             end
@@ -158,6 +160,7 @@ function PlayersHitbox.new()
         for player, _ in pairs(cachedPlayers) do
             playersHitbox.PlayerLeft:Fire(player)
         end
+        cachedPlayers = {}
 
         hitbox:Destroy(doDestroyParts)
     end

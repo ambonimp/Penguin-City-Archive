@@ -13,13 +13,9 @@ local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
-local Scope = require(Paths.Shared.Scope)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
-local CHECK_CHARACTER_COLLISIONS_EVERY = 0.5
-local ETHEREAL_SCOPE_TRANSITION = "ZoneTransition"
-local COLLISION_PART_SIZE_GROWTH = Vector3.new(8, 4, 8)
 
 local localPlayer = Players.LocalPlayer
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
@@ -27,7 +23,6 @@ local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
-local transitionScope = Scope.new()
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
@@ -79,37 +74,6 @@ local function setupTeleporters()
                         end
                     end)
                 end
-
-                -- Collisions
-                do
-                    local collisionsPart: BasePart = teleporter:Clone()
-                    local collisionsName = ("%s_DepartureCollisions"):format(collisionsPart.Name)
-                    collisionsPart.Name = collisionsName
-                    collisionsPart.Size = collisionsPart.Size + COLLISION_PART_SIZE_GROWTH
-                    collisionsPart.Parent = departures.Parent
-                    zoneMaid:GiveTask(collisionsPart)
-
-                    local collisionsHitbox = PlayersHitbox.new():AddPart(collisionsPart)
-                    zoneMaid:GiveTask(collisionsHitbox)
-
-                    collisionsHitbox.PlayerEntered:Connect(function(player: Player)
-                        -- RETURN: Not local player
-                        if player ~= Players.LocalPlayer then
-                            return
-                        end
-
-                        CharacterUtil.setEthereal(player, true, collisionsName)
-                    end)
-
-                    collisionsHitbox.PlayerLeft:Connect(function(player: Player)
-                        -- RETURN: Not local player
-                        if player ~= Players.LocalPlayer then
-                            return
-                        end
-
-                        CharacterUtil.setEthereal(player, false, collisionsName)
-                    end)
-                end
             end
         end
     end
@@ -148,7 +112,6 @@ function ZoneController.transitionToZone(
     blinkOptions = blinkOptions or {}
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
-    local scopeId = transitionScope:NewScope()
     isPlayingTransition = true
 
     Transitions.blink(function()
@@ -158,7 +121,6 @@ function ZoneController.transitionToZone(
             -- Init character
             local character = localPlayer.Character
             if character then
-                CharacterUtil.setEthereal(localPlayer, true, ETHEREAL_SCOPE_TRANSITION)
                 CharacterUtil.anchor(character)
             end
 
@@ -168,18 +130,6 @@ function ZoneController.transitionToZone(
             -- Revert character
             if character then
                 CharacterUtil.unanchor(character)
-                task.spawn(function()
-                    -- Reenable collisions when not colliding with another player
-                    while transitionScope:Matches(scopeId) do
-                        character = localPlayer.Character
-                        if character and not CharacterUtil.isCollidingWithOtherCharacter(character) then
-                            CharacterUtil.setEthereal(localPlayer, false, ETHEREAL_SCOPE_TRANSITION)
-                            break
-                        end
-
-                        task.wait(CHECK_CHARACTER_COLLISIONS_EVERY)
-                    end
-                end)
             end
 
             -- Announce Arrival

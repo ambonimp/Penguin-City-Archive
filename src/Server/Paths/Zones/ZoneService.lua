@@ -11,10 +11,49 @@ local CharacterService = require(Paths.Server.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+
+local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
+local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
+local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
+local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+
+function ZoneService.Init()
+    -- Setup character collisions around departures
+    local collisionDisablers = Instance.new("Folder")
+    collisionDisablers.Name = "CollisionDisablers"
+    collisionDisablers.Parent = game.Workspace
+
+    for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
+        for zoneId, _ in pairs(zoneIds) do
+            local zone = ZoneUtil.zone(zoneType, zoneId)
+            local departures =
+                { ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Minigame), ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Room) }
+            for _, departureDirectory: Instance in pairs(departures) do
+                for _, departurePart in pairs(departureDirectory:GetChildren()) do
+                    -- Create collision changer
+                    local collisionPart: BasePart = departurePart:Clone()
+                    collisionPart.Name = ("%s_%s_%s_CollisionDisabler"):format(zoneType, zoneId, departurePart.Name)
+                    collisionPart.Size = collisionPart.Size + DEPARTURE_COLLISION_AREA_SIZE
+                    collisionPart.Parent = collisionDisablers
+
+                    local collisionHitbox = PlayersHitbox.new():AddPart(collisionPart)
+                    collisionHitbox.PlayerEntered:Connect(function(player)
+                        CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_DEPARTURES)
+                    end)
+                    collisionHitbox.PlayerLeft:Connect(function(player)
+                        CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
+                    end)
+                end
+            end
+        end
+    end
+end
 
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
@@ -95,13 +134,30 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
 
-    -- Teleport player (after a delay) (as long as we're still on the same request)
+    -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
     local timeElapsedSinceInvoke = (game.Workspace:GetServerTimeNow() - invokedServerTime)
     local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
+            -- Disable Collisions
+            CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
+
+            -- Teleport
             CharacterService.standOn(player.Character, spawnpoint, true)
+
+            -- Wait to re-enable collisions (while we're still on the same request!)
+            local zoneSettings = ZoneUtil.getSettings(zone)
+            local collisionsAreDisabled = zoneSettings and zoneSettings.DisableCollisions
+            if not collisionsAreDisabled then
+                while cachedTotalTeleports == playerZoneState.TotalTeleports do
+                    task.wait(CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY)
+                    if not (player.Character and CharacterUtil.isCollidingWithOtherCharacter(player.Character)) then
+                        CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_TELEPORTS)
+                        break
+                    end
+                end
+            end
         end
     end)
 

@@ -3,6 +3,7 @@ local CharacterUtil = {}
 local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Toggle = require(Shared.Toggle)
 local Packages = ReplicatedStorage.Packages
@@ -40,6 +41,7 @@ local areCharactersHidden: typeof(Toggle.new(true, function() end))
 local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = {}
 local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
 local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.EtherealCharacters)
+local isCollidingWithOtherCharacterOverlapParams = OverlapParams.new()
 
 -------------------------------------------------------------------------------
 -- Internal Methods
@@ -220,14 +222,19 @@ function CharacterUtil.getAllCharacters()
 end
 
 -- Returns true if the passed character is colliding with any other character in the world
+-- Ignores the different collision groups we have for characters.
 function CharacterUtil.isCollidingWithOtherCharacter(character: Model)
     local collideableParts: { BasePart } = InstanceUtil.getChildren(character, function(child: BasePart)
         return child:IsA("BasePart") and child.CanCollide == true
     end)
 
+    isCollidingWithOtherCharacterOverlapParams.FilterDescendantsInstances = { character }
+    isCollidingWithOtherCharacterOverlapParams.FilterType = Enum.RaycastFilterType.Blacklist
+
     for _, collideablePart in pairs(collideableParts) do
-        local touchingParts = collideablePart:GetTouchingParts()
-        for _, touchingPart in pairs(touchingParts) do
+        local partsInCollideablePart =
+            Workspace:GetPartBoundsInBox(collideablePart.CFrame, collideablePart.Size, isCollidingWithOtherCharacterOverlapParams)
+        for _, touchingPart in pairs(partsInCollideablePart) do
             if CharacterUtil.getPlayerFromCharacterPart(touchingPart) then
                 return true
             end
