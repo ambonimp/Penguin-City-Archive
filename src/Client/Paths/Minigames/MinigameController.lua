@@ -52,7 +52,9 @@ function MinigameController.play(minigame: string)
     local requestAssume = Assume.new(function()
         local playRequest: MinigameConstants.PlayRequest, teleportBuffer: number? =
             Remotes.invokeServer("RequestToPlayMinigame", minigame, game.Workspace:GetServerTimeNow())
+
         Output.doDebug(MinigameConstants.DoDebug, ".play Assume", playRequest, teleportBuffer)
+
         return playRequest, teleportBuffer
     end)
     requestAssume:Check(function(playRequest: MinigameConstants.PlayRequest, _teleportBuffer: number?)
@@ -110,7 +112,9 @@ function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
     local requestAssume = Assume.new(function()
         local playRequest: MinigameConstants.PlayRequest, roomZoneId: string?, teleportBuffer: number? =
             Remotes.invokeServer("RequestToStopPlaying", game.Workspace:GetServerTimeNow())
+
         Output.doDebug(MinigameConstants.DoDebug, ".play Assume", playRequest, teleportBuffer)
+
         local zone = roomZoneId and ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomZoneId) or nil
         return playRequest, zone, teleportBuffer
     end)

@@ -78,7 +78,9 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if zone.ZoneType == ZoneConstants.ZoneType.Room then
         playerZoneState.RoomId = zone.ZoneId
+        playerZoneState.MinigameId = nil
     elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+        -- Keep existing RoomId
         playerZoneState.MinigameId = zone.ZoneId
     else
         warn(("Unknown zonetype %s"):format(zone.ZoneType))

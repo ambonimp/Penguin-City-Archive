@@ -49,6 +49,6 @@ ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
 
-ZoneConstants.DoDebug = true
+ZoneConstants.DoDebug = false
 
 return ZoneConstants

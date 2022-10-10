@@ -18,8 +18,6 @@ local specialFx = ui:WaitForChild("SpecialEffects")
 
 -- Yields
 function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOptions?)
-    print(debug.traceback(), "blink")
-
     -- Read blink options
     blinkOptions = blinkOptions or {}
     local tweenInfo = blinkOptions.TweenInfo or Transitions.BLINK_TWEEN_INFO
@@ -38,10 +36,8 @@ function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOpti
 
     onHalfPoint()
     if doAlignCamera then
-        print("align character")
         CameraController.alignCharacter()
     end
-    print("tween out")
 
     -- Tween Out
     do
