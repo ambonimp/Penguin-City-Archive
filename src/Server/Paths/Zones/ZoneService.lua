@@ -110,48 +110,6 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
 end
 Remotes.declareEvent("ZoneTeleport")
 
---[[
-    Sends the player to a room - either the one passed, or the one currently stored in their PlayerZoneState
-]]
-function ZoneService.sendPlayerToRoom(player: Player, roomZone: ZoneConstants.Zone?)
-    Output.doDebug(ZoneConstants.DoDebug, "sendPlayerToRoom", player, roomZone and roomZone.ZoneId)
-
-    roomZone = roomZone or ZoneService.getPlayerRoom(player)
-
-    -- RETURN: Already there!
-    local currentZone = ZoneService.getPlayerZone(player)
-    if currentZone.ZoneType == roomZone.ZoneType and currentZone.ZoneId == roomZone.ZoneId then
-        return
-    end
-
-    ZoneService.teleportPlayerToZone(player, roomZone)
-end
-
---[[
-    Sends the player to a minigame.
-
-    Can pass an optional `fromRoomzone` if we want them to return to a different room than the one they were in before we sent them to the minigame
-]]
-function ZoneService.sendPlayerToMinigame(player: Player, minigameZone: ZoneConstants.Zone, fromRoomZone: ZoneConstants.Zone?)
-    Output.doDebug(ZoneConstants.DoDebug, "sendPlayerToMinigame", player, minigameZone.ZoneId, fromRoomZone and fromRoomZone.ZoneId)
-
-    minigameZone = minigameZone or ZoneService.getPlayerMinigame(player)
-
-    -- RETURN: Already there!
-    local currentZone = ZoneService.getPlayerZone(player)
-    if currentZone.ZoneType == minigameZone.ZoneType and currentZone.ZoneId == minigameZone.ZoneId then
-        return
-    end
-
-    ZoneService.teleportPlayerToZone(player, minigameZone)
-
-    -- EDGE CASE: Update room zone
-    if fromRoomZone then
-        local playerZoneState = ZoneService.getPlayerZoneState(player)
-        playerZoneState.RoomId = fromRoomZone.ZoneId
-    end
-end
-
 function ZoneService.loadPlayer(player: Player)
     Output.doDebug(ZoneConstants.DoDebug, "loadPlayer", player)
 
