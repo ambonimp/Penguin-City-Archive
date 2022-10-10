@@ -29,6 +29,11 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
                 end
             end
         end)
+
+        -- Cleanup cache
+        instance.Destroying:Connect(function()
+            instanceCheckerCallbackPairs[instance] = nil
+        end)
     end
 
     return instanceCheckerCallbackPairs[instance]

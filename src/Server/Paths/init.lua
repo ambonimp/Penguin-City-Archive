@@ -25,7 +25,7 @@ task.delay(0, function()
         require(server.DeveloperToLive),
 
         -- Systems
-        require(server.PhysicsService),
+        require(server.CollisionsService),
         require(server.Data.DataService),
         require(server.AnalyticsTracking),
         require(server.VehicleService),

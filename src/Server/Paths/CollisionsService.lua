@@ -1,10 +1,14 @@
-local Service = {}
+local CollisionsService = {}
 
 local PhysicsService = game:GetService("PhysicsService")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Paths = require(ServerScriptService.Paths)
+local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 type PhysicsGroups = { string }
 
-local groups: PhysicsGroups = { "Default" }
+local groupNames = CollisionsConstants.Groups
+local groups: PhysicsGroups = { groupNames.Default }
 
 local function createGroup(name: string)
     PhysicsService:CreateCollisionGroup(name)
@@ -41,12 +45,16 @@ local function _setCollision(group, collidableGroups: PhysicsGroups?, nonCollida
     end
 end
 
+-- Characters
+createGroup(groupNames.Characters)
+setGroupCollideableWhitelist(groupNames.Characters, { groupNames.Default, groupNames.Characters })
+
 -- Hidden Characters
-createGroup("HiddenCharacters")
-setGroupCollideableWhitelist("HiddenCharacters", { "Default" })
+createGroup(groupNames.HiddenCharacters)
+setGroupCollideableWhitelist(groupNames.HiddenCharacters, { groupNames.Default })
 
 -- Ethereal Characters
-createGroup("EtherealCharacters")
-setGroupCollideableWhitelist("EtherealCharacters", { "Default" })
+createGroup(groupNames.EtherealCharacters)
+setGroupCollideableWhitelist(groupNames.EtherealCharacters, { groupNames.Default })
 
-return Service
+return CollisionsService

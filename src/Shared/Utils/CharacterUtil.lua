@@ -11,6 +11,7 @@ local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
 export type CharacterAppearance = {
     BodyType: string,
 }
@@ -20,7 +21,11 @@ type HideProperty = { Name: string, Value: any, StackPriority: number }
 local HIDEABLE_CLASSES: { [string]: { HideProperty } } = {
     BasePart = {
         { Name = "Transparency", Value = 1, StackPriority = 10 },
-        { Name = "CollisionGroupId", Value = PhysicsService:GetCollisionGroupId("HiddenCharacters"), StackPriority = 10 },
+        {
+            Name = "CollisionGroupId",
+            Value = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.HiddenCharacters),
+            StackPriority = 10,
+        },
     },
     Decal = { { Name = "Transparency", Value = 1, StackPriority = 10 } },
     BillboardGui = { { Name = "Enabled", Value = false, StackPriority = 10 } },
@@ -34,7 +39,7 @@ local hidingSession = Maid.new()
 local areCharactersHidden: typeof(Toggle.new(true, function() end))
 local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = {}
 local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
-local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId("EtherealCharacters")
+local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.EtherealCharacters)
 
 -------------------------------------------------------------------------------
 -- Internal Methods
