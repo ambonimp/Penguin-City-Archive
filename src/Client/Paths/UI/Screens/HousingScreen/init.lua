@@ -127,13 +127,13 @@ function HousingScreen.houseEntered(hasEditPerms: boolean)
 end
 
 function HousingScreen.houseExited()
-    uiStateMachine:Pop()
-
     if uiStateMachine:HasState(UIConstants.States.HousingEdit) then
         uiStateMachine:Remove(UIConstants.States.HousingEdit)
     end
 
     HousingScreen.enableHousePrompts()
+
+    uiStateMachine:Pop()
 end
 
 --called when player enters Neighborhood zone
@@ -258,7 +258,7 @@ end
 do
     --open buttons
     enterEdit.MouseButton1Down:Connect(function()
-        uiStateMachine:PopToAndPush(UIConstants.States.EditingHouse)
+        uiStateMachine:Push(UIConstants.States.EditingHouse)
     end)
     houseChange.Pressed:Connect(function()
         uiStateMachine:Push(UIConstants.States.HouseSelectionUI)

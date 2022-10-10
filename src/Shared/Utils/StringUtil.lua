@@ -265,7 +265,7 @@ end
 --[[
     Coverts a name to include an 's or s'
 ]]
-function StringUtil.possessiveName(str: string)
+function StringUtil.possesiveName(str: string)
     if StringUtil.endsWith(str:upper(), "S") then
         return ("%s'"):format(str)
     end
