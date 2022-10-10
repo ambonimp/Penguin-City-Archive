@@ -4,6 +4,7 @@
 local Carousel = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage.Shared
 local Signal = require(Shared.Signal)
@@ -11,12 +12,14 @@ local UDimUtil = require(Shared.Utils.UDimUtil)
 local Elements = script.Parent
 local Element = require(Elements.UIElement)
 local KeyboardButton = require(Elements.KeyboardButton)
-
+local UIScaleController: typeof(require(script.Parent.Parent.Scaling.UIScaleController))
 type Button = typeof(KeyboardButton.new())
 
 local NAVIGATOR_PADDING = UDim2.fromScale(0, 0.01)
 local NAVIGATOR_DISABLED_COLOR = Color3.fromRGB(169, 169, 169)
-local SCROLL_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local SCROLL_PREV_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local SCROLL_NEXT_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local IS_PLAYING = RunService:IsRunning()
 
 Carousel.Defaults = {
     NavigatorSize = 10,
@@ -46,7 +49,6 @@ function Carousel.new()
     local list: ScrollingFrame = Instance.new("ScrollingFrame")
     list.BackgroundTransparency = 1
     list.BorderSizePixel = 0
-    list.AutomaticCanvasSize = Enum.AutomaticSize.Y
     list.CanvasSize = UDim2.fromScale(0, 0)
     list.ScrollingDirection = Enum.ScrollingDirection.Y
     list.ElasticBehavior = Enum.ElasticBehavior.Never
@@ -79,23 +81,32 @@ function Carousel.new()
         return KeyboardButton.new()
     end
 
+    local function toggleNavigator(navigator: Button, enabled: boolean)
+        navigator:SetColor(if enabled then navigatorColor else NAVIGATOR_DISABLED_COLOR, true)
+    end
+
     local function isPrevNavigatorEnabled(): boolean
         local enabled = list.CanvasPosition.Y ~= 0
-        prevNavigator:SetColor(if enabled then navigatorColor else NAVIGATOR_DISABLED_COLOR, true)
+        toggleNavigator(prevNavigator, enabled)
 
         return enabled
     end
 
     local function isNextNavigatorEnabled(): boolean
         local enabled = list.CanvasPosition.Y ~= list.AbsoluteCanvasSize.Y - list.AbsoluteSize.Y
+        toggleNavigator(nextNavigator, enabled)
 
-        nextNavigator:SetColor(if enabled then navigatorColor else NAVIGATOR_DISABLED_COLOR, true)
         return enabled
     end
 
     local function updateNavigatorsEnabled()
-        isNextNavigatorEnabled()
-        isPrevNavigatorEnabled()
+        if listLayout.AbsoluteContentSize.Y <= list.AbsoluteSize.Y then
+            toggleNavigator(prevNavigator, false)
+            toggleNavigator(nextNavigator, false)
+        else
+            isNextNavigatorEnabled()
+            isPrevNavigatorEnabled()
+        end
     end
 
     local function getVisibleListContentSize(): (number, number)
@@ -173,7 +184,23 @@ function Carousel.new()
         nextNavigatorContainer.ZIndex = zIndex + 1
         nextNavigator:Mount(nextNavigatorContainer, true)
 
-        isPrevNavigatorEnabled()
+        if IS_PLAYING then
+            warn("NICE")
+
+            if not UIScaleController then -- Just so that it works with hoarcekat
+                UIScaleController = require(script.Parent.Parent.Scaling.UIScaleController)
+            end
+
+            -- Scrolling ( Asuumes all possible children have been added)
+            list.CanvasSize = UDim2.new(1, 0, 0, listLayout.AbsoluteContentSize.Y / UIScaleController.getScale())
+            carousel:GetMaid():GiveTask(UIScaleController.ScaleChanged:Connect(function()
+                updateNavigatorsEnabled()
+            end))
+        else
+            list.CanvasSize = UDim2.new(1, 0, 0, listLayout.AbsoluteContentSize.Y)
+        end
+
+        updateNavigatorsEnabled()
     end
 
     -------------------------------------------------------------------------------
@@ -202,7 +229,7 @@ function Carousel.new()
 
             scrollDb = true
             local scroll =
-                TweenService:Create(list, SCROLL_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
+                TweenService:Create(list, SCROLL_PREV_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
             scroll.Completed:Connect(function()
                 updateNavigatorsEnabled()
                 scrollDb = false
@@ -221,7 +248,7 @@ function Carousel.new()
 
             scrollDb = true
             local scroll =
-                TweenService:Create(list, SCROLL_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
+                TweenService:Create(list, SCROLL_NEXT_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
             scroll.Completed:Connect(function()
                 updateNavigatorsEnabled()
                 scrollDb = false
