@@ -11,14 +11,20 @@ local Maid = require(Paths.Packages.maid)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local Scope = require(Paths.Shared.Scope)
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
+local CHECK_CHARACTER_COLLISIONS_EVERY = 0.5
+local ETHEREAL_SCOPE_TRANSITION = "ZoneTransition"
 
+local localPlayer = Players.LocalPlayer
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
+local transitionScope = Scope.new()
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
@@ -93,14 +99,39 @@ function ZoneController.transitionToZone(
         return
     end
 
+    local scopeId = transitionScope:NewScope()
     isPlayingTransition = true
 
     Transitions.blink(function()
         yielder()
 
         if not verifier or verifier() == true then
+            -- Init character
+            local character = localPlayer.Character
+            if character then
+                CharacterUtil.setEthereal(localPlayer, true, ETHEREAL_SCOPE_TRANSITION)
+                CharacterUtil.anchor(character)
+            end
+
             -- Wait for zone to load
             ZoneController.waitForZoneToLoad(toZone)
+
+            -- Revert character
+            if character then
+                CharacterUtil.unanchor(character)
+                task.spawn(function()
+                    -- Reenable collisions when not colliding with another player
+                    while transitionScope:Matches(scopeId) do
+                        character = localPlayer.Character
+                        if character and not CharacterUtil.isCollidingWithOtherCharacter(character) then
+                            CharacterUtil.setEthereal(localPlayer, false, ETHEREAL_SCOPE_TRANSITION)
+                            break
+                        end
+
+                        task.wait(CHECK_CHARACTER_COLLISIONS_EVERY)
+                    end
+                end)
+            end
 
             -- Announce Arrival
             ZoneController.arrivedAtZone(toZone)

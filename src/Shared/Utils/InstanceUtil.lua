@@ -40,4 +40,26 @@ function InstanceUtil.weld(mainPart: BasePart, otherPart: BasePart)
     return weldConstraint
 end
 
+-- Returns children that checker(child) == true
+function InstanceUtil.getChildren(instance: Instance, checker: (child: Instance) -> boolean)
+    local children = {}
+    for _, child in pairs(instance:GetChildren()) do
+        if checker(child) then
+            table.insert(children, child)
+        end
+    end
+    return children
+end
+
+-- Returns descendants that checker(descendant) == true
+function InstanceUtil.getDescendants(instance: Instance, checker: (descendant: Instance) -> boolean)
+    local descendants = {}
+    for _, descendant in pairs(instance:GetDescendants()) do
+        if checker(descendant) then
+            table.insert(descendants, descendant)
+        end
+    end
+    return descendants
+end
+
 return InstanceUtil

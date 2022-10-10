@@ -10,10 +10,7 @@ local Maid = require(Packages.maid)
 local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
-
-local PROPERTY_STACK_KEY_HIDE = "CharacterUtil.Hide"
-local PROPERTY_STACK_KEY_ETHEREAL = "CharacterUtil.Ethereal"
-
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 export type CharacterAppearance = {
     BodyType: string,
 }
@@ -29,9 +26,13 @@ local HIDEABLE_CLASSES: { [string]: { HideProperty } } = {
     BillboardGui = { { Name = "Enabled", Value = false, StackPriority = 10 } },
 }
 local MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH = 2
+local PROPERTY_STACK_KEY_HIDE = "CharacterUtil.Hide"
+local PROPERTY_STACK_KEY_ETHEREAL = "CharacterUtil.Ethereal"
+local DEFAULT_SCOPE = "Default"
 
 local hidingSession = Maid.new()
 local areCharactersHidden: typeof(Toggle.new(true, function() end))
+local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = {}
 local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
 local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId("EtherealCharacters")
 
@@ -159,26 +160,79 @@ function CharacterUtil.getPlayerFromCharacterPart(part: BasePart)
     return nil
 end
 
--- When a character is ethereal, it does not collide with any other character
-function CharacterUtil.setEthereal(player: Player, isEthereal: boolean)
-    -- RETURN: Matches current state
-    local etherealMaid = etherealMaids[player]
-    if isEthereal and etherealMaid then
-        return
-    elseif not isEthereal and not etherealMaid then
-        return
+--[[
+    When a character is ethereal, it does not collide with any other character.
+    Can optionally pass `scope`, so .setEtheral calls in multiple contexts won't override one another
+]]
+function CharacterUtil.setEthereal(player: Player, isEthereal: boolean, scope: string?)
+    scope = scope or DEFAULT_SCOPE
+
+    -- Create toggle
+    local toggle = etherealToggles[player]
+    if not toggle then
+        toggle = Toggle.new(false, function(isEtherealToggle)
+            if isEtherealToggle then
+                -- Ethereal time baby
+                etherealMaids[player] = Maid.new()
+                etherealPlayer(player)
+                return
+            end
+
+            -- Revert
+            local etherealMaid = etherealMaids[player]
+            if etherealMaid then
+                etherealMaid:Destroy()
+                etherealMaids[player] = nil
+            end
+            etherealToggles[player] = nil
+        end)
     end
 
-    -- Revert
-    if not isEthereal then
-        etherealMaid:Destroy()
-        etherealMaids[player] = nil
-        return
+    -- Set Toggle
+    toggle:Set(isEthereal, scope)
+end
+
+--[[
+    Gets all characters currently loaded in. Remember that any of these characters could get streamed out at any moment!
+]]
+function CharacterUtil.getAllCharacters()
+    local characters: { Model } = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        table.insert(characters, player.Character)
+    end
+    return characters
+end
+
+-- Returns true if the passed character is colliding with any other character in the world
+function CharacterUtil.isCollidingWithOtherCharacter(character: Model)
+    local collideableParts: { BasePart } = InstanceUtil.getChildren(character, function(child: BasePart)
+        return child:IsA("BasePart") and child.CanCollide == true
+    end)
+
+    for _, collideablePart in pairs(collideableParts) do
+        local touchingParts = collideablePart:GetTouchingParts()
+        for _, touchingPart in pairs(touchingParts) do
+            if CharacterUtil.getPlayerFromCharacterPart(touchingPart) then
+                return true
+            end
+        end
     end
 
-    -- Ethereal time baby
-    etherealMaids[player] = Maid.new()
-    etherealPlayer(player)
+    return false
+end
+
+function CharacterUtil.anchor(character: Model)
+    local root = character.HumanoidRootPart
+    if root then
+        root.Anchored = true
+    end
+end
+
+function CharacterUtil.unanchor(character: Model)
+    local root = character.HumanoidRootPart
+    if root then
+        root.Anchored = false
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -187,7 +241,10 @@ end
 
 Players.PlayerRemoving:Connect(function(player)
     -- Cleanup Cache
-    CharacterUtil.setEthereal(player, false)
+    local etherealToggle = etherealToggles[player]
+    if etherealToggle then
+        etherealToggle:CallOnToggled(false) -- Force disable ethereal, and therefore clear cache
+    end
 end)
 
 areCharactersHidden = Toggle.new(false, function(value)
