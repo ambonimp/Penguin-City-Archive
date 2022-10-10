@@ -15,7 +15,7 @@ local KeyboardButton = require(Elements.KeyboardButton)
 local UIScaleController: typeof(require(script.Parent.Parent.Scaling.UIScaleController))
 type Button = typeof(KeyboardButton.new())
 
-local NAVIGATOR_PADDING = UDim2.fromScale(0, 0.01)
+local NAVIGATOR_PADDING = 0.01 -- In scale
 local NAVIGATOR_DISABLED_COLOR = Color3.fromRGB(169, 169, 169)
 local SCROLL_PREV_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local SCROLL_NEXT_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
@@ -28,12 +28,13 @@ Carousel.Defaults = {
     TabSortOrder = Enum.SortOrder.LayoutOrder,
 }
 
-function Carousel.new()
+function Carousel.new(direction: "X" | "Y")
     local carousel = Element.new()
 
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
+    local isVertical: boolean = direction == "Y"
     local scrollDb: boolean
     local navigatorColor: Color3
 
@@ -47,10 +48,10 @@ function Carousel.new()
     local nextNavigator: Button
 
     local list: ScrollingFrame = Instance.new("ScrollingFrame")
-    list.BackgroundTransparency = 1
+    list.BackgroundTransparency = 0
     list.BorderSizePixel = 0
     list.CanvasSize = UDim2.fromScale(0, 0)
-    list.ScrollingDirection = Enum.ScrollingDirection.Y
+    list.ScrollingDirection = Enum.ScrollingDirection[direction]
     list.ElasticBehavior = Enum.ElasticBehavior.Never
     list.ScrollBarThickness = 0
     list.ScrollBarImageTransparency = 1
@@ -58,8 +59,6 @@ function Carousel.new()
     list.Position = UDim2.fromScale(0.5, 0.5)
 
     local listLayout: UIListLayout = Instance.new("UIListLayout")
-    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
     listLayout.Parent = list
 
     -------------------------------------------------------------------------------
@@ -86,21 +85,21 @@ function Carousel.new()
     end
 
     local function isPrevNavigatorEnabled(): boolean
-        local enabled = list.CanvasPosition.Y ~= 0
+        local enabled = list.CanvasPosition[direction] ~= 0
         toggleNavigator(prevNavigator, enabled)
 
         return enabled
     end
 
     local function isNextNavigatorEnabled(): boolean
-        local enabled = list.CanvasPosition.Y ~= list.AbsoluteCanvasSize.Y - list.AbsoluteSize.Y
+        local enabled = list.CanvasPosition[direction] ~= list.AbsoluteCanvasSize[direction] - list.AbsoluteSize[direction]
         toggleNavigator(nextNavigator, enabled)
 
         return enabled
     end
 
     local function updateNavigatorsEnabled()
-        if listLayout.AbsoluteContentSize.Y <= list.AbsoluteSize.Y then
+        if listLayout.AbsoluteContentSize[direction] <= list.AbsoluteSize[direction] then
             toggleNavigator(prevNavigator, false)
             toggleNavigator(nextNavigator, false)
         else
@@ -114,13 +113,13 @@ function Carousel.new()
 
         local contentStart = math.huge
 
-        local listStart = list.AbsolutePosition.Y
-        local listSize = list.AbsoluteSize.Y
+        local listStart = list.AbsolutePosition[direction]
+        local listSize = list.AbsoluteSize[direction]
         local listEnd = listStart + listSize
 
         for _, child in pairs(children) do
-            local childStart = child.AbsolutePosition.Y
-            local childSize = child.AbsoluteSize.Y
+            local childStart = child.AbsolutePosition[direction]
+            local childSize = child.AbsoluteSize[direction]
             local childEnd = childStart + childSize
 
             if childStart >= listStart and childEnd <= listEnd then
@@ -140,11 +139,12 @@ function Carousel.new()
     -- Public Methods
     -------------------------------------------------------------------------------
     function carousel:SetNavigatorSize(newSize: number)
-        local size = UDim2.new(1, 0, 0, newSize)
+        local size = if isVertical then UDim2.new(1, 0, 0, newSize) else UDim2.new(0, newSize, 1, 0)
         nextNavigatorContainer.Size = size
         prevNavigatorContainer.Size = size
 
-        list.Size = UDim2.fromScale(1, 1) - UDimUtil.scalarMultiplyUDim2(UDim2.fromOffset(0, newSize) + NAVIGATOR_PADDING, 2)
+        local listMargin = if isVertical then UDim2.new(0, 0, NAVIGATOR_PADDING, newSize) else UDim2.new(NAVIGATOR_PADDING, newSize, 0, 0)
+        list.Size = UDim2.fromScale(1, 1) - UDimUtil.scalarMultiplyUDim2(listMargin, 2)
     end
 
     function carousel:SetNavigatorColor(newColor: Color3)
@@ -184,9 +184,10 @@ function Carousel.new()
         nextNavigatorContainer.ZIndex = zIndex + 1
         nextNavigator:Mount(nextNavigatorContainer, true)
 
+        local canvasSize = if isVertical
+            then UDim2.fromOffset(0, listLayout.AbsoluteContentSize.Y)
+            else UDim2.fromOffset(listLayout.AbsoluteContentSize.X, 0)
         if IS_PLAYING then
-            warn("NICE")
-
             if not UIScaleController then -- Just so that it works with hoarcekat
                 UIScaleController = require(script.Parent.Parent.Scaling.UIScaleController)
             end
@@ -197,7 +198,7 @@ function Carousel.new()
                 updateNavigatorsEnabled()
             end))
         else
-            list.CanvasSize = UDim2.new(1, 0, 0, listLayout.AbsoluteContentSize.Y)
+            list.CanvasSize = canvasSize
         end
 
         updateNavigatorsEnabled()
@@ -206,10 +207,23 @@ function Carousel.new()
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
-    prevNavigatorContainer = createNavigatorContainer(UDim2.fromScale(0.5, 0), Vector2.new(0.5, 0))
-    nextNavigator = createNavigator()
+    if isVertical then
+        prevNavigatorContainer = createNavigatorContainer(UDim2.fromScale(0.5, 0), Vector2.new(0.5, 0))
+        nextNavigatorContainer = createNavigatorContainer(UDim2.fromScale(0.5, 1), Vector2.new(0.5, 1))
 
-    nextNavigatorContainer = createNavigatorContainer(UDim2.fromScale(0.5, 1), Vector2.new(0.5, 1))
+        listLayout.FillDirection = Enum.FillDirection.Vertical
+        listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    else
+        prevNavigatorContainer = createNavigatorContainer(UDim2.fromScale(0, 0.5), Vector2.new(0, 0.5))
+        nextNavigatorContainer = createNavigatorContainer(UDim2.fromScale(1, 0.5), Vector2.new(1, 0.5))
+
+        listLayout.FillDirection = Enum.FillDirection.Horizontal
+        listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+        listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    end
+
+    nextNavigator = createNavigator()
     prevNavigator = createNavigator()
 
     local defaults = Carousel.Defaults
@@ -224,12 +238,13 @@ function Carousel.new()
             local visibleContentSize, visibleContentStart = getVisibleListContentSize()
             local visibleContentEnd = visibleContentStart + visibleContentSize
 
-            local positionDelta = visibleContentEnd - (list.AbsolutePosition.Y + list.AbsoluteSize.Y) - visibleContentSize
-            positionDelta = math.max(positionDelta, -canvasPosition.Y)
+            local positionDelta = visibleContentEnd - (list.AbsolutePosition[direction] + list.AbsoluteSize[direction]) - visibleContentSize
+            positionDelta = math.max(positionDelta, -canvasPosition[direction])
 
             scrollDb = true
-            local scroll =
-                TweenService:Create(list, SCROLL_PREV_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
+            local scroll = TweenService:Create(list, SCROLL_PREV_TWEEN_INFO, {
+                CanvasPosition = list.CanvasPosition + if isVertical then Vector2.new(0, positionDelta) else Vector2.new(positionDelta, 0),
+            })
             scroll.Completed:Connect(function()
                 updateNavigatorsEnabled()
                 scrollDb = false
@@ -243,12 +258,13 @@ function Carousel.new()
             local canvasPosition = list.CanvasPosition
             local visibleContentSize, visibleContentStart = getVisibleListContentSize()
 
-            local positionDelta = (visibleContentStart - list.AbsolutePosition.Y) + visibleContentSize
-            positionDelta = math.min(positionDelta, list.AbsoluteCanvasSize.Y - canvasPosition.Y)
+            local positionDelta = (visibleContentStart - list.AbsolutePosition[direction]) + visibleContentSize
+            positionDelta = math.min(positionDelta, list.AbsoluteCanvasSize[direction] - canvasPosition[direction])
 
             scrollDb = true
-            local scroll =
-                TweenService:Create(list, SCROLL_NEXT_TWEEN_INFO, { CanvasPosition = list.CanvasPosition + Vector2.new(0, positionDelta) })
+            local scroll = TweenService:Create(list, SCROLL_NEXT_TWEEN_INFO, {
+                CanvasPosition = list.CanvasPosition + if isVertical then Vector2.new(0, positionDelta) else Vector2.new(positionDelta, 0),
+            })
             scroll.Completed:Connect(function()
                 updateNavigatorsEnabled()
                 scrollDb = false
