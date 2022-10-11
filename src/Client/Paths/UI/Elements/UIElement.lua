@@ -1,8 +1,7 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIElement = {}
 
-local Players = game:GetService("Players")
-local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(ReplicatedStorage.Packages.maid)
 
 function UIElement.new()
     local uiElement = {}
