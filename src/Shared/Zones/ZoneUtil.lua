@@ -24,6 +24,10 @@ function ZoneUtil.zone(zoneType: string, zoneId: string)
     return zone
 end
 
+function ZoneUtil.houseZone(player: Player)
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
+end
+
 function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
     if zone.ZoneType == ZoneConstants.ZoneType.Room then
         return game.Workspace.Rooms[zone.ZoneId]
@@ -82,7 +86,7 @@ function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
     end
 end
 
-function ZoneUtil.reverSettings(zone: ZoneConstants.Zone)
+function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
     local settings = ZoneUtil.getSettings(zone)
     if settings then
         local key = zone.ZoneType .. zone.ZoneId

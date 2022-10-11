@@ -7,6 +7,7 @@ local ZoneConstants = {}
 export type PlayerZoneState = {
     RoomId: string,
     MinigameId: string?,
+    IglooId: string?,
     TotalTeleports: number,
 }
 
@@ -25,7 +26,6 @@ ZoneConstants.ZoneType = {
 }
 ZoneConstants.ZoneId = {
     Room = {
-        Start = "Start",
         Narnia = "Narnia",
         Neighborhood = "Neighborhood",
     },
@@ -36,7 +36,6 @@ ZoneConstants.ZoneId = {
 
 local defaultPlayerZoneState: PlayerZoneState = {
     RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
-    MinigameId = nil,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
@@ -50,5 +49,10 @@ ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 ZoneConstants.TeleportBuffer = 0.5
 
 ZoneConstants.DoDebug = false
+
+ZoneConstants.GridPriority = {
+    RoomsAndMinigames = 0,
+    Igloos = 1,
+}
 
 return ZoneConstants

@@ -13,6 +13,16 @@ local minigames = game.Workspace.Minigames
 
 local models: { Model } = {}
 local largestDiameter = 1
+local gridSideLength = 1
+
+function ZoneSetup.placeModelOnGrid(model: Model, horizontalIndex: number, yIndex: number)
+    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
+    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontalIndex)
+
+    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * yIndex, gridSideLength * spiralPosition.Y)
+    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
+    model:PivotTo(cframe)
+end
 
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
@@ -199,18 +209,11 @@ end
     Moves all our zones onto a spaced out grid to ensure we only streaming in one zone at a time
 ]]
 local function setupGrid()
-    local gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
-
-    local function moveModelToIndex(model: Model, xIndex: number, zIndex: number)
-        local position = Vector3.new(gridSideLength * xIndex, 0, gridSideLength * zIndex)
-        local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
-        model:PivotTo(cframe)
-    end
+    gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
 
     -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
     for n, model in pairs(models) do
-        local spiralPosition = MathUtil.getSquaredSpiralPosition(n)
-        moveModelToIndex(model, spiralPosition.X, spiralPosition.Y)
+        ZoneSetup.placeModelOnGrid(model, n, ZoneConstants.GridPriority.RoomsAndMinigames)
     end
 end
 

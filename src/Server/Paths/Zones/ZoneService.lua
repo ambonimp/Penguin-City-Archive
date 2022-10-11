@@ -13,8 +13,10 @@ local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
-local PlotService = require(Paths.Server.PlotService)
-local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+
+type TeleportData = {
+    InvokedServerTime: number?,
+}
 
 local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
 local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
@@ -103,10 +105,10 @@ end
     Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
-function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?, oldPlayer: Player?)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
+    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, teleportData)
 
-    invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
+    local invokedServerTime = teleportData.InvokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- WARN: No character!
     if not player.Character then
@@ -132,7 +134,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Inform Server
     ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
-    -- Content Streaming
+    -- Get spawnpoint + content Streaming
     local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
 
@@ -177,7 +179,9 @@ function ZoneService.loadPlayer(player: Player)
     playerZoneStatesByPlayer[player] = TableUtil.deepClone(ZoneConstants.DefaultPlayerZoneState) :: ZoneConstants.PlayerZoneState
 
     -- Send to zone
-    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), 0) -- invokedTime of 0 to immediately move the player Character
+    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
+        InvokedServerTime = 0,
+    }) -- invokedTime of 0 to immediately move the player Character
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()

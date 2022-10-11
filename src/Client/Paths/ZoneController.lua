@@ -155,7 +155,7 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     -- Zone Settings
     ZoneUtil.applySettings(zone)
     zoneMaid:GiveTask(function()
-        ZoneUtil.reverSettings(zone)
+        ZoneUtil.revertSettings(zone)
     end)
 
     setupTeleporters()

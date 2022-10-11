@@ -15,6 +15,7 @@ local CharacterConstants = require(Shared.Constants.CharacterConstants)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
+
 export type CharacterAppearance = {
     BodyType: string,
 }
