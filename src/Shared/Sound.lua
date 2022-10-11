@@ -18,9 +18,9 @@ local function getSound(soundName: string)
 end
 
 -- Plays sound globally. Plays by using `PlayOnRemove`, or via :Play() and is not removed
-function Sound.play(soundName: string, dontRemove: boolean?): Sound | nil
+function Sound.play(soundName: string, dontRemove: boolean?, parent: any?): Sound | nil
     local sound = getSound(soundName):Clone()
-    sound.Parent = game.Workspace
+    sound.Parent = parent or game.Workspace
 
     if dontRemove then
         sound:Play()

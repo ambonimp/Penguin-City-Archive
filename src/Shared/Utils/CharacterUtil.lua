@@ -10,6 +10,8 @@ local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
 local ItemConstants = Shared.Constants.CharacterItems
 local BodyTypeConstants = require(ItemConstants.BodyTypeConstants)
+local CharacterConstants = require(Shared.Constants.CharacterConstants)
+
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
@@ -140,6 +142,13 @@ function CharacterUtil.showCharacters(requester: string)
     areCharactersHidden:Set(false, requester)
 end
 
+function CharacterUtil.freeze(character: Model)
+    character.Humanoid.WalkSpeed = 0
+end
+
+function CharacterUtil.unfreeze(character: Model)
+    character.Humanoid.WalkSpeed = CharacterConstants.WalkSpeed
+end
 --[[
     Modifies a character's appearance based on their appearance description
     Partical description for changes, full descriptions for initialization

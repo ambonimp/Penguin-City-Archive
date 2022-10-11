@@ -13,6 +13,8 @@ local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local PlotService = require(Paths.Server.PlotService)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
 local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
@@ -101,7 +103,7 @@ end
     Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
-function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, invokedServerTime: number?, oldPlayer: Player?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, invokedServerTime)
 
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
