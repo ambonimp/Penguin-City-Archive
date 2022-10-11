@@ -21,7 +21,7 @@ local total = #plots:GetChildren()
 local current = 1
 
 local function getPlot()
-    currentPlot = HousingController.getPlayerPlot(player, plots)
+    currentPlot = HousingController.getPlayerPlot(player, HousingConstants.PlotType)
 end
 
 --position is the name of a plot

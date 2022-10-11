@@ -108,6 +108,7 @@ end
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, teleportData)
 
+    teleportData = teleportData or {}
     local invokedServerTime = teleportData.InvokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- WARN: No character!

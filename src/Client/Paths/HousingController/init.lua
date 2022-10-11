@@ -10,6 +10,8 @@ local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
 local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 
+local plots = workspace.Rooms.Neighborhood.HousingPlots
+
 HousingController.houseCF = nil :: CFrame?
 HousingController.currentHouse = nil :: Model?
 
@@ -26,7 +28,7 @@ function HousingController.Init()
     HousingController.isEditing = false :: boolean
 end
 
-function setupPlayerHouse()
+local function setupPlayerHouse()
     --set house cf if it hasn't been already
     if HousingController.houseCF == nil then
         repeat
@@ -64,18 +66,31 @@ function HousingController.Start()
 end
 
 --gets the plot of a house of any player
-function HousingController.getPlayerPlot(player: Player, folder: Folder)
-    for _, plot: Model in folder:GetChildren() do
-        if plot:GetAttribute(HousingConstants.PlotOwner) == player.UserId then
-            return plot
+function HousingController.getPlayerPlot(player: Player, type: string)
+    if type == HousingConstants.PlotType then
+        for _, plot: Model in plots:GetChildren() do
+            if plot:GetAttribute(HousingConstants.PlotOwner) == player.UserId then
+                return plot
+            end
         end
+    elseif type == HousingConstants.HouseType then
+        local zoneModel = game.Workspace.Rooms:FindFirstChild(tostring(player.UserId))
+        if zoneModel then
+            local model = zoneModel:FindFirstChildOfClass("Model")
+            if model then
+                return model
+            end
+        end
+    else
+        warn(("unknown house type %q"):format(type))
     end
+
     return nil
 end
 
 --Loads a players house
 function HousingController.loadPlayerHouse(player: Player, character: Model)
-    local plot = HousingController.getPlayerPlot(player, workspace.Rooms.Start.Houses)
+    local plot = HousingController.getPlayerPlot(player, HousingConstants.HouseType)
     HousingController.currentHouse = plot:FindFirstChildOfClass("Model")
 end
 
