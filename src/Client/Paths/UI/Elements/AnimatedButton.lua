@@ -19,7 +19,7 @@ type AnimationConstructor = (...any) -> Animation
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 
-AnimatedButton.Animations = {} :: { [string]: Animation }
+AnimatedButton.Animations = {} :: { [string]: AnimationConstructor }
 --#region Squish Animation
 do
     local DEFAULT_SCALE = UDim2.fromScale(1.2, 0.8)
@@ -82,13 +82,13 @@ function AnimatedButton.combineAnimations(animations: { Animation }): Animation
     local combinedAnimation = {}
 
     function combinedAnimation:Play(button: ButtonObject)
-        for _, animation in animations do
+        for _, animation in pairs(animations) do
             animation:Play(button)
         end
     end
 
     function combinedAnimation:Revert(button: ButtonObject)
-        for _, animation in animations do
+        for _, animation in pairs(animations) do
             if animation.Revert then
                 animation:Revert(button)
             end

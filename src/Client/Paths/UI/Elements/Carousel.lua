@@ -13,7 +13,8 @@ local Elements = script.Parent
 local Element = require(Elements.UIElement)
 local KeyboardButton = require(Elements.KeyboardButton)
 local UIScaleController: typeof(require(script.Parent.Parent.Scaling.UIScaleController))
-type Button = typeof(KeyboardButton.new())
+
+type KeyboardButton = typeof(KeyboardButton.new())
 
 local NAVIGATOR_PADDING = 0.01 -- In scale
 local NAVIGATOR_DISABLED_COLOR = Color3.fromRGB(169, 169, 169)
@@ -44,8 +45,8 @@ function Carousel.new(direction: "X" | "Y")
     local prevNavigatorContainer: Frame
     local nextNavigatorContainer: Frame
 
-    local prevNavigator: Button
-    local nextNavigator: Button
+    local prevNavigator: KeyboardButton
+    local nextNavigator: KeyboardButton
 
     local list: ScrollingFrame = Instance.new("ScrollingFrame")
     list.BackgroundTransparency = 0
@@ -76,11 +77,11 @@ function Carousel.new(direction: "X" | "Y")
         return container
     end
 
-    local function createNavigator(): Button
+    local function createNavigator(): KeyboardButton
         return KeyboardButton.new()
     end
 
-    local function toggleNavigator(navigator: Button, enabled: boolean)
+    local function toggleNavigator(navigator: KeyboardButton, enabled: boolean)
         navigator:SetColor(if enabled then navigatorColor else NAVIGATOR_DISABLED_COLOR, true)
     end
 
@@ -234,6 +235,8 @@ function Carousel.new(direction: "X" | "Y")
 
     prevNavigator.InternalRelease:Connect(function()
         if not scrollDb and isPrevNavigatorEnabled() then
+            scrollDb = true
+
             local canvasPosition = list.CanvasPosition
             local visibleContentSize, visibleContentStart = getVisibleListContentSize()
             local visibleContentEnd = visibleContentStart + visibleContentSize
@@ -241,7 +244,6 @@ function Carousel.new(direction: "X" | "Y")
             local positionDelta = visibleContentEnd - (list.AbsolutePosition[direction] + list.AbsoluteSize[direction]) - visibleContentSize
             positionDelta = math.max(positionDelta, -canvasPosition[direction])
 
-            scrollDb = true
             local scroll = TweenService:Create(list, SCROLL_PREV_TWEEN_INFO, {
                 CanvasPosition = list.CanvasPosition + if isVertical then Vector2.new(0, positionDelta) else Vector2.new(positionDelta, 0),
             })
@@ -255,13 +257,14 @@ function Carousel.new(direction: "X" | "Y")
 
     nextNavigator.InternalRelease:Connect(function()
         if not scrollDb and isNextNavigatorEnabled() then
+            scrollDb = true
+
             local canvasPosition = list.CanvasPosition
             local visibleContentSize, visibleContentStart = getVisibleListContentSize()
 
             local positionDelta = (visibleContentStart - list.AbsolutePosition[direction]) + visibleContentSize
             positionDelta = math.min(positionDelta, list.AbsoluteCanvasSize[direction] - canvasPosition[direction])
 
-            scrollDb = true
             local scroll = TweenService:Create(list, SCROLL_NEXT_TWEEN_INFO, {
                 CanvasPosition = list.CanvasPosition + if isVertical then Vector2.new(0, positionDelta) else Vector2.new(positionDelta, 0),
             })
