@@ -26,11 +26,29 @@ function StampUtil.getStampFromId(stampId: string)
         end
     end
 
+    warn(("Bad stampId %q; could not find in %q Stamps"):format(stampId, stampType))
     return nil
 end
 
 function StampUtil.getStampsFromType(stampType: Stamps.StampType): { Stamps.Stamp }
     return require(ReplicatedStorage.Shared.Stamps.StampTypes:FindFirstChild(("%sStamps"):format(stampType)))
+end
+
+function StampUtil.getStampDataAddress(stampId: string)
+    return ("Stamps.%s"):format(stampId)
+end
+
+function StampUtil.getStampIdCmdrArgument(stampTypeArgument)
+    local stampType = stampTypeArgument:GetValue()
+    return {
+        Type = StampUtil.getStampIdCmdrTypeName(stampType),
+        Name = "stampId",
+        Description = ("stampId (%s)"):format(stampType),
+    }
+end
+
+function StampUtil.getStampIdCmdrTypeName(stampType: string)
+    return StringUtil.toCamelCase(("%sStampId"):format(stampType))
 end
 
 return StampUtil
