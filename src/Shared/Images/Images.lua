@@ -53,7 +53,9 @@ Images.Icons = {
     Seal = "rbxassetid://11152369785",
     Search = "rbxassetid://11152369702",
     Shirt = "rbxassetid://11152369627",
+    Stamp = "rbxassetid://11250982379",
     Text = "rbxassetid://11152369398",
+    VoldexLogo = "rbxassetid://11250982454",
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
@@ -86,6 +88,19 @@ Images.PizzaMinigame = {
     PizzaBase = "rbxassetid://11152399418",
     Cheese = "rbxassetid://11152399496",
     Anchovy = "rbxassetid://11152399621",
+}
+--#endregion
+--#region StampBook
+Images.StampBook = {
+    Cover = "rbxassetid://11251247354",
+    Page = "rbxassetid://11251357764",
+    MetalCoil = "rbxassetid://11251357312",
+    Seal = "rbxassetid://11251246916",
+    PictureFrame = "rbxassetid://11251159219",
+    Patterns = {
+        Circles = "rbxassetid://11251328139",
+        Voldex = "rbxassetid://11251328429",
+    },
 }
 --#endregion
 
