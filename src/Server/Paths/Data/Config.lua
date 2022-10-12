@@ -26,6 +26,7 @@ function DataConfig.getDefaults()
         ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
+        Stamps = {},
         Coins = 0,
     }
 end
