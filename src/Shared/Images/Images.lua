@@ -97,9 +97,14 @@ Images.StampBook = {
     MetalCoil = "rbxassetid://11251357312",
     Seal = "rbxassetid://11251246916",
     PictureFrame = "rbxassetid://11251159219",
+    NavigationArrowRight = "rbxassetid://11252175153",
+    NavigationArrowLeft = "rbxassetid://11252199030",
     Patterns = {
         Circles = "rbxassetid://11251328139",
         Voldex = "rbxassetid://11251328429",
+    },
+    Titles = {
+        Pizza = "rbxassetid://11251854955",
     },
 }
 --#endregion
