@@ -20,14 +20,13 @@ local DataController = require(Paths.Client.DataController)
 local CoreGui = require(Paths.Client.UI.CoreGui)
 local Button = require(Paths.Client.UI.Elements.Button)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
+local Category = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
+local BodyTypeCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorBodyTypeCategory)
 local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
 
--- Constants
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 local DEFAULT_CATEGORY = "Shirt"
 
--- Members
 local canOpen: boolean = true
 
 local player: Player = Players.LocalPlayer
@@ -36,9 +35,10 @@ local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Edit
 local tabs: Frame = menu.Tabs
 local equippedSlots: Frame = screen.Equipped
+local bodyTypesPage: Frame = screen.BodyTypes
 local uiStateMachine = UIController.getStateMachine()
 
-local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
+local categories: { [string]: any } = {}
 local currentCategory: string
 
 local preview: Model
@@ -47,29 +47,36 @@ local session = Maid.new()
 -- Initialize categories
 do
     for categoryName in CharacterItems do
-        local category = CharacterEditorCategory.new(categoryName)
-        categories[categoryName] = category
+        local category
 
-        local tabButton = Button.new(category:GetTab())
-        tabButton:Mount(tabs)
-        tabButton.InternalPress:Connect(function()
-            if currentCategory then
-                categories[currentCategory]:Close()
+        if categoryName == "BodyType" then
+            category = BodyTypeCategory
+        else
+            category = Category.new(categoryName)
+
+            local tabButton = Button.new(category:GetTab())
+            tabButton:Mount(tabs)
+            tabButton.InternalPress:Connect(function()
+                if currentCategory then
+                    categories[currentCategory]:Close()
+                end
+
+                currentCategory = categoryName
+                category:Open()
+            end)
+
+            if categoryName == DEFAULT_CATEGORY then
+                currentCategory = categoryName
+                category:Open()
             end
-
-            currentCategory = categoryName
-            category:Open()
-        end)
-
-        if categoryName == DEFAULT_CATEGORY then
-            currentCategory = categoryName
-            category:Open()
         end
+
+        categories[categoryName] = category
     end
 
     categories.Outfit.Changed:Connect(function(appearance: CharacterItems.Appearance)
         for categoryName, category in categories do
-            local equippedItems: CharacterEditorCategory.EquippedItems = appearance[categoryName]
+            local equippedItems: Category.EquippedItems = appearance[categoryName]
             if equippedItems then
                 category:Equip(equippedItems)
             end
@@ -139,6 +146,7 @@ do
         -- Open menu and hide all other characters
         ScreenUtil.inLeft(menu)
         ScreenUtil.inRight(equippedSlots)
+        ScreenUtil.inRight(bodyTypesPage)
 
         CoreGui.disable()
         InteractionUtil.hideInteractions(script.Name)
@@ -154,7 +162,7 @@ do
             local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
             for categoryName, category in categories do
                 local equipped = category:GetEquipped()
-                if not TableUtil.shallowEquals(currentApperance[categoryName], equipped) then
+                if not TableUtil.shallowEquals(currentApperance[categoryName] :: table, equipped) then
                     appearanceChanges[categoryName] = equipped
                 end
                 -- Prevent memory leaks
@@ -173,6 +181,7 @@ do
 
             ScreenUtil.out(menu)
             ScreenUtil.out(equippedSlots)
+            ScreenUtil.out(bodyTypesPage)
 
             CharacterUtil.showCharacters(script.Name)
             CoreGui.enable()

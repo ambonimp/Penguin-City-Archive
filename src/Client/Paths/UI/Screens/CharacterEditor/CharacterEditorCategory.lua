@@ -11,14 +11,34 @@ local Button = require(Paths.Client.UI.Elements.Button)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 export type EquippedItems = { string }
 
-local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.2, 1.2))
+local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.15, 1.15))
 local BUTTON_SCALE_DOWN_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(0.9, 0.9))
 
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
 local templates: Folder = Paths.Templates.CharacterEditor
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local menu: Frame = screen.Edit
 local tabs: Frame = menu.Tabs
 local selectedTab: Frame = tabs.SelectedTab
+
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
+function CharacterEditorCategory.createItemButton(
+    itemName: string,
+    itemInfo: { Name: string, Icon: string, Color: Color3? },
+    categoryName
+): typeof(Button.new(Instance.new("ImageButton")))
+    local buttonObject = templates.Item:Clone()
+    buttonObject.Name = itemName
+    buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+    buttonObject.Icon.Image = assert(itemInfo.Icon, string.format("%s character item icon is nil: %s", categoryName, itemName))
+    buttonObject.Icon.ImageColor3 = itemInfo.Color or Color3.fromRGB(255, 255, 255)
+
+    return Button.new(buttonObject)
+end
 
 function CharacterEditorCategory.new(categoryName: string)
     local category = {}
@@ -41,10 +61,13 @@ function CharacterEditorCategory.new(categoryName: string)
     page.UIGridLayout.SortOrder = constants.SortOrder
     page.Parent = menu.Body
 
-    local equippedSlots: Frame = templates.EquippedSlots:Clone()
-    equippedSlots.Name = categoryName
-    equippedSlots.Visible = false
-    equippedSlots.Parent = screen.Equipped
+    local equippedSlots: Frame?
+    if multiEquip then
+        equippedSlots = templates.EquippedSlots:Clone()
+        equippedSlots.Name = categoryName
+        equippedSlots.Visible = false
+        equippedSlots.Parent = screen.Equipped
+    end
 
     local tab: ImageButton = templates.Tab:Clone()
     tab.Name = categoryName
@@ -164,32 +187,31 @@ function CharacterEditorCategory.new(categoryName: string)
         selectedTab.Visible = true
         selectedTab.Icon.Image = tab.Icon.Image
         selectedTab.LayoutOrder = tab.LayoutOrder
-        equippedSlots.Visible = true
+
+        if multiEquip then
+            equippedSlots.Visible = true
+        end
     end
 
     function category:Close()
         page.Visible = false
         tab.Visible = true
-        equippedSlots.Visible = false
+        if multiEquip then
+            equippedSlots.Visible = false
+        end
     end
 
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
     for itemName, itemConstants in constants.Items do
-        local buttonObject = templates.Item:Clone()
-        buttonObject.Name = itemName
-        buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
-        buttonObject.Icon.Image = assert(itemConstants.Icon, string.format("%s character item icon is nil: %s", categoryName, itemName))
-        buttonObject.Icon.ImageColor3 = itemConstants.Color or Color3.fromRGB(255, 255, 255)
-
-        local button = Button.new(buttonObject)
+        local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
         button:Mount(page)
 
         if isItemOwned(itemName) then
             onItemOwned(itemName)
         else
-            buttonObject.LayoutOrder = itemConstants.LayoutOrder or itemCount
+            button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder or itemCount
         end
 
         button.InternalPress:Connect(function()

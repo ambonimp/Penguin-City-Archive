@@ -15,8 +15,8 @@ DataConfig.DataKey = "DEV_2"
 function DataConfig.getDefaults(player)
     return {
         CharacterAppearance = {
-            BodyType = { "Teen" },
-            FurColor = { "Black" },
+            BodyType = { ["1"] = "Teen" },
+            FurColor = { ["1"] = "Black" },
             Hat = {},
             Backpack = {},
             Shirt = {},

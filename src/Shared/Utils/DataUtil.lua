@@ -9,8 +9,8 @@ local DataUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
-type Data = { [string]: (string | number | {}) }
-export type Store = Data
+export type Data = string | number | {}
+export type Store = { [string]: (string | number | {}) }
 
 --[[
     Generates an array of table keys(directions) from a string formatted like a address
@@ -28,19 +28,19 @@ end
 --[[
     Retrieves a value stored in an array
 ]]
-function DataUtil.getFromAddress(store: Data, address: string)
+function DataUtil.getFromAddress(store: Store, address: string): Data
     local keys = DataUtil.keysFromAddress(address)
     for i = 1, #keys do -- master directory is 1
         store = store[keys[i]]
     end
 
-    return store
+    return store :: Data
 end
 
 --[[
     Set a value in table using an array of keys point to it's new location in the table
 ]]
-function DataUtil.setFromAddress(store: Data, keys: { string }, newValue: any)
+function DataUtil.setFromAddress(store: Store, keys: { string }, newValue: any)
     if #keys == 1 then
         newValue = if typeof(newValue) == "table" then TableUtil.clone(newValue) else newValue
         store[keys[1]] = newValue
@@ -65,6 +65,20 @@ end
 ]]
 function DataUtil.getSyncKey(syncKey)
     return string.gsub(syncKey, "_.+", "")
+end
+
+--[[
+    Turns an number key(string) into an index (number)
+]]
+function DataUtil.arrayify(store: Store): { [string | number]: Data }
+    local returning = {}
+
+    for k, v in pairs(store) do
+        k = tonumber(k) or k
+        returning[k] = if typeof(v) == "table" then DataUtil.arrayify(v) else v
+    end
+
+    return returning
 end
 
 return DataUtil

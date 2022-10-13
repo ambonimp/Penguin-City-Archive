@@ -8,6 +8,7 @@ local Paths = require(ServerScriptService.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local DataService = require(Paths.Server.Data.DataService)
+local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 Players.CharacterAutoLoads = false
 
@@ -28,7 +29,7 @@ function CharacterService.loadPlayer(player: Player)
     player.Character = character
 
     -- Apply saved appearance
-    CharacterUtil.applyAppearance(character, DataService.get(player, "CharacterAppearance"))
+    CharacterUtil.applyAppearance(character, DataUtil.arrayify(DataService.get(player, "CharacterAppearance")))
 
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed

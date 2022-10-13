@@ -19,7 +19,7 @@ DataService.Profiles = {}
 DataService.Updated = Signal.new()
 
 -- Gets
-function DataService.get(player: Player, address: string): any
+function DataService.get(player: Player, address: string): DataUtil.Data
     local profile = DataService.Profiles[player]
 
     if profile then
@@ -63,13 +63,13 @@ function DataService.append(player: Player, address: string, newValue: any, even
 end
 
 -- Increments a value at the address by the addend. Value defaults to 0, addend defaults to 1
-function DataService.increment(player: Player, address: string, addend: number?, event: string?)
+function DataService.increment(player: Player, address: string, addend: number?, event: string?): number
     local currentValue = DataService.get(player, address)
     return DataService.set(player, address, (currentValue or 0) + (addend or 1), event)
 end
 
 -- Multiplies a value at the address by the multiplicand. No defaults
-function DataService.multiply(player: Player, address: string, multiplicand: number, event: string?)
+function DataService.multiply(player: Player, address: string, multiplicand: number, event: string?): number
     local currentValue = DataService.get(player, address)
     return DataService.set(player, address, currentValue * multiplicand, event)
 end
