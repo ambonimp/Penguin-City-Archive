@@ -5,6 +5,7 @@ local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Limiter = require(Paths.Shared.Limiter)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
+local Signal = require(Paths.Shared.Signal)
 
 local BASE_RESOLUTION = Vector2.new(1920, 1080) -- UI is edited using this aspect ratio
 local LIMITER_KEY = "UIScaleResolution"
@@ -19,9 +20,17 @@ type UIScaleData = {
     SpecialInstances: { InstanceValuePair },
 }
 
+-------------------------------------------------------------------------------
+-- Private Members
+-------------------------------------------------------------------------------
 local uiScaleDatas: { [UIScale]: UIScaleData } = {}
 local scale: number -- Allows for the retention of aspect ratios
 local camera: Camera = Workspace.CurrentCamera
+
+-------------------------------------------------------------------------------
+-- PublicMembers
+-------------------------------------------------------------------------------
+UIScaleController.ScaleChanged = Signal.new()
 
 -------------------------------------------------------------------------------
 -- Instance creation
@@ -82,6 +91,14 @@ local function updateScale()
     for uiScale, _ in pairs(uiScaleDatas) do
         updateUIScale(uiScale)
     end
+
+    UIScaleController.ScaleChanged:Fire(scale)
+end
+-------------------------------------------------------------------------------
+-- Public Methods
+-------------------------------------------------------------------------------
+function UIScaleController.getScale()
+    return scale
 end
 
 -------------------------------------------------------------------------------
