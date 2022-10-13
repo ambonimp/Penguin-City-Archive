@@ -196,7 +196,7 @@ end
 -- Manipulate UIState
 do
     local exitButton = ExitButton.new()
-    exitButton:Mount(screen.Exit, true)
+    exitButton:Mount(tabs.Exit, true)
     exitButton.InternalPress:Connect(function()
         uiStateMachine:Pop()
     end)

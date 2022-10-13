@@ -8,7 +8,11 @@ local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local DataController = require(Paths.Client.DataController)
 local Signal = require(Paths.Shared.Signal)
 local Button = require(Paths.Client.UI.Elements.Button)
+local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 export type EquippedItems = { string }
+
+local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.2, 1.2))
+local BUTTON_SCALE_DOWN_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(0.9, 0.9))
 
 local templates: Folder = Paths.Templates.CharacterEditor
 local screen: ScreenGui = Paths.UI.CharacterEditor
@@ -90,14 +94,25 @@ function CharacterEditorCategory.new(categoryName: string)
 
         if multiEquip then
             if #equippedItems < constants.MaxEquippables then
-                local equippedSlot = templates.EquippedSlot:Clone()
-                equippedSlot.Name = itemName
-                equippedSlot.Icon.Image = constants.Items[itemName].Icon
-                equippedSlot.Parent = equippedSlots
+                local slot: ImageButton = templates.EquippedSlot:Clone()
+                slot.Name = itemName
+                slot.Icon.Image = constants.Items[itemName].Icon
 
-                equippedSlot.Unequip.MouseButton1Down:Connect(function()
+                local slotButton = AnimatedButton.new(slot)
+                slotButton.InternalRelease:Connect(function()
+                    task.wait(0.1) -- Just makes it more satifying
                     unequipItem(itemName)
                 end)
+                slotButton.InternalEnter:Connect(function()
+                    slot.Unequip.Visible = true
+                end)
+                slotButton.InternalLeave:Connect(function()
+                    slot.Unequip.Visible = false
+                end)
+
+                slotButton:SetPressAnimation(BUTTON_SCALE_DOWN_ANIMATION)
+                slotButton:SetHoverAnimation(BUTTON_SCALE_UP_ANIMATION)
+                slotButton:MountToUnconstrained(equippedSlots)
             else
                 -- TODO: Replace with a snackbar
                 warn("Cannot equip another item, the max is " .. constants.MaxEquippables)
