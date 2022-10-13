@@ -18,6 +18,7 @@ Paths.Client = client
 -- Misc
 Paths.UI = Players.LocalPlayer.PlayerGui
 Paths.Templates = ReplicatedStorage.Templates
+Paths.Assets = ReplicatedStorage.Assets
 Paths.Initialized = false
 
 -- Loading Coroutine
@@ -33,10 +34,15 @@ task.delay(0, function()
         require(client.UI.UIController),
         require(client.UI.Scaling.UIScaleController),
         require(client.CameraController),
+        require(client.HousingController),
         require(client.DataController),
         require(client.Character.CharacterController),
         require(client.VehicleController),
         require(client.Input.InputController),
+        require(client.Minigames.MinigameController),
+        require(client.UI.CoreGui),
+        require(client.CurrencyController),
+        require(client.ZoneController),
 
         -- UnitTest
         require(client.UnitTestingController),

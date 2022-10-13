@@ -7,6 +7,7 @@ local Packages = ReplicatedStorage.Packages
 local Maid = require(Packages.maid)
 local Shared = ReplicatedStorage.Shared
 local CharacterItems = require(Shared.Constants.CharacterItems)
+local CharacterConstants = require(Shared.Constants.CharacterConstants)
 local Toggle = require(Shared.Toggle)
 
 local HIDEABLE_CLASSES = {
@@ -17,6 +18,7 @@ local HIDEABLE_CLASSES = {
     Decal = { Name = "Transparency", HideValue = 1 },
     BillboardGui = { Name = "Enabled", HideValue = false },
 }
+local MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH = 2
 
 local assets = ReplicatedStorage.Assets.Character
 
@@ -192,4 +194,29 @@ do
         return appearance
     end
 end
+
+function CharacterUtil.freeze(character: Model)
+    character.Humanoid.WalkSpeed = 0
+end
+
+function CharacterUtil.unfreeze(character: Model)
+    character.Humanoid.WalkSpeed = CharacterConstants.WalkSpeed
+end
+
+function CharacterUtil.getPlayerFromCharacterPart(part: BasePart)
+    local character: Model
+    for _ = 1, MAX_PLAYER_FROM_CHARACTER_SEARCH_DEPTH do
+        part = part.Parent
+        character = part and part:IsA("Model") and part :: Model
+
+        if character then
+            return Players:GetPlayerFromCharacter(character)
+        elseif not part then
+            return nil
+        end
+    end
+
+    return nil
+end
+
 return CharacterUtil

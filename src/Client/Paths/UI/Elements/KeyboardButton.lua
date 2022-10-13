@@ -340,8 +340,12 @@ function KeyboardButton.new()
     function keyboardButton:SetTextColor(newColor: Color3, skipTween: boolean?)
         textColor = newColor
 
-        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
-        TweenUtil.tween(textLabel, tweenInfo, { TextColor = textColor })
+        if not skipTween then
+            local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+            TweenUtil.tween(textLabel, tweenInfo, { TextColor3 = textColor })
+        else
+            textLabel.TextColor3 = textColor
+        end
 
         return self
     end
@@ -417,7 +421,12 @@ function KeyboardButton.new()
 
     keyboardButton.InternalMount:Connect(function(parent: Instance, _hideParent: boolean?)
         back.Parent = parent
-
+        if icon then
+            icon.ZIndex = imageButton.ZIndex + 1
+        end
+        if textLabel then
+            textLabel.ZIndex = imageButton.ZIndex + 1
+        end
         back.ZIndex = imageButton.ZIndex - 1
     end)
     keyboardButton.InternalPress:Connect(function()

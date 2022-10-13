@@ -1,21 +1,62 @@
 {
-  "Nothing": {
-    "prefix": ["nothing", "nthng"],
-    "description": "Nothing",
-    "body": [""]
-  },
   "ClientPath": {
-    "prefix": ["paths-client"],
+    "prefix": ["paths-client", "pc"],
     "body": [
       "local Players = game:GetService(\"Players\")",
       "local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)"
     ]
   },
   "ServerPath": {
-    "prefix": ["paths-server"],
+    "prefix": ["paths-server", "ps"],
     "body": [
       "local ServerScriptService = game:GetService(\"ServerScriptService\")",
       "local Paths = require(ServerScriptService.Paths)"
+    ]
+  },
+  "Util": {
+    "prefix": ["util"],
+    "body": "local ${1:SomeUtil} = require(Paths.Shared.Utils.${1:SomeUtil})"
+  },
+  "Shared": {
+    "prefix": ["shared"],
+    "body": "local ${2:SomeShared} = require(Paths.Shared.${1:Directory}${2:SomeShared})"
+  },
+  "Server": {
+    "prefix": ["server"],
+    "body": "local ${2:SomeServer} = require(Paths.Server.${1:Directory}${2:SomeServer})"
+  },
+  "Client": {
+    "prefix": ["client"],
+    "body": "local ${2:SomeClient} = require(Paths.Server.${1:Directory}${2:SomeClient})"
+  },
+  "Module": {
+    "prefix": ["module"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
+    ]
+  },
+  "ServerModule": {
+    "prefix": ["module-server"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "local ServerScriptService = game:GetService(\"ServerScriptService\")",
+      "local Paths = require(ServerScriptService.Paths)",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
+    ]
+  },
+  "ClientModule": {
+    "prefix": ["module-client"],
+    "body": [
+      "local ${0:$TM_FILENAME_BASE} = {}",
+      "",
+      "local Players = game:GetService(\"Players\")",
+      "local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)",
+      "",
+      "return ${0:$TM_FILENAME_BASE}"
     ]
   },
   "LocalPlayer": {
@@ -30,6 +71,14 @@
       "-- ${0:COMMENT}",
       "-------------------------------------------------------------------------------"
     ]
+  },
+  "module-function":{
+    "prefix": ["module-function"],
+		"body": [
+			"function ${0:$TM_FILENAME_BASE}.${1:someFunction}(${2:})",
+			"",
+			"end",
+		],
   },
   "Class": {
     "prefix": "class-closure",

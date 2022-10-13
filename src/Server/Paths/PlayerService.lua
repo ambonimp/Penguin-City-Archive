@@ -2,22 +2,59 @@
 local PlayerService = {}
 
 local Players = game:GetService("Players")
-local Paths = require(script.Parent)
-local DataService = require(Paths.Server.Data.DataService)
-local CharacterService = require(Paths.Server.Characters.CharacterService)
+local ServerScriptService = game:GetService("ServerScriptService")
+local Paths = require(ServerScriptService.Paths)
+local Maid = require(Paths.Packages.maid)
 
-local function loadPlayer(player)
-    DataService.loadPlayer(player)
-    CharacterService.loadPlayer(player)
+local maidByPlayer: { [Player]: typeof(Maid.new()) } = {}
+
+-- Gives a maid that gets destroyed on the PlayerLeaving event; useful for cleaning up caches!
+function PlayerService.getPlayerMaid(player: Player)
+    return maidByPlayer[player]
 end
 
-Players.PlayerRemoving:Connect(function(player)
-    DataService.unloadPlayer(player)
-end)
+function PlayerService.Start()
+    -- Avoid circular dependencies
+    local DataService = require(Paths.Server.Data.DataService)
+    local CharacterService = require(Paths.Server.Characters.CharacterService)
+    local ProductService = require(Paths.Server.Products.ProductService)
+    local ZoneService = require(Paths.Server.Zones.ZoneService)
+    local PlotService = require(Paths.Server.PlotService)
 
-Players.PlayerAdded:Connect(loadPlayer)
-for _, player in pairs(Players:GetPlayers()) do
-    loadPlayer(player)
+    local function loadPlayer(player)
+        -- RETURN: Already loaded (rare studio bug)
+        if maidByPlayer[player] then
+            return
+        end
+
+        -- Create Maid
+        maidByPlayer[player] = Maid.new()
+
+        -- Load routines
+        DataService.loadPlayer(player)
+        CharacterService.loadPlayer(player)
+        ProductService.loadPlayer(player)
+        PlotService.loadPlayer(player)
+        ZoneService.loadPlayer(player)
+    end
+
+    Players.PlayerRemoving:Connect(function(player)
+        -- Unload routines
+        DataService.unloadPlayer(player)
+        PlotService.unloadPlayer(player)
+
+        -- Destroy Maid
+        maidByPlayer[player]:Destroy()
+        maidByPlayer[player] = nil
+
+        -- Unload Data Last
+        DataService.unloadPlayer(player)
+    end)
+
+    Players.PlayerAdded:Connect(loadPlayer)
+    for _, player in pairs(Players:GetPlayers()) do
+        loadPlayer(player)
+    end
 end
 
 return PlayerService

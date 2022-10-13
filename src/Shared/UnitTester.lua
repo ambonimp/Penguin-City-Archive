@@ -17,7 +17,7 @@ local UNIT_TEST_SUFFIX = ".spec"
 
     Returns our findings.
 ]]
-function UnitTester.Run(directory: Instance)
+function UnitTester.Run(directories: { Instance })
     -- RETURN: Only run tests in studio
     if not RunService:IsStudio() then
         return
@@ -25,9 +25,11 @@ function UnitTester.Run(directory: Instance)
 
     -- Gather test scripts
     local testScripts: { ModuleScript } = {}
-    for _, descendant in pairs(directory:GetDescendants()) do
-        if descendant:IsA("ModuleScript") and StringUtil.endsWith(descendant.Name, UNIT_TEST_SUFFIX) then
-            table.insert(testScripts, descendant)
+    for _, directory in pairs(directories) do
+        for _, descendant in pairs(directory:GetDescendants()) do
+            if descendant:IsA("ModuleScript") and StringUtil.endsWith(descendant.Name, UNIT_TEST_SUFFIX) then
+                table.insert(testScripts, descendant)
+            end
         end
     end
     local totalTests = #testScripts

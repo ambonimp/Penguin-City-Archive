@@ -18,7 +18,7 @@ local FULL = 1.1 -- Gradient has 0.1 ease thing
 
 local localPlayer = Players.LocalPlayer
 local character: Model, humanoidRootPart: Part
-local screen: ScreenGui = Paths.UI.LoadingScreen
+local screen: ScreenGui = Paths.UI:WaitForChild("LoadingScreen")
 local gradient: UIGradient = screen.Logo.Colored.UIGradient
 local skipBtn: ImageButton = screen.Skip
 local skipConn: RBXScriptConnection?

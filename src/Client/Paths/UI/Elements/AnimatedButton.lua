@@ -26,8 +26,6 @@ do
     local DEFUALT_LENGTH = 0.07
     local EASING_STYLE = Enum.EasingStyle.Back
 
-    local TWEEN_INFO = TweenInfo.new(0.07, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
     AnimatedButton.Animations.Squish = function(scale: UDim2?, length: number?)
         local animation = {}
 
@@ -85,13 +83,13 @@ function AnimatedButton.combineAnimations(animations: { Animation }): Animation
     local combinedAnimation = {}
 
     function combinedAnimation:Play(button: ButtonObject)
-        for _, animation in animations do
+        for _, animation in pairs(animations) do
             animation:Play(button)
         end
     end
 
     function combinedAnimation:Revert(button: ButtonObject)
-        for _, animation in animations do
+        for _, animation in pairs(animations) do
             if animation.Revert then
                 animation:Revert(button)
             end

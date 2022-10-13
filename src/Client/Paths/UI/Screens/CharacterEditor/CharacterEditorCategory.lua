@@ -228,6 +228,7 @@ function CharacterEditorCategory.new(categoryName: string)
                     equipItem(itemName)
                 end
             else
+                warn("todo prompt purchase")
                 -- TODO: Prompt purchase
                 -- TODO: Prompt purchase
                 -- TODO: Prompt purchase

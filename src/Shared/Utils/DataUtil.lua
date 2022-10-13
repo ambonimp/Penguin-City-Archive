@@ -8,6 +8,7 @@ local DataUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+--local Output = require(ReplicatedStorage.Shared.Output)
 
 export type Data = string | number | {}
 export type Store = { [string]: (string | number | {}) }
@@ -21,6 +22,7 @@ function DataUtil.keysFromAddress(address: string): { string }
     for word in string.gmatch(address, "[%w(_)]+") do
         table.insert(keys, word)
     end
+    -- Output.debug("keysFromAddress", address, keys)
 
     return keys
 end
@@ -28,28 +30,91 @@ end
 --[[
     Retrieves a value stored in an array
 ]]
-function DataUtil.getFromAddress(store: Store, address: string): Data
+function DataUtil.getFromAddress(store: Store, address: string): any
     local keys = DataUtil.keysFromAddress(address)
+    local childStore = store
     for i = 1, #keys do -- master directory is 1
-        store = store[keys[i]]
+        if childStore then
+            childStore = childStore[keys[i]]
+        end
     end
 
-    return store :: Data
+    -- Output.debug("getFromAddress", address, keys, store, childStore)
+
+    return childStore
+end
+
+local function setFromKeys(
+    fullAddress: string,
+    parentKeys: { string },
+    parentStore: Store?,
+    storeKeyInParent: string?,
+    store: Store,
+    keys: { string },
+    newValue: any
+)
+    -- Output.debug("setFromKeys", fullAddress, parentKeys, parentStore, storeKeyInParent, store, keys, newValue)
+
+    -- Current `store` is the table we need
+    if #keys == 1 then
+        local key = keys[1]
+
+        if typeof(newValue) == "table" then
+            newValue = TableUtil.deepClone(newValue)
+        end
+
+        -- Clearing `key` from `store`
+        if store and newValue == nil then
+            store[key] = nil
+
+            -- If `store` is now empty, remove it from `parentStore`
+            if parentStore and TableUtil.isEmpty(store) then
+                parentStore[storeKeyInParent] = nil
+            end
+
+            return
+        end
+
+        -- Update `key` to `newValue`
+        store[key] = newValue
+        return
+    end
+
+    -- Traverse one level/key deeper
+    local key = table.remove(keys, 1)
+    table.insert(parentKeys, key)
+    if typeof(store[key]) ~= "table" then
+        if store[key] == nil then
+            store[key] = {}
+        else
+            error(
+                ("Cannot insert value %q at address %s; value at address %s is %q (not a table!)"):format(
+                    tostring(newValue),
+                    fullAddress,
+                    table.concat(parentKeys, "."),
+                    tostring(store[key])
+                )
+            )
+        end
+    end
+    setFromKeys(fullAddress, parentKeys, store, key, store[key], keys, newValue)
 end
 
 --[[
     Set a value in table using an array of keys point to it's new location in the table
 ]]
-function DataUtil.setFromAddress(store: Store, keys: { string }, newValue: any)
-    if #keys == 1 then
-        newValue = if typeof(newValue) == "table" then TableUtil.clone(newValue) else newValue
-        store[keys[1]] = newValue
+function DataUtil.setFromAddress(store: Store, address: string, newValue: any)
+    -- Output.debug("setFromAddress", address, newValue)
 
-        return newValue
-    else -- Goes one level/key deeper
-        local key = table.remove(keys, 1)
-        return DataUtil.setFromAddress(store[key], keys, newValue)
+    -- ERROR: No keys from address
+    local keys = DataUtil.keysFromAddress(address)
+    if not (keys and #keys > 0) then
+        error(("Bad address %q; could not get keysFromAddress"):format(address))
     end
+
+    setFromKeys(address, {}, nil, nil, store, keys, newValue)
+
+    -- Output.debug("setFromAddress", ("FINAL STORE %s -> %q"):format(address, tostring(newValue)), store)
 end
 
 --[[
@@ -57,14 +122,20 @@ end
     syncKeys can carry paramaters if formated like so "Key_Paramater"
 ]]
 function DataUtil.getSyncKeyParamater(syncKey)
-    return string.gsub(syncKey, "%a+_", "")
+    local parameter = string.gsub(syncKey, "%a+_", "")
+    -- Output.debug("getSyncKeyParamater", syncKey, parameter)
+
+    return parameter
 end
 
 --[[
     Returns a syncKey by seperating it from any paramaters
 ]]
 function DataUtil.getSyncKey(syncKey)
-    return string.gsub(syncKey, "_.+", "")
+    local noParameters = string.gsub(syncKey, "_.+", "")
+    -- Output.debug("getSyncKey", syncKey, noParameters)
+
+    return noParameters
 end
 
 --[[

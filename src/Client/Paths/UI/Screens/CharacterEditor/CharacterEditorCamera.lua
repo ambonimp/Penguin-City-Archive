@@ -67,15 +67,15 @@ function CharacterEditorCamera.look(preview: Model)
     subjectCFrame, subjectSize = subject:GetBoundingBox()
     subjectCFrame = subject.HumanoidRootPart.CFrame
 
-    local viewportChangedConnn
-    viewportChangedConnn = UIScaleController.ViewportSizeChanged:Connect(lookAtSubject)
+    local ViewportSizeChanged
+    ViewportSizeChanged = UIScaleController.ScaleChanged:Connect(lookAtSubject)
     lookAtSubject(camera.ViewportSize)
 
     ContextActionService:BindAction("ToggleRotation", onRotationToggled, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
 
     -- Destroy function
     return function()
-        viewportChangedConnn:Disconnect()
+        ViewportSizeChanged:Disconnect()
         ContextActionService:UnbindAction("TogglePreviewRotation")
 
         CameraController.setPlayerControl()

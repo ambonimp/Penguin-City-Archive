@@ -3,11 +3,9 @@
     ]]
 local GroupUtil = {}
 
-local RunService = game:GetService("RunService")
-
 local GROUP_ID = 12843903
 local RANK_ADMIN = 250
-local IS_STUDIO = RunService:IsStudio()
+local RANK_TESTER = 50
 
 -- Yields on first call, but Roblox API uses a cache afterwards.
 function GroupUtil.getRank(player: Player)
@@ -15,7 +13,11 @@ function GroupUtil.getRank(player: Player)
 end
 
 function GroupUtil.isAdmin(player: Player)
-    return IS_STUDIO or GroupUtil.getRank(player) >= RANK_ADMIN
+    return GroupUtil.getRank(player) >= RANK_ADMIN
+end
+
+function GroupUtil.isTester(player: Player)
+    return GroupUtil.getRank(player) >= RANK_TESTER
 end
 
 return GroupUtil

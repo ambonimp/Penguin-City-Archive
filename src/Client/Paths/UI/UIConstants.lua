@@ -5,6 +5,15 @@ UIConstants.States = {
     Loading = "Loading",
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
+    PizzaMinigame = "PizzaMinigame",
+    HousingEdit = "HousingEdit",
+    EditingHouse = "EditingHouse",
+    PlotSetting = "PlotSetting",
+    PlotChanger = "PlotChanger",
+    HouseSelectionUI = "HouseSelectionUI",
+    HUD = "HUD",
+    Results = "Results",
+    ZoneTransition = "ZoneTransition",
 }
 
 UIConstants.Keybinds = {
@@ -17,6 +26,12 @@ UIConstants.Keybinds = {
 UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
+}
+
+UIConstants.AllowHUDWith = {
+    UIConstants.States.Vehicles,
+    UIConstants.States.PlotSetting,
+    UIConstants.States.HouseSelectionUI,
 }
 
 UIConstants.EnableCoreGuiInStates = {
@@ -33,11 +48,14 @@ UIConstants.Colors = {
         PlayGreen = Color3.fromRGB(56, 196, 13),
         InstructionsOrange = Color3.fromRGB(214, 145, 15),
         CloseRed = Color3.fromRGB(249, 104, 101),
+        PenguinBlue = Color3.fromRGB(186, 218, 253),
+        DarkPenguinBlue = Color3.fromRGB(38, 71, 118),
+        NextGreen = Color3.fromRGB(43, 195, 114),
     },
 }
 
 UIConstants.Offsets = {
-    ButtonOutlineThickness = 2,
+    ButtonOutlineThickness = 4,
 }
 
 UIConstants.DefaultButtonDebounce = 0.2

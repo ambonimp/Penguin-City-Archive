@@ -16,7 +16,7 @@ local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 
 DataService.Profiles = {}
-DataService.Updated = Signal.new()
+DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
 
 -- Gets
 function DataService.get(player: Player, address: string): DataUtil.Data
@@ -31,15 +31,15 @@ function DataService.get(player: Player, address: string): DataUtil.Data
 end
 
 -- Sets
-function DataService.set(player: Player, address: string, newValue: any, event: string?) -- sets the value using address
+function DataService.set(player: Player, address: string, newValue: any, event: string?, eventMeta: table?) -- sets the value using address
     local profile = DataService.Profiles[player]
 
     if profile then
-        newValue = DataUtil.setFromAddress(profile.Data, DataUtil.keysFromAddress(address), newValue)
-        Remotes.fireClient(player, "DataUpdated", address, newValue, event)
+        DataUtil.setFromAddress(profile.Data, address, newValue)
+        Remotes.fireClient(player, "DataUpdated", address, newValue, event, eventMeta)
 
         if event then
-            DataService.Updated:Fire(event, player, newValue)
+            DataService.Updated:Fire(event, player, newValue, eventMeta)
         end
 
         return newValue
@@ -49,7 +49,7 @@ function DataService.set(player: Player, address: string, newValue: any, event: 
 end
 
 -- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function DataService.append(player: Player, address: string, newValue: any, event: string?): string
+function DataService.append(player: Player, address: string, newValue: any, event: string?, eventMeta: table?): string
     local length = 0
     for i in DataService.get(player, address) do
         local index = tonumber(i)
@@ -57,21 +57,33 @@ function DataService.append(player: Player, address: string, newValue: any, even
     end
 
     local key = tostring(length + 1)
-    DataService.set(player, address .. "." .. key, newValue, event)
+    DataService.set(player, address .. "." .. key, newValue, event, eventMeta)
 
     return key
 end
 
--- Increments a value at the address by the addend. Value defaults to 0, addend defaults to 1
-function DataService.increment(player: Player, address: string, addend: number?, event: string?): number
+-- Increments a value at the address by the incrementAmount. Value defaults to 0, incrementAmount defaults to 1
+function DataService.increment(player: Player, address: string, incrementAmount: number?, event: string?, eventMeta: table?): number
+    incrementAmount = incrementAmount or 1
+
+    -- ERROR: Not a number
     local currentValue = DataService.get(player, address)
-    return DataService.set(player, address, (currentValue or 0) + (addend or 1), event)
+    if currentValue ~= nil and typeof(currentValue) ~= "number" then
+        error(("Cannot increment address %s; got non-number value %q"):format(address, tostring(currentValue)))
+    end
+
+    return DataService.set(player, address, (currentValue or 0) + incrementAmount, event, eventMeta)
 end
 
--- Multiplies a value at the address by the multiplicand. No defaults
-function DataService.multiply(player: Player, address: string, multiplicand: number, event: string?): number
-    local currentValue = DataService.get(player, address)
-    return DataService.set(player, address, currentValue * multiplicand, event)
+-- Multiplies a value at the address by the scalar. No defaults
+function DataService.multiply(player: Player, address: string, scalar: number, event: string?, eventMeta: table?): number
+    -- ERROR: Not a number
+    local currentValue = DataService.get(player, address) :: number
+    if currentValue ~= nil and typeof(currentValue) ~= "number" then
+        error(("Cannot increment address %s; got non-number value %q"):format(address, tostring(currentValue)))
+    end
+
+    return DataService.set(player, address, currentValue * scalar, event, eventMeta)
 end
 
 function DataService.wipe(player: Player)
@@ -81,12 +93,23 @@ function DataService.wipe(player: Player)
     player:Kick("DATA WIPE " .. player.Name)
 end
 
+local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
+    for k, v in pairs(default) do
+        if not tonumber(k) and data[k] == nil then
+            data[k] = v
+        elseif not tonumber(k) and typeof(v) == "table" then
+            reconcile(data[k], v)
+        end
+    end
+end
+
 function DataService.loadPlayer(player)
     local profile = ProfileService.GetProfileStore(Config.DataKey, Config.getDefaults(player))
         :LoadProfileAsync(tostring(player.UserId), "ForceLoad")
 
     if profile then
-        profile:Reconcile()
+        reconcile(profile.Data, Config.getDefaults(player))
+        --profile:Reconcile()
 
         profile:ListenToRelease(function()
             DataService.Profiles[player] = nil
@@ -120,6 +143,12 @@ end
 -- Communication
 do
     Remotes.declareEvent("DataUpdated")
+
+    Remotes.bindFunctions({
+        GetPlayerData = function(player: Player, address: string)
+            return DataService.get(player, address)
+        end,
+    })
 end
 
 return DataService

@@ -1,10 +1,10 @@
 local TableUtil = {}
 
-function TableUtil.clone(tbl)
+function TableUtil.deepClone(tbl)
     local clone = {}
 
     for i, v in tbl do
-        clone[i] = typeof(v) == "table" and TableUtil.clone(v) or v
+        clone[i] = typeof(v) == "table" and TableUtil.deepClone(v) or v
     end
 
     return clone

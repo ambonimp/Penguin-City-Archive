@@ -131,6 +131,36 @@ function StringUtil.contains(str: string, contains: string)
 end
 
 --[[
+    If `str` begins with `start`, will return `str` with `start` chopped off. Returns nil otherwise
+
+    StringUtil.chopStart("Hello", "Hei") -> nil
+    StringUtil.chopStart("Hello", "He") -> "llo"
+]]
+function StringUtil.chopStart(str: string, start: string)
+    local strStart = str:sub(1, start:len())
+    if strStart == start then
+        return str:sub(start:len() + 1)
+    end
+
+    return nil
+end
+
+--[[
+    If `str` ends with `ends`, will return `str` with `ends` chopped off. Returns nil otherwise
+
+    StringUtil.chopEnd("Hello", "lllo") -> nil
+    StringUtil.chopEnd("Hello", "lo") -> "Hel"
+]]
+function StringUtil.chopEnd(str: string, ends: string)
+    local strEnd = str:sub(str:len() - ends:len() + 1)
+    if strEnd == ends then
+        return str:sub(1, str:len() - ends:len())
+    end
+
+    return nil
+end
+
+--[[
     Returns a table of all the characters in the string, in the same order and including duplicates.
 ]]
 function StringUtil.toCharArray(str: string)
@@ -230,6 +260,16 @@ function StringUtil.toKebabCase(str: string, uppercase: boolean)
         str = str:lower()
     end
     return str
+end
+
+--[[
+    Coverts a name to include an 's or s'
+]]
+function StringUtil.possesiveName(str: string)
+    if StringUtil.endsWith(str:upper(), "S") then
+        return ("%s'"):format(str)
+    end
+    return ("%s's"):format(str)
 end
 
 --[[
