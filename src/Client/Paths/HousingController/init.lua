@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local Remotes = require(Paths.Shared.Remotes)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
-local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
+local HousingScreen = require(Paths.Client.UI.Screens.Housing.HouseEditorScreen)
 
 HousingController.houseCF = nil :: CFrame?
 HousingController.currentHouse = nil :: Model?

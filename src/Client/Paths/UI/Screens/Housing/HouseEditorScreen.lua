@@ -6,6 +6,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local HousingController: typeof(require(Paths.Client.HousingController))
+local Button = require(Paths.Client.UI.Elements.Button)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
@@ -16,6 +17,7 @@ local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 local HousingObjects = require(Paths.Shared.HousingObjectData)
 local PlayerData = require(Paths.Client.DataController)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 
 local DEBOUNCE_TIME = 0.2
 local DEFAULT_EDIT_CATEGORY = "Furniture"
@@ -333,7 +335,18 @@ do
         end
     end
 
-    --make viewport util?
+    Remotes.bindEvents({
+        UpdateHouseUI = function(name: string, amount: number, type: string)
+            editCategoryPages[type]:FindFirstChild(name).Amount.Text = amount
+        end,
+    })
+end
+
+-- Categories
+do
+    local currentCategory: string?
+    local selectedBackground: Frame = editCategoryTabs.SelectedTab
+
     local function addModelToViewport(model: Model, viewport: ViewportFrame)
         local _, size
         _, size = model:GetBoundingBox()
@@ -348,58 +361,7 @@ do
         camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
     end
 
-    local objectTemplate = templates.ObjectTemplate
-    local ownedItems = PlayerData.get("Igloo.OwnedItems")
-
-    for name, data in HousingObjects do
-        local template = objectTemplate:Clone()
-        local object = assets[data.type]:FindFirstChild(name)
-
-        addModelToViewport(object, template.ViewportFrame)
-        template.Name = name
-        if ownedItems[name] then
-            template.Amount.Text = ownedItems[name]
-            template.Amount.Visible = true
-        end
-        template.Button.MouseButton1Down:Connect(function()
-            local amount = PlayerData.get("Igloo.OwnedItems." .. name)
-            if amount >= 1 then
-                EditMode.newObjectSelected(object:Clone())
-                --else
-                --todo: prompt purchase
-            end
-        end)
-        template.Parent = editCategoryPages[data.type]
-    end
-
-    Remotes.bindEvents({
-        UpdateHouseUI = function(name: string, amount: number, type: string)
-            editCategoryPages[type]:FindFirstChild(name).Amount.Text = amount
-        end,
-    })
-
-    local houses = assets.Plot:GetChildren()
-    for _, house in houses do
-        local model = house:Clone()
-        local template = templates.HouseTemplate:Clone()
-
-        template.Name = house.Name
-        template.HouseName.Text = house.Name
-        addModelToViewport(model, template.ViewportFrame)
-
-        template.Button.MouseButton1Down:Connect(function()
-            Remotes.fireServer("ChangePlotModel", house.Name)
-        end)
-
-        template.Parent = changeHouseFrame.Center.Houses
-    end
-end
-
--- Edit category tabs
-do
-    local currentCategory: string?
-    local selectedBackground: Frame = editCategoryTabs.SelectedTab
-    local function setCategory(newCategory: string)
+    local function openCategory(newCategory: string)
         -- RETURN: Category is already active
         if newCategory == currentCategory then
             return
@@ -420,15 +382,43 @@ do
         editCategoryPages[newCategory].Visible = true
     end
 
-    setCategory(DEFAULT_EDIT_CATEGORY)
+    for categoryName, categoryConstants in pairs(HouseObjects) do
+        -- Tab
+        local tabButtonObject: TextButton = templates.EditCategoryTab:Clone()
+        tabButtonObject.Icon.Image = categoryConstants.TabIcon
+        tabButtonObject.Name = categoryName
+        tabButtonObject.LayoutOrder = categoryConstants.TabOrder
 
-    for _, button in pairs(editFrame.Tabs:GetChildren()) do
-        if button:IsA("TextButton") then
-            button.MouseButton1Down:Connect(function()
-                setCategory(button.Name)
+        local tabButton = Button.new(tabButtonObject)
+        tabButton.Pressed:Connect(function()
+            openCategory(categoryName)
+        end)
+        tabButton:Mount(editCategoryTabs)
+
+        -- Page
+        local page = templates.EditCategoryPage:Clone()
+        page.Name = categoryName
+        page.Visible = false
+        page.Parent = editCategoryPages
+
+        -- Load objects
+        for objectName, objectInfo in pairs(categoryConstants.Objects) do
+            local objectButtonObject: ImageButton = templates.Object:Clone()
+            objectButtonObject.Name = objectName
+
+            local objectButton = Button.new(objectButtonObject)
+            objectButton.Pressed:Connect(function()
+                --[[
+                    TODO:
+                    -- Prompt purchase if objectInfo.Price ~= 0
+                    -- Different handles depending on the objects
+                ]]
             end)
+            objectButton:Mount(page)
         end
     end
+
+    openCategory(DEFAULT_EDIT_CATEGORY)
 end
 -- Setup UI
 do
