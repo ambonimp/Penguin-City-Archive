@@ -18,33 +18,48 @@ local PlayerData = require(Paths.Client.DataController)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local DEBOUNCE_TIME = 0.2
+local DEFAULT_EDIT_CATEGORY = "Furniture"
 
+-------------------------------------------------------------------------------
+-- PUBLIC MEMBERS
+-------------------------------------------------------------------------------
 local loadedPrompts = false
-local Assets: Folder = Paths.Assets
-local templates: Folder = Paths.Templates.Housing
-local screenGui: ScreenGui = Paths.UI.Housing
-local edit: Frame = screenGui.Edit
-local settingsUI: Frame = screenGui.Settings
-local plotChangerFrame: Frame = screenGui.PlotChanger
-local paint: Frame = screenGui.Paint
-local changeHouse: Frame = screenGui.ChangeHouse
-local enterEdit: TextButton = screenGui.EnterEdit
-local uiStateMachine = UIController.getStateMachine()
 local selectedPlot: Model
 
-HousingScreen.itemMove = screenGui.ItemMove
+local uiStateMachine = UIController.getStateMachine()
+
+local templates: Folder = Paths.Templates.Housing
+local assets: Folder = Paths.Assets.Housing
+
+local screenGui: ScreenGui = Paths.UI.Housing
+local settingsFrame: Frame = screenGui.Settings
+local plotChangerFrame: Frame = screenGui.PlotChanger
+local paintFrame: Frame = screenGui.Paint
+local changeHouseFrame: Frame = screenGui.ChangeHouse
+local editFrame: Frame = screenGui.Edit
+local editCategoryTabs: Frame = editFrame.Tabs
+local editCategoryPages: Frame = editFrame.Center
 
 --buttons
+local editToggleButton: TextButton = screenGui.EditToggle
 local plotChangerExit = ExitButton.new()
 local exitButton = ExitButton.new()
 local changeHouseExit = ExitButton.new()
 local settingsExitButton = ExitButton.new()
+local setPlotButton = KeyboardButton.new()
 local plotChange = KeyboardButton.new()
 local houseChange = KeyboardButton.new()
-local setPlotButton = KeyboardButton.new()
 
+-------------------------------------------------------------------------------
+-- PUBLIC MEMBERS
+-------------------------------------------------------------------------------
+HousingScreen.ItemMove = screenGui.ItemMove
+
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
 --creates a regular button, can move to buttonutil
-function createRegularButton(parent, button, text)
+local function createRegularButton(parent, button, text)
     button:SetColor(UIConstants.Colors.Buttons.PenguinBlue, true)
     button:Mount(parent, true)
     button:SetPressedDebounce(DEBOUNCE_TIME)
@@ -53,11 +68,22 @@ function createRegularButton(parent, button, text)
     button:SetTextColor(UIConstants.Colors.Buttons.DarkPenguinBlue, true)
 end
 
+local function editButtonStateChanged()
+    local isOpen = uiStateMachine:GetState() == UIConstants.States.HousingEdit
+    if isOpen then
+        return
+    end
+    uiStateMachine:Push(UIConstants.States.HousingEdit)
+end
+
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
 function HousingScreen.Init()
     HousingController = require(Paths.Client.HousingController)
 
-    createRegularButton(settingsUI.Center.PlotChange, plotChange, "Change Plot")
-    createRegularButton(settingsUI.Center.HouseChange, houseChange, "Change House")
+    createRegularButton(settingsFrame.Center.PlotChange, plotChange, "Change Plot")
+    createRegularButton(settingsFrame.Center.HouseChange, houseChange, "Change House")
     createRegularButton(plotChangerFrame.SetPlot, setPlotButton, "Select")
 end
 
@@ -84,27 +110,19 @@ function HousingScreen.updatePlotUI(plot: Model)
 end
 
 function HousingScreen.openBottomEdit()
-    ScreenUtil.inUp(edit)
+    ScreenUtil.inUp(editFrame)
 end
 
 function HousingScreen.closeBottomEdit()
-    ScreenUtil.outDown(edit)
+    ScreenUtil.outDown(editFrame)
 end
 
 function HousingScreen.openColorEdit()
-    ScreenUtil.inLeft(paint)
+    ScreenUtil.inLeft(paintFrame)
 end
 
 function HousingScreen.closeColorEdit()
-    ScreenUtil.outLeft(paint)
-end
-
-local function editButtonStateChanged()
-    local isOpen = uiStateMachine:GetState() == UIConstants.States.HousingEdit
-    if isOpen then
-        return
-    end
-    uiStateMachine:Push(UIConstants.States.HousingEdit)
+    ScreenUtil.outLeft(paintFrame)
 end
 
 function HousingScreen.houseEntered(hasEditPerms: boolean)
@@ -168,58 +186,60 @@ end
 
 function HousingScreen.itemSelected(item: Model)
     local height = item:GetExtentsSize().Y
-    HousingScreen.itemMove.StudsOffset = Vector3.new(0, (height / 2 * -1), 0)
-    HousingScreen.itemMove.Adornee = item.PrimaryPart
-    HousingScreen.itemMove.Enabled = true
+    HousingScreen.ItemMove.StudsOffset = Vector3.new(0, (height / 2 * -1), 0)
+    HousingScreen.ItemMove.Adornee = item.PrimaryPart
+    HousingScreen.ItemMove.Enabled = true
 end
 
 function HousingScreen.itemDeselected()
-    HousingScreen.itemMove.Adornee = nil
-    HousingScreen.itemMove.Enabled = false
+    HousingScreen.ItemMove.Adornee = nil
+    HousingScreen.ItemMove.Enabled = false
 end
-
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
 -- Register UIStates
 do
     function HousingScreen.openEditButton()
-        enterEdit.Visible = true
+        editToggleButton.Visible = true
     end
 
     function HousingScreen.exitEditButton()
-        enterEdit.Visible = false
+        editToggleButton.Visible = false
     end
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HousingEdit, HousingScreen.openEditButton, HousingScreen.exitEditButton)
 
-    function HousingScreen.enterEdit()
+    function HousingScreen.editToggleButton()
         HousingController.isEditing = true
-        enterEdit.Text = "Exit Edit"
+        editToggleButton.Text = "Exit Edit"
         HousingScreen.openBottomEdit()
     end
 
     function HousingScreen.exitEdit()
         HousingController.isEditing = false
-        enterEdit.Text = "Edit"
+        editToggleButton.Text = "Edit"
         EditMode.reset()
         HousingScreen.closeBottomEdit()
     end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.EditingHouse, HousingScreen.enterEdit, HousingScreen.exitEdit)
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.EditingHouse, HousingScreen.editToggleButton, HousingScreen.exitEdit)
 
     function HousingScreen.openSettings()
-        ScreenUtil.sizeOut(settingsUI)
+        ScreenUtil.sizeOut(settingsFrame)
         HousingScreen.disableHousePrompts()
     end
 
     function HousingScreen.closeSettings()
-        ScreenUtil.sizeIn(settingsUI)
+        ScreenUtil.sizeIn(settingsFrame)
         HousingScreen.enableHousePrompts()
     end
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotSetting, HousingScreen.openSettings, HousingScreen.closeSettings)
 
     function HousingScreen.openHouseChange()
-        ScreenUtil.sizeOut(changeHouse)
+        ScreenUtil.sizeOut(changeHouseFrame)
     end
 
     function HousingScreen.closeHouseChange()
-        ScreenUtil.sizeIn(changeHouse)
+        ScreenUtil.sizeIn(changeHouseFrame)
     end
     uiStateMachine:RegisterStateCallbacks(
         UIConstants.States.HouseSelectionUI,
@@ -242,7 +262,7 @@ end
 -- Manipulate UIStates
 do
     --open buttons
-    enterEdit.MouseButton1Down:Connect(function()
+    editToggleButton.MouseButton1Down:Connect(function()
         uiStateMachine:Push(UIConstants.States.EditingHouse)
     end)
     houseChange.Pressed:Connect(function()
@@ -282,7 +302,7 @@ do
     end)
 
     local function getPaintColorUI(color: Color3): TextButton | nil
-        for _, button in paint.Center.Colors:GetChildren() do
+        for _, button in paintFrame.Center.Colors:GetChildren() do
             if button:FindFirstChild("Button") and button.Button.ImageLabel.ImageColor3 == color then
                 return button
             end
@@ -293,7 +313,7 @@ do
     local selectionTemplate = templates.PaintSelected:Clone()
 
     function HousingScreen.setDefaultColor(color: Color3)
-        paint.Center.Colors.Default.Button.ImageLabel.ImageColor3 = color
+        paintFrame.Center.Colors.Default.Button.ImageLabel.ImageColor3 = color
     end
 
     function HousingScreen.changePaintSelected(color: Color3)
@@ -304,7 +324,7 @@ do
         end
     end
 
-    for _, button in paint.Center.Colors:GetChildren() do
+    for _, button in paintFrame.Center.Colors:GetChildren() do
         if button:FindFirstChild("Button") then
             button.Button.MouseButton1Down:Connect(function()
                 HousingScreen.changePaintSelected(button.Button.ImageLabel.ImageColor3)
@@ -333,7 +353,7 @@ do
 
     for name, data in HousingObjects do
         local template = objectTemplate:Clone()
-        local object = Assets.Housing[data.type]:FindFirstChild(name)
+        local object = assets[data.type]:FindFirstChild(name)
 
         addModelToViewport(object, template.ViewportFrame)
         template.Name = name
@@ -349,48 +369,16 @@ do
                 --todo: prompt purchase
             end
         end)
-        template.Parent = edit.Center[data.type]
+        template.Parent = editCategoryPages[data.type]
     end
 
     Remotes.bindEvents({
         UpdateHouseUI = function(name: string, amount: number, type: string)
-            edit.Center[type]:FindFirstChild(name).Amount.Text = amount
+            editCategoryPages[type]:FindFirstChild(name).Amount.Text = amount
         end,
     })
 
-    local OldSelection = nil
-    local objectSelectionTemplate = templates.EditSelected:Clone()
-    local function SetEditObjectsSelected(name: string)
-        if OldSelection then
-            if OldSelection[1].Name == name then
-                return
-            end
-            OldSelection[1].AutoButtonColor = true
-            OldSelection[1].BackgroundColor3 = Color3.fromRGB(50, 97, 161)
-            OldSelection[1].ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
-            OldSelection[2].Visible = false
-        end
-        local button = edit.Buttons[name]
-        edit.Center[name].Visible = true
-        button.AutoButtonColor = false
-        button.BackgroundColor3 = Color3.fromRGB(185, 218, 253)
-        button.ImageLabel.ImageColor3 = Color3.fromRGB(50, 97, 161)
-        objectSelectionTemplate.Parent = button
-        OldSelection = { button, edit.Center[name] }
-    end
-
-    SetEditObjectsSelected("Furniture")
-
-    for _, button in pairs(edit.Buttons:GetChildren()) do
-        if button:IsA("TextButton") then
-            button.MouseButton1Down:Connect(function()
-                SetEditObjectsSelected(button.Name)
-            end)
-        end
-    end
-
-    local houses = Assets.Housing.Plot:GetChildren()
-
+    local houses = assets.Plot:GetChildren()
     for _, house in houses do
         local model = house:Clone()
         local template = templates.HouseTemplate:Clone()
@@ -403,15 +391,50 @@ do
             Remotes.fireServer("ChangePlotModel", house.Name)
         end)
 
-        template.Parent = changeHouse.Center.Houses
+        template.Parent = changeHouseFrame.Center.Houses
     end
 end
 
+-- Edit category tabs
+do
+    local currentCategory: string?
+    local selectedBackground: Frame = editCategoryTabs.SelectedTab
+    local function setCategory(newCategory: string)
+        -- RETURN: Category is already active
+        if newCategory == currentCategory then
+            return
+        end
+
+        if currentCategory then
+            editCategoryTabs[currentCategory].Visible = true
+            editCategoryPages[currentCategory].Visible = false
+        end
+
+        currentCategory = newCategory
+
+        local tabButton = editCategoryTabs[newCategory]
+        tabButton.Visible = false
+        selectedBackground.Icon.Image = tabButton.Icon.Image
+        selectedBackground.LayoutOrder = tabButton.LayoutOrder
+
+        editCategoryPages[newCategory].Visible = true
+    end
+
+    setCategory(DEFAULT_EDIT_CATEGORY)
+
+    for _, button in pairs(editFrame.Tabs:GetChildren()) do
+        if button:IsA("TextButton") then
+            button.MouseButton1Down:Connect(function()
+                setCategory(button.Name)
+            end)
+        end
+    end
+end
 -- Setup UI
 do
-    exitButton:Mount(edit.ExitButton, true)
-    settingsExitButton:Mount(settingsUI.ExitButton, true)
-    changeHouseExit:Mount(changeHouse.ExitButton, true)
+    exitButton:Mount(editFrame.ExitButton, true)
+    settingsExitButton:Mount(settingsFrame.ExitButton, true)
+    changeHouseExit:Mount(changeHouseFrame.ExitButton, true)
     plotChangerExit:Mount(plotChangerFrame.ExitButton, true)
 
     -- Show

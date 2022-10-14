@@ -19,7 +19,7 @@ local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
 local MOVE_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 
 local player = Players.LocalPlayer
-local housingScreenItemMove: Frame = HousingScreen.itemMove
+local housingScreenItemMove: Frame = HousingScreen.ItemMove
 local housingScreenItemButtons: Frame = housingScreenItemMove.Frame.Center.Buttons
 local moveButton: TextButton = housingScreenItemMove.Frame.Move.Button
 local closeButton: TextButton = housingScreenItemButtons.Close.Button
