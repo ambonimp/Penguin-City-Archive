@@ -6,9 +6,9 @@ UIConstants.States = {
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
-    HousingEdit = "HousingEdit",
-    EditingHouse = "EditingHouse",
-    PlotSetting = "PlotSetting",
+    House = "House",
+    HouseEditor = "HouseEditor",
+    PlotSettings = "PlotSettings",
     PlotChanger = "PlotChanger",
     HouseSelectionUI = "HouseSelectionUI",
     HUD = "HUD",
@@ -30,7 +30,8 @@ UIConstants.DontPopStatesFromKeybind = {
 
 UIConstants.AllowHUDWith = {
     UIConstants.States.Vehicles,
-    UIConstants.States.PlotSetting,
+    UIConstants.States.PlotSettingss,
+    UIConstants.States.PlotChanger,
     UIConstants.States.HouseSelectionUI,
 }
 
@@ -44,6 +45,9 @@ UIConstants.EnableCoreGuiInStates = {
 UIConstants.Font = Enum.Font.GothamBold
 
 UIConstants.Colors = {
+    Misc = {
+        White = Color3.fromRGB(255, 255, 255),
+    },
     Buttons = {
         PlayGreen = Color3.fromRGB(56, 196, 13),
         InstructionsOrange = Color3.fromRGB(214, 145, 15),

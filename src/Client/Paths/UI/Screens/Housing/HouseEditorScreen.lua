@@ -5,28 +5,21 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local HousingController: typeof(require(Paths.Client.HousingController))
 local Button = require(Paths.Client.UI.Elements.Button)
-local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local WideButton = require(Paths.Client.UI.Elements.WideButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
-local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
-local HousingObjects = require(Paths.Shared.HousingObjectData)
 local PlayerData = require(Paths.Client.DataController)
-local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 
-local DEBOUNCE_TIME = 0.2
 local DEFAULT_EDIT_CATEGORY = "Furniture"
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
 local loadedPrompts = false
-local selectedPlot: Model
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -34,23 +27,13 @@ local templates: Folder = Paths.Templates.Housing
 local assets: Folder = Paths.Assets.Housing
 
 local screenGui: ScreenGui = Paths.UI.Housing
-local settingsFrame: Frame = screenGui.Settings
-local plotChangerFrame: Frame = screenGui.PlotChanger
 local paintFrame: Frame = screenGui.Paint
-local changeHouseFrame: Frame = screenGui.ChangeHouse
 local editFrame: Frame = screenGui.Edit
 local editCategoryTabs: Frame = editFrame.Tabs
 local editCategoryPages: Frame = editFrame.Center
 
---buttons
-local editToggleButton: TextButton = screenGui.EditToggle
-local plotChangerExit = ExitButton.new()
-local exitButton = ExitButton.new()
-local changeHouseExit = ExitButton.new()
-local settingsExitButton = ExitButton.new()
-local setPlotButton = KeyboardButton.new()
-local plotChange = KeyboardButton.new()
-local houseChange = KeyboardButton.new()
+local editToggleContainer: Frame = screenGui.EditToggle
+local editToggleButton
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
@@ -58,65 +41,10 @@ local houseChange = KeyboardButton.new()
 HousingScreen.ItemMove = screenGui.ItemMove
 
 -------------------------------------------------------------------------------
--- PRIVATE METHODS
--------------------------------------------------------------------------------
---creates a regular button, can move to buttonutil
-local function createRegularButton(parent, button, text)
-    button:SetColor(UIConstants.Colors.Buttons.PenguinBlue, true)
-    button:Mount(parent, true)
-    button:SetPressedDebounce(DEBOUNCE_TIME)
-    button:SetText(text)
-    button:SetCornerRadius(UDim.new(0.15))
-    button:SetTextColor(UIConstants.Colors.Buttons.DarkPenguinBlue, true)
-end
-
-local function editButtonStateChanged()
-    local isOpen = uiStateMachine:GetState() == UIConstants.States.HousingEdit
-    if isOpen then
-        return
-    end
-    uiStateMachine:Push(UIConstants.States.HousingEdit)
-end
-
--------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
-function HousingScreen.Init()
-    HousingController = require(Paths.Client.HousingController)
-
-    createRegularButton(settingsFrame.Center.PlotChange, plotChange, "Change Plot")
-    createRegularButton(settingsFrame.Center.HouseChange, houseChange, "Change House")
-    createRegularButton(plotChangerFrame.SetPlot, setPlotButton, "Select")
-end
-
 function HousingScreen.Start()
     EditMode = require(Paths.Client.HousingController.EditMode)
-    PlotChanger = require(Paths.Client.HousingController.PlotChanger)
-end
-
---runs when the player plot is changed (only changed on server)
-function HousingScreen.plotChanged(newPlot: Model)
-    HousingScreen.updatePlotUI(newPlot)
-end
-
---updates the current selected plot ui info
-function HousingScreen.updatePlotUI(plot: Model)
-    if plot:GetAttribute(HousingConstants.PlotOwner) then
-        local owner = Players:GetPlayerByUserId(plot:GetAttribute(HousingConstants.PlotOwner))
-        plotChangerFrame.Owner.Text = StringUtil.possesiveName(owner.DisplayName) .. " house"
-        plotChangerFrame.SetPlot.Visible = false
-    else
-        plotChangerFrame.Owner.Text = "Empty"
-        plotChangerFrame.SetPlot.Visible = true
-    end
-end
-
-function HousingScreen.openBottomEdit()
-    ScreenUtil.inUp(editFrame)
-end
-
-function HousingScreen.closeBottomEdit()
-    ScreenUtil.outDown(editFrame)
 end
 
 function HousingScreen.openColorEdit()
@@ -125,65 +53,6 @@ end
 
 function HousingScreen.closeColorEdit()
     ScreenUtil.outLeft(paintFrame)
-end
-
-function HousingScreen.houseEntered(hasEditPerms: boolean)
-    if hasEditPerms then
-        editButtonStateChanged()
-    end
-end
-
-function HousingScreen.houseExited()
-    if uiStateMachine:HasState(UIConstants.States.HousingEdit) then
-        uiStateMachine:Remove(UIConstants.States.HousingEdit)
-    end
-
-    HousingScreen.enableHousePrompts()
-end
-
---called when player enters Neighborhood zone
-function HousingScreen.enableHousePrompts()
-    local state = uiStateMachine:GetState()
-    if --don't enable house prompts if UI is open that is derived from the prompts
-        state == UIConstants.States.PlotSetting
-        or state == UIConstants.States.HouseSelectionUI
-        or state == UIConstants.States.PlotChanger
-    then
-        return
-    end
-    local plots = workspace.Rooms.Neighborhood:WaitForChild("HousingPlots"):GetChildren()
-    local promptsDone = 0
-    for _, plot in plots do
-        task.spawn(function() --use this to handle zone loading streamingenabled
-            local prompt = plot:WaitForChild("Mailbox"):WaitForChild("Prompt")
-            prompt.Enabled = true
-            if not loadedPrompts then
-                prompt.Triggered:Connect(function()
-                    selectedPlot = plot
-                    uiStateMachine:Push(UIConstants.States.PlotSetting)
-                end)
-                promptsDone += 1
-            end
-        end)
-    end
-    if not loadedPrompts then
-        task.spawn(function()
-            repeat
-                task.wait()
-            until promptsDone == #plots
-            loadedPrompts = true
-        end)
-    end
-end
-
-function HousingScreen.disableHousePrompts()
-    local plots = workspace.Rooms.Neighborhood:WaitForChild("HousingPlots"):GetChildren()
-    for _, plot in plots do
-        task.spawn(function()
-            local Prompt = plot:WaitForChild("Mailbox"):WaitForChild("Prompt")
-            Prompt.Enabled = false
-        end)
-    end
 end
 
 function HousingScreen.itemSelected(item: Model)
@@ -197,112 +66,66 @@ function HousingScreen.itemDeselected()
     HousingScreen.ItemMove.Adornee = nil
     HousingScreen.ItemMove.Enabled = false
 end
+
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
 -- Register UIStates
 do
-    function HousingScreen.openEditButton()
-        editToggleButton.Visible = true
-    end
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.House, function(data)
+        if data.CanEdit then
+            editToggleContainer.Visible = true
+            editToggleButton:SetText("Edit")
+        end
+    end, function()
+        if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+            editToggleContainer.Visible = false
+        end
+    end)
 
-    function HousingScreen.exitEditButton()
-        editToggleButton.Visible = false
-    end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.HousingEdit, HousingScreen.openEditButton, HousingScreen.exitEditButton)
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function()
+        editToggleButton:SetText("Exit Edit")
+        editToggleContainer.Visible = true
 
-    function HousingScreen.editToggleButton()
-        HousingController.isEditing = true
-        editToggleButton.Text = "Exit Edit"
-        HousingScreen.openBottomEdit()
-    end
+        ScreenUtil.inUp(editFrame)
+    end, function()
+        -- Actual closing and not just opening FurniturePlacement
+        if
+            not (
+                uiStateMachine:HasState(UIConstants.States.HouseEditor)
+                and uiStateMachine:GetState() == UIConstants.States.FurniturePlacement
+            )
+        then
+            EditMode.reset()
+        end
 
-    function HousingScreen.exitEdit()
-        HousingController.isEditing = false
-        editToggleButton.Text = "Edit"
-        EditMode.reset()
-        HousingScreen.closeBottomEdit()
-    end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.EditingHouse, HousingScreen.editToggleButton, HousingScreen.exitEdit)
-
-    function HousingScreen.openSettings()
-        ScreenUtil.sizeOut(settingsFrame)
-        HousingScreen.disableHousePrompts()
-    end
-
-    function HousingScreen.closeSettings()
-        ScreenUtil.sizeIn(settingsFrame)
-        HousingScreen.enableHousePrompts()
-    end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotSetting, HousingScreen.openSettings, HousingScreen.closeSettings)
-
-    function HousingScreen.openHouseChange()
-        ScreenUtil.sizeOut(changeHouseFrame)
-    end
-
-    function HousingScreen.closeHouseChange()
-        ScreenUtil.sizeIn(changeHouseFrame)
-    end
-    uiStateMachine:RegisterStateCallbacks(
-        UIConstants.States.HouseSelectionUI,
-        HousingScreen.openHouseChange,
-        HousingScreen.closeHouseChange
-    )
-
-    function HousingScreen.openPlotChanger()
-        PlotChanger.enterPlot(selectedPlot)
-        ScreenUtil.sizeOut(plotChangerFrame)
-    end
-
-    function HousingScreen.closePlotChanger()
-        ScreenUtil.sizeIn(plotChangerFrame)
-        PlotChanger.resetCamera()
-    end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, HousingScreen.openPlotChanger, HousingScreen.closePlotChanger)
+        ScreenUtil.outDown(editFrame)
+    end)
 end
 
 -- Manipulate UIStates
 do
-    --open buttons
-    editToggleButton.MouseButton1Down:Connect(function()
-        uiStateMachine:Push(UIConstants.States.EditingHouse)
-    end)
-    houseChange.Pressed:Connect(function()
-        uiStateMachine:Push(UIConstants.States.HouseSelectionUI)
-    end)
-    plotChange.Pressed:Connect(function()
-        uiStateMachine:Push(UIConstants.States.PlotChanger)
-    end)
+    local function close()
+        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = true })
+    end
 
-    --exit buttons
-    exitButton.Pressed:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.EditingHouse)
-    end)
-    settingsExitButton.Pressed:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.PlotSetting)
-    end)
-    changeHouseExit.Pressed:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.HouseSelectionUI)
-    end)
-    plotChangerExit.Pressed:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.PlotChanger)
-    end)
-
-    --action buttons
-    plotChangerFrame.Left.MouseButton1Down:Connect(function()
-        PlotChanger.previousPlot()
-    end)
-
-    plotChangerFrame.Right.MouseButton1Down:Connect(function()
-        PlotChanger.nextPlot()
-    end)
-    setPlotButton.Pressed:Connect(function()
-        local plot = PlotChanger:GetCurrentPlot()
-        if plot and plot:GetAttribute(HousingConstants.PlotOwner) == nil then
-            Remotes.fireServer("ChangePlot", plot)
+    editToggleButton = WideButton.green("Edit")
+    editToggleButton.Pressed:Connect(function()
+        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+            close()
+        else
+            uiStateMachine:Push(UIConstants.States.HouseEditor)
         end
     end)
+    editToggleButton:Mount(editToggleContainer, true)
 
+    local exitButton = ExitButton.new()
+    exitButton:Mount(editFrame.ExitButton, true)
+    exitButton.Pressed:Connect(close)
+end
+
+-- Paint
+do
     local function getPaintColorUI(color: Color3): TextButton | nil
         for _, button in paintFrame.Center.Colors:GetChildren() do
             if button:FindFirstChild("Button") and button.Button.ImageLabel.ImageColor3 == color then
@@ -334,12 +157,6 @@ do
             end)
         end
     end
-
-    Remotes.bindEvents({
-        UpdateHouseUI = function(name: string, amount: number, type: string)
-            editCategoryPages[type]:FindFirstChild(name).Amount.Text = amount
-        end,
-    })
 end
 
 -- Categories
@@ -412,6 +229,7 @@ do
                     TODO:
                     -- Prompt purchase if objectInfo.Price ~= 0
                     -- Different handles depending on the objects
+                        -- if categoryName == ObjectPlacement then open edit mode
                 ]]
             end)
             objectButton:Mount(page)
@@ -422,11 +240,6 @@ do
 end
 -- Setup UI
 do
-    exitButton:Mount(editFrame.ExitButton, true)
-    settingsExitButton:Mount(settingsFrame.ExitButton, true)
-    changeHouseExit:Mount(changeHouseFrame.ExitButton, true)
-    plotChangerExit:Mount(plotChangerFrame.ExitButton, true)
-
     -- Show
     screenGui.Enabled = true
 end

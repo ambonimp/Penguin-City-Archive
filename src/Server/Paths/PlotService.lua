@@ -3,6 +3,7 @@ local PlotService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local ZoneService: typeof(require(Paths.Server.Zones.ZoneService))
 local PlayerData: typeof(require(Paths.Server.Data.DataService))
@@ -11,6 +12,7 @@ local Limiter = require(Paths.Shared.Limiter)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local ID_CHECK_AMOUNT = 1000
@@ -34,14 +36,24 @@ function PlotService.Init()
         [HousingConstants.PlotType] = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName),
         [HousingConstants.HouseType] = workspace.Rooms.Start:WaitForChild(HousingConstants.InteriorFolderName),
     }
+
     PlayerData = require(Paths.Server.Data.DataService)
     ZoneService = require(Paths.Server.Zones.ZoneService)
+
     houseZone = ZoneUtil.zone("Room", "Neighborhood")
     startZone = ZoneUtil.zone("Room", "Start")
+
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
     Remotes.declareEvent("PlotChanged")
     Remotes.declareEvent("UpdateHouseUI")
+
+    for _, plot in ipairs(Workspace.Rooms.Neighborhood.HousingPlots:GetChildren()) do
+        InteractionUtil.createInteraction(plot.Mailbox, {
+            ObjectText = "Mailbox",
+            ActionText = "Open",
+        })
+    end
 end
 
 local function findInPlacements(id: number, placements)
