@@ -73,14 +73,14 @@ local function outt(directionOut: UDim2, frame: Frame, cosmetics)
     )
 end
 
-function ScreenUtil.sizeIn(frame: Frame)
+function ScreenUtil.sizeOut(frame: Frame)
     frame.Visible = true
     TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = UDim2.fromScale(0, 0) }), function()
         frame.Visible = false
     end)
 end
 
-function ScreenUtil.sizeOut(frame: Frame)
+function ScreenUtil.sizeIn(frame: Frame)
     local MaxSize = frame:GetAttribute("Size") or frame.Size
     if frame:GetAttribute("Size") == nil then
         frame:SetAttribute("Size", frame.Size)
