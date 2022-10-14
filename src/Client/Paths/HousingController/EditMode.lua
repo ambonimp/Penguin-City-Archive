@@ -16,7 +16,7 @@ local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 
 local ATTRIBUTE_IS_SETUP = "Setup"
 local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
-local MOVE_TWEEN_INFO = TweenInfo.new(0.146, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+local MOVE_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 
 local player = Players.LocalPlayer
 local housingScreenItemMove: Frame = HousingScreen.itemMove
