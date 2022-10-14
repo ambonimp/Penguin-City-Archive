@@ -7,8 +7,6 @@ local Player = Players.LocalPlayer
 local Remotes = require(Paths.Shared.Remotes)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
-local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
-local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 
 HousingController.houseCF = nil :: CFrame?
 HousingController.currentHouse = nil :: Model?
@@ -40,8 +38,6 @@ function setupPlayerHouse()
     HousingController.loadPlayerHouse(Player, Character)
     --show edit button, true: has access to edit
     HousingScreen.houseEntered(true)
-    EditMode = require(Paths.Client.HousingController.EditMode)
-    PlotChanger = require(Paths.Client.HousingController.PlotChanger)
 end
 
 function HousingController.Start()

@@ -104,7 +104,7 @@ local function editButtonStateChanged()
     if isOpen then
         return
     end
-    uiStateMachine:PopToAndPush(UIConstants.States.HousingEdit)
+    uiStateMachine:Push(UIConstants.States.HousingEdit)
 end
 
 function HousingScreen.houseEntered(hasEditPerms: boolean)
@@ -119,8 +119,6 @@ function HousingScreen.houseExited()
     end
 
     HousingScreen.enableHousePrompts()
-
-    uiStateMachine:Pop()
 end
 
 --called when player enters Neighborhood zone
@@ -137,12 +135,12 @@ function HousingScreen.enableHousePrompts()
     local promptsDone = 0
     for _, plot in plots do
         task.spawn(function() --use this to handle zone loading streamingenabled
-            local Prompt = plot:WaitForChild("Mailbox"):WaitForChild("Prompt")
-            Prompt.Enabled = true
+            local prompt = plot:WaitForChild("Mailbox"):WaitForChild("Prompt")
+            prompt.Enabled = true
             if not loadedPrompts then
-                Prompt.Triggered:Connect(function()
+                prompt.Triggered:Connect(function()
                     selectedPlot = plot
-                    uiStateMachine:PopToAndPush(UIConstants.States.PlotSetting)
+                    uiStateMachine:Push(UIConstants.States.PlotSetting)
                 end)
                 promptsDone += 1
             end
