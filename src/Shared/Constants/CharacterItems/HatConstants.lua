@@ -30,8 +30,8 @@ HatConstants.Items = {
         Price = 0,
         Icon = Images.Hats["Boot_Hat"],
     } :: Item,
-    ["Detective's_Hat"] = {
-        Name = "s_Hat",
+    ["Detectives_Hat"] = {
+        Name = "Detective's_Hat",
         Price = 0,
         Icon = Images.Hats["Detective's_Hat"],
     } :: Item,
