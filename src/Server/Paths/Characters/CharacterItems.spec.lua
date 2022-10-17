@@ -28,7 +28,7 @@ local function doModelsExist(issues, itemType: string)
     local itemConstants = CharacterItems[itemType]
 
     local models = assets[itemConstants.InventoryPath]
-    for item in itemConstants.Items do
+    for item in pairs(itemConstants.Items) do
         if not models:FindFirstChild(item) then
             table.insert(issues, string.format("%s character item model does not exist : %s", itemType, item))
         end
@@ -39,7 +39,7 @@ local function doModelsHaveA(issues, itemType: string, descedant: string)
     local itemConstants = CharacterItems[itemType]
     local items: { [string]: table } = itemConstants.Items
 
-    for _, model in assets[itemConstants.InventoryPath]:GetChildren() do
+    for _, model in pairs(assets[itemConstants.InventoryPath]:GetChildren()) do
         local name = model.Name
         if items[name] and not InstanceUtil.findFirstDescendant(model, descedant) then
             table.insert(

@@ -25,17 +25,17 @@ local assets = ReplicatedStorage.Assets.Character
 -- Modify visibility
 do
     local hidingSession = Maid.new()
-    local hidden: { [Instance]: { { Property: string, UnhideValue: any } } }?
+    local hidden: { [Instance]: { { Name: string, UnhideValue: any } } }?
     local areCharactersHidden = Toggle.new(false, function(value)
         if value then
             hidden = {}
             hidingSession:GiveTask(Players.PlayerAdded:Connect(hidePlayer))
-            for _, player in Players:GetPlayers() do
+            for _, player in pairs(Players:GetPlayers()) do
                 hidePlayer(player)
             end
         else
-            for instance, unhidingProperties in hidden do
-                for _, property in unhidingProperties do
+            for instance, unhidingProperties in pairs(hidden) do
+                for _, property in pairs(unhidingProperties) do
                     instance[property.Name] = property.UnhideValue
                 end
             end
@@ -47,10 +47,10 @@ do
 
     function hideInstance(instance: Instance)
         -- Iterate through the classes rather than use ClassName in order to account for parent classes
-        for class, hiddingProperties in HIDEABLE_CLASSES do
+        for class, hiddingProperties in pairs(HIDEABLE_CLASSES) do
             if instance:IsA(class) then
                 hidden[instance] = {}
-                for _, property in hiddingProperties do
+                for _, property in pairs(hiddingProperties) do
                     local name: string = property.Name
 
                     table.insert(hidden[instance], { Name = name, UnhideValue = instance[name] })
@@ -89,7 +89,7 @@ do
         local categoryConstant = CharacterItems[type]
 
         local alreadyEquippedAccessories: { [string]: true } = {}
-        for _, accessory in character:GetChildren() do
+        for _, accessory in pairs(character:GetChildren()) do
             if accessory:GetAttribute("AccessoryType") == type then
                 if table.find(accessories, accessory.Name) then
                     alreadyEquippedAccessories[accessory.Name] = true
@@ -99,7 +99,7 @@ do
             end
         end
 
-        for _, accessoryName: string in accessories do
+        for _, accessoryName: string in pairs(accessories) do
             if not alreadyEquippedAccessories[accessoryName] and categoryConstant.Items[accessoryName] then
                 local model: Accessory = assets[categoryConstant.InventoryPath][accessoryName]:Clone()
 
@@ -114,7 +114,7 @@ do
     end
 
     local function applyClothingAppearance(character: Model, type: string, clothingName: string)
-        for _, clothing in character:GetChildren() do
+        for _, clothing in pairs(character:GetChildren()) do
             if clothing:GetAttribute("ClothingType") == type then
                 clothing:Destroy()
             end
@@ -123,7 +123,7 @@ do
         if clothingName then
             local body = character.Body
             local bodyPosition = body.Position
-            for _, pieceTemplate in assets[CharacterItems[type].InventoryPath][clothingName]:GetChildren() do
+            for _, pieceTemplate in pairs(assets[CharacterItems[type].InventoryPath][clothingName]:GetChildren()) do
                 local piece = pieceTemplate:Clone()
                 piece.Position = bodyPosition
                 piece.Parent = character
@@ -157,7 +157,7 @@ do
         local outfit = appearance.Outfit
         if outfit then
             outfit = outfit[1]
-            for itemType, items in CharacterItems.Outfit.Items[outfit].Items do
+            for itemType, items in pairs(CharacterItems.Outfit.Items[outfit].Items) do
                 appearance[itemType] = items
             end
             appearance.Outfit = nil

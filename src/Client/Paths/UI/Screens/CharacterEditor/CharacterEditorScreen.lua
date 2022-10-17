@@ -46,7 +46,7 @@ local session = Maid.new()
 
 -- Initialize categories
 do
-    for categoryName in CharacterItems do
+    for categoryName in pairs(CharacterItems) do
         local category
 
         if categoryName == "BodyType" then
@@ -75,7 +75,7 @@ do
     end
 
     categories.Outfit.Changed:Connect(function(appearance: CharacterItems.Appearance)
-        for categoryName, category in categories do
+        for categoryName, category in pairs(categories) do
             local equippedItems: Category.EquippedItems = appearance[categoryName]
             if equippedItems then
                 category:Equip(equippedItems)
@@ -136,7 +136,7 @@ do
         preview.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
         session:GiveTask(preview)
 
-        for _, category in categories do
+        for _, category in pairs(categories) do
             category:SetPreview(preview)
         end
 
@@ -160,7 +160,7 @@ do
             --Were changes were made to the character's appearance?
             local appearanceChanges = {}
             local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
-            for categoryName, category in categories do
+            for categoryName, category in pairs(categories) do
                 local equipped = category:GetEquipped()
                 if not TableUtil.shallowEquals(currentApperance[categoryName] :: table, equipped) then
                     appearanceChanges[categoryName] = equipped

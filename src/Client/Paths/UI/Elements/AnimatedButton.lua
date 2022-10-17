@@ -11,15 +11,15 @@ local Button = require(Elements.Button)
 
 type ButtonObject = ImageButton | TextButton
 type Animation = {
-    Play: (Animation, ButtonObject) -> (),
-    Revert: (Animation, ButtonObject) -> ()?,
+    Play: (ButtonObject) -> (),
+    Revert: (ButtonObject) -> ()?,
 }
 type AnimationConstructor = (...any) -> Animation
 
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 
-AnimatedButton.Animations = {} :: { [string]: Animation }
+AnimatedButton.Animations = {} :: { [string]: AnimationConstructor }
 --#region Squish Animation
 do
     local DEFAULT_SCALE = UDim2.fromScale(1.2, 0.8)

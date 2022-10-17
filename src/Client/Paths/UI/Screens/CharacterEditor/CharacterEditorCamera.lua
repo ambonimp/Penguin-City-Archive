@@ -4,6 +4,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Signal = require(Paths.Shared.Signal)
 local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local CameraController = require(Paths.Client.CameraController)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
@@ -14,7 +15,6 @@ local SUBJECT_POSITION_X = 0.3
 local camera: Camera = workspace.CurrentCamera
 local player: Player = Players.LocalPlayer
 local playerGui: PlayerGui = player.PlayerGui
-local mouse = player:GetMouse()
 
 local subject: Model
 local subjectRoot: Part
@@ -51,7 +51,8 @@ end
 
 local function onRotationToggled(_, inputState)
     if inputState == Enum.UserInputState.Begin then
-        if table.find(playerGui:GetGuiObjectsAtPosition(mouse.X, mouse.Y), rotateHitbox) then
+        local mousePosition: Vector2 = UserInputService:GetMouseLocation()
+        if table.find(playerGui:GetGuiObjectsAtPosition(mousePosition.X, mousePosition.Y), rotateHitbox) then
             UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
             ContextActionService:BindAction("Rotate", onRotationChanged, false, Enum.UserInputType.MouseMovement, Enum.UserInputType.Touch)
         end
@@ -67,15 +68,15 @@ function CharacterEditorCamera.look(preview: Model)
     subjectCFrame, subjectSize = subject:GetBoundingBox()
     subjectCFrame = subject.HumanoidRootPart.CFrame
 
-    local ViewportSizeChanged
-    ViewportSizeChanged = UIScaleController.ScaleChanged:Connect(lookAtSubject)
+    local viewportSizeChanged: Signal.Connection
+    viewportSizeChanged = UIScaleController.ScaleChanged:Connect(lookAtSubject)
     lookAtSubject(camera.ViewportSize)
 
     ContextActionService:BindAction("ToggleRotation", onRotationToggled, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
 
     -- Destroy function
     return function()
-        ViewportSizeChanged:Disconnect()
+        viewportSizeChanged:Disconnect()
         ContextActionService:UnbindAction("TogglePreviewRotation")
 
         CameraController.setPlayerControl()

@@ -165,7 +165,7 @@ function CharacterEditorCategory.new(categoryName: string)
     end
 
     function category:Equip(equipping: EquippedItems, doNotUpdateAppearance: true?)
-        for _, itemName in equipping do
+        for _, itemName in pairs(equipping) do
             equipItem(itemName, doNotUpdateAppearance)
         end
     end
@@ -204,7 +204,7 @@ function CharacterEditorCategory.new(categoryName: string)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
-    for itemName, itemConstants in constants.Items do
+    for itemName, itemConstants in pairs(constants.Items) do
         local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
         button:Mount(page)
 

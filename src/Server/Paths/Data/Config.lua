@@ -52,7 +52,7 @@ function DataConfig.getDefaults(player: Player): DataUtil.Store
 end
 
 -- Load default character items into inventory
-for _, itemConstants in CharacterItems do
+for _, itemConstants in pairs(CharacterItems) do
     defaultInventory[itemConstants.InventoryPath] = {}
 end
 

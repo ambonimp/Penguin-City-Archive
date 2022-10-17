@@ -1,7 +1,7 @@
 local CharacterItems = {}
 export type Appearance = { [string]: { string }? }
 
-for _, module in script:GetChildren() do
+for _, module in pairs(script:GetChildren()) do
     CharacterItems[string.gsub(module.Name, "Constants", "")] = require(module)
 end
 

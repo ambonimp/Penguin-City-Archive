@@ -13,7 +13,7 @@ local DataService = require(Paths.Server.Data.DataService)
 local assets = ReplicatedStorage.Assets.Character
 
 local function initAccessoryModels(type: string)
-    for _, model: Model in assets[CharacterItems[type].InventoryPath]:GetChildren() do
+    for _, model: Model in pairs(assets[CharacterItems[type].InventoryPath]:GetChildren()) do
         model:SetAttribute("AccessoryType", type)
 
         local handle: BasePart = model:FindFirstChild("Handle")
@@ -22,7 +22,7 @@ local function initAccessoryModels(type: string)
             continue
         end
 
-        for _, descendant in model:GetDescendants() do
+        for _, descendant in pairs(model:GetDescendants()) do
             if descendant:IsA("BasePart") then
                 descendant.CanCollide = false
                 descendant.Anchored = false
@@ -39,8 +39,8 @@ local function initAccessoryModels(type: string)
 end
 
 local function initClothingModels(type: string)
-    for _, model: Model in assets[CharacterItems[type].InventoryPath]:GetChildren() do
-        for _, piece in model:GetChildren() do
+    for _, model: Model in pairs(assets[CharacterItems[type].InventoryPath]:GetChildren()) do
+        for _, piece in pairs(model:GetChildren()) do
             piece:SetAttribute("ClothingType", type)
             if piece:IsA("BasePart") then
                 piece.CanCollide = false
@@ -71,11 +71,11 @@ Remotes.bindFunctions({
         local inventory = DataService.get(client, "Inventory")
 
         -- Verify that every item that's being changed into is owned or free
-        for category, items in changes do
+        for category, items in pairs(changes) do
             local constants = CharacterItems[category]
             if constants and #items <= constants.MaxEquippables then
                 local allItemsAreValid = true
-                for _, item in items do
+                for _, item in pairs(items) do
                     if not (constants.Items[item].Price == 0 or inventory[constants.InventoryPath][item]) then
                         allItemsAreValid = false
                         break

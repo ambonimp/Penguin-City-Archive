@@ -107,7 +107,7 @@ function VehicleUtil.applyFloatForce(dt: number)
     local tallestFloorHeight = -math.huge
 
     local rayDirection = Vector3.new(0, -100, 0)
-    for _, corner in PLATFORM_CORNERS do
+    for _, corner in pairs(PLATFORM_CORNERS) do
         local origin = cframe:PointToWorldSpace(platformSize * corner)
         tallestFloorHeight = math.max(tallestFloorHeight, Workspace:Raycast(origin, rayDirection, raycastParams).Position.Y)
     end

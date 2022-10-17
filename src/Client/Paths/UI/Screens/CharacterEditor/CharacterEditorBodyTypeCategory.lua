@@ -52,7 +52,7 @@ end
 -------------------------------------------------------------------------------
 -- Logic
 -------------------------------------------------------------------------------
-for itemName, itemConstants in CategoryConstants.Items do
+for itemName, itemConstants in pairs(CategoryConstants.Items) do
     local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, CATEGORY_NAME)
     button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder
     button:Mount(page)

@@ -8,7 +8,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 local bank: DataUtil.Store = {}
-DataController.Updated = Signal.new()
+DataController.Updated = Signal.new() -- {event: string, newValue: any, eventMeta: table?}
 
 -- We use addresses on client too only bc it's convinient to copy same addresses as client
 function DataController.get(address: string)

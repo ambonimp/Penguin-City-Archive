@@ -29,7 +29,7 @@ function CharacterService.loadPlayer(player: Player)
     player.Character = character
 
     -- Apply saved appearance
-    CharacterUtil.applyAppearance(character, DataUtil.arrayify(DataService.get(player, "CharacterAppearance")))
+    CharacterUtil.applyAppearance(character, DataUtil.readAsArray(DataService.get(player, "CharacterAppearance")))
 
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed
