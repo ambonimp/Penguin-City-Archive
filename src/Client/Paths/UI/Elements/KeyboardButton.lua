@@ -361,6 +361,7 @@ function KeyboardButton.new()
             icon.Position = ICON_POSITION
             icon.AnchorPoint = ICON_ANCHOR_POINT
             icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+            icon.ScaleType = Enum.ScaleType.Fit
             icon.Parent = imageButton
         end
 

@@ -43,6 +43,7 @@ task.delay(0, function()
         require(client.UI.CoreGui),
         require(client.CurrencyController),
         require(client.ZoneController),
+        require(client.PlayerMenuController),
 
         -- UnitTest
         require(client.UnitTestingController),

@@ -13,6 +13,10 @@ function StampController.hasStamp(stampId: string)
     return DataController.get(StampUtil.getStampDataAddress(stampId)) and true or false
 end
 
+function StampController.openStampBook(player: Player)
+    warn("todo")
+end
+
 -- Updated Event
 do
     DataController.Updated:Connect(function(event: string, newValue: any, meta: table?)

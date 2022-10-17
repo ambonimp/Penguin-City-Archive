@@ -50,6 +50,7 @@ UIConstants.Colors = {
         PenguinBlue = Color3.fromRGB(186, 218, 253),
         DarkPenguinBlue = Color3.fromRGB(38, 71, 118),
         NextGreen = Color3.fromRGB(43, 195, 114),
+        StampBeige = Color3.fromRGB(225, 209, 159),
     },
 }
 
