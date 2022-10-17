@@ -7,6 +7,7 @@ local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local Promise = require(Paths.Packages.promise)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
@@ -24,6 +25,7 @@ local Category = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditor
 local BodyTypeCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorBodyTypeCategory)
 local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
 
+local STANDUP_TIME = 0.1
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 local DEFAULT_CATEGORY = "Shirt"
 
@@ -86,7 +88,7 @@ end
 
 -- Register UIState
 do
-    local yielding: boolean
+    local characterIsReady
     local function openMenu()
         -- RETURN: Menu is already open
         if not canOpen then
@@ -103,30 +105,44 @@ do
         end
 
         -- Only open character editor when the player is on the floor
-        yielding = true
+        characterIsReady = Promise.new(function(resolve, reject, onCancel)
+            local humanoid: Humanoid = character.Humanoid
+            local function checkState()
+                local state = humanoid:GetState()
 
-        local humanoid: Humanoid = character.Humanoid
-        local state: Enum.HumanoidStateType = humanoid:GetState()
+                if state == Enum.HumanoidStateType.Seated then
+                    humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                    humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
+                    task.wait(STANDUP_TIME) -- Give it time to stand up
+                end
 
-        repeat
-            state = humanoid:GetState()
-
-            if state == Enum.HumanoidStateType.Seated then
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
-                task.wait(0.1) -- Give it time to stand up
+                if state == Enum.HumanoidStateType.Dead then
+                    uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
+                    reject()
+                    return
+                elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
+                    resolve()
+                    return
+                end
             end
 
-            if state == Enum.HumanoidStateType.Dead then
-                uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
-                return
-            elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
-                yielding = false
+            checkState()
+            local stateUpdateConnection = humanoid.StateChanged:Connect(checkState)
+            onCancel(function()
+                stateUpdateConnection:Disconnect()
+            end)
+        end):finally(function()
+            character = player.Character
+            if character then
+                character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
             end
+        end)
 
-            task.wait()
-        until not yielding
-
+        local proceed = characterIsReady:await()
+        -- RETURN: Player no longer wants to open the editor
+        if not proceed then
+            return
+        end
         -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
         character:WaitForChild("HumanoidRootPart").Anchored = true
 
@@ -154,9 +170,13 @@ do
     end
 
     local function exitMenu()
-        yielding = false
+        local characterStatus = characterIsReady:getStatus()
 
-        if not yielding then
+        -- RETURN: Player no longer wants to open the editor
+        if characterStatus ~= Promise.Status.Resolved then
+            characterIsReady:Cancel()
+            characterIsReady:Destroy()
+        else
             --Were changes were made to the character's appearance?
             local appearanceChanges = {}
             local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
@@ -190,12 +210,6 @@ do
             session:Cleanup()
         end
 
-        local character = player.Character
-        if character then
-            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        end
-
-        yielding = false
         canOpen = true
     end
 
