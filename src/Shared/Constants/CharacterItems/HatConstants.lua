@@ -21,7 +21,7 @@ HatConstants.Items = {
         Icon = Images.Hats["Backwards_Cap"],
     } :: Item,
     ["Bird_Hat"] = {
-        Name = "Bird_Hat",
+        Name = "Bird Hat",
         Price = 0,
         Icon = Images.Hats["Bird_Hat"],
     } :: Item,
