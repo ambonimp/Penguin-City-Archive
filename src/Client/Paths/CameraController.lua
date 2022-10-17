@@ -51,7 +51,7 @@ end
 
 function CameraController.lookAt(subject: BasePart | Model | {}, offset: Vector3, fov: number?): (Tween, CFrame)
     fov = fov or tweenableFov:GetGoal()
-    local cframe, size
+    local cframe: CFrame, size: Vector3
     if subject:IsA("Model") then
         cframe, size = subject:GetBoundingBox()
     else
