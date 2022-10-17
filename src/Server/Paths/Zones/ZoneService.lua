@@ -211,7 +211,9 @@ do
             end
 
             local zone = ZoneUtil.zone(zoneType, zoneId)
-            return ZoneService.teleportPlayerToZone(player, zone, invokedServerTime)
+            return ZoneService.teleportPlayerToZone(player, zone, {
+                InvokedServerTime = invokedServerTime,
+            })
         end,
     })
 end
