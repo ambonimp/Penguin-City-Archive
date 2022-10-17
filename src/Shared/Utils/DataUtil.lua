@@ -141,12 +141,12 @@ end
 --[[
     Turns an number key(string) into an index (number)
 ]]
-function DataUtil.arrayify(store: Store): { [string | number]: Data }
+function DataUtil.readAsArray(store: Store): { [string | number]: Data }
     local returning = {}
 
     for k, v in pairs(store) do
         k = tonumber(k) or k
-        returning[k] = if typeof(v) == "table" then DataUtil.arrayify(v) else v
+        returning[k] = if typeof(v) == "table" then DataUtil.readAsArray(v) else v
     end
 
     return returning

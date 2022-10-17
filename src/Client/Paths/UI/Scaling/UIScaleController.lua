@@ -86,7 +86,6 @@ end
 
 local function updateScale()
     local viewportSize: Vector2 = camera.ViewportSize
-    local prevScale = scale
 
     local ratio: Vector2 = viewportSize / BASE_RESOLUTION
     scale = if math.abs(1 - ratio.X) > math.abs(1 - ratio.Y) then ratio.X else ratio.Y

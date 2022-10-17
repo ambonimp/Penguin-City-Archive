@@ -5,16 +5,27 @@ local ShirtConstants = require(CharacterItems.ShirtConstants)
 local PantsConstants = require(CharacterItems.PantsConstants)
 
 local OutfitConstants = {}
-export type Item = {
-    Price: number,
-    Icon: string,
-}
 
 type contents = {
     Shirt: { string }?,
     Hat: { string }?,
     Pants: { string }?,
     Shoes: { string }?,
+}
+export type Item = {
+    Price: number,
+    Icon: string,
+    Items: contents,
+}
+
+local items: { [string]: Item } = {}
+items["Farmer"] = {
+    Price = 0,
+    Icon = Images.Outfits["Farmer"],
+    Items = {
+        Shirt = { ShirtConstants.Items["Flannel_Shirt"].Name },
+        Pants = { PantsConstants.Items["Overalls"].Name },
+    },
 }
 
 OutfitConstants.InventoryPath = "Outfits"
@@ -23,15 +34,6 @@ OutfitConstants.TabIcon = Images.Icons.Outfit
 OutfitConstants.SortOrder = Enum.SortOrder.LayoutOrder
 OutfitConstants.MaxEquippables = 0
 OutfitConstants.CanUnequip = false
-OutfitConstants.Items = {
-    ["Farmer"] = {
-        Price = 0,
-        Icon = Images.Outfits["Farmer"],
-        Items = {
-            Shirt = { ShirtConstants.Items["Flannel_Shirt"].Name },
-            Pants = { PantsConstants.Items["Overalls"].Name },
-        } :: contents,
-    } :: Item,
-}
+OutfitConstants.Items = items
 
 return OutfitConstants

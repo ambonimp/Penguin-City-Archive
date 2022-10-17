@@ -7,21 +7,22 @@ export type Item = {
     Icon: string,
 }
 
+local items: { [string]: Item } = {}
+items["Angel_Wings"] = {
+    Price = 0,
+    Icon = Images.Backpacks["Angel_Wings"],
+}
+items["Brown_Backpack"] = {
+    Price = 0,
+    Icon = Images.Backpacks["Brown_Backpack"],
+}
+
 BackpackConstant.InventoryPath = "Backpacks"
 BackpackConstant.TabOrder = 6
 BackpackConstant.TabIcon = Images.Icons.Bag
 BackpackConstant.SortOrder = Enum.SortOrder.Name
 BackpackConstant.MaxEquippables = 2
 BackpackConstant.CanUnequip = true
-BackpackConstant.Items = {
-    ["Angel_Wings"] = {
-        Price = 0,
-        Icon = Images.Backpacks["Angel_Wings"],
-    } :: Item,
-    ["Brown_Backpack"] = {
-        Price = 0,
-        Icon = Images.Backpacks["Brown_Backpack"],
-    } :: Item,
-}
+BackpackConstant.Items = items
 
 return BackpackConstant

@@ -10,34 +10,35 @@ export type Item = {
     LayoutOrder: number,
 }
 
+local items: { [string]: Item } = {}
+items["Kid"] = {
+    Name = "Kid",
+    Height = Vector3.new(0, -0.4, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Kid,
+    LayoutOrder = 1,
+}
+items["Teen"] = {
+    Name = "Teen",
+    Height = Vector3.new(0, 0, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Teen,
+    LayoutOrder = 2,
+}
+items["Adult"] = {
+    Name = "Adult",
+    Height = Vector3.new(0, 0.4, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Adult,
+    LayoutOrder = 3,
+}
+
 BodyTypeConstants.InventoryPath = "BodyTypes"
 BodyTypeConstants.TabOrder = 7
 BodyTypeConstants.TabIcon = Images.Icons.Face
 BodyTypeConstants.SortOrder = Enum.SortOrder.LayoutOrder
 BodyTypeConstants.MaxEquippables = 1
 BodyTypeConstants.CanUnequip = false
-BodyTypeConstants.Items = {
-    ["Kid"] = {
-        Name = "Kid",
-        Height = Vector3.new(0, -0.4, 0),
-        Price = 0,
-        Icon = Images.BodyTypes.Kid,
-        LayoutOrder = 1,
-    } :: Item,
-    ["Teen"] = {
-        Name = "Teen",
-        Height = Vector3.new(0, 0, 0),
-        Price = 0,
-        Icon = Images.BodyTypes.Teen,
-        LayoutOrder = 2,
-    } :: Item,
-    ["Adult"] = {
-        Name = "Adult",
-        Height = Vector3.new(0, 0.4, 0),
-        Price = 0,
-        Icon = Images.BodyTypes.Adult,
-        LayoutOrder = 3,
-    } :: Item,
-}
+BodyTypeConstants.Items = items
 
 return BodyTypeConstants

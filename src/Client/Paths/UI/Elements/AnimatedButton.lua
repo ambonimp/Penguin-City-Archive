@@ -11,8 +11,8 @@ local Button = require(Elements.Button)
 
 type ButtonObject = ImageButton | TextButton
 type Animation = {
-    Play: (ButtonObject) -> (),
-    Revert: (ButtonObject) -> ()?,
+    Play: (Animation, ButtonObject) -> (),
+    Revert: (Animation, ButtonObject) -> ()?,
 }
 type AnimationConstructor = (...any) -> Animation
 

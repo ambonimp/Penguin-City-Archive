@@ -24,16 +24,16 @@ local rotationalOffset = { X = -15, Y = 10 }
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local rotateHitbox: Frame = screen.Rotate
 
-local function lookAtSubject(viewportSize: Vector2)
+local function lookAtSubject()
+    local viewportSize: Vector2 = camera.ViewportSize
     local fov: number = CameraController.getFov()
-    camera.FieldOfView = fov
     local aspectRatio: number = viewportSize.X / viewportSize.Y
 
-    local worldDeph = CameraUtil.getFitDeph(viewportSize, fov, subjectSize * Vector3.new(1 / SUBJECT_SCALE_X, 1, 1))
-    local worldWidth: number = aspectRatio * (math.tan(math.rad(fov) / 2) * worldDeph) * 2
+    local worldDepth = CameraUtil.getFitDeph(viewportSize, fov, subjectSize * Vector3.new(1 / SUBJECT_SCALE_X, 1, 1))
+    local worldWidth: number = aspectRatio * (math.tan(math.rad(fov) / 2) * worldDepth) * 2
     local screenOffset: number = (0.5 - SUBJECT_POSITION_X)
 
-    local cameraOffset: CFrame = CFrame.new(worldWidth * screenOffset, 0, worldDeph)
+    local cameraOffset: CFrame = CFrame.new(worldWidth * screenOffset, 0, worldDepth)
         * CFrame.fromEulerAnglesYXZ(math.rad(rotationalOffset.X), 0, 0)
     CameraUtil.lookAt(camera, subjectCFrame, cameraOffset)
 
@@ -70,7 +70,7 @@ function CharacterEditorCamera.look(preview: Model)
 
     local viewportSizeChanged: Signal.Connection
     viewportSizeChanged = UIScaleController.ScaleChanged:Connect(lookAtSubject)
-    lookAtSubject(camera.ViewportSize)
+    lookAtSubject()
 
     ContextActionService:BindAction("ToggleRotation", onRotationToggled, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
 

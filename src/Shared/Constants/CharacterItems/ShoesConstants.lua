@@ -8,18 +8,19 @@ export type Item = {
     Icon: string,
 }
 
+local items: { [string]: Item } = {}
+items["Red_Sneakers"] = {
+    Name = "Red_Sneakers",
+    Price = 0,
+    Icon = Images.Shoes["Red_Sneakers"],
+}
+
 ShoesConstants.InventoryPath = "Shoes"
 ShoesConstants.TabOrder = 3
 ShoesConstants.TabIcon = Images.Icons.Shoe
 ShoesConstants.SortOrder = Enum.SortOrder.LayoutOrder
 ShoesConstants.MaxEquippables = 1
 ShoesConstants.CanUnequip = true
-ShoesConstants.Items = {
-    ["Red_Sneakers"] = {
-        Name = "Red_Sneakers",
-        Price = 0,
-        Icon = Images.Shoes["Red_Sneakers"],
-    } :: Item,
-}
+ShoesConstants.Items = items
 
 return ShoesConstants
