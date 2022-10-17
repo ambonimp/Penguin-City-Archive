@@ -8,6 +8,7 @@ local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.
 local DataController = require(Paths.Client.DataController)
 
 local CATEGORY_NAME = "BodyType"
+
 -------------------------------------------------------------------------------
 -- Private Members
 -------------------------------------------------------------------------------
