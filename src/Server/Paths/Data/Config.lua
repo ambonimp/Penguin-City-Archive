@@ -7,26 +7,31 @@ local DataConfig = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local houseDefaults = require(script.Parent.HouseDefault)
+local HouseDefault = require(script.Parent.HouseDefault)
+local StampUtil = require(Paths.Shared.Stamps.StampUtil)
+
 local defaultInventory = {}
 --[[
 DataConfig.ReconcileExceptions = {
     ["Placements"] = true,
 }]]
 
-DataConfig.DataKey = "DEV_3"
+DataConfig.DataKey = "DEV_4"
 function DataConfig.getDefaults()
     return {
         Appearance = {
             BodyType = "Teen",
         },
         Inventory = defaultInventory,
-        Igloo = {},
+        Igloo = HouseDefault.getIglooDefaults(),
         Products = {},
         ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
-        Stamps = {},
+        Stamps = {
+            OwnedStamps = {},
+            StampBook = StampUtil.getStampBookDataDefaults(),
+        },
         Coins = 0,
     }
 end

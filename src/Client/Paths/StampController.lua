@@ -1,11 +1,12 @@
 local StampController = {}
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
-local Signal = require(ReplicatedStorage.Shared.Signal)
+local Signal = require(Paths.Shared.Signal)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean}
 
@@ -14,7 +15,14 @@ function StampController.hasStamp(stampId: string)
 end
 
 function StampController.openStampBook(player: Player)
-    warn("todo")
+    if UIController.getStateMachine():HasState(UIConstants.States.StampBook) then
+        warn("StampBook already open")
+        return
+    end
+
+    UIController.getStateMachine():Push(UIConstants.States.StampBook, {
+        Player = player,
+    })
 end
 
 -- Updated Event

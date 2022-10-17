@@ -3,6 +3,9 @@ local StampUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
+
+local totalStamps: number
 
 function StampUtil.getStampFromId(stampId: string)
     -- Infer StampType
@@ -34,8 +37,53 @@ function StampUtil.getStampsFromType(stampType: Stamps.StampType): { Stamps.Stam
     return require(ReplicatedStorage.Shared.Stamps.StampTypes:FindFirstChild(("%sStamps"):format(stampType)))
 end
 
+function StampUtil.getTotalStamps()
+    return totalStamps
+end
+
+function StampUtil.createStampImageButton(stamp: Stamps.Stamp)
+    local imageButton = Instance.new("ImageButton")
+    imageButton.Name = stamp.Id
+    imageButton.Image = stamp.ImageId
+    imageButton.BackgroundTransparency = 0.9
+    imageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(1, 0)
+    uiCorner.Parent = imageButton
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = imageButton.BackgroundColor3
+    uiStroke.Thickness = 6
+    uiStroke.Parent = imageButton
+
+    return imageButton
+end
+
 function StampUtil.getStampDataAddress(stampId: string)
-    return ("Stamps.%s"):format(stampId)
+    return ("Stamps.OwnedStamps.%s"):format(stampId)
+end
+
+function StampUtil.getStampBookDataDefaults()
+    return {
+        CoverColor = {
+            Unlocked = { "Brown" },
+            Selected = "Brown",
+        },
+        CoverPattern = {
+            Unlocked = { "Voldex" },
+            Selected = "Voldex",
+        },
+        TextColor = {
+            Unlocked = { "White" },
+            Selected = "White",
+        },
+        Seal = {
+            Unlocked = { "Gold" },
+            Selected = "Gold",
+        },
+        CoverStampIds = {},
+    }
 end
 
 function StampUtil.getStampIdCmdrArgument(stampTypeArgument)
@@ -49,6 +97,14 @@ end
 
 function StampUtil.getStampIdCmdrTypeName(stampType: string)
     return StringUtil.toCamelCase(("%sStampId"):format(stampType))
+end
+
+-- Calculations
+do
+    totalStamps = 0
+    for _, stampModules in pairs(ReplicatedStorage.Shared.Stamps.StampTypes:GetChildren()) do
+        totalStamps += #require(stampModules)
+    end
 end
 
 return StampUtil

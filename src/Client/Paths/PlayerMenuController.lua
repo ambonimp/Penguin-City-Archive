@@ -18,6 +18,7 @@ local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
     FilterType = Enum.RaycastFilterType.Blacklist,
 }
+local RADIAL_MENU_SCALE = 0.2
 
 local cursorDownPlayer: Player?
 local cachedPlayer: Player?
@@ -84,6 +85,7 @@ function PlayerMenuController.clickedPlayer(player: Player)
     containerFrame.Parent = billboardGui
 
     local radialMenu = RadialMenu.new()
+    radialMenu:SetScale(RADIAL_MENU_SCALE)
     radialMenu:Mount(containerFrame)
 
     setupRadialButtons(player, radialMenu)

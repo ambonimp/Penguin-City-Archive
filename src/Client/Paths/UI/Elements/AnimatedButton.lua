@@ -98,6 +98,10 @@ function AnimatedButton.combineAnimations(animations: { Animation }): Animation
     return combinedAnimation
 end
 
+function AnimatedButton.fromGuiObject(buttonObject: ImageButton | TextButton)
+    return AnimatedButton.new(Button.new(buttonObject))
+end
+
 function AnimatedButton.new(button: typeof(Button.new(Instance.new("ImageButton"))))
     local animatedButton = button
 

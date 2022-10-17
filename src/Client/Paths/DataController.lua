@@ -16,6 +16,11 @@ function DataController.get(address: string)
     return value
 end
 
+-- Queries server
+function DataController.getPlayer(player: Player, address: string)
+    return Remotes.invokeServer("GetPlayerData", player, address)
+end
+
 local loader = Promise.new(function(resolve)
     Remotes.bindEvents({
         DataInitialized = function(data)
