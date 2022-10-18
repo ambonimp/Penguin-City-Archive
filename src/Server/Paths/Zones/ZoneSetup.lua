@@ -15,19 +15,6 @@ local models: { Model } = {}
 local largestDiameter = 1
 local gridSideLength = 1
 
-function ZoneSetup.placeModelOnGrid(model: Model, horizontalIndex: number, yIndex: number)
-    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
-    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontalIndex)
-
-    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * yIndex, gridSideLength * spiralPosition.Y)
-    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
-    model:PivotTo(cframe)
-end
-
-function ZoneSetup.setupIglooRoom()
-    --todo
-end
-
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
 ]]
@@ -142,7 +129,7 @@ end
     Used to help the client detect when a Zone has been fully loaded
     https://create.roblox.com/docs/optimization/content-streaming#streaming-in
 ]]
-local function writeBasePartTotals()
+local function writeBasePartTotals(writeModels: { Model })
     -- ERROR: Models is empty (ensure we're doing *something*)
     if #models == 0 then
         error("Models is empty")
@@ -181,7 +168,7 @@ local function writeBasePartTotals()
         end
     end
 
-    for _, model in pairs(models) do
+    for _, model in pairs(writeModels) do
         -- Now
         processInstance(model)
 
@@ -243,6 +230,23 @@ local function setupGrid()
     end
 end
 
+-------------------------------------------------------------------------------
+--  API
+-------------------------------------------------------------------------------
+
+function ZoneSetup.placeModelOnGrid(model: Model, horizontalIndex: number, yIndex: number)
+    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
+    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontalIndex)
+
+    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * yIndex, gridSideLength * spiralPosition.Y)
+    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
+    model:PivotTo(cframe)
+end
+
+function ZoneSetup.setupIglooRoom(room: Model)
+    writeBasePartTotals({ room })
+end
+
 --[[
     Does a lot of setup needed to convert from developer to live.
 
@@ -252,7 +256,7 @@ function ZoneSetup.setup()
     verifyDirectories()
     convertToModels()
     verifyAndCleanModels()
-    writeBasePartTotals()
+    writeBasePartTotals(models)
     verifyStreamingRadius()
     setupGrid()
 end
