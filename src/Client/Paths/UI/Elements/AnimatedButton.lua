@@ -23,25 +23,26 @@ AnimatedButton.Animations = {} :: { [string]: AnimationConstructor }
 --#region Squish Animation
 do
     local DEFAULT_SCALE = UDim2.fromScale(1.2, 0.8)
-    local TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+    local DEFUALT_LENGTH = 0.07
+    local EASING_STYLE = Enum.EasingStyle.Back
 
-    AnimatedButton.Animations.Squish = function(scale: UDim2?)
+    AnimatedButton.Animations.Squish = function(scale: UDim2?, length: number?)
         local animation = {}
 
         scale = scale or DEFAULT_SCALE
+        length = length or DEFUALT_LENGTH
+
+        local infoIn = TweenInfo.new(length, EASING_STYLE, Enum.EasingDirection.Out)
+        local infoOut = TweenInfo.new(length, EASING_STYLE, Enum.EasingDirection.In)
 
         function animation:Play(button: ButtonObject)
             local initSize = Binder.bindFirst(button, "InitSize", button.Size)
-            TweenUtil.bind(
-                button,
-                "ButtonScale",
-                TweenService:Create(button, TWEEN_INFO, { Size = UDimUtil.multiplyUDim2s(initSize, scale) })
-            )
+            TweenUtil.bind(button, "ButtonScale", TweenService:Create(button, infoIn, { Size = UDimUtil.multiplyUDim2s(initSize, scale) }))
         end
 
         function animation:Revert(button: ButtonObject)
             local initSize = Binder.bindFirst(button, "InitSize", button.Size)
-            TweenUtil.bind(button, "ButtonScale", TweenService:Create(button, TWEEN_INFO, { Size = initSize }))
+            TweenUtil.bind(button, "ButtonScale", TweenService:Create(button, infoOut, { Size = initSize }))
         end
 
         return animation
@@ -98,7 +99,11 @@ function AnimatedButton.combineAnimations(animations: { Animation }): Animation
     return combinedAnimation
 end
 
-function AnimatedButton.new(button: typeof(Button.new(Instance.new("ImageButton"))))
+function AnimatedButton.new(buttonObject: ButtonObject)
+    return AnimatedButton.fromButton(Button.new(buttonObject))
+end
+
+function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("ImageButton"))))
     local animatedButton = button
 
     -------------------------------------------------------------------------------
@@ -112,16 +117,22 @@ function AnimatedButton.new(button: typeof(Button.new(Instance.new("ImageButton"
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
-    function animatedButton:MountToUnconstrained(parent)
+    function animatedButton:MountToUnconstrained(parent): Frame
         local container = Instance.new("Frame")
+        container.Name = buttonObject.Name
         container.Size = buttonObject.Size
+        container.SizeConstraint = buttonObject.SizeConstraint
         container.Position = buttonObject.Position
         container.AnchorPoint = buttonObject.AnchorPoint
         container.ZIndex = buttonObject.ZIndex
+        container.LayoutOrder = buttonObject.LayoutOrder
         container.Parent = parent
 
         buttonObject.Size = UDim2.fromScale(1, 1)
+        buttonObject.Name = "Button"
         animatedButton:Mount(container, true)
+
+        return container
     end
 
     function animatedButton:SetPressAnimation(animation: Animation?)

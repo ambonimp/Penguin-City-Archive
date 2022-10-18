@@ -14,7 +14,7 @@ function InteractionUtil.createInteraction(interactable, props)
     proximityPrompt.MaxActivationDistance = 10
     proximityPrompt.RequiresLineOfSight = false
 
-    for prop, value in props do
+    for prop, value in pairs(props) do
         proximityPrompt[prop] = value
     end
 

@@ -44,7 +44,7 @@ function PlotService.Init()
 end
 
 local function findInPlacements(id: number, placements)
-    for _, data in placements do
+    for _, data in pairs(placements) do
         if data.Id == id then
             return true
         end
@@ -82,7 +82,7 @@ function PlotService.Start()
 end
 
 local function setModelColor(object: Model, color: Color3)
-    for _, part: BasePart in object:GetDescendants() do
+    for _, part: BasePart in pairs(object:GetDescendants()) do
         if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
             part.Color = color
         end
@@ -153,7 +153,7 @@ local function loadHouseInterior(player: Player, plot: Model, Model: Model)
     player:SetAttribute(HousingConstants.HouseSpawn, Model.Spawn.Position)
     local furniture: { [string]: { any } } = DataService.get(player, "Igloo.Placements")
     if furniture then
-        for _, objectData in furniture do
+        for _, objectData in pairs(furniture) do
             local itemName = objectData.Name
             local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
 
@@ -337,7 +337,7 @@ function PlotService.changeObject(player: Player, id: number, position: CFrame, 
         object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
         setModelColor(object, color)
 
-        for _, itemData in items do
+        for _, itemData in pairs(items) do
             if itemData.Id == id then
                 itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
                 itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
@@ -355,14 +355,14 @@ function PlotService.removeObject(player: Player, id: number, type: string)
     local plot = PlotService.doesPlayerHavePlot(player, HousingConstants.HouseType)
     local items = DataService.get(player, "Igloo.Placements")
     local name = nil
-    for _, object: Model in plot.Furniture:GetChildren() do
+    for _, object: Model in pairs(plot.Furniture:GetChildren()) do
         if object:GetAttribute(HousingConstants.ModelId) == id then
             name = object.Name
             object:Destroy()
         end
     end
 
-    for num, data in items do
+    for num, data in pairs(items) do
         if data.Id == id then
             DataService.set(player, "Igloo.Placements." .. tostring(num), nil)
             if DataService.get(player, "Igloo.Placements") == nil then
@@ -395,7 +395,7 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
     if
         (houseCFrame.Position - position.Position).magnitude < 150 --todo: swap to InBounds method
         and (assets.Housing:FindFirstChild(type) and assets.Housing:FindFirstChild(type):FindFirstChild(name))
-        and (owned[name] and owned[name] > 0)
+        and (owned[name] and owned[name] :: number > 0)
     then
         local object = assets.Housing[type]:FindFirstChild(name):Clone()
         local realPosition = houseCFrame:ToObjectSpace(position)

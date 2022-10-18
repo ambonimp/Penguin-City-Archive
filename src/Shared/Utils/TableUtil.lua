@@ -10,9 +10,11 @@ function TableUtil.deepClone(tbl)
     return clone
 end
 
-function TableUtil.merge(tbl1: table, tbl2: table)
-    for i, v in tbl2 do
-        tbl1[i] = v
+function TableUtil.merge(tbl1: table, tbl2: table?)
+    if tbl2 then
+        for i, v in tbl2 do
+            tbl1[i] = v
+        end
     end
 
     return tbl1
@@ -155,6 +157,27 @@ function TableUtil.isArray(tbl: table)
     end
 
     return false
+end
+
+-- Checks that two tables share the same values
+function TableUtil.shallowEquals(tbl1: table?, tbl2: table?)
+    if not tbl1 or not tbl2 then
+        return false
+    end
+
+    for _, v in tbl1 do
+        if not TableUtil.find(tbl2, v) then
+            return false
+        end
+    end
+
+    for _, v in tbl2 do
+        if not TableUtil.find(tbl1, v) then
+            return false
+        end
+    end
+
+    return true
 end
 
 --[[

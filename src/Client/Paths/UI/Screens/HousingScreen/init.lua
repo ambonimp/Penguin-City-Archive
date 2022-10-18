@@ -7,6 +7,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local HousingController: typeof(require(Paths.Client.HousingController))
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
@@ -34,22 +35,13 @@ local selectedPlot: Model
 HousingScreen.itemMove = screenGui.ItemMove
 
 --buttons
-local plotChangerExit = KeyboardButton.new()
-local exitButton = KeyboardButton.new()
-local changeHouseExit = KeyboardButton.new()
-local settingsExitButton = KeyboardButton.new()
+local plotChangerExit = ExitButton.new()
+local exitButton = ExitButton.new()
+local changeHouseExit = ExitButton.new()
+local settingsExitButton = ExitButton.new()
 local plotChange = KeyboardButton.new()
 local houseChange = KeyboardButton.new()
 local setPlotButton = KeyboardButton.new()
-
---creates an exit button button, can move to buttonutil
-function createExitButton(parent, button)
-    button:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
-    button:Mount(parent, true)
-    button:SetPressedDebounce(DEBOUNCE_TIME)
-    button:SetIcon("rbxassetid://10979113086")
-    button:SetCornerRadius(1)
-end
 
 --creates a regular button, can move to buttonutil
 function createRegularButton(parent, button, text)
@@ -57,17 +49,12 @@ function createRegularButton(parent, button, text)
     button:Mount(parent, true)
     button:SetPressedDebounce(DEBOUNCE_TIME)
     button:SetText(text)
-    button:SetCornerRadius(0.15)
+    button:SetCornerRadius(UDim.new(0.15))
     button:SetTextColor(UIConstants.Colors.Buttons.DarkPenguinBlue, true)
 end
 
 function HousingScreen.Init()
     HousingController = require(Paths.Client.HousingController)
-
-    createExitButton(edit.ExitButton, exitButton)
-    createExitButton(settingsUI.ExitButton, settingsExitButton)
-    createExitButton(changeHouse.ExitButton, changeHouseExit)
-    createExitButton(plotChangerFrame.ExitButton, plotChangerExit)
 
     createRegularButton(settingsUI.Center.PlotChange, plotChange, "Change Plot")
     createRegularButton(settingsUI.Center.HouseChange, houseChange, "Change House")
@@ -424,6 +411,11 @@ end
 
 -- Setup UI
 do
+    exitButton:Mount(edit.ExitButton, true)
+    settingsExitButton:Mount(settingsUI.ExitButton, true)
+    changeHouseExit:Mount(changeHouse.ExitButton, true)
+    plotChangerExit:Mount(plotChangerFrame.ExitButton, true)
+
     -- Show
     screenGui.Enabled = true
 end

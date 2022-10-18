@@ -11,12 +11,12 @@ end
 -- Wrapper for creating an instance with property values and children ideally in one line
 function InstanceUtil.tree(class: string, props: { [string]: any }, children: { Instance }?): Instance
     local instance = Instance.new(class)
-    for property, value in props do
+    for property, value in pairs(props) do
         instance[property] = value
     end
 
     if children then
-        for _, child in children do
+        for _, child in pairs(children) do
             child.Parent = instance
         end
     end
@@ -38,6 +38,14 @@ function InstanceUtil.weld(mainPart: BasePart, otherPart: BasePart)
     weldConstraint.Parent = mainPart
 
     return weldConstraint
+end
+
+function InstanceUtil.findFirstDescendant(instance: Instance, searchingFor: string): Instance?
+    for _, descendant in pairs(instance:GetDescendants()) do
+        if descendant.Name == searchingFor then
+            return descendant
+        end
+    end
 end
 
 -- Returns children that checker(child) == true

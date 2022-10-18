@@ -1,21 +1,15 @@
 local CoreGui = {}
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
-local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
 
 local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Health,
     Enum.CoreGuiType.PlayerList,
 }
 
-local disableMaid = Maid.new()
 local isEnabled = true
-
-local function getTouchGui()
-    return Players.LocalPlayer.PlayerGui:FindFirstChild("TouchGui") :: ScreenGui
-end
 
 function CoreGui.enable()
     -- RETURN: Already enabled
@@ -24,13 +18,8 @@ function CoreGui.enable()
     end
     isEnabled = true
 
-    disableMaid:Cleanup()
-
     -- Mobile Controls
-    local touchGui = getTouchGui()
-    if touchGui then
-        touchGui.Enabled = true
-    end
+    GuiService.TouchControlsEnabled = true
 end
 
 function CoreGui.disable()
@@ -41,14 +30,7 @@ function CoreGui.disable()
     isEnabled = false
 
     -- Mobile Controls
-    local touchGui = getTouchGui()
-    if touchGui then
-        touchGui.Enabled = false
-
-        disableMaid:GiveTask(touchGui:GetPropertyChangedSignal("Enabled"):Connect(function()
-            touchGui.Enabled = false
-        end))
-    end
+    GuiService.TouchControlsEnabled = false
 end
 
 -- Global disables
