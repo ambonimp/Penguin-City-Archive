@@ -13,6 +13,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local ID_CHECK_AMOUNT = 1000
 local DEBOUNCE_SCOPE = "PlayerTeleport"
@@ -148,10 +149,10 @@ local function unloadPlot(player: Player, plot: Model, type: string)
 end
 
 --Loads objects in players house
-local function loadHouseInterior(player: Player, plot: Model, Model: Model)
+local function loadHouseInterior(player: Player, plot: Model)
     local houseCFrame: CFrame = CFrame.new(plot.Plot.Position)
-    player:SetAttribute(HousingConstants.HouseSpawn, Model.Spawn.Position)
-    local furniture: { [string]: { any } } = DataService.get(player, "Igloo.Placements")
+
+    local furniture: { [string]: any } = DataService.get(player, "Igloo.Placements")
     if furniture then
         for _, objectData in pairs(furniture) do
             local itemName = objectData.Name
@@ -197,7 +198,7 @@ local function loadPlot(player: Player, plot: Model, type: string, isChange: boo
 
             --Handle entering and exiting houses
             if type == HousingConstants.HouseType then
-                loadHouseInterior(player, plot, Model)
+                loadHouseInterior(player, plot)
                 Model.Exit.Touched:Connect(function(part: BasePart)
                     local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key .. part.Parent.Name, DEBOUNCE_MOUNT.Timeframe)
                     if not isFree then
@@ -220,6 +221,13 @@ local function loadPlot(player: Player, plot: Model, type: string, isChange: boo
                         ZoneService.teleportPlayerToZone(newPlayer, ZoneUtil.houseZone(player))
                         Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
                     end
+                end)
+
+                local spawnPart = Model.Spawn
+                spawnPart.Name = tostring(player.UserId)
+                spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
+                Model.Destroying:Connect(function()
+                    spawnPart:Destroy()
                 end)
             end
         end

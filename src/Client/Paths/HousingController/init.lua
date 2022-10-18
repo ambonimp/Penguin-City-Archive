@@ -12,34 +12,17 @@ local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
 
 local plots = workspace.Rooms.Neighborhood.HousingPlots
 
-HousingController.houseCF = nil :: CFrame?
 HousingController.currentHouse = nil :: Model?
 
---Sets the players house CF used to place objects when loading
-local function setHouseCFrame()
-    if Player:GetAttribute(HousingConstants.HouseType) and Player:GetAttribute(HousingConstants.HouseSpawn) then
-        HousingController.houseCF = CFrame.new(Player:GetAttribute(HousingConstants.HouseType))
-    end
-end
-
 function HousingController.Init()
-    setHouseCFrame()
-
     HousingController.isEditing = false :: boolean
 end
 
 local function setupPlayerHouse()
-    --set house cf if it hasn't been already
-    if HousingController.houseCF == nil then
-        repeat
-            task.wait()
-        until Player:GetAttribute(HousingConstants.HouseType) and Player:GetAttribute(HousingConstants.HouseSpawn)
-
-        setHouseCFrame()
-    end
     --wait for character to load house
     local Character = Player.Character or Player.CharacterAdded:Wait()
     HousingController.loadPlayerHouse(Player, Character)
+
     --show edit button, true: has access to edit
     HousingScreen.houseEntered(true)
     EditMode = require(Paths.Client.HousingController.EditMode)
