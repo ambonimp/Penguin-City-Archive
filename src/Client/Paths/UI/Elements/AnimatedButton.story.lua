@@ -14,7 +14,7 @@ return function(target)
     buttonObject.Position = UDim2.fromScale(0.2, 0.5)
     buttonObject.Size = UDim2.fromScale(0.2, 0.2)
 
-    local button = AnimatedButton.new(Button.new(buttonObject))
+    local button = AnimatedButton.new(buttonObject)
     button:MountToUnconstrained(frame)
     button:SetHoverAnimation(
         AnimatedButton.combineAnimations({ AnimatedButton.Animations.Squish(UDim2.fromScale(1.2, 1.2)), AnimatedButton.Animations.Nod(25) })

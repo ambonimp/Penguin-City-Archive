@@ -9,8 +9,8 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
-local PLOT_OWNER_CAMERA_LOOKAT = Vector3.new(0, 0, 42)
-local NO_PLOT_OWNER_CAMERA_LOOKAT = Vector3.new(0, 8, 35)
+local PLOT_OWNER_CAMERA_LOOKAT = CFrame.new(0, 0, 42)
+local NO_PLOT_OWNER_CAMERA_LOOKAT = CFrame.new(0, 8, 35)
 local CAMERA_TWEEN_INFO = TweenInfo.new(0.2)
 
 local player = Players.LocalPlayer
@@ -30,9 +30,9 @@ local function moveCameraTo(position: number)
     HousingScreen.updatePlotUI(plot)
     PlotChanger.setPlot(plot)
     if plot:GetAttribute(HousingConstants.PlotOwner) then
-        CameraUtil.lookAt(camera, plot, PLOT_OWNER_CAMERA_LOOKAT, CAMERA_TWEEN_INFO)
+        CameraUtil.lookAt(camera, plot.CFrame, PLOT_OWNER_CAMERA_LOOKAT, CAMERA_TWEEN_INFO)
     else
-        CameraUtil.lookAt(camera, plot, NO_PLOT_OWNER_CAMERA_LOOKAT, CAMERA_TWEEN_INFO)
+        CameraUtil.lookAt(camera, plot.CFrame, NO_PLOT_OWNER_CAMERA_LOOKAT, CAMERA_TWEEN_INFO)
     end
     currentPlot = plot
 end

@@ -1,10 +1,11 @@
 local Button = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage.Shared
+local Sound = require(Shared.Sound)
+local Signal = require(Shared.Signal)
+local Limiter = require(Shared.Limiter)
 local UIElement = require(script.Parent.UIElement)
-local Sound = require(ReplicatedStorage.Shared.Sound)
-local Signal = require(ReplicatedStorage.Shared.Signal)
-local Limiter = require(ReplicatedStorage.Shared.Limiter)
 
 local idCounter = 0
 

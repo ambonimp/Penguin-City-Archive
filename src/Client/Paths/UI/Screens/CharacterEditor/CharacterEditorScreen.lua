@@ -6,7 +6,11 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local Promise = require(Paths.Packages.promise)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -14,63 +18,77 @@ local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
-local CameraController = require(Paths.Client.CameraController)
-local CharacterEditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
-local CharacterEditorCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
+local CoreGui = require(Paths.Client.UI.CoreGui)
+local Button = require(Paths.Client.UI.Elements.Button)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Category = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
+local BodyTypeCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorBodyTypeCategory)
+local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
 
--- Constants
-local CAM_OFFSET = 0
+local STANDUP_TIME = 0.1
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
+local DEFAULT_CATEGORY = "Shirt"
 
-local DEFAULT_CATEGORY = "BodyType"
-
--- Members
 local canOpen: boolean = true
 
+local player: Player = Players.LocalPlayer
+
 local screen: ScreenGui = Paths.UI.CharacterEditor
-local menu: Frame = screen.Appearance
-local categoryPages: Frame = menu.Items
-local categoryTabs: Frame = menu.Tabs
+local menu: Frame = screen.Edit
+local tabs: Frame = menu.Tabs
+local equippedSlots: Frame = screen.Equipped
+local bodyTypesPage: Frame = screen.BodyTypes
 local uiStateMachine = UIController.getStateMachine()
 
-local categories: { [string]: typeof(CharacterEditorCategory.new("")) } = {}
+local categories: { [string]: any } = {}
 local currentCategory: string
-local previewCharacter: Model
 
-local player = Players.LocalPlayer
+local preview: Model
+local session = Maid.new()
 
 -- Initialize categories
 do
-    for categoryName in CharacterEditorConstants do
-        categories[categoryName] = CharacterEditorCategory.new(categoryName)
+    for categoryName in pairs(CharacterItems) do
+        local category
 
-        -- Routing
-        local page = categoryPages[categoryName]
-        local tab = categoryTabs[categoryName]
+        if categoryName == "BodyType" then
+            category = BodyTypeCategory
+        else
+            category = Category.new(categoryName)
 
-        local function openTab()
-            if currentCategory == categoryName then
-                return
+            local tabButton = Button.new(category:GetTab())
+            tabButton:Mount(tabs)
+            tabButton.InternalPress:Connect(function()
+                if currentCategory then
+                    categories[currentCategory]:Close()
+                end
+
+                currentCategory = categoryName
+                category:Open()
+            end)
+
+            if categoryName == DEFAULT_CATEGORY then
+                currentCategory = categoryName
+                category:Open()
             end
-
-            if currentCategory then
-                categoryPages[currentCategory].Visible = false
-            end
-
-            currentCategory = categoryName
-            page.Visible = true
         end
 
-        tab.MouseButton1Down:Connect(openTab)
-        if categoryName == DEFAULT_CATEGORY then
-            openTab()
-        end
+        categories[categoryName] = category
     end
+
+    categories.Outfit.Changed:Connect(function(appearance: CharacterItems.Appearance)
+        for categoryName, category in pairs(categories) do
+            local equippedItems: Category.EquippedItems = appearance[categoryName]
+            if equippedItems then
+                category:Equip(equippedItems)
+            end
+        end
+    end)
 end
 
 -- Register UIState
 do
-    local yielding: boolean
+    local characterIsReady
     local function openMenu()
         -- RETURN: Menu is already open
         if not canOpen then
@@ -87,63 +105,90 @@ do
         end
 
         -- Only open character editor when the player is on the floor
-        yielding = true
+        characterIsReady = Promise.new(function(resolve, reject, onCancel)
+            local humanoid: Humanoid = character.Humanoid
+            local function checkState()
+                local state = humanoid:GetState()
 
-        local humanoid: Humanoid = character.Humanoid
-        local state: Enum.HumanoidStateType = humanoid:GetState()
+                if state == Enum.HumanoidStateType.Seated then
+                    humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                    humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
+                    task.wait(STANDUP_TIME) -- Give it time to stand up
+                end
 
-        repeat
-            state = humanoid:GetState()
-
-            if state == Enum.HumanoidStateType.Seated then
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
-                task.wait(0.1) -- Give it time to stand up
+                if state == Enum.HumanoidStateType.Dead then
+                    uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
+                    reject()
+                    return
+                elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
+                    resolve()
+                    return
+                end
             end
 
-            if state == Enum.HumanoidStateType.Dead then
-                uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
-                return
-            elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
-                yielding = false
+            checkState()
+            local stateUpdateConnection = humanoid.StateChanged:Connect(checkState)
+            onCancel(function()
+                stateUpdateConnection:Disconnect()
+            end)
+        end):finally(function()
+            character = player.Character
+            if character then
+                character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
             end
+        end)
 
-            task.wait()
-        until not yielding
-
+        local proceed = characterIsReady:await()
+        -- RETURN: Player no longer wants to open the editor
+        if not proceed then
+            return
+        end
         -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        humanoidRootPart.Anchored = true
+        character:WaitForChild("HumanoidRootPart").Anchored = true
 
-        previewCharacter = character:Clone()
-        previewCharacter.Name = "CharacterEditorPreview"
-        previewCharacter.Parent = Workspace
-        previewCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
+        preview = character:Clone()
+        preview.Name = "CharacterEditorPreview"
+        preview.Parent = Workspace
+        preview.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
+        session:GiveTask(preview)
 
-        local appearanceDescription: CharacterEditorCategory.AppearanceChange = DataController.get("Appearance")
-        for name, category in categories do
-            category:EquipItem(appearanceDescription[name])
-            category:SetPreviewCharacter(previewCharacter)
+        for _, category in pairs(categories) do
+            category:SetPreview(preview)
         end
 
-        -- Open menu and make camera look at character, hide all other characters
-        CharacterUtil.hideCharacters(script.Name)
-        CameraController.lookAt(character, Vector3.new(0, 0, CAM_OFFSET))
+        -- Make camera look at preview character
+        session:GiveTask(CharacterEditorCamera.look(preview))
+
+        -- Open menu and hide all other characters
         ScreenUtil.inLeft(menu)
+        ScreenUtil.inRight(equippedSlots)
+        ScreenUtil.inRight(bodyTypesPage)
+
+        CoreGui.disable()
+        InteractionUtil.hideInteractions(script.Name)
+        CharacterUtil.hideCharacters(script.Name)
     end
 
     local function exitMenu()
-        yielding = false
+        local characterStatus = characterIsReady:getStatus()
 
-        if not yielding then
-            previewCharacter:Destroy()
-
-            --Were changes were made to the character's appearance
-            local appearanceChanges: CharacterEditorCategory.AppearanceChange = {}
-            for _, category in categories do
-                TableUtil.merge(appearanceChanges, category:GetChanges())
-                category:SetPreviewCharacter("")
+        -- RETURN: Player no longer wants to open the editor
+        if characterStatus ~= Promise.Status.Resolved then
+            characterIsReady:Cancel()
+            characterIsReady:Destroy()
+        else
+            --Were changes were made to the character's appearance?
+            local appearanceChanges = {}
+            local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
+            for categoryName, category in pairs(categories) do
+                local equipped = category:GetEquipped()
+                if not TableUtil.shallowEquals(currentApperance[categoryName] :: table, equipped) then
+                    appearanceChanges[categoryName] = equipped
+                end
+                -- Prevent memory leaks
+                category:SetPreview()
             end
+
             if TableUtil.length(appearanceChanges) ~= 0 then
                 -- If so, relay them to the server so they can be verified and applied
                 Remotes.invokeServer("UpdateCharacterAppearance", appearanceChanges)
@@ -154,17 +199,17 @@ do
                 character.HumanoidRootPart.Anchored = false
             end
 
-            CharacterUtil.showCharacters(script.Name)
-            CameraController.setPlayerControl()
             ScreenUtil.out(menu)
+            ScreenUtil.out(equippedSlots)
+            ScreenUtil.out(bodyTypesPage)
+
+            CharacterUtil.showCharacters(script.Name)
+            CoreGui.enable()
+            InteractionUtil.showInteractions(script.Name)
+
+            session:Cleanup()
         end
 
-        local character = player.Character
-        if character then
-            character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        end
-
-        yielding = false
         canOpen = true
     end
 
@@ -173,8 +218,10 @@ end
 
 -- Manipulate UIState
 do
-    menu.Header.Close.MouseButton1Down:Connect(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
+    local exitButton = ExitButton.new()
+    exitButton:Mount(tabs.Exit, true)
+    exitButton.InternalPress:Connect(function()
+        uiStateMachine:Pop()
     end)
 
     -- TODO: Replace this with something on the HUD

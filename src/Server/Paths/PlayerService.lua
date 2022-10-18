@@ -16,7 +16,7 @@ end
 function PlayerService.Start()
     -- Avoid circular dependencies
     local DataService = require(Paths.Server.Data.DataService)
-    local CharacterService = require(Paths.Server.CharacterService)
+    local CharacterService = require(Paths.Server.Characters.CharacterService)
     local ProductService = require(Paths.Server.Products.ProductService)
     local ZoneService = require(Paths.Server.Zones.ZoneService)
     local PlotService = require(Paths.Server.PlotService)

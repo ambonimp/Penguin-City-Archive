@@ -19,7 +19,7 @@ DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
 
 -- Gets
-function DataService.get(player: Player, address: string): any
+function DataService.get(player: Player, address: string): DataUtil.Data
     local profile = DataService.Profiles[player]
 
     if profile then
@@ -63,7 +63,7 @@ function DataService.append(player: Player, address: string, newValue: any, even
 end
 
 -- Increments a value at the address by the incrementAmount. Value defaults to 0, incrementAmount defaults to 1
-function DataService.increment(player: Player, address: string, incrementAmount: number?, event: string?, eventMeta: table?)
+function DataService.increment(player: Player, address: string, incrementAmount: number?, event: string?, eventMeta: table?): number
     incrementAmount = incrementAmount or 1
 
     -- ERROR: Not a number
@@ -76,9 +76,9 @@ function DataService.increment(player: Player, address: string, incrementAmount:
 end
 
 -- Multiplies a value at the address by the scalar. No defaults
-function DataService.multiply(player: Player, address: string, scalar: number, event: string?, eventMeta: table?)
+function DataService.multiply(player: Player, address: string, scalar: number, event: string?, eventMeta: table?): number
     -- ERROR: Not a number
-    local currentValue = DataService.get(player, address)
+    local currentValue = DataService.get(player, address) :: number
     if currentValue ~= nil and typeof(currentValue) ~= "number" then
         error(("Cannot increment address %s; got non-number value %q"):format(address, tostring(currentValue)))
     end
@@ -93,7 +93,7 @@ function DataService.wipe(player: Player)
     player:Kick("DATA WIPE " .. player.Name)
 end
 
-local function reconcile(data: { [string | number]: any }, default: { [string | number]: any })
+local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     for k, v in pairs(default) do
         if not tonumber(k) and data[k] == nil then
             data[k] = v

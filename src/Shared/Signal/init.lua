@@ -11,7 +11,7 @@ function Signal.new()
     local yields: { thread } = {}
 
     local function resumeAllThreads(...)
-        for _, yieldingThreads in yields do
+        for _, yieldingThreads in pairs(yields) do
             local success, err = coroutine.resume(yieldingThreads)
             if not success then
                 warn(err)
@@ -24,7 +24,7 @@ function Signal.new()
 		Invokes all connections handlers connected to the signal and unyields all threads waiting for the signal
 	]]
     function signal:Fire(...)
-        for _, connectionHandler in connections do
+        for _, connectionHandler in pairs(connections) do
             task.spawn(connectionHandler, ...) -- Use spawn rather than coroutine because debug trace is better
         end
         resumeAllThreads(yields, ...)

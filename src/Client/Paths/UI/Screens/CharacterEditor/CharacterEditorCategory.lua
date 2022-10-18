@@ -5,118 +5,242 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
-local EditorConstants = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorConstants)
 local DataController = require(Paths.Client.DataController)
-export type AppearanceChange = { [string]: string }
+local Signal = require(Paths.Shared.Signal)
+local Button = require(Paths.Client.UI.Elements.Button)
+local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
+export type EquippedItems = { string }
+export type ItemInfo = { Name: string, Icon: string, Color: Color3? }
 
+local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.15, 1.15))
+local BUTTON_SCALE_DOWN_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(0.9, 0.9))
+
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
 local templates: Folder = Paths.Templates.CharacterEditor
 local screen: ScreenGui = Paths.UI.CharacterEditor
-local menu: Frame = screen.Appearance
+local menu: Frame = screen.Edit
+local tabs: Frame = menu.Tabs
+local selectedTab: Frame = tabs.SelectedTab
+
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
+function CharacterEditorCategory.createItemButton(
+    itemName: string,
+    itemInfo: ItemInfo,
+    categoryName
+): typeof(Button.new(Instance.new("ImageButton")))
+    local buttonObject = templates.Item:Clone()
+    buttonObject.Name = itemName
+    buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+    buttonObject.Icon.Image = assert(itemInfo.Icon, string.format("%s character item icon is nil: %s", categoryName, itemName))
+    buttonObject.Icon.ImageColor3 = itemInfo.Color or Color3.fromRGB(255, 255, 255)
+
+    return Button.new(buttonObject)
+end
 
 function CharacterEditorCategory.new(categoryName: string)
     local category = {}
 
-    -- ERROR: Bad categoryName
-    local categoryConstants = EditorConstants[categoryName]
-    if not categoryConstants then
-        error(string.format("Character item category '%s' does not exist", categoryName))
-    end
+    -------------------------------------------------------------------------------
+    -- Private Members
+    -------------------------------------------------------------------------------
+    local preview: Model?
+    local equippedItems: EquippedItems?
 
-    local page: Frame = templates.Category:Clone()
+    local constants = CharacterItems[categoryName]
+    local itemCount: number = TableUtil.length(constants.Items)
+    local itemsOwned: { [string]: any }
+    local multiEquip: boolean = constants.MaxEquippables > 1
+    local canEquip: boolean = constants.MaxEquippables ~= 0
+
+    local page: Frame = templates.CategoryPage:Clone()
     page.Name = categoryName
     page.Visible = false
-    page.Parent = menu.Items
+    page.UIGridLayout.SortOrder = constants.SortOrder
+    page.Parent = menu.Body
 
-    local tabButton: ImageButton = templates.Tab:Clone()
-    tabButton.Name = categoryName
-    tabButton.Icon.Text = categoryName
-    tabButton.LayoutOrder = categoryConstants.LayoutOrder or 100
-    tabButton.Parent = menu.Tabs
+    local equippedSlots: Frame?
+    if multiEquip then
+        equippedSlots = templates.EquippedSlots:Clone()
+        equippedSlots.Name = categoryName
+        equippedSlots.Visible = false
+        equippedSlots.Parent = screen.Equipped
+    end
 
-    local itemConstants = CharacterItems[categoryName]
-    local canUnequip: boolean = itemConstants.All.None ~= nil
-    local itemCount: number = TableUtil.length(itemConstants.All)
-    local itemsOwned: { [string]: any } = DataController.get("Inventory." .. itemConstants.Path)
-    local equippedItem: string?
-    local appearanceChange: AppearanceChange = {}
-    local previewCharacter: Model?
+    local tab: ImageButton = templates.Tab:Clone()
+    tab.Name = categoryName
+    tab.Icon.Image = assert(constants.TabIcon, string.format("%s character editor tab icon is nil: %s", categoryName, categoryName))
+    tab.LayoutOrder = constants.TabOrder
+
+    -------------------------------------------------------------------------------
+    -- Public Members
+    -------------------------------------------------------------------------------
+    category.Changed = Signal.new()
+
+    -------------------------------------------------------------------------------
+    -- Private Methods
+    -------------------------------------------------------------------------------
+    local function updateAppearance(psuedoEquippedItems: EquippedItems?)
+        category.Changed:Fire(CharacterUtil.applyAppearance(preview, { [categoryName] = psuedoEquippedItems or equippedItems }))
+    end
 
     local function isItemOwned(itemName: string)
-        return itemConstants.All[itemName].Price == 0 or itemsOwned[itemName]
+        return constants.Items[itemName].Price == 0 or itemsOwned[itemName]
     end
 
     local function onItemOwned(itemName: string)
-        local itemInfo = itemConstants.All[itemName]
+        local itemInfo = constants.Items[itemName]
 
-        local itemButton: ImageButton = page[itemName]
-        itemButton.ImageColor3 = Color3.fromRGB(254, 255, 214)
-        -- Owned items appear first on the list
+        local itemButton: Frame = page[itemName]
         itemButton.LayoutOrder = if itemInfo.LayoutOrder then -(itemCount - itemInfo.LayoutOrder) else 0
     end
 
-    local function onItemEquipped(itemName: string)
-        local itemButton: ImageButton
-        -- Unequip last item
-        if equippedItem then
-            itemButton = page[equippedItem]
-            itemButton.Equipped.Visible = false
+    local function unequipItem(itemName: string, doNotUpdateAppearance: boolean?)
+        page[itemName].BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+        if multiEquip then
+            equippedSlots[itemName]:Destroy()
         end
 
-        itemButton = page[itemName]
-        itemButton.Equipped.Visible = true
-
-        equippedItem = itemName
+        table.remove(equippedItems, table.find(equippedItems, itemName))
+        if not doNotUpdateAppearance then
+            updateAppearance()
+        end
     end
 
-    local function onAppearanceChanged(itemName: string)
-        appearanceChange = { [categoryName] = itemName }
-        CharacterUtil.applyAppearance(previewCharacter, appearanceChange)
+    local function equipItem(itemName: string, doNotUpdateAppearance: true?)
+        -- RETURN: Item is already equipped
+        if table.find(equippedItems, itemName) then
+            return
+        end
+
+        if multiEquip then
+            if #equippedItems < constants.MaxEquippables then
+                local slot: ImageButton = templates.EquippedSlot:Clone()
+                slot.Name = itemName
+                slot.Icon.Image = constants.Items[itemName].Icon
+
+                local slotButton = AnimatedButton.new(slot)
+                slotButton.InternalRelease:Connect(function()
+                    task.wait(0.1) -- Just makes it more satifying
+                    unequipItem(itemName)
+                end)
+                slotButton.InternalEnter:Connect(function()
+                    slot.Unequip.Visible = true
+                end)
+                slotButton.InternalLeave:Connect(function()
+                    slot.Unequip.Visible = false
+                end)
+
+                slotButton:SetPressAnimation(BUTTON_SCALE_DOWN_ANIMATION)
+                slotButton:SetHoverAnimation(BUTTON_SCALE_UP_ANIMATION)
+                slotButton:MountToUnconstrained(equippedSlots)
+            else
+                -- TODO: Replace with a snackbar
+                warn("Cannot equip another item, the max is " .. constants.MaxEquippables)
+                return
+            end
+        else
+            local currentlyEquipped = equippedItems[1]
+            if currentlyEquipped then
+                -- Appearance is updated when the new item is equipped, no point in updating it here
+                unequipItem(currentlyEquipped, true)
+            end
+        end
+
+        table.insert(equippedItems, itemName)
+        if not doNotUpdateAppearance then
+            updateAppearance()
+        end
+
+        page[itemName].BackgroundColor3 = Color3.fromRGB(255, 245, 154)
     end
 
-    -- Items
-    for itemName, itemInfo in itemConstants.All do
-        local itemButton: ImageButton = templates.ListItem:Clone()
-        itemButton.Name = itemName
-        itemButton:FindFirstChild("Name").Text = itemName
-        itemButton.Parent = page
+    -------------------------------------------------------------------------------
+    -- Public Methods
+    -------------------------------------------------------------------------------
+    function category:GetTab(): ImageButton
+        return tab
+    end
+
+    function category:Equip(equipping: EquippedItems, doNotUpdateAppearance: true?)
+        for _, itemName in pairs(equipping) do
+            equipItem(itemName, doNotUpdateAppearance)
+        end
+    end
+
+    function category:GetEquipped(): EquippedItems?
+        return equippedItems
+    end
+
+    function category:SetPreview(character: Model?)
+        preview = character
+    end
+
+    function category:Open()
+        itemsOwned = DataController.get("Inventory." .. constants.InventoryPath)
+
+        tab.Visible = false
+        page.Visible = true
+
+        selectedTab.Visible = true
+        selectedTab.Icon.Image = tab.Icon.Image
+        selectedTab.LayoutOrder = tab.LayoutOrder
+
+        if multiEquip then
+            equippedSlots.Visible = true
+        end
+    end
+
+    function category:Close()
+        page.Visible = false
+        tab.Visible = true
+        if multiEquip then
+            equippedSlots.Visible = false
+        end
+    end
+
+    -------------------------------------------------------------------------------
+    -- Logic
+    -------------------------------------------------------------------------------
+    for itemName, itemConstants in pairs(constants.Items) do
+        local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
+        button:Mount(page)
 
         if isItemOwned(itemName) then
             onItemOwned(itemName)
         else
-            itemButton.LayoutOrder = itemInfo.LayoutOrder or itemCount
+            button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder or itemCount
         end
 
-        itemButton.MouseButton1Down:Connect(function()
+        button.InternalPress:Connect(function()
             if isItemOwned(itemName) then
-                local itemIsEquipped = itemName == equippedItem
-                if canUnequip and itemIsEquipped then
-                    equippedItem = nil
-                    itemButton.Equipped.Visible = false
-
-                    onAppearanceChanged("None")
+                if not canEquip then
+                    updateAppearance({ itemName })
+                    return
                 end
 
-                if not itemIsEquipped then
-                    onItemEquipped(itemName)
-                    onAppearanceChanged(itemName)
+                local isEquipped = table.find(equippedItems, itemName)
+                if constants.CanUnequip and isEquipped then
+                    unequipItem(itemName)
+                elseif not isEquipped then
+                    equipItem(itemName)
                 end
             else
                 warn("todo prompt purchase")
+                -- TODO: Prompt purchase
+                -- TODO: Prompt purchase
+                -- TODO: Prompt purchase
                 -- TODO: Prompt purchase
             end
         end)
     end
 
-    function category:EquipItem(itemName: string)
-        onItemEquipped(itemName)
-    end
-
-    function category:SetPreviewCharacter(character: Model?)
-        previewCharacter = character
-    end
-
-    function category:GetChanges(): AppearanceChange
-        return appearanceChange
+    if canEquip then
+        equippedItems = {}
+        category:Equip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
     end
 
     return category
