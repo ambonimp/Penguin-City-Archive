@@ -53,6 +53,13 @@ local function convertToModels()
             model.Parent = folder.Parent
             table.insert(models, model)
 
+            -- Delete package link
+            local packageLink = folder:FindFirstChildWhichIsA("PackageLink")
+            if packageLink then
+                packageLink:Destroy()
+            end
+
+            -- Reparent
             for _, child in pairs(folder:GetChildren()) do
                 child.Parent = model
             end

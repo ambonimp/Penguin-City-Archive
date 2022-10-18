@@ -37,8 +37,8 @@ local defaultCharacterAppearance = {
 }
 --#endregion
 
-DataConfig.DataKey = "DEV_4"
-function DataConfig.getDefaults(player: Player): DataUtil.Store
+DataConfig.DataKey = "DEV_5"
+function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,
         Inventory = defaultInventory,
