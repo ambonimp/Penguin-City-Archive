@@ -28,6 +28,7 @@ Images.Icons = {
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
+    Shoe = "rbxassetid://11200887082",
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
     Hat = "rbxassetid://11152371685",
@@ -42,7 +43,7 @@ Images.Icons = {
     Okay = "rbxassetid://11152370624",
     Outfit = "rbxassetid://11152370509",
     Owner = "rbxassetid://11152370384",
-    Paint = "rbxassetid://11152370281",
+    Paint = "rbxassetid://11260181886",
     PaintBucket = "rbxassetid://11152373133",
     PaintSelected = "rbxassetid://10979216575",
     Pants = "rbxassetid://11152370202",
@@ -57,6 +58,7 @@ Images.Icons = {
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
+    Exit_Shadowless = "rbxassetid://11259375721",
 }
 --#endregion
 --#region Coins
@@ -86,6 +88,61 @@ Images.PizzaMinigame = {
     PizzaBase = "rbxassetid://11152399418",
     Cheese = "rbxassetid://11152399496",
     Anchovy = "rbxassetid://11152399621",
+}
+--#endregion
+--#region CharacterEditor
+Images.CharacterEditor = {
+    Gloss = "http://www.roblox.com/asset/?id=11122230877",
+}
+--#endregion
+--#region Shirts
+Images.Shirts = {
+    ["Purple_Shirt"] = "rbxassetid://11192098373",
+    ["Flannel_Shirt"] = "rbxassetid://11192098649",
+}
+--#endregion
+--#region Pants
+Images.Pants = {
+    ["White_Pants"] = "rbxassetid://11193127548",
+    ["Overalls"] = "rbxassetid://11193127249",
+}
+--#endregion
+--#region Shoes
+Images.Shoes = {
+    ["Red_Sneakers"] = "rbxassetid://11193126851",
+}
+--#endregion
+--#region Outfits
+Images.Outfits = {
+    ["Farmer"] = "rbxassetid://11193326756",
+}
+--#endregion
+--#region Hats
+Images.Hats = {
+    ["Detective's_Hat"] = "rbxassetid://10534508114",
+    ["Boot_Hat"] = "rbxassetid://10534511175",
+    ["Bird_Hat"] = "rbxassetid://10534511478",
+    ["Backwards_Cap"] = "rbxassetid://10534516561",
+    ["100k_Glasses"] = "rbxassetid://10534768113",
+    ["Thug_Life_Glasses"] = "rbxassetid://10534758204",
+    ["Propeller_Hat"] = "rbxassetid://10534493556",
+    ["Umbrella"] = "rbxassetid://10534489856",
+    ["Green_Headphones"] = "rbxassetid://10534501657",
+    ["Wizard_Hat"] = "rbxassetid://10534488235",
+    ["Witch_Hat"] = "rbxassetid://10534488506",
+}
+--#endregion
+--#region Backpacks
+Images.Backpacks = {
+    ["Angel_Wings"] = "rbxassetid://11191075716",
+    ["Brown_Backpack"] = "rbxassetid://11191075307",
+}
+--#endregion
+--#region BodyTypes
+Images.BodyTypes = {
+    ["Kid"] = "rbxassetid://11191456481",
+    ["Teen"] = "rbxassetid://11191457026",
+    ["Adult"] = "rbxassetid://11191456133",
 }
 --#endregion
 
