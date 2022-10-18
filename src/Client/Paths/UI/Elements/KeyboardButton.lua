@@ -1,10 +1,9 @@
 local KeyboardButton = {}
 
-local Players = game:GetService("Players")
-local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
-local UIConstants = require(Paths.Client.UI.UIConstants)
-local Button = require(Paths.Client.UI.Elements.Button)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+local UIConstants = require(script.Parent.Parent.UIConstants)
+local Button = require(script.Parent.Button)
 
 local BACK_COLOR_FACTOR = 0.75 -- How the color of the back is calculated; lower = more obvious
 local SELECT_COLOR_MIN_SAT = 0.05 -- If the saturation value is lower than this, we will manipulate its val instead
