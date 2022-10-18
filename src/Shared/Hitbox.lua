@@ -57,7 +57,7 @@ function Hitbox.new()
 
     function hitbox:AddParts(addParts: { BasePart })
         for _, part in pairs(addParts) do
-            self:AddPart(part)
+            hitbox:AddPart(part)
         end
 
         return self
