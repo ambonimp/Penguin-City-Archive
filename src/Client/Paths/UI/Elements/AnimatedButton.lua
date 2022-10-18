@@ -10,11 +10,11 @@ local Binder = require(Shared.Binder)
 local Button = require(Elements.Button)
 
 type ButtonObject = ImageButton | TextButton
-type Animation = {
-    Play: (Animation, ButtonObject) -> (),
-    Revert: (Animation, ButtonObject) -> ()?,
+type ButtonAnimation = {
+    Play: (ButtonAnimation, ButtonObject) -> (),
+    Revert: (ButtonAnimation, ButtonObject) -> ()?,
 }
-type AnimationConstructor = (...any) -> Animation
+type AnimationConstructor = (...any) -> ButtonAnimation
 
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
@@ -79,7 +79,7 @@ AnimatedButton.Defaults = {
     HoverAnimation = nil,
 }
 
-function AnimatedButton.combineAnimations(animations: { Animation }): Animation
+function AnimatedButton.combineAnimations(animations: { ButtonAnimation }): ButtonAnimation
     local combinedAnimation = {}
 
     function combinedAnimation:Play(button: ButtonObject)
@@ -111,8 +111,8 @@ function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("Image
     -------------------------------------------------------------------------------
     local buttonObject: ImageButton | TextButton = animatedButton:GetButtonObject()
 
-    local pressAnimation: Animation?
-    local hoverAnimation: Animation?
+    local pressAnimation: ButtonAnimation?
+    local hoverAnimation: ButtonAnimation?
 
     -------------------------------------------------------------------------------
     -- Public Methods
@@ -135,15 +135,15 @@ function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("Image
         return container
     end
 
-    function animatedButton:SetPressAnimation(animation: Animation?)
+    function animatedButton:SetPressAnimation(animation: ButtonAnimation?)
         pressAnimation = animation
     end
 
-    function animatedButton:SetHoverAnimation(animation: Animation?)
+    function animatedButton:SetHoverAnimation(animation: ButtonAnimation?)
         hoverAnimation = animation
     end
 
-    function animatedButton:PlayAnimation(animation: Animation)
+    function animatedButton:PlayAnimation(animation: ButtonAnimation)
         animation:Play(buttonObject)
     end
 
