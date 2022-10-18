@@ -15,6 +15,7 @@ local Stamps = require(Paths.Shared.Stamps.Stamps)
 local Images = require(Paths.Shared.Images.Images)
 local Maid = require(Paths.Packages.maid)
 local StampConstants = require(Paths.Shared.Stamps.StampConstants)
+local StampButton = require(Paths.Client.UI.Elements.StampButton)
 
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
@@ -112,15 +113,11 @@ function StampBookScreen.openCover()
         for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
             local stamp = StampUtil.getStampFromId(stampId)
             if stamp then
-                local imageButton = StampUtil.createStampImageButton(stamp)
-                imageButton.LayoutOrder = i
-                imageButton.Parent = cover.Stamps
+                local stampButton = StampButton.new(stamp)
+                stampButton:GetButtonObject().LayoutOrder = i
+                stampButton:Mount(cover.Stamps)
 
-                local animatedButton = AnimatedButton.fromGuiObject(imageButton)
-                animatedButton:SetPressAnimation(AnimatedButton.Defaults.PressAnimation)
-                animatedButton:SetHoverAnimation(AnimatedButton.Defaults.HoverAnimation)
-
-                viewMaid:GiveTask(animatedButton)
+                viewMaid:GiveTask(stampButton)
             end
         end
     end

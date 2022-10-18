@@ -41,25 +41,6 @@ function StampUtil.getTotalStamps()
     return totalStamps
 end
 
-function StampUtil.createStampImageButton(stamp: Stamps.Stamp)
-    local imageButton = Instance.new("ImageButton")
-    imageButton.Name = stamp.Id
-    imageButton.Image = stamp.ImageId
-    imageButton.BackgroundTransparency = 0.9
-    imageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-
-    local uiCorner = Instance.new("UICorner")
-    uiCorner.CornerRadius = UDim.new(1, 0)
-    uiCorner.Parent = imageButton
-
-    local uiStroke = Instance.new("UIStroke")
-    uiStroke.Color = imageButton.BackgroundColor3
-    uiStroke.Thickness = 6
-    uiStroke.Parent = imageButton
-
-    return imageButton
-end
-
 function StampUtil.getStampDataAddress(stampId: string)
     return ("Stamps.OwnedStamps.%s"):format(stampId)
 end
