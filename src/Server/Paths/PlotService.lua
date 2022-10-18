@@ -293,6 +293,8 @@ function PlotService.loadPlayer(player: Player)
         spawnPart.Parent = zoneInstances
 
         emptyHouse.Parent = zoneModel
+
+        ZoneSetup.setupIglooRoom(zoneModel)
     end
 end
 
