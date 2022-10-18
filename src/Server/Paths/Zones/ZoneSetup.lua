@@ -24,6 +24,10 @@ function ZoneSetup.placeModelOnGrid(model: Model, horizontalIndex: number, yInde
     model:PivotTo(cframe)
 end
 
+function ZoneSetup.setupIglooRoom()
+    --todo
+end
+
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
 ]]
@@ -178,7 +182,22 @@ local function writeBasePartTotals()
     end
 
     for _, model in pairs(models) do
+        -- Now
         processInstance(model)
+
+        -- Future
+        model.DescendantAdded:Connect(function(descendant: Instance)
+            if descendant:IsA("BasePart") and descendant.Parent then
+                local parentTotal = descendant.Parent:GetAttribute(ZoneConstants.AttributeBasePartTotal) or 0
+                descendant.Parent:SetAttribute(ZoneConstants.AttributeBasePartTotal, parentTotal + 1)
+            end
+        end)
+        model.DescendantRemoving:Connect(function(descendant: Instance)
+            if descendant:IsA("BasePart") and descendant.Parent then
+                local parentTotal = descendant.Parent:GetAttribute(ZoneConstants.AttributeBasePartTotal) or 0
+                descendant.Parent:SetAttribute(ZoneConstants.AttributeBasePartTotal, math.max(parentTotal - 1, 0))
+            end
+        end)
     end
 end
 

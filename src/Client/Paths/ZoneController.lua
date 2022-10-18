@@ -16,6 +16,7 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
+local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
 
 local localPlayer = Players.LocalPlayer
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
@@ -263,24 +264,11 @@ function ZoneController.getTotalUnloadedBaseParts(zone: ZoneConstants.Zone)
 end
 
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
-    if ZoneController.isZoneLoaded(zone) then
-        return
-    end
-
-    local zoneModel = ZoneUtil.getZoneModel(zone)
-    local totalLoadedPastParts = 0
-    zoneModel.DescendantAdded:Connect(function(descendant)
-        if descendant:IsA("BasePart") then
-            totalLoadedPastParts += 1
-        end
-    end)
-
-    local totalUnloadedBaseParts = ZoneController.getTotalUnloadedBaseParts(zone)
-
     local startTick = tick()
-    while (totalUnloadedBaseParts > totalLoadedPastParts) and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
-        task.wait()
+    while ZoneController.isZoneLoaded(zone) == false and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
+        task.wait(WAIT_FOR_ZONE_TO_LOAD_INTERMISSION)
     end
+    task.wait() -- Give client threads time to catch up
 end
 
 -------------------------------------------------------------------------------
