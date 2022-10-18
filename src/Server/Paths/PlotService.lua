@@ -199,34 +199,20 @@ local function loadPlot(player: Player, plot: Model, type: string, isChange: boo
             --Handle entering and exiting houses
             if type == HousingConstants.HouseType then
                 loadHouseInterior(player, plot)
-                Model.Exit.Touched:Connect(function(part: BasePart)
-                    local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key .. part.Parent.Name, DEBOUNCE_MOUNT.Timeframe)
-                    if not isFree then
-                        return
-                    end
-                    if game.Players:GetPlayerFromCharacter(part.Parent) then
-                        local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(newPlayer, houseZone)
-                        Remotes.fireClient(newPlayer, "ExitedHouse", newPlayer)
-                    end
-                end)
             elseif type == HousingConstants.PlotType then
-                Model.Entrance.Touched:Connect(function(part: BasePart)
-                    local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key .. part.Parent.Name, DEBOUNCE_MOUNT.Timeframe)
-                    if not isFree then
-                        return
-                    end
-                    if game.Players:GetPlayerFromCharacter(part.Parent) then
-                        local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(newPlayer, ZoneUtil.houseZone(player))
-                        Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
-                    end
-                end)
+                -- Departure
+                local entrancePart: BasePart = Model.Entrance
+                entrancePart.Name = tostring(player.UserId)
+                entrancePart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomDepartures
 
+                -- Arrival
                 local spawnPart = Model.Spawn
                 spawnPart.Name = tostring(player.UserId)
                 spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
+
+                -- Cleanup
                 Model.Destroying:Connect(function()
+                    entrancePart:Destroy()
                     spawnPart:Destroy()
                 end)
             end
@@ -296,9 +282,17 @@ function PlotService.loadPlayer(player: Player)
         zoneInstances.Name = "ZoneInstances"
         zoneInstances.Parent = zoneModel
 
+        local departures = Instance.new("Folder")
+        departures.Name = "RoomDepartures"
+        departures.Parent = zoneInstances
+
         local spawnPart = emptyHouse:FindFirstChildOfClass("Model").Spawn
         spawnPart.Name = "Spawnpoint"
         spawnPart.Parent = zoneInstances
+
+        local exitPart = emptyHouse:FindFirstChildOfClass("Model").Exit
+        exitPart.Name = ZoneConstants.ZoneId.Room.Neighborhood
+        exitPart.Parent = departures
 
         emptyHouse.Parent = zoneModel
 

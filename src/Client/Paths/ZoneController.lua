@@ -47,35 +47,42 @@ end
 -- Arrivals
 -------------------------------------------------------------------------------
 
+local function setupTeleporter(teleporter: BasePart, zoneType: string)
+    local zoneId = teleporter.Name
+    local zone = ZoneUtil.zone(zoneType, zoneId)
+
+    -- Teleporter
+    do
+        local teleporterHitbox = PlayersHitbox.new():AddPart(teleporter)
+        zoneMaid:GiveTask(teleporterHitbox)
+
+        teleporterHitbox.PlayerEntered:Connect(function(player: Player)
+            -- RETURN: Not local player
+            if player ~= Players.LocalPlayer then
+                return
+            end
+
+            if zone.ZoneType == ZoneConstants.ZoneType.Room then
+                ZoneController.teleportToRoomRequest(zone)
+            elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+                MinigameController.play(zone.ZoneId)
+            else
+                warn(("%s wat"):format(zone.ZoneType))
+            end
+        end)
+    end
+end
+
 local function setupTeleporters()
     for _, zoneType in pairs(ZoneConstants.ZoneType) do
         local departures = ZoneUtil.getDepartures(currentZone, zoneType)
         if departures then
             for _, teleporter: BasePart in pairs(departures:GetChildren()) do
-                local zoneId = teleporter.Name
-                local zone = ZoneUtil.zone(zoneType, zoneId)
-
-                -- Teleporter
-                do
-                    local teleporterHitbox = PlayersHitbox.new():AddPart(teleporter)
-                    zoneMaid:GiveTask(teleporterHitbox)
-
-                    teleporterHitbox.PlayerEntered:Connect(function(player: Player)
-                        -- RETURN: Not local player
-                        if player ~= Players.LocalPlayer then
-                            return
-                        end
-
-                        if zone.ZoneType == ZoneConstants.ZoneType.Room then
-                            ZoneController.teleportToRoomRequest(zone)
-                        elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-                            MinigameController.play(zone.ZoneId)
-                        else
-                            warn(("%s wat"):format(zone.ZoneType))
-                        end
-                    end)
-                end
+                setupTeleporter(teleporter, zoneType)
             end
+            zoneMaid:GiveTask(departures.ChildAdded:Connect(function(child)
+                setupTeleporter(child, zoneType)
+            end))
         end
     end
 end

@@ -1,5 +1,6 @@
 local ZoneService = {}
 
+local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
@@ -139,6 +140,14 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     end
     playerZoneState.TotalTeleports += 1
 
+    -- Housing Events
+    if ZoneUtil.isHouseZone(zone) then
+        Remotes.fireClient(player, "EnteredHouse", player, player == ZoneUtil.getHouseOwner(zone))
+    end
+    if oldZone and ZoneUtil.isHouseZone(oldZone) then
+        Remotes.fireClient(player, "ExitedHouse", player)
+    end
+
     -- Inform Server
     ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
@@ -207,8 +216,9 @@ do
             local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
 
             -- RETURN NIL: Bad Zone
-            local isGoodZone = ZoneConstants.ZoneType[zoneType] and ZoneConstants.ZoneId[zoneType][zoneId] and true or false
-            if not isGoodZone then
+            local isIglooZone = tonumber(zoneId) and Players:GetPlayerByUserId(tonumber(zoneId))
+            local isStoredZone = ZoneConstants.ZoneType[zoneType] and ZoneConstants.ZoneId[zoneType][zoneId] and true or false
+            if not (isStoredZone or isIglooZone) then
                 return nil
             end
 

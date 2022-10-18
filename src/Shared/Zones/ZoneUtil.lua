@@ -1,6 +1,7 @@
 local ZoneUtil = {}
 
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
@@ -26,6 +27,20 @@ end
 
 function ZoneUtil.houseZone(player: Player)
     return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
+end
+
+function ZoneUtil.isHouseZone(zone: ZoneConstants.Zone)
+    return ZoneUtil.getHouseOwner(zone) and true or false
+end
+
+function ZoneUtil.getHouseOwner(zone: ZoneConstants.Zone)
+    -- RETURN: Not a number
+    local userId = tonumber(zone.ZoneId)
+    if not userId then
+        return nil
+    end
+
+    return Players:GetPlayerByUserId(userId)
 end
 
 function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
