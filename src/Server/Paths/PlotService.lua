@@ -365,7 +365,7 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
         object.Parent = plot.Furniture
 
         PlayerData.increment(player, "Igloo.OwnedItems." .. name, -1)
-        PlayerData.append(player, "Igloo.Placements", itemData)
+        PlayerData.set(player, "Igloo.Placements." .. itemData.Id, itemData)
         Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", PlayerData.get(player, "Igloo.Placements"))
         Remotes.fireClient(player, "UpdateHouseUI", name, PlayerData.get(player, "Igloo.OwnedItems." .. name), type)
     end
