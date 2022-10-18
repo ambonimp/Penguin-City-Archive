@@ -117,6 +117,13 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         return nil
     end
 
+    -- WARN: No zone model!
+    local zoneModel = ZoneUtil.getZoneModel(zone)
+    if not zoneModel then
+        warn(("No zone model for %s.%s"):format(zone.ZoneType, zone.ZoneId))
+        return nil
+    end
+
     -- Update State
     local oldZone = ZoneService.getPlayerZone(player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
