@@ -1,22 +1,44 @@
-local BodyTypeConstants = {}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
-BodyTypeConstants.Path = "BodyTypes" -- Key in data stores
-BodyTypeConstants.All = {
-    ["Kid"] = {
-        Height = Vector3.new(0, -0.4, 0),
-        Price = 0,
-        LayoutOrder = 1,
-    },
-    ["Teen"] = {
-        Height = Vector3.new(0, 0, 0),
-        Price = 0,
-        LayoutOrder = 2,
-    },
-    ["Adult"] = {
-        Height = Vector3.new(0, 0.4, 0),
-        Price = 0,
-        LayoutOrder = 3,
-    },
+local BodyTypeConstants = {}
+export type Item = {
+    Name: string,
+    Height: Vector3,
+    Price: number,
+    Icon: string,
+    LayoutOrder: number,
 }
+
+local items: { [string]: Item } = {}
+items["Kid"] = {
+    Name = "Kid",
+    Height = Vector3.new(0, -0.4, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Kid,
+    LayoutOrder = 1,
+}
+items["Teen"] = {
+    Name = "Teen",
+    Height = Vector3.new(0, 0, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Teen,
+    LayoutOrder = 2,
+}
+items["Adult"] = {
+    Name = "Adult",
+    Height = Vector3.new(0, 0.4, 0),
+    Price = 0,
+    Icon = Images.BodyTypes.Adult,
+    LayoutOrder = 3,
+}
+
+BodyTypeConstants.InventoryPath = "BodyTypes"
+BodyTypeConstants.TabOrder = 7
+BodyTypeConstants.TabIcon = Images.Icons.Face
+BodyTypeConstants.SortOrder = Enum.SortOrder.LayoutOrder
+BodyTypeConstants.MaxEquippables = 1
+BodyTypeConstants.CanUnequip = false
+BodyTypeConstants.Items = items
 
 return BodyTypeConstants

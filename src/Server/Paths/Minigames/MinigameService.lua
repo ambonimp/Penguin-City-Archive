@@ -55,7 +55,9 @@ function MinigameService.requestToPlay(player: Player, minigame: string, invoked
     end
 
     -- Zone Teleport
-    local teleportBuffer = ZoneService.teleportPlayerToZone(player, minigameZone, invokedServerTime)
+    local teleportBuffer = ZoneService.teleportPlayerToZone(player, minigameZone, {
+        InvokedServerTime = invokedServerTime,
+    })
     if not teleportBuffer then
         local playRequest: MinigameConstants.PlayRequest = { Error = "ZoneTeleport failed" }
         Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", playRequest.Error)
@@ -101,7 +103,9 @@ function MinigameService.stopPlaying(player: Player, invokedServerTime: number?)
 
     -- Zone Teleport
     local roomZone = ZoneService.getPlayerRoom(player)
-    local teleportBuffer = ZoneService.teleportPlayerToZone(player, roomZone, invokedServerTime)
+    local teleportBuffer = ZoneService.teleportPlayerToZone(player, roomZone, {
+        InvokedServerTime = invokedServerTime,
+    })
     if not teleportBuffer then
         local playRequest: MinigameConstants.PlayRequest = { Error = "ZoneTeleport failed" }
         Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", playRequest.Error)

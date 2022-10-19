@@ -5,24 +5,18 @@ local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local GRID_PADDING = 128
+local GRID_RAISE_EVERY = 100 -- 10x10
 
 local rooms = game.Workspace.Rooms
 local minigames = game.Workspace.Minigames
 
-local models: { Model } = {}
+local staticModels: { Model } = {}
 local largestDiameter = 1
 local gridSideLength = 1
-
-function ZoneSetup.placeModelOnGrid(model: Model, horizontalIndex: number, yIndex: number)
-    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
-    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontalIndex)
-
-    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * yIndex, gridSideLength * spiralPosition.Y)
-    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
-    model:PivotTo(cframe)
-end
+local usedGridIndexes: { [number]: boolean } = {}
 
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
@@ -43,7 +37,7 @@ local function verifyDirectories()
 end
 
 --[[
-    Convert folders to models; give us nice API (easy moving, can query extents size)
+    Convert folders to staticModels; give us nice API (easy moving, can query extents size)
 ]]
 local function convertToModels()
     for _, directory: Instance in pairs({ rooms, minigames }) do
@@ -51,8 +45,15 @@ local function convertToModels()
             local model = Instance.new("Model")
             model.Name = folder.Name
             model.Parent = folder.Parent
-            table.insert(models, model)
+            table.insert(staticModels, model)
 
+            -- Delete package link
+            local packageLink = folder:FindFirstChildWhichIsA("PackageLink")
+            if packageLink then
+                packageLink:Destroy()
+            end
+
+            -- Reparent
             for _, child in pairs(folder:GetChildren()) do
                 child.Parent = model
             end
@@ -63,10 +64,10 @@ local function convertToModels()
 end
 
 --[[
-    Ensures models all have the required pre-requisites
+    Ensures staticModels all have the required pre-requisites
 ]]
-local function verifyAndCleanModels()
-    local function verifyModel(zoneType: string, model: Model)
+local function verifyAndCleanModels(someModels: { Model })
+    local function verifyModel(model: Model)
         local zoneId = model.Name
 
         -- WARN: No ZoneInstances!
@@ -90,6 +91,10 @@ local function verifyAndCleanModels()
         end
 
         -- WARN: Needs spawnpoint!
+        local zoneType = model.Parent == game.Workspace.Rooms and ZoneConstants.ZoneType.Room
+            or model.Parent == game.Workspace.Minigames and ZoneConstants.ZoneType.Minigame
+            or error(("Could not infer ZoneType from %q"):format(model:GetFullName()))
+
         local zoneInstances = ZoneUtil.getZoneInstances(ZoneUtil.zone(zoneType, zoneId))
         if not (zoneInstances.Spawnpoint and zoneInstances.Spawnpoint:IsA("BasePart")) then
             warn(("ZoneModel %s missing 'ZoneInstances.Spawnpoint (BasePart)'"):format(model:GetFullName()))
@@ -118,11 +123,68 @@ local function verifyAndCleanModels()
         end
     end
 
-    for _, model in pairs(rooms:GetChildren()) do
-        verifyModel(ZoneConstants.ZoneType.Room, model)
+    for _, model in pairs(someModels) do
+        verifyModel(model)
     end
-    for _, model in pairs(minigames:GetChildren()) do
-        verifyModel(ZoneConstants.ZoneType.Minigame, model)
+end
+
+local function readWriteBasePartTotals(instance: Instance)
+    local totalBasePartChildren = 0
+    for _, child in pairs(instance:GetChildren()) do
+        if child:IsA("BasePart") then
+            totalBasePartChildren += 1
+        end
+    end
+
+    if totalBasePartChildren > 0 then
+        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
+    else
+        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, nil)
+    end
+end
+
+local function processInstanceBasePartTotals(instance: Instance)
+    -- RETURN: Already processed
+    if instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
+        return
+    end
+    instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
+
+    readWriteBasePartTotals(instance)
+
+    -- Children added/removed
+    instance.ChildAdded:Connect(function(child)
+        if child:IsA("BasePart") then
+            readWriteBasePartTotals(instance)
+        end
+    end)
+    instance.ChildRemoved:Connect(function(child)
+        if child:IsA("BasePart") then
+            readWriteBasePartTotals(instance)
+        end
+    end)
+
+    -- Children
+    for _, child in pairs(instance:GetChildren()) do
+        processInstanceBasePartTotals(child)
+    end
+
+    -- Descendants
+    local totalBasePartDescendants = 0
+    for _, descendant in pairs(instance:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            totalBasePartDescendants += 1
+        end
+    end
+    if totalBasePartDescendants > 0 then
+        -- ERROR: BaseParts cannot have descendants that are BaseParts!
+        if instance:IsA("BasePart") then
+            error(
+                ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
+                    instance:GetFullName()
+                )
+            )
+        end
     end
 end
 
@@ -131,47 +193,25 @@ end
     Used to help the client detect when a Zone has been fully loaded
     https://create.roblox.com/docs/optimization/content-streaming#streaming-in
 ]]
-local function writeBasePartTotals()
+local function writeBasePartTotals(writeModels: { Model })
     -- ERROR: Models is empty (ensure we're doing *something*)
-    if #models == 0 then
+    if #staticModels == 0 then
         error("Models is empty")
     end
 
-    local function processInstance(instance: Instance)
-        -- Children
-        local totalBasePartChildren = 0
-        for _, child in pairs(instance:GetChildren()) do
-            processInstance(child)
+    for _, model in pairs(writeModels) do
+        -- Now
+        processInstanceBasePartTotals(model)
 
-            if child:IsA("BasePart") then
-                totalBasePartChildren += 1
+        -- Future adds/removals
+        model.DescendantAdded:Connect(function(descendant: Instance)
+            processInstanceBasePartTotals(descendant)
+        end)
+        model.DescendantRemoving:Connect(function(descendant: Instance)
+            if descendant:IsA("BasePart") and descendant.Parent then
+                readWriteBasePartTotals(descendant.Parent)
             end
-        end
-        if totalBasePartChildren > 0 then
-            instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
-        end
-
-        -- Descendants
-        local totalBasePartDescendants = 0
-        for _, descendant in pairs(instance:GetDescendants()) do
-            if descendant:IsA("BasePart") then
-                totalBasePartDescendants += 1
-            end
-        end
-        if totalBasePartDescendants > 0 then
-            -- ERROR: BaseParts cannot have descendants that are BaseParts!
-            if instance:IsA("BasePart") then
-                error(
-                    ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
-                        instance:GetFullName()
-                    )
-                )
-            end
-        end
-    end
-
-    for _, model in pairs(models) do
-        processInstance(model)
+        end)
     end
 end
 
@@ -180,11 +220,11 @@ end
 ]]
 local function verifyStreamingRadius()
     -- ERROR: Models is empty (ensure we're verifying *something*)
-    if #models == 0 then
+    if #staticModels == 0 then
         error("Models is empty")
     end
 
-    for _, model in pairs(models) do
+    for _, model in pairs(staticModels) do
         local extentsSize = model:GetExtentsSize()
         local diameter = extentsSize.Magnitude
         if diameter > ZoneConstants.StreamingTargetRadius then
@@ -205,6 +245,31 @@ local function verifyStreamingRadius()
     return largestDiameter
 end
 
+local function placeModelOnGrid(model: Model)
+    -- Find next available index
+    local index = 1
+    while usedGridIndexes[index] do
+        index += 1
+    end
+    usedGridIndexes[index] = true
+
+    -- Convert into horizontal and vertical components
+    local horizontal = MathUtil.wrapAround(index, GRID_RAISE_EVERY)
+    local vertical = math.floor((index - 1) / GRID_RAISE_EVERY)
+
+    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
+    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontal)
+
+    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * vertical, gridSideLength * spiralPosition.Y)
+    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
+    model:PivotTo(cframe)
+
+    -- Listen for release index
+    model.Destroying:Connect(function()
+        usedGridIndexes[index] = nil
+    end)
+end
+
 --[[
     Moves all our zones onto a spaced out grid to ensure we only streaming in one zone at a time
 ]]
@@ -212,9 +277,19 @@ local function setupGrid()
     gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
 
     -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
-    for n, model in pairs(models) do
-        ZoneSetup.placeModelOnGrid(model, n, ZoneConstants.GridPriority.RoomsAndMinigames)
+    for _, model in pairs(staticModels) do
+        placeModelOnGrid(model)
     end
+end
+
+-------------------------------------------------------------------------------
+--  API
+-------------------------------------------------------------------------------
+
+function ZoneSetup.setupCreatedZone(zoneModel: Model)
+    verifyAndCleanModels({ zoneModel })
+    writeBasePartTotals({ zoneModel })
+    placeModelOnGrid(zoneModel)
 end
 
 --[[
@@ -225,8 +300,8 @@ end
 function ZoneSetup.setup()
     verifyDirectories()
     convertToModels()
-    verifyAndCleanModels()
-    writeBasePartTotals()
+    verifyAndCleanModels(staticModels)
+    writeBasePartTotals(staticModels)
     verifyStreamingRadius()
     setupGrid()
 end

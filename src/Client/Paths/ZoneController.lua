@@ -16,6 +16,7 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
+local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
 
 local localPlayer = Players.LocalPlayer
 local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
@@ -46,35 +47,42 @@ end
 -- Arrivals
 -------------------------------------------------------------------------------
 
+local function setupTeleporter(teleporter: BasePart, zoneType: string)
+    local zoneId = teleporter.Name
+    local zone = ZoneUtil.zone(zoneType, zoneId)
+
+    -- Teleporter
+    do
+        local teleporterHitbox = PlayersHitbox.new():AddPart(teleporter)
+        zoneMaid:GiveTask(teleporterHitbox)
+
+        teleporterHitbox.PlayerEntered:Connect(function(player: Player)
+            -- RETURN: Not local player
+            if player ~= Players.LocalPlayer then
+                return
+            end
+
+            if zone.ZoneType == ZoneConstants.ZoneType.Room then
+                ZoneController.teleportToRoomRequest(zone)
+            elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+                MinigameController.play(zone.ZoneId)
+            else
+                warn(("%s wat"):format(zone.ZoneType))
+            end
+        end)
+    end
+end
+
 local function setupTeleporters()
     for _, zoneType in pairs(ZoneConstants.ZoneType) do
         local departures = ZoneUtil.getDepartures(currentZone, zoneType)
         if departures then
             for _, teleporter: BasePart in pairs(departures:GetChildren()) do
-                local zoneId = teleporter.Name
-                local zone = ZoneUtil.zone(zoneType, zoneId)
-
-                -- Teleporter
-                do
-                    local teleporterHitbox = PlayersHitbox.new():AddPart(teleporter)
-                    zoneMaid:GiveTask(teleporterHitbox)
-
-                    teleporterHitbox.PlayerEntered:Connect(function(player: Player)
-                        -- RETURN: Not local player
-                        if player ~= Players.LocalPlayer then
-                            return
-                        end
-
-                        if zone.ZoneType == ZoneConstants.ZoneType.Room then
-                            ZoneController.teleportToRoomRequest(zone)
-                        elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-                            MinigameController.play(zone.ZoneId)
-                        else
-                            warn(("%s wat"):format(zone.ZoneType))
-                        end
-                    end)
-                end
+                setupTeleporter(teleporter, zoneType)
             end
+            zoneMaid:GiveTask(departures.ChildAdded:Connect(function(child)
+                setupTeleporter(child, zoneType)
+            end))
         end
     end
 end
@@ -263,24 +271,11 @@ function ZoneController.getTotalUnloadedBaseParts(zone: ZoneConstants.Zone)
 end
 
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
-    if ZoneController.isZoneLoaded(zone) then
-        return
-    end
-
-    local zoneModel = ZoneUtil.getZoneModel(zone)
-    local totalLoadedPastParts = 0
-    zoneModel.DescendantAdded:Connect(function(descendant)
-        if descendant:IsA("BasePart") then
-            totalLoadedPastParts += 1
-        end
-    end)
-
-    local totalUnloadedBaseParts = ZoneController.getTotalUnloadedBaseParts(zone)
-
     local startTick = tick()
-    while (totalUnloadedBaseParts > totalLoadedPastParts) and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
-        task.wait()
+    while ZoneController.isZoneLoaded(zone) == false and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
+        task.wait(WAIT_FOR_ZONE_TO_LOAD_INTERMISSION)
     end
+    task.wait() -- Give client threads time to catch up
 end
 
 -------------------------------------------------------------------------------

@@ -237,7 +237,7 @@ moveButton.MouseButton1Down:Connect(function()
                 if lastPosition then
                     hasObjectMoved = true
                 end
-                local ignore = { selectedModel, HousingController.currentHouse.Spawn, player.Character }
+                local ignore = { selectedModel, player.Character }
                 for _, v: Model in HousingController.currentHouse.Parent.Furniture:GetChildren() do
                     if v:IsA("Model") then
                         table.insert(ignore, v.PrimaryPart)

@@ -4,7 +4,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 return function()
     local issues: { string } = {}
 
-    for _, descendant in Paths.UI:GetDescendants() do
+    for _, descendant in pairs(Paths.UI:GetDescendants()) do
         if descendant:IsA("UIScale") then
             local isDirectChildOfScreenGui = descendant.Parent and descendant.Parent:IsA("ScreenGui")
             if isDirectChildOfScreenGui then

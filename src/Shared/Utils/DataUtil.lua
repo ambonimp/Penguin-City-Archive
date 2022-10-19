@@ -10,8 +10,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 --local Output = require(ReplicatedStorage.Shared.Output)
 
-type Data = { [string]: (string | number | {}) }
-export type Store = Data
+export type Data = string | number | {}
+export type Store = { [string]: (string | number | {}) }
 
 --[[
     Generates an array of table keys(directions) from a string formatted like a address
@@ -30,7 +30,7 @@ end
 --[[
     Retrieves a value stored in an array
 ]]
-function DataUtil.getFromAddress(store: Data, address: string): any
+function DataUtil.getFromAddress(store: Store, address: string): any
     local keys = DataUtil.keysFromAddress(address)
     local childStore = store
     for i = 1, #keys do -- master directory is 1
@@ -47,9 +47,9 @@ end
 local function setFromKeys(
     fullAddress: string,
     parentKeys: { string },
-    parentStore: Data?,
+    parentStore: Store?,
     storeKeyInParent: string?,
-    store: Data,
+    store: Store,
     keys: { string },
     newValue: any
 )
@@ -103,7 +103,7 @@ end
 --[[
     Set a value in table using an array of keys point to it's new location in the table
 ]]
-function DataUtil.setFromAddress(store: Data, address: string, newValue: any)
+function DataUtil.setFromAddress(store: Store, address: string, newValue: any)
     -- Output.debug("setFromAddress", address, newValue)
 
     -- ERROR: No keys from address
@@ -136,6 +136,20 @@ function DataUtil.getSyncKey(syncKey)
     -- Output.debug("getSyncKey", syncKey, noParameters)
 
     return noParameters
+end
+
+--[[
+    Turns an number key(string) into an index (number)
+]]
+function DataUtil.readAsArray(store: Store): { [string | number]: Data }
+    local returning = {}
+
+    for k, v in pairs(store) do
+        k = tonumber(k) or k
+        returning[k] = if typeof(v) == "table" then DataUtil.readAsArray(v) else v
+    end
+
+    return returning
 end
 
 return DataUtil

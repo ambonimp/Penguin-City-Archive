@@ -14,6 +14,7 @@ export type PlayerZoneState = {
 export type Zone = {
     ZoneType: string,
     ZoneId: string,
+    Metadata: table,
 }
 
 -------------------------------------------------------------------------------
@@ -34,6 +35,10 @@ ZoneConstants.ZoneId = {
     },
 }
 
+ZoneConstants.ZoneInstances = {
+    FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
+}
+
 local defaultPlayerZoneState: PlayerZoneState = {
     RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
     TotalTeleports = 0,
@@ -41,18 +46,14 @@ local defaultPlayerZoneState: PlayerZoneState = {
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
-ZoneConstants.StreamingTargetRadius = 1024
+ZoneConstants.StreamingTargetRadius = 2533
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
+ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
 
 ZoneConstants.DoDebug = false
-
-ZoneConstants.GridPriority = {
-    RoomsAndMinigames = 0,
-    Igloos = 1,
-}
 
 return ZoneConstants

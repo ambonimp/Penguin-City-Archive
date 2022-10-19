@@ -4,39 +4,27 @@ local PlotService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
-local ZoneService: typeof(require(Paths.Server.Zones.ZoneService))
-local ZoneSetup: typeof(require(Paths.Server.Zones.ZoneSetup))
+local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
-local Limiter = require(Paths.Shared.Limiter)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
+local PlayerService = require(Paths.Server.PlayerService)
 
 local ID_CHECK_AMOUNT = 1000
-local DEBOUNCE_SCOPE = "PlayerTeleport"
-local DEBOUNCE_MOUNT = {
-    Key = "Teleport",
-    Timeframe = 0.5,
-}
-
 PlotService.PlayerPlot = {} :: { [string]: Model }
 PlotService.PlayerHouse = {} :: { [string]: Model }
 
-local houseZone: ZoneConstants.Zone
 local assets: Folder
 local folders: { [string]: Instance }
-local playersByInteriorsIndex: { [string]: Player } = {}
 
 function PlotService.Init()
     assets = ReplicatedStorage:WaitForChild("Assets")
     folders = {
         [HousingConstants.PlotType] = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName),
     }
-    ZoneService = require(Paths.Server.Zones.ZoneService)
-    ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
-    houseZone = ZoneUtil.zone("Room", "Neighborhood")
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
     Remotes.declareEvent("PlotChanged")
@@ -44,7 +32,7 @@ function PlotService.Init()
 end
 
 local function findInPlacements(id: number, placements)
-    for _, data in placements do
+    for _, data in pairs(placements) do
         if data.Id == id then
             return true
         end
@@ -82,7 +70,7 @@ function PlotService.Start()
 end
 
 local function setModelColor(object: Model, color: Color3)
-    for _, part: BasePart in object:GetDescendants() do
+    for _, part: BasePart in pairs(object:GetDescendants()) do
         if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
             part.Color = color
         end
@@ -90,7 +78,7 @@ local function setModelColor(object: Model, color: Color3)
 end
 
 --Finds an empty plot for exterior/interior
-local function findEmpty(player: Player, type: string)
+local function findEmpty(type: string)
     if type == HousingConstants.PlotType then
         local plotMoel: Model
         for _, model: Model in folders[type]:GetChildren() do
@@ -101,19 +89,7 @@ local function findEmpty(player: Player, type: string)
         end
         return plotMoel
     elseif type == HousingConstants.HouseType then
-        -- Get index
-        local index = 1
-        while true do
-            if playersByInteriorsIndex[tostring(index)] == nil then
-                playersByInteriorsIndex[tostring(index)] = player
-                break
-            else
-                index += 1
-            end
-        end
-
         local interiorModel = assets.Housing.InteriorPlot:Clone()
-        ZoneSetup.placeModelOnGrid(interiorModel, index, ZoneConstants.GridPriority.Igloos)
         return interiorModel
     else
         warn(("Unknown house type %q"):format(type))
@@ -122,25 +98,23 @@ end
 
 --Handles unloading a house interior or exterior : type; HousingConstants.HouseType for interior, HousingConstants.PlotType for exterior
 local function unloadPlot(player: Player, plot: Model, type: string)
-    --checks for given plot, if player house plot of type, or if it's in the plots table
-    local plotModel: Model = plot or PlotService.doesPlayerHavePlot(player, type) or PlotService["Player" .. type][player.Name]
+    -- HousingConstants.HouseType is handled by the ZoneService
+    if type == HousingConstants.PlotType then
+        --checks for given plot, if player house plot of type, or if it's in the plots table
+        local plotModel: Model = plot or PlotService.doesPlayerHavePlot(player, type) or PlotService["Player" .. type][player.Name]
 
-    if plotModel then
-        if plotModel:GetAttribute(HousingConstants.PlotOwner) then
-            plotModel:SetAttribute(HousingConstants.PlotOwner, nil)
-        end
+        if plotModel then
+            if plotModel:GetAttribute(HousingConstants.PlotOwner) then
+                plotModel:SetAttribute(HousingConstants.PlotOwner, nil)
+            end
 
-        if plotModel:FindFirstChildOfClass("Model") then
-            plotModel:FindFirstChildOfClass("Model"):Destroy()
-        end
+            if plotModel:FindFirstChildOfClass("Model") then
+                plotModel:FindFirstChildOfClass("Model"):Destroy()
+            end
 
-        if plotModel:FindFirstChild("Furniture") then
-            plotModel.Furniture:ClearAllChildren()
-        end
-
-        local zoneModel = game.Workspace.Rooms:FindFirstChild(tostring(player.UserId))
-        if zoneModel then
-            zoneModel:Destroy()
+            if plotModel:FindFirstChild("Furniture") then
+                plotModel.Furniture:ClearAllChildren()
+            end
         end
     end
 
@@ -148,29 +122,25 @@ local function unloadPlot(player: Player, plot: Model, type: string)
 end
 
 --Loads objects in players house
-local function loadHouseInterior(player: Player, plot: Model, Model: Model)
-    local houseCFrame: CFrame = CFrame.new(plot.Plot.Position)
-    player:SetAttribute(HousingConstants.HouseSpawn, Model.Spawn.Position)
-    local furniture: { [string]: { any } } = DataService.get(player, "Igloo.Placements")
-    if furniture then
-        for _, objectData in furniture do
-            local itemName = objectData.Name
-            local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
+local function loadHouseInterior(player: Player, plot: Model)
+    local houseCFrame = CFrame.new(plot.Plot.Position)
 
-            if Object then
-                Object = Object:Clone()
-                Object:PivotTo(
-                    houseCFrame
-                        * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
-                        * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
-                )
-                Object:SetAttribute("Id", objectData.Id)
-                setModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
-                Object.Parent = plot.Furniture
-            end
+    local furniture = DataService.get(player, "Igloo.Placements")
+    for _, objectData in pairs(furniture) do
+        local itemName = objectData.Name
+        local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
+
+        if Object then
+            Object = Object:Clone()
+            Object:PivotTo(
+                houseCFrame
+                    * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
+                    * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
+            )
+            Object:SetAttribute("Id", objectData.Id)
+            setModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
+            Object.Parent = plot.Furniture
         end
-    else
-        DataService.set(player, "Igloo.Placements", {})
     end
 end
 
@@ -197,29 +167,24 @@ local function loadPlot(player: Player, plot: Model, type: string, isChange: boo
 
             --Handle entering and exiting houses
             if type == HousingConstants.HouseType then
-                loadHouseInterior(player, plot, Model)
-                Model.Exit.Touched:Connect(function(part: BasePart)
-                    local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key .. part.Parent.Name, DEBOUNCE_MOUNT.Timeframe)
-                    if not isFree then
-                        return
-                    end
-                    if game.Players:GetPlayerFromCharacter(part.Parent) then
-                        local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(newPlayer, houseZone)
-                        Remotes.fireClient(newPlayer, "ExitedHouse", newPlayer)
-                    end
-                end)
+                loadHouseInterior(player, plot)
             elseif type == HousingConstants.PlotType then
-                Model.Entrance.Touched:Connect(function(part: BasePart)
-                    local isFree = Limiter.debounce(DEBOUNCE_SCOPE, DEBOUNCE_MOUNT.Key .. part.Parent.Name, DEBOUNCE_MOUNT.Timeframe)
-                    if not isFree then
-                        return
-                    end
-                    if game.Players:GetPlayerFromCharacter(part.Parent) then
-                        local newPlayer = game.Players:GetPlayerFromCharacter(part.Parent)
-                        ZoneService.teleportPlayerToZone(newPlayer, ZoneUtil.houseZone(player))
-                        Remotes.fireClient(newPlayer, "EnteredHouse", newPlayer, newPlayer == player)
-                    end
+                local zone = ZoneUtil.houseZone(player)
+
+                -- Departure
+                local entrancePart: BasePart = Model.Entrance
+                entrancePart.Name = zone.ZoneId
+                entrancePart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomDepartures
+
+                -- Arrival
+                local spawnPart = Model.Spawn
+                spawnPart.Name = zone.ZoneId
+                spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
+
+                -- Cleanup
+                Model.Destroying:Connect(function()
+                    entrancePart:Destroy()
+                    spawnPart:Destroy()
                 end)
             end
         end
@@ -260,8 +225,8 @@ function PlotService.loadPlayer(player: Player)
     end
 
     local loaded = false
-    local emptyPlot: Model = findEmpty(player, HousingConstants.PlotType)
-    local emptyHouse: Model = findEmpty(player, HousingConstants.HouseType)
+    local emptyPlot: Model = findEmpty(HousingConstants.PlotType)
+    local emptyHouse: Model = findEmpty(HousingConstants.HouseType)
     if emptyPlot and emptyHouse then
         loaded = loadPlot(player, emptyPlot, HousingConstants.PlotType)
         if loaded then
@@ -279,21 +244,15 @@ function PlotService.loadPlayer(player: Player)
     -- Loaded
 
     -- create zone for interior
-    do
-        local zoneModel = Instance.new("Model")
-        zoneModel.Name = tostring(player.UserId)
-        zoneModel.Parent = game.Workspace.Rooms
+    local houseZone = ZoneUtil.houseZone(player)
 
-        local zoneInstances = Instance.new("Configuration")
-        zoneInstances.Name = "ZoneInstances"
-        zoneInstances.Parent = zoneModel
+    local spawnPart = emptyHouse:FindFirstChildOfClass("Model").Spawn
+    local destroyFunction = ZoneService.createZone(houseZone.ZoneType, houseZone.ZoneId, { emptyHouse }, spawnPart)
+    PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
 
-        local spawnPart = emptyHouse:FindFirstChildOfClass("Model").Spawn
-        spawnPart.Name = "Spawnpoint"
-        spawnPart.Parent = zoneInstances
-
-        emptyHouse.Parent = zoneModel
-    end
+    local exitPart = emptyHouse:FindFirstChildOfClass("Model").Exit
+    exitPart.Name = ZoneConstants.ZoneId.Room.Neighborhood
+    exitPart.Parent = ZoneUtil.getZoneInstances(houseZone).RoomDepartures
 end
 
 --Handles removing models and resetting plots on leave
@@ -337,7 +296,7 @@ function PlotService.changeObject(player: Player, id: number, position: CFrame, 
         object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
         setModelColor(object, color)
 
-        for _, itemData in items do
+        for _, itemData in pairs(items) do
             if itemData.Id == id then
                 itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
                 itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
@@ -355,14 +314,14 @@ function PlotService.removeObject(player: Player, id: number, type: string)
     local plot = PlotService.doesPlayerHavePlot(player, HousingConstants.HouseType)
     local items = DataService.get(player, "Igloo.Placements")
     local name = nil
-    for _, object: Model in plot.Furniture:GetChildren() do
+    for _, object: Model in pairs(plot.Furniture:GetChildren()) do
         if object:GetAttribute(HousingConstants.ModelId) == id then
             name = object.Name
             object:Destroy()
         end
     end
 
-    for num, data in items do
+    for num, data in pairs(items) do
         if data.Id == id then
             DataService.set(player, "Igloo.Placements." .. tostring(num), nil)
             if DataService.get(player, "Igloo.Placements") == nil then
@@ -395,7 +354,7 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
     if
         (houseCFrame.Position - position.Position).magnitude < 150 --todo: swap to InBounds method
         and (assets.Housing:FindFirstChild(type) and assets.Housing:FindFirstChild(type):FindFirstChild(name))
-        and (owned[name] and owned[name] > 0)
+        and (owned[name] and owned[name] :: number > 0)
     then
         local object = assets.Housing[type]:FindFirstChild(name):Clone()
         local realPosition = houseCFrame:ToObjectSpace(position)
@@ -415,7 +374,7 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
         object.Parent = plot.Furniture
 
         DataService.increment(player, "Igloo.OwnedItems." .. name, -1)
-        DataService.append(player, "Igloo.Placements", itemData)
+        DataService.set(player, "Igloo.Placements." .. itemData.Id, itemData)
         Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", DataService.get(player, "Igloo.Placements"))
         Remotes.fireClient(player, "UpdateHouseUI", name, DataService.get(player, "Igloo.OwnedItems." .. name), type)
     end
