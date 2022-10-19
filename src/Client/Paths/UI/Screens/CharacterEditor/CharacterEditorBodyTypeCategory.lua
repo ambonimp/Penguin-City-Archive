@@ -54,7 +54,7 @@ end
 -- Logic
 -------------------------------------------------------------------------------
 for itemName, itemConstants in pairs(CategoryConstants.Items) do
-    local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, CATEGORY_NAME)
+    local button = CharacterEditorCategory.createItemButton(itemName, itemConstants :: CharacterEditorCategory.ItemInfo, CATEGORY_NAME)
     button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder
     button:Mount(page)
 
