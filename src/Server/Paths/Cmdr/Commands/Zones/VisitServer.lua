@@ -9,7 +9,7 @@ return function(_context, players: { Player }, player: Player)
 
     local output = ""
     for _, somePlayer in pairs(players) do
-        task.spawn(ZoneService.teleportPlayerToZone, player, zone)
+        task.spawn(ZoneService.teleportPlayerToZone, somePlayer, zone)
 
         output ..= (" > %s is off to %s igloo!\n"):format(somePlayer.Name, StringUtil.possessiveName(player.Name))
     end

@@ -16,41 +16,52 @@ export type ZoneInstances = {
     RoomDepartures: Folder?,
 }
 
-function ZoneUtil.zone(zoneType: string, zoneId: string)
+function ZoneUtil.zone(zoneType: string, zoneId: string, metadata: table?)
     local zone: ZoneConstants.Zone = {
         ZoneType = zoneType,
         ZoneId = zoneId,
+        Metadata = metadata or {},
     }
 
     return zone
 end
 
+function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zone)
+    return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
+end
+
 function ZoneUtil.houseZone(player: Player)
-    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId), {
+        IsHouse = true,
+    })
 end
 
 function ZoneUtil.isHouseZone(zone: ZoneConstants.Zone)
-    return ZoneUtil.getHouseOwner(zone) and true or false
+    return zone.Metadata.IsHouse and true or false
 end
 
-function ZoneUtil.getHouseOwner(zone: ZoneConstants.Zone)
-    -- RETURN: Not a number
-    local userId = tonumber(zone.ZoneId)
-    if not userId then
+function ZoneUtil.getHouseZoneOwner(zone: ZoneConstants.Zone)
+    -- RETURN: Not a house zone
+    if not ZoneUtil.isHouseZone(zone) then
         return nil
     end
 
+    local userId = tonumber(zone.ZoneId)
     return Players:GetPlayerByUserId(userId)
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
-    if zone.ZoneType == ZoneConstants.ZoneType.Room then
-        return game.Workspace.Rooms[zone.ZoneId]
-    elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-        return game.Workspace.Minigames[zone.ZoneId]
+function ZoneUtil.getZoneTypeDirectory(zoneType: string)
+    if zoneType == ZoneConstants.ZoneType.Room then
+        return game.Workspace.Rooms
+    elseif zoneType == ZoneConstants.ZoneType.Minigame then
+        return game.Workspace.Minigames
+    else
+        error(("ZoneType %q wat"):format(zoneType))
     end
+end
 
-    error(("ZoneType %q wat?"):format(zone.ZoneType))
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
+    return ZoneUtil.getZoneTypeDirectory(zone.ZoneType)[zone.ZoneId]
 end
 
 function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)

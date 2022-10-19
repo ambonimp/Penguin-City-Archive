@@ -70,4 +70,17 @@ function InstanceUtil.getDescendants(instance: Instance, checker: (descendant: I
     return descendants
 end
 
+function InstanceUtil.convert(instance: Instance, toClassName: string)
+    local newInstance = Instance.new(toClassName)
+    newInstance.Name = instance.Name
+    newInstance.Parent = instance.Parent
+
+    for _, child in pairs(instance:GetChildren()) do
+        child.Parent = newInstance
+    end
+
+    instance:Destroy()
+    return newInstance
+end
+
 return InstanceUtil

@@ -35,7 +35,7 @@ function HousingController.Start()
             HousingScreen.houseExited()
         end
         if ZoneUtil.isHouseZone(toZone) then
-            local zoneOwner = ZoneUtil.getHouseOwner(toZone)
+            local zoneOwner = ZoneUtil.getHouseZoneOwner(toZone)
             local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO Check DataController for list of UserId we have edit perms for
             HousingScreen.houseEntered(hasEditPerms)
         end
@@ -60,7 +60,7 @@ function HousingController.getPlayerPlot(player: Player, type: string)
             end
         end
     elseif type == HousingConstants.HouseType then
-        local zoneModel = game.Workspace.Rooms:FindFirstChild(tostring(player.UserId))
+        local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.houseZone(player))
         if zoneModel then
             local model = zoneModel:FindFirstChildOfClass("Model")
             if model then

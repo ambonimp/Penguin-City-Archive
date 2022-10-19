@@ -14,6 +14,7 @@ local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 
 type TeleportData = {
     InvokedServerTime: number?,
@@ -23,8 +24,10 @@ local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
 local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
+local DESTROY_CREATED_ZONE_AFTER = 1
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
+local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
@@ -76,30 +79,87 @@ function ZoneService.getPlayerZone(player: Player)
     return roomZone, roomMetadata
 end
 
--- Returns Zone, Metadata
+-- Returns Zone
 function ZoneService.getPlayerRoom(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    local zone: ZoneConstants.Zone = {
-        ZoneType = ZoneConstants.ZoneType.Room,
-        ZoneId = playerZoneState.RoomId,
-    }
-
-    return zone
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
 end
 
--- Returns Zone, Metadata (or nil)
+-- Returns Zone
 function ZoneService.getPlayerMinigame(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if playerZoneState.MinigameId then
-        local zone: ZoneConstants.Zone = {
-            ZoneType = ZoneConstants.ZoneType.Minigame,
-            ZoneId = playerZoneState.MinigameId,
-        }
-
-        return zone
+        return ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, playerZoneState.MinigameId)
     end
 
     return nil
+end
+
+-- Returns a function to remove this zone cleanly. Returns the zoneModel as a second parameter
+function ZoneService.createZone(zoneType: string, zoneId: string, zoneModelChildren: { Instance }, spawnpoint: BasePart)
+    -- ERROR: Zone already exists
+    local zoneTypeDirectory = ZoneUtil.getZoneTypeDirectory(zoneType)
+    local existingZoneModel = ZoneUtil.getZoneTypeDirectory(zoneType):FindFirstChild(zoneId)
+    if existingZoneModel then
+        error(("Zone %q %s already exists!"):format(zoneType, zoneId))
+    end
+
+    -- Create
+    local zone = ZoneUtil.zone(zoneType, zoneId)
+
+    -- Model
+    local zoneModel = Instance.new("Model")
+    zoneModel.Name = zoneId
+    zoneModel.Parent = zoneTypeDirectory
+
+    for _, child in pairs(zoneModelChildren) do
+        child.Parent = zoneModel
+    end
+
+    -- Zone Instances
+    local zoneInstances = Instance.new("Configuration")
+    zoneInstances.Name = "ZoneInstances"
+    zoneInstances.Parent = zoneModel
+
+    for _, folderName in pairs(ZoneConstants.ZoneInstances.FolderNames) do
+        local folder = Instance.new("Folder")
+        folder.Name = folderName
+        folder.Parent = zoneInstances
+    end
+
+    spawnpoint.Name = "Spawnpoint"
+    spawnpoint.Parent = zoneInstances
+
+    -- Setup
+    ZoneSetup.setupCreatedZone(zoneModel)
+
+    -- Return
+    return function()
+        -- RETURN: Already destroyed!
+        if zoneModel.Parent == nil then
+            warn("already destroyed")
+            return
+        end
+
+        -- Teleport out any existing players
+        for _, player in pairs(Players:GetPlayers()) do
+            local playerZone = ZoneService.getPlayerZone(player)
+            if ZoneUtil.zonesMatch(zone, playerZone) then
+                -- Lets get 'em outta here!
+                if zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+                    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
+                else
+                    ZoneService.teleportPlayerToZone(player, defaultZone)
+                end
+            end
+        end
+
+        task.delay(DESTROY_CREATED_ZONE_AFTER, function()
+            -- Delete model after client has had time to hide with transition
+            zoneModel:Destroy()
+        end)
+    end,
+        zoneModel
 end
 
 --[[

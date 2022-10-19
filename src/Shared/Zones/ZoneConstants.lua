@@ -14,6 +14,7 @@ export type PlayerZoneState = {
 export type Zone = {
     ZoneType: string,
     ZoneId: string,
+    Metadata: table,
 }
 
 -------------------------------------------------------------------------------
@@ -34,6 +35,10 @@ ZoneConstants.ZoneId = {
     },
 }
 
+ZoneConstants.ZoneInstances = {
+    FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
+}
+
 local defaultPlayerZoneState: PlayerZoneState = {
     RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
     TotalTeleports = 0,
@@ -50,10 +55,5 @@ ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 ZoneConstants.TeleportBuffer = 0.5
 
 ZoneConstants.DoDebug = false
-
-ZoneConstants.GridPriority = {
-    RoomsAndMinigames = 0,
-    Igloos = 1,
-}
 
 return ZoneConstants

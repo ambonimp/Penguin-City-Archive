@@ -194,7 +194,7 @@ local defaultCharacterAppearance = {
 }
 --#endregion
 
-DataConfig.DataKey = "DEV_5"
+DataConfig.DataKey = "DEV_6"
 function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,

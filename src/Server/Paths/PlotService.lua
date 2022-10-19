@@ -4,13 +4,14 @@ local PlotService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
-local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
+local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
+local PlayerService = require(Paths.Server.PlayerService)
 
 local ID_CHECK_AMOUNT = 1000
 PlotService.PlayerPlot = {} :: { [string]: Model }
@@ -18,7 +19,6 @@ PlotService.PlayerHouse = {} :: { [string]: Model }
 
 local assets: Folder
 local folders: { [string]: Instance }
-local playersByInteriorsIndex: { [string]: Player } = {}
 
 function PlotService.Init()
     assets = ReplicatedStorage:WaitForChild("Assets")
@@ -78,7 +78,7 @@ local function setModelColor(object: Model, color: Color3)
 end
 
 --Finds an empty plot for exterior/interior
-local function findEmpty(player: Player, type: string)
+local function findEmpty(type: string)
     if type == HousingConstants.PlotType then
         local plotMoel: Model
         for _, model: Model in folders[type]:GetChildren() do
@@ -89,19 +89,7 @@ local function findEmpty(player: Player, type: string)
         end
         return plotMoel
     elseif type == HousingConstants.HouseType then
-        -- Get index
-        local index = 1
-        while true do
-            if playersByInteriorsIndex[tostring(index)] == nil then
-                playersByInteriorsIndex[tostring(index)] = player
-                break
-            else
-                index += 1
-            end
-        end
-
         local interiorModel = assets.Housing.InteriorPlot:Clone()
-        ZoneSetup.placeModelOnGrid(interiorModel, index, ZoneConstants.GridPriority.Igloos)
         return interiorModel
     else
         warn(("Unknown house type %q"):format(type))
@@ -110,25 +98,23 @@ end
 
 --Handles unloading a house interior or exterior : type; HousingConstants.HouseType for interior, HousingConstants.PlotType for exterior
 local function unloadPlot(player: Player, plot: Model, type: string)
-    --checks for given plot, if player house plot of type, or if it's in the plots table
-    local plotModel: Model = plot or PlotService.doesPlayerHavePlot(player, type) or PlotService["Player" .. type][player.Name]
+    -- HousingConstants.HouseType is handled by the ZoneService
+    if type == HousingConstants.PlotType then
+        --checks for given plot, if player house plot of type, or if it's in the plots table
+        local plotModel: Model = plot or PlotService.doesPlayerHavePlot(player, type) or PlotService["Player" .. type][player.Name]
 
-    if plotModel then
-        if plotModel:GetAttribute(HousingConstants.PlotOwner) then
-            plotModel:SetAttribute(HousingConstants.PlotOwner, nil)
-        end
+        if plotModel then
+            if plotModel:GetAttribute(HousingConstants.PlotOwner) then
+                plotModel:SetAttribute(HousingConstants.PlotOwner, nil)
+            end
 
-        if plotModel:FindFirstChildOfClass("Model") then
-            plotModel:FindFirstChildOfClass("Model"):Destroy()
-        end
+            if plotModel:FindFirstChildOfClass("Model") then
+                plotModel:FindFirstChildOfClass("Model"):Destroy()
+            end
 
-        if plotModel:FindFirstChild("Furniture") then
-            plotModel.Furniture:ClearAllChildren()
-        end
-
-        local zoneModel = game.Workspace.Rooms:FindFirstChild(tostring(player.UserId))
-        if zoneModel then
-            zoneModel:Destroy()
+            if plotModel:FindFirstChild("Furniture") then
+                plotModel.Furniture:ClearAllChildren()
+            end
         end
     end
 
@@ -183,14 +169,16 @@ local function loadPlot(player: Player, plot: Model, type: string, isChange: boo
             if type == HousingConstants.HouseType then
                 loadHouseInterior(player, plot)
             elseif type == HousingConstants.PlotType then
+                local zone = ZoneUtil.houseZone(player)
+
                 -- Departure
                 local entrancePart: BasePart = Model.Entrance
-                entrancePart.Name = tostring(player.UserId)
+                entrancePart.Name = zone.ZoneId
                 entrancePart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomDepartures
 
                 -- Arrival
                 local spawnPart = Model.Spawn
-                spawnPart.Name = tostring(player.UserId)
+                spawnPart.Name = zone.ZoneId
                 spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
 
                 -- Cleanup
@@ -237,8 +225,8 @@ function PlotService.loadPlayer(player: Player)
     end
 
     local loaded = false
-    local emptyPlot: Model = findEmpty(player, HousingConstants.PlotType)
-    local emptyHouse: Model = findEmpty(player, HousingConstants.HouseType)
+    local emptyPlot: Model = findEmpty(HousingConstants.PlotType)
+    local emptyHouse: Model = findEmpty(HousingConstants.HouseType)
     if emptyPlot and emptyHouse then
         loaded = loadPlot(player, emptyPlot, HousingConstants.PlotType)
         if loaded then
@@ -256,31 +244,15 @@ function PlotService.loadPlayer(player: Player)
     -- Loaded
 
     -- create zone for interior
-    do
-        local zoneModel = Instance.new("Model")
-        zoneModel.Name = tostring(player.UserId)
-        zoneModel.Parent = game.Workspace.Rooms
+    local houseZone = ZoneUtil.houseZone(player)
 
-        local zoneInstances = Instance.new("Configuration")
-        zoneInstances.Name = "ZoneInstances"
-        zoneInstances.Parent = zoneModel
+    local spawnPart = emptyHouse:FindFirstChildOfClass("Model").Spawn
+    local destroyFunction = ZoneService.createZone(houseZone.ZoneType, houseZone.ZoneId, { emptyHouse }, spawnPart)
+    PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
 
-        local departures = Instance.new("Folder")
-        departures.Name = "RoomDepartures"
-        departures.Parent = zoneInstances
-
-        local spawnPart = emptyHouse:FindFirstChildOfClass("Model").Spawn
-        spawnPart.Name = "Spawnpoint"
-        spawnPart.Parent = zoneInstances
-
-        local exitPart = emptyHouse:FindFirstChildOfClass("Model").Exit
-        exitPart.Name = ZoneConstants.ZoneId.Room.Neighborhood
-        exitPart.Parent = departures
-
-        emptyHouse.Parent = zoneModel
-
-        ZoneSetup.setupIglooRoom(zoneModel)
-    end
+    local exitPart = emptyHouse:FindFirstChildOfClass("Model").Exit
+    exitPart.Name = ZoneConstants.ZoneId.Room.Neighborhood
+    exitPart.Parent = ZoneUtil.getZoneInstances(houseZone).RoomDepartures
 end
 
 --Handles removing models and resetting plots on leave
