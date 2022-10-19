@@ -5,6 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
+local Button = require(Paths.Client.UI.Elements.Button)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
@@ -19,7 +20,7 @@ local StampButton = require(Paths.Client.UI.Elements.StampButton)
 
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
-local sealButton: typeof(AnimatedButton.fromGuiObject(Instance.new("ImageButton")))
+local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local cover: ImageLabel = screenGui.Container.Cover
 local inside: Frame = screenGui.Container.Inside
 
@@ -51,7 +52,7 @@ function StampBookScreen.Init()
         end)
 
         -- Seal
-        sealButton = AnimatedButton.fromGuiObject(cover.Seal.Button)
+        sealButton = AnimatedButton.new(cover.Seal.Button)
         sealButton:SetPressAnimation(AnimatedButton.Defaults.PressAnimation)
         sealButton:SetHoverAnimation(AnimatedButton.Defaults.HoverAnimation)
         sealButton.Pressed:Connect(StampBookScreen.openInside)
@@ -196,6 +197,26 @@ end
 -- Setup UI
 do
     -- Inside Tabs
+    local tabs: Frame = inside.Tabs
+    tabs.BackgroundTransparency = 1
+
+    local tabsTemplate: ImageButton = tabs.template
+    tabsTemplate.Visible = false
+
+    for i, stampPage in pairs(StampConstants.Pages) do
+        local pageTab = tabsTemplate:Clone()
+        pageTab.Name = stampPage.DisplayName
+        pageTab.LayoutOrder = i
+        pageTab.Visible = true
+        pageTab.Parent = tabs
+
+        pageTab.Body.Icon.Image = stampPage.Icon
+
+        local pageTabButton = Button.new(pageTab)
+        pageTabButton.Pressed:Connect(function()
+            print("todo", stampPage.StampType)
+        end)
+    end
 end
 
 return StampBookScreen

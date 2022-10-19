@@ -10,6 +10,7 @@ local Paths = require(ServerScriptService.Paths)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local GameUtil = require(Paths.Shared.Utils.GameUtil)
+local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
 DataConfig.DataKey = GameUtil.getDataKey()
 
