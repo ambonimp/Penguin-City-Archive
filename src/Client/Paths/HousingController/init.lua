@@ -60,7 +60,8 @@ function HousingController.getPlayerPlot(player: Player, type: string)
             end
         end
     elseif type == HousingConstants.HouseType then
-        local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.houseZone(player))
+        local houseZone = ZoneUtil.houseZone(player)
+        local zoneModel = ZoneUtil.getZoneTypeDirectory(houseZone.ZoneType):WaitForChild(houseZone.ZoneId)
         if zoneModel then
             local model = zoneModel:FindFirstChildOfClass("Model")
             if model then

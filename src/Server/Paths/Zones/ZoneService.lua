@@ -82,13 +82,17 @@ end
 -- Returns Zone
 function ZoneService.getPlayerRoom(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
+    if playerZoneState then
+        return ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
+    end
+
+    return defaultZone
 end
 
 -- Returns Zone
 function ZoneService.getPlayerMinigame(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    if playerZoneState.MinigameId then
+    if playerZoneState and playerZoneState.MinigameId then
         return ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, playerZoneState.MinigameId)
     end
 
@@ -137,7 +141,6 @@ function ZoneService.createZone(zoneType: string, zoneId: string, zoneModelChild
     return function()
         -- RETURN: Already destroyed!
         if zoneModel.Parent == nil then
-            warn("already destroyed")
             return
         end
 
