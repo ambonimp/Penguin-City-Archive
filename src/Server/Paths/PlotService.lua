@@ -137,28 +137,24 @@ end
 
 --Loads objects in players house
 local function loadHouseInterior(player: Player, plot: Model)
-    local houseCFrame: CFrame = CFrame.new(plot.Plot.Position)
+    local houseCFrame = CFrame.new(plot.Plot.Position)
 
     local furniture = DataService.get(player, "Igloo.Placements")
-    if furniture then
-        for _, objectData in pairs(furniture) do
-            local itemName = objectData.Name
-            local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
+    for _, objectData in pairs(furniture) do
+        local itemName = objectData.Name
+        local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
 
-            if Object then
-                Object = Object:Clone()
-                Object:PivotTo(
-                    houseCFrame
-                        * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
-                        * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
-                )
-                Object:SetAttribute("Id", objectData.Id)
-                setModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
-                Object.Parent = plot.Furniture
-            end
+        if Object then
+            Object = Object:Clone()
+            Object:PivotTo(
+                houseCFrame
+                    * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
+                    * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
+            )
+            Object:SetAttribute("Id", objectData.Id)
+            setModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
+            Object.Parent = plot.Furniture
         end
-    else
-        DataService.set(player, "Igloo.Placements", {})
     end
 end
 
@@ -405,10 +401,10 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
         object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
         object.Parent = plot.Furniture
 
-        PlayerData.increment(player, "Igloo.OwnedItems." .. name, -1)
-        PlayerData.set(player, "Igloo.Placements." .. itemData.Id, itemData)
-        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", PlayerData.get(player, "Igloo.Placements"))
-        Remotes.fireClient(player, "UpdateHouseUI", name, PlayerData.get(player, "Igloo.OwnedItems." .. name), type)
+        DataService.increment(player, "Igloo.OwnedItems." .. name, -1)
+        DataService.set(player, "Igloo.Placements." .. itemData.Id, itemData)
+        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", DataService.get(player, "Igloo.Placements"))
+        Remotes.fireClient(player, "UpdateHouseUI", name, DataService.get(player, "Igloo.OwnedItems." .. name), type)
     end
 end
 
