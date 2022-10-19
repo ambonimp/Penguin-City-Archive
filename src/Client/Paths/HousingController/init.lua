@@ -7,8 +7,9 @@ local Player = Players.LocalPlayer
 local Remotes = require(Paths.Shared.Remotes)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
-local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
-local PlotChanger: typeof(require(Paths.Client.HousingController.PlotChanger))
+local ZoneController = require(Paths.Client.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 local plots = workspace.Rooms.Neighborhood.HousingPlots
 
@@ -25,26 +26,28 @@ local function setupPlayerHouse()
 
     --show edit button, true: has access to edit
     HousingScreen.houseEntered(true)
-    EditMode = require(Paths.Client.HousingController.EditMode)
-    PlotChanger = require(Paths.Client.HousingController.PlotChanger)
 end
 
 function HousingController.Start()
+    -- Enter/Exit
+    ZoneController.ZoneChanged:Connect(function(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+        if ZoneUtil.isHouseZone(fromZone) then
+            HousingScreen.houseExited()
+        end
+        if ZoneUtil.isHouseZone(toZone) then
+            local zoneOwner = ZoneUtil.getHouseOwner(toZone)
+            local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO Check DataController for list of UserId we have edit perms for
+            HousingScreen.houseEntered(hasEditPerms)
+        end
+    end)
+
+    -- Communication
     Remotes.bindEvents({
-        EnteredHouse = function(player: Player, hasAccess: boolean)
-            if player == Player then
-                HousingScreen.houseEntered(true)
-            else
-                HousingScreen.houseEntered(hasAccess)
-            end
-        end,
-        ExitedHouse = function(player: Player)
-            HousingScreen.houseExited(false)
-        end,
         PlotChanged = function(newPlot: Model)
             HousingScreen.plotChanged(newPlot)
         end,
     })
+
     setupPlayerHouse()
 end
 

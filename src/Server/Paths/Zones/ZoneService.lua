@@ -140,14 +140,6 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     end
     playerZoneState.TotalTeleports += 1
 
-    -- Housing Events
-    if ZoneUtil.isHouseZone(zone) then
-        Remotes.fireClient(player, "EnteredHouse", player, player == ZoneUtil.getHouseOwner(zone))
-    end
-    if oldZone and ZoneUtil.isHouseZone(oldZone) then
-        Remotes.fireClient(player, "ExitedHouse", player)
-    end
-
     -- Inform Server
     ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
