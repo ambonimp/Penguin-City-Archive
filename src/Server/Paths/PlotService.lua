@@ -405,10 +405,10 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
         object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))
         object.Parent = plot.Furniture
 
-        DataService.increment(player, "Igloo.OwnedItems." .. name, -1)
-        DataService.append(player, "Igloo.Placements", itemData)
-        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", DataService.get(player, "Igloo.Placements"))
-        Remotes.fireClient(player, "UpdateHouseUI", name, DataService.get(player, "Igloo.OwnedItems." .. name), type)
+        PlayerData.increment(player, "Igloo.OwnedItems." .. name, -1)
+        PlayerData.set(player, "Igloo.Placements." .. itemData.Id, itemData)
+        Remotes.fireClient(player, "DataUpdated", "Igloo.Placements", PlayerData.get(player, "Igloo.Placements"))
+        Remotes.fireClient(player, "UpdateHouseUI", name, PlayerData.get(player, "Igloo.OwnedItems." .. name), type)
     end
 end
 

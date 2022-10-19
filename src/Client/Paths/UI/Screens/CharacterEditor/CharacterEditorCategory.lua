@@ -10,6 +10,7 @@ local Signal = require(Paths.Shared.Signal)
 local Button = require(Paths.Client.UI.Elements.Button)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 export type EquippedItems = { string }
+export type ItemInfo = { Name: string, Icon: string, Color: Color3? }
 
 local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.15, 1.15))
 local BUTTON_SCALE_DOWN_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(0.9, 0.9))
@@ -28,7 +29,7 @@ local selectedTab: Frame = tabs.SelectedTab
 -------------------------------------------------------------------------------
 function CharacterEditorCategory.createItemButton(
     itemName: string,
-    itemInfo: { Name: string, Icon: string, Color: Color3? },
+    itemInfo: ItemInfo,
     categoryName
 ): typeof(Button.new(Instance.new("ImageButton")))
     local buttonObject = templates.Item:Clone()
