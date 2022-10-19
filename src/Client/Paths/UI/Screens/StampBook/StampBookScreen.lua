@@ -193,4 +193,9 @@ function StampBookScreen.close()
     screenGui.Enabled = false
 end
 
+-- Setup UI
+do
+    -- Inside Tabs
+end
+
 return StampBookScreen

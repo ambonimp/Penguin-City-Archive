@@ -2,6 +2,7 @@ local StampConstants = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
+local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 
 StampConstants.TitleIconResolutions = {
     [Images.StampBook.Titles.Pizza] = Vector2.new(523, 90),
@@ -31,5 +32,19 @@ StampConstants.StampBook = {
         },
     },
 }
+
+local pages: { {
+    StampType: Stamps.StampType,
+    DisplayName: string,
+    Icon: string,
+} } = {
+    { StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place },
+    { StampType = "Minigame", DisplayName = "Minigames", Icon = Images.Icons.Minigame },
+    { StampType = "Igloo", DisplayName = "Igloo", Icon = Images.Icons.Igloo },
+    { StampType = "Clothing", DisplayName = "Clothing", Icon = Images.Icons.Shirt },
+    { StampType = "Pets", DisplayName = "Pets", Icon = Images.Icons.Pets },
+    { StampType = "Events", DisplayName = "Events", Icon = Images.Icons.Events },
+}
+StampConstants.Pages = pages
 
 return StampConstants

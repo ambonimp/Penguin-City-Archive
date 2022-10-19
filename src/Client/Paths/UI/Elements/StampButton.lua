@@ -36,7 +36,6 @@ function StampButton.new(stamp: Stamps.Stamp)
 
     --!! If no ImageId, add a simple text label (debug)
     if stamp.ImageId == "" then
-        print("text")
         local textLabel = Instance.new("TextLabel")
         textLabel.TextScaled = true
         textLabel.BackgroundTransparency = 1
