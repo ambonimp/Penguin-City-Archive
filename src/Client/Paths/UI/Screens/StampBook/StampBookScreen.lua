@@ -17,6 +17,12 @@ local Images = require(Paths.Shared.Images.Images)
 local Maid = require(Paths.Packages.maid)
 local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+
+local DEFAULT_CHAPTER = StampConstants.Chapters[1]
+local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
+local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
+local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
@@ -33,6 +39,11 @@ local currentStampData = {
 local loadedStampData = Promise.new(function() end) -- Intellisense hack
 local currentView: "Cover" | "Inside"
 local viewMaid = Maid.new()
+local tabButtonsByChapter: { [StampConstants.Chapter]: typeof(Button.new(Instance.new("ImageButton"))) } = {}
+local currentChapter: StampConstants.Chapter | nil
+local currentPageNumber = 1
+local deselectedTabSize: UDim2
+local deselectedTabColor: Color3
 
 function StampBookScreen.Init()
     -- UI Setup
@@ -150,7 +161,55 @@ function StampBookScreen.openInside()
     inside.Visible = true
     viewMaid:Cleanup()
 
-    --todo
+    StampBookScreen.openChapter(currentChapter or DEFAULT_CHAPTER)
+end
+
+local function selectTabButton(button: ImageButton)
+    TweenUtil.tween(button, TAB_TWEEN_INFO, {
+        Size = SELECTED_TAB_SIZE,
+    })
+    TweenUtil.tween(button.Body.Icon, TAB_TWEEN_INFO, {
+        ImageColor3 = deselectedTabColor,
+    })
+    TweenUtil.tween(button.Body, TAB_TWEEN_INFO, {
+        BackgroundColor3 = SELECTED_TAB_COLOR,
+    })
+    TweenUtil.tween(button.Left, TAB_TWEEN_INFO, {
+        BackgroundColor3 = SELECTED_TAB_COLOR,
+    })
+end
+
+local function deselectTabButton(button: ImageButton)
+    TweenUtil.tween(button, TAB_TWEEN_INFO, {
+        Size = deselectedTabSize,
+    })
+    TweenUtil.tween(button.Body.Icon, TAB_TWEEN_INFO, {
+        ImageColor3 = Color3.fromRGB(255, 255, 255),
+    })
+    TweenUtil.tween(button.Body, TAB_TWEEN_INFO, {
+        BackgroundColor3 = deselectedTabColor,
+    })
+    TweenUtil.tween(button.Left, TAB_TWEEN_INFO, {
+        BackgroundColor3 = deselectedTabColor,
+    })
+end
+
+function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber: number?)
+    -- New Chapter
+    if currentChapter ~= chapter then
+        -- Update Tab Buttons
+        if currentChapter then
+            deselectTabButton(tabButtonsByChapter[currentChapter]:GetButtonObject())
+        end
+        selectTabButton(tabButtonsByChapter[chapter]:GetButtonObject())
+
+        -- Reset Page Number
+        currentPageNumber = pageNumber or 1
+    end
+    currentPageNumber = pageNumber or currentPageNumber
+    currentChapter = chapter
+
+    warn("open chapter", currentChapter.DisplayName, currentPageNumber)
 end
 
 function StampBookScreen.open(player: Player)
@@ -172,6 +231,11 @@ function StampBookScreen.open(player: Player)
     -- Open Cover
     StampBookScreen.openCover()
 
+    -- reset tab buttons
+    for _, tabButton in pairs(tabButtonsByChapter) do
+        tabButton:GetButtonObject().Size = deselectedTabSize
+    end
+
     -- Load State
     loadedStampData = Promise.new(function(resolve, _reject, _onCancel)
         local stampData = player == Players.LocalPlayer and DataController.get("Stamps") or DataController.getPlayer(player, "Stamps")
@@ -192,6 +256,8 @@ end
 
 function StampBookScreen.close()
     screenGui.Enabled = false
+
+    currentChapter = nil
 end
 
 -- Setup UI
@@ -203,20 +269,30 @@ do
     local tabsTemplate: ImageButton = tabs.template
     tabsTemplate.Visible = false
 
-    for i, stampPage in pairs(StampConstants.Pages) do
-        local pageTab = tabsTemplate:Clone()
-        pageTab.Name = stampPage.DisplayName
-        pageTab.LayoutOrder = i
-        pageTab.Visible = true
-        pageTab.Parent = tabs
+    deselectedTabSize = tabsTemplate.Size
+    deselectedTabColor = tabsTemplate.Body.BackgroundColor3
+    for i, chapter in pairs(StampConstants.Chapters) do
+        local chapterTab = tabsTemplate:Clone()
+        chapterTab.Name = chapter.DisplayName
+        chapterTab.LayoutOrder = i
+        chapterTab.Visible = true
+        chapterTab.Parent = tabs
 
-        pageTab.Body.Icon.Image = stampPage.Icon
+        chapterTab.Body.Icon.Image = chapter.Icon
 
-        local pageTabButton = Button.new(pageTab)
-        pageTabButton.Pressed:Connect(function()
-            print("todo", stampPage.StampType)
+        local chapterTabButton = Button.new(chapterTab)
+        chapterTabButton.Pressed:Connect(function()
+            StampBookScreen.openChapter(chapter)
         end)
+        tabButtonsByChapter[chapter] = chapterTabButton
     end
+
+    -- Chapter
+    local chapterFrame: ImageLabel = inside.Chapter
+    SELECTED_TAB_COLOR = chapterFrame.ImageColor3
+
+    local stamps: Frame = inside.Chapter.Stamps
+    stamps.BackgroundTransparency = 1
 end
 
 return StampBookScreen
