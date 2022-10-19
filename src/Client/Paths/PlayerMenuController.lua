@@ -18,7 +18,7 @@ local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
     FilterType = Enum.RaycastFilterType.Blacklist,
 }
-local RADIAL_MENU_SCALE = 0.2
+local RADIAL_MENU_SCALE = 0.25
 
 local cursorDownPlayer: Player?
 local cachedPlayer: Player?
@@ -31,7 +31,8 @@ local function createBillboardGui()
     billboardGui.AlwaysOnTop = true
     billboardGui.ClipsDescendants = true
     billboardGui.LightInfluence = 0
-    billboardGui.Size = UDim2.fromScale(10, 10)
+    billboardGui.Size = UDim2.fromScale(9, 9)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
     billboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     return billboardGui
 end
@@ -90,8 +91,14 @@ function PlayerMenuController.clickedPlayer(player: Player)
 
     setupRadialButtons(player, radialMenu)
 
-    cacheMaid:GiveTask(billboardGui)
-    cacheMaid:GiveTask(radialMenu)
+    radialMenu:Open()
+
+    cacheMaid:GiveTask(function()
+        radialMenu:Close():andThen(function()
+            billboardGui:Destroy()
+            radialMenu:Destroy()
+        end)
+    end)
 end
 
 function PlayerMenuController.close()

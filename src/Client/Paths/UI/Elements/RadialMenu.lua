@@ -4,6 +4,12 @@ local RadialMenu = {}
 local UIElement = require(script.Parent.UIElement)
 local KeyboardButton = require(script.Parent.KeyboardButton)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local Maid = require(ReplicatedStorage.Packages.maid)
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+local Promise = require(ReplicatedStorage.Packages.promise)
+
+local OPEN_TWEEN_INFO = TweenInfo.new(0.06, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local CLOSE_TWEEN_INFO = TweenInfo.new(0.06, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 
 RadialMenu.Defaults = {
     Scale = 0.3,
@@ -18,12 +24,19 @@ function RadialMenu.new()
 
     local holderFrame = Instance.new("Frame")
     holderFrame.BackgroundTransparency = 1
-    holderFrame.Size = UDim2.fromScale(1, 1)
+    holderFrame.Size = UDim2.fromScale(0.9, 0.9)
+    holderFrame.Position = UDim2.fromScale(0.5, 0.5)
+    holderFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    holderFrame.Visible = false
 
     local buttonHolders: { Frame } = {}
     local buttons: { typeof(KeyboardButton.new()) } = {}
 
     local scale = RadialMenu.Defaults.Scale
+    local isOpen = false
+
+    local animationMaid = Maid.new()
+    radialMenu:GetMaid():GiveTask(animationMaid)
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -43,6 +56,8 @@ function RadialMenu.new()
         if totalButtons == 0 then
             return
         end
+
+        animationMaid:Cleanup()
 
         resizeButtonHolders()
 
@@ -81,6 +96,76 @@ function RadialMenu.new()
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
+
+    function radialMenu:Open()
+        -- RETURN: Already open
+        if isOpen then
+            return
+        end
+        isOpen = true
+
+        redraw()
+        animationMaid:Cleanup()
+
+        -- Tween buttons to their positions
+        for _, button in pairs(buttons) do
+            local buttonHolder: typeof(createButtonHolder()) = button:GetButtonObject().Parent
+            local size = buttonHolder.Size
+            local position = buttonHolder.Position
+            local anchorPoint = buttonHolder.AnchorPoint
+
+            buttonHolder.Size = UDim2.fromScale(0, 0)
+            buttonHolder.Position = UDim2.fromScale(0.5, 0.5)
+            buttonHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+
+            local tween = TweenUtil.tween(buttonHolder, OPEN_TWEEN_INFO, {
+                Size = size,
+                Position = position,
+                AnchorPoint = anchorPoint,
+            })
+            animationMaid:GiveTask(tween)
+        end
+
+        holderFrame.Visible = true
+
+        local tweenPromise = Promise.delay(OPEN_TWEEN_INFO.Time)
+        animationMaid:GiveTask(function()
+            tweenPromise:cancel()
+        end)
+
+        return tweenPromise
+    end
+
+    function radialMenu:Close()
+        -- RETURN: Not open
+        if not isOpen then
+            return
+        end
+        isOpen = false
+
+        animationMaid:Cleanup()
+
+        -- Tween buttons to center positions
+        for _, button in pairs(buttons) do
+            local buttonHolder: typeof(createButtonHolder()) = button:GetButtonObject().Parent
+
+            local tween = TweenUtil.tween(buttonHolder, CLOSE_TWEEN_INFO, {
+                Size = UDim2.fromScale(0, 0),
+                Position = UDim2.fromScale(0.5, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+            })
+            animationMaid:GiveTask(tween)
+        end
+
+        local tweenPromise = Promise.delay(CLOSE_TWEEN_INFO.Time)
+        animationMaid:GiveTask(function()
+            tweenPromise:cancel()
+        end)
+
+        return tweenPromise:andThen(function()
+            holderFrame.Visible = false
+        end)
+    end
 
     function radialMenu:Mount(parent: GuiObject)
         holderFrame.Parent = parent
