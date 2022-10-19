@@ -4,28 +4,18 @@ local PlotService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
-local ZoneService: typeof(require(Paths.Server.Zones.ZoneService))
-local ZoneSetup: typeof(require(Paths.Server.Zones.ZoneSetup))
+local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
-local Limiter = require(Paths.Shared.Limiter)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
-local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local ID_CHECK_AMOUNT = 1000
-local DEBOUNCE_SCOPE = "PlayerTeleport"
-local DEBOUNCE_MOUNT = {
-    Key = "Teleport",
-    Timeframe = 0.5,
-}
-
 PlotService.PlayerPlot = {} :: { [string]: Model }
 PlotService.PlayerHouse = {} :: { [string]: Model }
 
-local houseZone: ZoneConstants.Zone
 local assets: Folder
 local folders: { [string]: Instance }
 local playersByInteriorsIndex: { [string]: Player } = {}
@@ -35,9 +25,6 @@ function PlotService.Init()
     folders = {
         [HousingConstants.PlotType] = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName),
     }
-    ZoneService = require(Paths.Server.Zones.ZoneService)
-    ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
-    houseZone = ZoneUtil.zone("Room", "Neighborhood")
     Remotes.declareEvent("EnteredHouse")
     Remotes.declareEvent("ExitedHouse")
     Remotes.declareEvent("PlotChanged")
@@ -152,7 +139,7 @@ end
 local function loadHouseInterior(player: Player, plot: Model)
     local houseCFrame: CFrame = CFrame.new(plot.Plot.Position)
 
-    local furniture: { [string]: any } = DataService.get(player, "Igloo.Placements")
+    local furniture = DataService.get(player, "Igloo.Placements")
     if furniture then
         for _, objectData in pairs(furniture) do
             local itemName = objectData.Name
