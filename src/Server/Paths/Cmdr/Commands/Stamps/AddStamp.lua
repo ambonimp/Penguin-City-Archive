@@ -21,5 +21,11 @@ return {
             local stampTypeArgument = context:GetArgument(2)
             return StampUtil.getStampIdCmdrArgument(stampTypeArgument)
         end,
+        {
+            Type = "stampTier",
+            Name = "stampTier",
+            Description = "stampTier",
+            Optional = true,
+        },
     },
 }

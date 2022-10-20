@@ -4,7 +4,7 @@ local StampService = require(Paths.Server.StampService)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
-return function(_context, players: { Player }, _stampType: Stamps.StampType, stampId: string)
+return function(_context, players: { Player }, _stampType: Stamps.StampType, stampId: string, stampTier: Stamps.StampTier | nil)
     local output = ""
 
     -- RETURN: Bad stampId
@@ -13,12 +13,19 @@ return function(_context, players: { Player }, _stampType: Stamps.StampType, sta
         return ("Could not find stamp from passed stampId %q"):format(stampId)
     end
 
+    if stamp.IsTiered then
+        stampTier = stampTier or "Bronze"
+    else
+        stampTier = nil
+    end
+
     for _, player in pairs(players) do
-        local owns = StampService.hasStamp(player, stampId)
+        local owns = StampService.hasStamp(player, stampId, stampTier)
+        local tierSuffix = stamp.IsTiered and ("[%s] "):format(stampTier) or ""
         if owns then
-            output ..= (" > %s owns the %q Stamp (%s)\n"):format(player.Name, stamp.DisplayName, stamp.Type)
+            output ..= (" > %s owns the %q %sStamp (%s)\n"):format(player.Name, stamp.DisplayName, tierSuffix, stamp.Type)
         else
-            output ..= (" > %s does not own the %q Stamp (%s)\n"):format(player.Name, stamp.DisplayName, stamp.Type)
+            output ..= (" > %s does not own the %q %sStamp (%s)\n"):format(player.Name, stamp.DisplayName, tierSuffix, stamp.Type)
         end
     end
 

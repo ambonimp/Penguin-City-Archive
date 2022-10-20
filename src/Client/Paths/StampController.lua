@@ -13,8 +13,10 @@ StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, 
 
 function StampController.hasStamp(stampId: string, stampTier: Stamps.StampTier | nil)
     local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered and not stampTier then
-        stampTier = "Bronze"
+    if stamp.IsTiered then
+        stampTier = stampTier or "Bronze"
+    else
+        stampTier = nil
     end
 
     local data = DataController.get(StampUtil.getStampDataAddress(stampId))

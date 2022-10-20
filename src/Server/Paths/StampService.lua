@@ -8,8 +8,10 @@ local DataService = require(Paths.Server.Data.DataService)
 
 function StampService.hasStamp(player: Player, stampId: string, stampTier: Stamps.StampTier | nil)
     local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered and not stampTier then
-        stampTier = "Bronze"
+    if stamp.IsTiered then
+        stampTier = stampTier or "Bronze"
+    else
+        stampTier = nil
     end
 
     local data = DataService.get(player, StampUtil.getStampDataAddress(stampId))
@@ -26,10 +28,22 @@ function StampService.hasStamp(player: Player, stampId: string, stampTier: Stamp
     end
 end
 
-function StampService.addStamp(player: Player, stampId: string, stampTier: Stamps.StampTier?)
+function StampService.getTier(player: Player, stampId: string)
+    -- ERROR: Not tiered
     local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered and not stampTier then
-        stampTier = "Bronze"
+    if not stamp.IsTiered then
+        error(("Stamp %q is not tiered"):format(stampId))
+    end
+
+    return DataService.get(player, StampUtil.getStampDataAddress(stampId)) :: Stamps.StampTier | nil
+end
+
+function StampService.addStamp(player: Player, stampId: string, stampTier: Stamps.StampTier | nil)
+    local stamp = StampUtil.getStampFromId(stampId)
+    if stamp.IsTiered then
+        stampTier = stampTier or "Bronze"
+    else
+        stampTier = nil
     end
 
     if stamp and not StampService.hasStamp(player, stampId, stampTier) then

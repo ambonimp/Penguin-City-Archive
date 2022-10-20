@@ -16,7 +16,15 @@ return function(_context, players: { Player })
             local ownsAStamp = false
             for _, stamp in pairs(StampUtil.getStampsFromType(stampType)) do
                 if StampService.hasStamp(player, stamp.Id) then
-                    stampTypeOutput ..= ("       %s (%s)\n"):format(stamp.Id, stamp.DisplayName)
+                    if stamp.IsTiered then
+                        stampTypeOutput ..= ("       %s (%s) [%s]\n"):format(
+                            stamp.Id,
+                            stamp.DisplayName,
+                            StampService.getTier(player, stamp.Id)
+                        )
+                    else
+                        stampTypeOutput ..= ("       %s (%s)\n"):format(stamp.Id, stamp.DisplayName)
+                    end
                     ownsAStamp = true
                 end
             end
