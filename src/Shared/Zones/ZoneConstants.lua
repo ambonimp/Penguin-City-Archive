@@ -14,7 +14,6 @@ export type PlayerZoneState = {
 export type Zone = {
     ZoneType: string,
     ZoneId: string,
-    Metadata: table,
 }
 
 -------------------------------------------------------------------------------

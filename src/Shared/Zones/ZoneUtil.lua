@@ -16,11 +16,10 @@ export type ZoneInstances = {
     RoomDepartures: Folder?,
 }
 
-function ZoneUtil.zone(zoneType: string, zoneId: string, metadata: table?)
+function ZoneUtil.zone(zoneType: string, zoneId: string)
     local zone: ZoneConstants.Zone = {
         ZoneType = zoneType,
         ZoneId = zoneId,
-        Metadata = metadata or {},
     }
 
     return zone
@@ -31,13 +30,16 @@ function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zon
 end
 
 function ZoneUtil.houseZone(player: Player)
-    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId), {
-        IsHouse = true,
-    })
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
 end
 
 function ZoneUtil.isHouseZone(zone: ZoneConstants.Zone)
-    return zone.Metadata.IsHouse and true or false
+    local userId = tonumber(zone.ZoneId)
+    return userId and game.Players:GetPlayerByUserId(userId) and true or false
+end
+
+function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
+    return ZoneUtil.getZoneTypeDirectory(zone.ZoneType):FindFirstChild(zone.ZoneId) and true or false
 end
 
 function ZoneUtil.getHouseZoneOwner(zone: ZoneConstants.Zone)
@@ -75,6 +77,14 @@ function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
     }
 
     return zoneInstances
+end
+
+function ZoneUtil.getZoneFromZoneModel(zoneModel: Model)
+    local zoneType = zoneModel.Parent == game.Workspace.Rooms and ZoneConstants.ZoneType.Room
+        or zoneModel.Parent == game.Workspace.Minigames and ZoneConstants.ZoneType.Minigame
+        or error(("Could not infer ZoneType from %q"):format(zoneModel:GetFullName()))
+    local zoneId = zoneModel.Name
+    return ZoneUtil.zone(zoneType, zoneId)
 end
 
 -- Returns a spawnpoint in the context of the zone we're leaving

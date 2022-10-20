@@ -6,9 +6,13 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
 local GRID_PADDING = 128
 local GRID_RAISE_EVERY = 100 -- 10x10
+local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
+local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
 
 local rooms = game.Workspace.Rooms
 local minigames = game.Workspace.Minigames
@@ -17,6 +21,7 @@ local staticModels: { Model } = {}
 local largestDiameter = 1
 local gridSideLength = 1
 local usedGridIndexes: { [number]: boolean } = {}
+local collisionDisablers: Folder
 
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
@@ -68,7 +73,7 @@ end
 ]]
 local function verifyAndCleanModels(someModels: { Model })
     local function verifyModel(model: Model)
-        local zoneId = model.Name
+        local zone = ZoneUtil.getZoneFromZoneModel(model)
 
         -- WARN: No ZoneInstances!
         local zoneInstancesInstance = model:FindFirstChild("ZoneInstances")
@@ -91,11 +96,7 @@ local function verifyAndCleanModels(someModels: { Model })
         end
 
         -- WARN: Needs spawnpoint!
-        local zoneType = model.Parent == game.Workspace.Rooms and ZoneConstants.ZoneType.Room
-            or model.Parent == game.Workspace.Minigames and ZoneConstants.ZoneType.Minigame
-            or error(("Could not infer ZoneType from %q"):format(model:GetFullName()))
-
-        local zoneInstances = ZoneUtil.getZoneInstances(ZoneUtil.zone(zoneType, zoneId))
+        local zoneInstances = ZoneUtil.getZoneInstances(zone)
         if not (zoneInstances.Spawnpoint and zoneInstances.Spawnpoint:IsA("BasePart")) then
             warn(("ZoneModel %s missing 'ZoneInstances.Spawnpoint (BasePart)'"):format(model:GetFullName()))
         end
@@ -282,6 +283,69 @@ local function setupGrid()
     end
 end
 
+local function createCollisionHitbox(zone: ZoneConstants.Zone, departurePart: BasePart)
+    local collisionName = ("%s_%s_%s_CollisionDisabler"):format(zone.ZoneType, zone.ZoneId, departurePart.Name)
+
+    local collisionPart: BasePart = departurePart:Clone()
+    collisionPart.Name = collisionName
+    collisionPart.Size = collisionPart.Size + DEPARTURE_COLLISION_AREA_SIZE
+    collisionPart.CanCollide = false
+    collisionPart.Transparency = 1
+    collisionPart.Parent = collisionDisablers
+
+    local collisionHitbox = PlayersHitbox.new():AddPart(collisionPart)
+    collisionHitbox.PlayerEntered:Connect(function(player)
+        CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_DEPARTURES)
+    end)
+    collisionHitbox.PlayerLeft:Connect(function(player)
+        CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
+    end)
+
+    departurePart.Destroying:Connect(function()
+        collisionHitbox:Destroy(true)
+    end)
+end
+
+local function addCollisionControl(someModels: { Model })
+    for _, model in pairs(someModels) do
+        local zone = ZoneUtil.getZoneFromZoneModel(model)
+        local departures =
+            { ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Minigame), ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Room) }
+        for _, departureDirectory: Instance in pairs(departures) do
+            -- Loop current children
+            for _, departurePart in pairs(departureDirectory:GetChildren()) do
+                -- WARN: Not a BasePart?
+                if not departurePart:IsA("BasePart") then
+                    warn(("%q should be a BasePart?!"):format(departurePart:GetFullName()))
+                    continue
+                end
+
+                createCollisionHitbox(zone, departurePart)
+            end
+
+            -- Handle new parts being added
+            departureDirectory.ChildAdded:Connect(function(child)
+                -- WARN: Not a BasePart?
+                if not child:IsA("BasePart") then
+                    warn(("%q should be a BasePart?!"):format(child:GetFullName()))
+                    return
+                end
+
+                createCollisionHitbox(zone, child)
+            end)
+        end
+    end
+end
+
+local function setupCollisions()
+    -- Setup character collisions around departures
+    collisionDisablers = Instance.new("Folder")
+    collisionDisablers.Name = "ZoneCollisionDisablers"
+    collisionDisablers.Parent = game.Workspace
+
+    addCollisionControl(staticModels)
+end
+
 -------------------------------------------------------------------------------
 --  API
 -------------------------------------------------------------------------------
@@ -290,6 +354,7 @@ function ZoneSetup.setupCreatedZone(zoneModel: Model)
     verifyAndCleanModels({ zoneModel })
     writeBasePartTotals({ zoneModel })
     placeModelOnGrid(zoneModel)
+    addCollisionControl({ zoneModel })
 end
 
 --[[
@@ -304,6 +369,7 @@ function ZoneSetup.setup()
     writeBasePartTotals(staticModels)
     verifyStreamingRadius()
     setupGrid()
+    setupCollisions()
 end
 
 return ZoneSetup
