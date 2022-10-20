@@ -18,6 +18,7 @@ local Maid = require(Paths.Packages.maid)
 local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -27,8 +28,12 @@ local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDire
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
 local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
+local previousPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
+local nextPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local cover: ImageLabel = screenGui.Container.Cover
 local inside: Frame = screenGui.Container.Inside
+local pageTitleText: TextLabel
+local pageTitleImage: ImageLabel
 
 local currentPlayer: Player?
 local currentStampData = {
@@ -42,8 +47,11 @@ local viewMaid = Maid.new()
 local tabButtonsByChapter: { [StampConstants.Chapter]: typeof(Button.new(Instance.new("ImageButton"))) } = {}
 local currentChapter: StampConstants.Chapter | nil
 local currentPageNumber = 1
+local currentMaxPageNumber = 1
 local deselectedTabSize: UDim2
 local deselectedTabColor: Color3
+local totalStampsPerPage: number
+local chapterMaid = Maid.new()
 
 function StampBookScreen.Init()
     -- UI Setup
@@ -196,6 +204,7 @@ end
 
 function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber: number?)
     -- New Chapter
+    local chapterStructure = StampUtil.getChapterStructure(chapter)
     if currentChapter ~= chapter then
         -- Update Tab Buttons
         if currentChapter then
@@ -205,13 +214,42 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
 
         -- Reset Page Number
         currentPageNumber = pageNumber or 1
+        currentMaxPageNumber = StampUtil.getTotalChapterPages(chapterStructure, totalStampsPerPage)
     end
     currentPageNumber = pageNumber or currentPageNumber
     currentChapter = chapter
 
-    local chapterStructure = StampUtil.getChapterStructure(chapter)
+    chapterMaid:Cleanup()
 
-    warn("open chapter", currentChapter.DisplayName, currentPageNumber, chapterStructure)
+    local chapterPage = StampUtil.getChapterPage(chapterStructure, totalStampsPerPage, currentPageNumber)
+
+    -- Navigation
+    inside.Chapter.Navigation.PageCount.Text = ("%d of %d"):format(currentPageNumber, currentMaxPageNumber)
+
+    -- Title
+    local displayInfo = chapterStructure.Display[chapterPage.Key]
+    pageTitleText.Text = displayInfo.Text
+    pageTitleText.Visible = not (displayInfo.ImageId and true or false)
+
+    pageTitleImage.Image = displayInfo.ImageId or ""
+    pageTitleImage.Visible = not pageTitleText.Visible
+
+    -- Stamp Count
+    inside.Chapter.StampCount.Text = ("?/%d Stamps"):format(#chapterStructure.Layout[chapterPage.Key]) --TODO Get total owned stamps
+
+    -- Pattern
+    --todo
+
+    -- Stamps
+    for i, stamp in pairs(chapterPage.Stamps) do
+        local stampButton = StampButton.new(stamp)
+        local buttonObject: ImageButton = stampButton:GetButtonObject()
+
+        buttonObject.LayoutOrder = i
+        buttonObject.Parent = inside.Chapter.Stamps
+
+        chapterMaid:GiveTask(stampButton)
+    end
 end
 
 function StampBookScreen.open(player: Player)
@@ -235,7 +273,7 @@ function StampBookScreen.open(player: Player)
 
     -- reset tab buttons
     for _, tabButton in pairs(tabButtonsByChapter) do
-        tabButton:GetButtonObject().Size = deselectedTabSize
+        deselectTabButton(tabButton:GetButtonObject())
     end
 
     -- Load State
@@ -295,6 +333,23 @@ do
 
     local stamps: Frame = inside.Chapter.Stamps
     stamps.BackgroundTransparency = 1
+
+    local stampsUIGridLayout: UIGridLayout = stamps.UIGridLayout
+    totalStampsPerPage = math.round((1 / stampsUIGridLayout.CellSize.X.Scale) * (1 / stampsUIGridLayout.CellSize.Y.Scale))
+
+    local navigation: Frame = chapterFrame.Navigation
+    previousPage = AnimatedButton.new(navigation.Left)
+    previousPage.Pressed:Connect(function()
+        StampBookScreen.openChapter(currentChapter, math.clamp(currentPageNumber - 1, 1, currentMaxPageNumber))
+    end)
+
+    nextPage = AnimatedButton.new(navigation.Right)
+    nextPage.Pressed:Connect(function()
+        StampBookScreen.openChapter(currentChapter, math.clamp(currentPageNumber + 1, 1, currentMaxPageNumber))
+    end)
+
+    pageTitleText = chapterFrame.Title.TextLabel
+    pageTitleImage = chapterFrame.Title.ImageLabel
 end
 
 return StampBookScreen

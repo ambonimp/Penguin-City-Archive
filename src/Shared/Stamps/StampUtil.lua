@@ -5,6 +5,7 @@ local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
 local Images = require(ReplicatedStorage.Shared.Images.Images)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 export type ChapterStructure = {
     Layout: { [string]: { Stamps.Stamp } },
@@ -145,6 +146,72 @@ function StampUtil.getChapterStructure(chapter: StampConstants.Chapter)
     end
 
     error(("Don't know how to layout chapter %s"):format(chapter.DisplayName))
+end
+
+function StampUtil.getTotalChapterPages(chapterStructure: ChapterStructure, stampsPerPage: number)
+    local totalPages = 0
+    for _, stamps in pairs(chapterStructure.Layout) do
+        totalPages += math.ceil(#stamps / stampsPerPage)
+    end
+
+    return totalPages
+end
+
+function StampUtil.getChapterPage(chapterStructure: ChapterStructure, stampsPerPage: number, pageNumber: number)
+    -- WARN: Big page number
+    local totalPages = StampUtil.getTotalChapterPages(chapterStructure, stampsPerPage)
+    if pageNumber > totalPages then
+        warn(("%d is too large! Total pages is %d"):format(pageNumber, totalPages))
+        pageNumber = totalPages
+    end
+
+    -- Sort alphabetically
+    local chapterKeys = TableUtil.getKeys(chapterStructure.Display)
+    table.sort(chapterKeys)
+
+    local state = {
+        Countdown = pageNumber, -- Final when this reaches 1
+        ChapterIndex = 1,
+        ChapterKey = chapterKeys[1],
+        ChapterSection = 1,
+    }
+    while state.Countdown > 1 do
+        -- Calculate total stamps in next section
+        local stamps = chapterStructure.Layout[state.ChapterKey]
+        local nextSectionSize = #stamps - (state.ChapterSection * stampsPerPage)
+
+        if nextSectionSize > 0 then
+            state.ChapterSection += 1
+        else
+            state.ChapterSection = 1
+            state.ChapterIndex += 1
+            state.ChapterKey = chapterKeys[state.ChapterIndex]
+
+            -- ERROR: Out of bounds
+            if not state.ChapterKey then
+                error("Out of bounds - no more chapter keys")
+            end
+        end
+
+        state.Countdown -= 1
+    end
+
+    --TODO May want to implement some logic ordering for the order stamps are displayed in.. for now, it is the order they are registered
+    local finalStamps: { Stamps.Stamp } = {}
+    local startIndex = 1 + ((state.ChapterSection - 1) * stampsPerPage)
+    for i = startIndex, startIndex + (stampsPerPage - 1) do
+        local stamp = chapterStructure.Layout[state.ChapterKey][i]
+        if stamp then
+            table.insert(finalStamps, stamp)
+        else
+            break
+        end
+    end
+
+    return {
+        Key = state.ChapterKey,
+        Stamps = finalStamps,
+    }
 end
 
 function StampUtil.getStampDataAddress(stampId: string)
