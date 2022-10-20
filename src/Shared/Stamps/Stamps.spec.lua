@@ -16,14 +16,34 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
         table.insert(issues, ("%s needs a non-empty string .Id"):format(issuePrefix))
     end
 
+    -- Tiered
+    if stamp.IsTiered and typeof(stamp.IsTiered) ~= "boolean" then
+        table.insert(issues, ("%s .Tiered must be boolean!"):format(issuePrefix))
+    end
+
     -- DisplayName
     if not (stamp.DisplayName and typeof(stamp.DisplayName) == "string" and string.len(stamp.DisplayName) > 0) then
         table.insert(issues, ("%s needs a non-empty string .DisplayName"):format(issuePrefix))
     end
 
     -- Description
-    if not (stamp.Description and typeof(stamp.Description) == "string" and string.len(stamp.Description) > 0) then
-        table.insert(issues, ("%s needs a non-empty string .Description"):format(issuePrefix))
+    if stamp.IsTiered then
+        if not (stamp.Description and typeof(stamp.Description) == "table") then
+            table.insert(issues, ("%s needs a table .Description for the different tiers"):format(issuePrefix))
+        else
+            for key, value in pairs(stamp.Description) do
+                if not table.find(Stamps.StampTiers, key) then
+                    table.insert(issues, ("%s .Description key %q does not match a StampTier"):format(issuePrefix, tostring(key)))
+                end
+                if not (typeof(value) == "string" and string.len(value) > 0) then
+                    table.insert(issues, ("%s needs a non-empty string in .Description.%s"):format(issuePrefix, tostring(key)))
+                end
+            end
+        end
+    else
+        if not (stamp.Description and typeof(stamp.Description) == "string" and string.len(stamp.Description) > 0) then
+            table.insert(issues, ("%s needs a non-empty string .Description"):format(issuePrefix))
+        end
     end
 
     -- Type
@@ -36,12 +56,18 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
     end
 
     -- Difficulty
-    if stamp.Difficulty and typeof(stamp.Difficulty) == "string" and string.len(stamp.Difficulty) > 0 then
-        if not table.find(Stamps.StampDifficulties, stamp.Difficulty) then
-            table.insert(issues, ("%s .Difficulty %q is not a valid difficulty"):format(issuePrefix, stamp.Difficulty))
+    if stamp.IsTiered then
+        if stamp.Difficulty then
+            table.insert(issues, ("%s .Difficulty is null and void as it is tiered!"):format(issuePrefix))
         end
     else
-        table.insert(issues, ("%s needs a non-empty string .Difficulty"):format(issuePrefix))
+        if stamp.Difficulty and typeof(stamp.Difficulty) == "string" and string.len(stamp.Difficulty) > 0 then
+            if not table.find(Stamps.StampDifficulties, stamp.Difficulty) then
+                table.insert(issues, ("%s .Difficulty %q is not a valid difficulty"):format(issuePrefix, stamp.Difficulty))
+            end
+        else
+            table.insert(issues, ("%s needs a non-empty string .Difficulty"):format(issuePrefix))
+        end
     end
 
     -- ImageId

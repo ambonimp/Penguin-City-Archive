@@ -5,7 +5,7 @@ export type StampTier = "Bronze" | "Silver" | "Gold"
 export type Stamp = {
     Id: string,
     DisplayName: string,
-    Description: string,
+    Description: string | { string },
     Type: StampType,
     Difficulty: StampDifficulty,
     ImageId: string,
