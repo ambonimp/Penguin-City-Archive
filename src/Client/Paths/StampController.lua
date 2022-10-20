@@ -4,14 +4,31 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
+local Stamps = require(Paths.Shared.Stamps.Stamps)
 local Signal = require(Paths.Shared.Signal)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 
-StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean}
+StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, stampTier: Stamps.StampTier | nil}
 
-function StampController.hasStamp(stampId: string)
-    return DataController.get(StampUtil.getStampDataAddress(stampId)) and true or false
+function StampController.hasStamp(stampId: string, stampTier: Stamps.StampTier | nil)
+    local stamp = StampUtil.getStampFromId(stampId)
+    if stamp.IsTiered and not stampTier then
+        stampTier = "Bronze"
+    end
+
+    local data = DataController.get(StampUtil.getStampDataAddress(stampId))
+    if stamp.IsTiered then
+        -- FALSE: Bad data
+        local ourTier = data and table.find(Stamps.StampTiers, data) and data :: Stamps.StampTier
+        if not ourTier then
+            return false
+        end
+
+        return StampUtil.isTierCoveredByTier(ourTier, stampTier)
+    else
+        return data and true or false
+    end
 end
 
 function StampController.openStampBook(player: Player)
@@ -46,9 +63,11 @@ do
             return
         end
 
+        local stampTier: Stamps.StampTier | nil = meta and meta.StampTier
+
         -- Inform
         local hasStamp = newValue and true or false
-        StampController.StampUpdated:Fire(stamp, hasStamp)
+        StampController.StampUpdated:Fire(stamp, hasStamp, stampTier)
     end)
 end
 

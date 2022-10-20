@@ -39,11 +39,16 @@ function StampButton.new(stamp: Stamps.Stamp)
 
     --!! If no ImageId, add a simple text label (debug)
     if stamp.ImageId == "" then
+        local text = stamp.DisplayName
+        if stamp.IsTiered then
+            text = ("%s (Tiered)"):format(text)
+        end
+
         local textLabel = Instance.new("TextLabel")
         textLabel.TextScaled = true
         textLabel.BackgroundTransparency = 1
         textLabel.TextColor3 = COLOR_BLACK
-        textLabel.Text = stamp.DisplayName
+        textLabel.Text = text
         textLabel.Font = UIConstants.Font
         textLabel.Size = UDim2.fromScale(1, 1)
         textLabel.Parent = imageButton

@@ -57,6 +57,13 @@ function StampUtil.getTotalStamps()
     return totalStamps
 end
 
+function StampUtil.isTierCoveredByTier(ourTier: Stamps.StampTier, checkAgainstTier: Stamps.StampTier)
+    local ourIndex = table.find(Stamps.StampTiers, ourTier)
+    local checkAgainstIndex = table.find(Stamps.StampTiers, checkAgainstTier)
+
+    return ourIndex >= checkAgainstIndex
+end
+
 local function createChapterLayoutFromMetadata(stamps: { Stamps.Stamp }, metadataKey: string)
     local layout: { [string]: { Stamps.Stamp } } = {}
     for _, stamp in pairs(stamps) do
