@@ -12,7 +12,6 @@ local CharacterService = require(Paths.Server.Characters.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
-local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 
@@ -20,8 +19,6 @@ type TeleportData = {
     InvokedServerTime: number?,
 }
 
-local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
-local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
@@ -30,38 +27,6 @@ local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
-
-function ZoneService.Init()
-    -- Setup character collisions around departures
-    local collisionDisablers = Instance.new("Folder")
-    collisionDisablers.Name = "CollisionDisablers"
-    collisionDisablers.Parent = game.Workspace
-
-    for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
-        for zoneId, _ in pairs(zoneIds) do
-            local zone = ZoneUtil.zone(zoneType, zoneId)
-            local departures =
-                { ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Minigame), ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Room) }
-            for _, departureDirectory: Instance in pairs(departures) do
-                for _, departurePart in pairs(departureDirectory:GetChildren()) do
-                    -- Create collision changer
-                    local collisionPart: BasePart = departurePart:Clone()
-                    collisionPart.Name = ("%s_%s_%s_CollisionDisabler"):format(zoneType, zoneId, departurePart.Name)
-                    collisionPart.Size = collisionPart.Size + DEPARTURE_COLLISION_AREA_SIZE
-                    collisionPart.Parent = collisionDisablers
-
-                    local collisionHitbox = PlayersHitbox.new():AddPart(collisionPart)
-                    collisionHitbox.PlayerEntered:Connect(function(player)
-                        CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_DEPARTURES)
-                    end)
-                    collisionHitbox.PlayerLeft:Connect(function(player)
-                        CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
-                    end)
-                end
-            end
-        end
-    end
-end
 
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
@@ -83,7 +48,10 @@ end
 function ZoneService.getPlayerRoom(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if playerZoneState then
-        return ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
+        local zone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
+        if ZoneUtil.doesZoneExist(zone) then
+            return zone
+        end
     end
 
     return defaultZone
@@ -93,7 +61,10 @@ end
 function ZoneService.getPlayerMinigame(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if playerZoneState and playerZoneState.MinigameId then
-        return ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, playerZoneState.MinigameId)
+        local zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, playerZoneState.MinigameId)
+        if ZoneUtil.doesZoneExist(zone) then
+            return zone
+        end
     end
 
     return nil
@@ -270,19 +241,22 @@ do
             local zoneId = TypeUtil.toString(dirtyZoneId)
             local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
 
-            -- RETURN NIL: Bad Zone
-            local isIglooZone = tonumber(zoneId) and Players:GetPlayerByUserId(tonumber(zoneId))
-            local isStoredZone = ZoneConstants.ZoneType[zoneType] and ZoneConstants.ZoneId[zoneType][zoneId] and true or false
-            if not (isStoredZone or isIglooZone) then
+            -- RETURN: Bad data
+            if not (zoneType and zoneId and invokedServerTime) then
+                return
+            end
+
+            -- RETURN: Bad Zone
+            local zone = ZoneUtil.zone(zoneType, zoneId)
+            if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end
 
-            -- RETURN NIL: Bad invokedServerTime
+            -- RETURN: Bad invokedServerTime
             if not invokedServerTime then
                 return nil
             end
 
-            local zone = ZoneUtil.zone(zoneType, zoneId)
             return ZoneService.teleportPlayerToZone(player, zone, {
                 InvokedServerTime = invokedServerTime,
             })
