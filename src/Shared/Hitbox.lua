@@ -4,6 +4,7 @@
 local Hitbox = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local RotatedRegion3 = require(ReplicatedStorage.Shared.RotatedRegion3)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Maid = require(ReplicatedStorage.Packages.maid)
@@ -30,12 +31,6 @@ function Hitbox.new()
     hitbox.PartAdded = Signal.new() -- {part: Part}
 
     -------------------------------------------------------------------------------
-    -- Private Methods
-    -------------------------------------------------------------------------------
-
-    --todo
-
-    -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
 
@@ -52,7 +47,7 @@ function Hitbox.new()
         table.insert(parts, part)
         hitbox.PartAdded:Fire(part)
 
-        return self
+        return hitbox
     end
 
     function hitbox:AddParts(addParts: { BasePart })
@@ -60,7 +55,7 @@ function Hitbox.new()
             hitbox:AddPart(part)
         end
 
-        return self
+        return hitbox
     end
 
     function hitbox:AddRotatedRegion3(rotatedRegion: typeof(RotatedRegion3.new(CFrame.new(), Vector3.new())))
@@ -84,11 +79,11 @@ function Hitbox.new()
 
         table.insert(rotatedRegions, rotatedRegion)
 
-        return self
+        return hitbox
     end
 
     function hitbox:AddRegion(cframe: CFrame, size: Vector3)
-        self:AddRotatedRegion3(RotatedRegion3.new(cframe, size))
+        hitbox:AddRotatedRegion3(RotatedRegion3.new(cframe, size))
     end
 
     function hitbox:IsPointInside(point: Vector3)
@@ -102,6 +97,22 @@ function Hitbox.new()
         -- Check parts
         for _, part in pairs(parts) do
             if PartUtil.isPointInPart(part, point) then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    --[[
+        Returns true if `part` is inside this Hitbox.
+
+        !! Will not detect if `part` is inside a defined interal region; only inside a defined internal part
+    ]]
+    function hitbox:IsPartInside(part: BasePart)
+        for _, hitboxPart in pairs(parts) do
+            local partsInPart = Workspace:GetPartsInPart(hitboxPart)
+            if table.find(partsInPart, part) then
                 return true
             end
         end

@@ -1,17 +1,21 @@
-local Service = {}
+local CollisionsService = {}
 
 local PhysicsService = game:GetService("PhysicsService")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Paths = require(ServerScriptService.Paths)
+local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 type PhysicsGroups = { string }
 
-local groups: PhysicsGroups = { "Default" }
+local groupNames = CollisionsConstants.Groups
+local groups: PhysicsGroups = { groupNames.Default }
 
 local function createGroup(name: string)
     PhysicsService:CreateCollisionGroup(name)
     table.insert(groups, name)
 end
 
-local function setGroupCollideableBlacklist(group: string, blacklist: PhysicsGroups)
+local function _setGroupCollideableBlacklist(group: string, blacklist: PhysicsGroups)
     for _, otherGroup in groups do
         if not table.find(blacklist, otherGroup) then
             PhysicsService:CollisionGroupSetCollidable(group, otherGroup, true)
@@ -31,7 +35,7 @@ local function setGroupCollideableWhitelist(group: string, whitelist: PhysicsGro
     end
 end
 
-local function setCollision(group, collidableGroups: PhysicsGroups?, nonCollidableGroups: PhysicsGroups?)
+local function _setCollision(group, collidableGroups: PhysicsGroups?, nonCollidableGroups: PhysicsGroups?)
     for _, otherGroup in (collidableGroups or {}) do
         PhysicsService:CollisionGroupSetCollidable(group, otherGroup, true)
     end
@@ -41,7 +45,20 @@ local function setCollision(group, collidableGroups: PhysicsGroups?, nonCollidab
     end
 end
 
-createGroup("HiddenCharacters")
-setGroupCollideableWhitelist("HiddenCharacters", { "Default" })
+function CollisionsService.getCollisionGroupId(groupName: string)
+    return PhysicsService:GetCollisionGroupId(groupName)
+end
 
-return Service
+-- Characters
+createGroup(groupNames.Characters)
+setGroupCollideableWhitelist(groupNames.Characters, { groupNames.Default, groupNames.Characters })
+
+-- Hidden Characters
+createGroup(groupNames.HiddenCharacters)
+setGroupCollideableWhitelist(groupNames.HiddenCharacters, { groupNames.Default })
+
+-- Ethereal Characters
+createGroup(groupNames.EtherealCharacters)
+setGroupCollideableWhitelist(groupNames.EtherealCharacters, { groupNames.Default })
+
+return CollisionsService

@@ -5,7 +5,6 @@ local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 -- Constants
 local INDECISION_TIME_FRAME = 300
-local CONTEXT_ANY = "CONTEXT_ANY"
 
 -- Types
 type Indecision = {

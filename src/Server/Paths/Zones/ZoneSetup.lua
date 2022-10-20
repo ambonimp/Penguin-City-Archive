@@ -5,14 +5,23 @@ local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
 local GRID_PADDING = 128
+local GRID_RAISE_EVERY = 100 -- 10x10
+local DEPARTURE_COLLISION_AREA_SIZE = Vector3.new(10, 2, 10)
+local ETHEREAL_KEY_DEPARTURES = "ZoneService_Departure"
 
 local rooms = game.Workspace.Rooms
 local minigames = game.Workspace.Minigames
 
-local models: { Model } = {}
+local staticModels: { Model } = {}
 local largestDiameter = 1
+local gridSideLength = 1
+local usedGridIndexes: { [number]: boolean } = {}
+local collisionDisablers: Folder
 
 --[[
     Rooms and Minigames Instances must have a corresponding ZoneId
@@ -33,7 +42,7 @@ local function verifyDirectories()
 end
 
 --[[
-    Convert folders to models; give us nice API (easy moving, can query extents size)
+    Convert folders to staticModels; give us nice API (easy moving, can query extents size)
 ]]
 local function convertToModels()
     for _, directory: Instance in pairs({ rooms, minigames }) do
@@ -41,8 +50,15 @@ local function convertToModels()
             local model = Instance.new("Model")
             model.Name = folder.Name
             model.Parent = folder.Parent
-            table.insert(models, model)
+            table.insert(staticModels, model)
 
+            -- Delete package link
+            local packageLink = folder:FindFirstChildWhichIsA("PackageLink")
+            if packageLink then
+                packageLink:Destroy()
+            end
+
+            -- Reparent
             for _, child in pairs(folder:GetChildren()) do
                 child.Parent = model
             end
@@ -53,11 +69,11 @@ local function convertToModels()
 end
 
 --[[
-    Ensures models all have the required pre-requisites
+    Ensures staticModels all have the required pre-requisites
 ]]
-local function verifyAndCleanModels()
-    local function verifyModel(zoneType: string, model: Model)
-        local zoneId = model.Name
+local function verifyAndCleanModels(someModels: { Model })
+    local function verifyModel(model: Model)
+        local zone = ZoneUtil.getZoneFromZoneModel(model)
 
         -- WARN: No ZoneInstances!
         local zoneInstancesInstance = model:FindFirstChild("ZoneInstances")
@@ -80,7 +96,7 @@ local function verifyAndCleanModels()
         end
 
         -- WARN: Needs spawnpoint!
-        local zoneInstances = ZoneUtil.getZoneInstances(ZoneUtil.zone(zoneType, zoneId))
+        local zoneInstances = ZoneUtil.getZoneInstances(zone)
         if not (zoneInstances.Spawnpoint and zoneInstances.Spawnpoint:IsA("BasePart")) then
             warn(("ZoneModel %s missing 'ZoneInstances.Spawnpoint (BasePart)'"):format(model:GetFullName()))
         end
@@ -108,11 +124,68 @@ local function verifyAndCleanModels()
         end
     end
 
-    for _, model in pairs(rooms:GetChildren()) do
-        verifyModel(ZoneConstants.ZoneType.Room, model)
+    for _, model in pairs(someModels) do
+        verifyModel(model)
     end
-    for _, model in pairs(minigames:GetChildren()) do
-        verifyModel(ZoneConstants.ZoneType.Minigame, model)
+end
+
+local function readWriteBasePartTotals(instance: Instance)
+    local totalBasePartChildren = 0
+    for _, child in pairs(instance:GetChildren()) do
+        if child:IsA("BasePart") then
+            totalBasePartChildren += 1
+        end
+    end
+
+    if totalBasePartChildren > 0 then
+        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
+    else
+        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, nil)
+    end
+end
+
+local function processInstanceBasePartTotals(instance: Instance)
+    -- RETURN: Already processed
+    if instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
+        return
+    end
+    instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
+
+    readWriteBasePartTotals(instance)
+
+    -- Children added/removed
+    instance.ChildAdded:Connect(function(child)
+        if child:IsA("BasePart") then
+            readWriteBasePartTotals(instance)
+        end
+    end)
+    instance.ChildRemoved:Connect(function(child)
+        if child:IsA("BasePart") then
+            readWriteBasePartTotals(instance)
+        end
+    end)
+
+    -- Children
+    for _, child in pairs(instance:GetChildren()) do
+        processInstanceBasePartTotals(child)
+    end
+
+    -- Descendants
+    local totalBasePartDescendants = 0
+    for _, descendant in pairs(instance:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            totalBasePartDescendants += 1
+        end
+    end
+    if totalBasePartDescendants > 0 then
+        -- ERROR: BaseParts cannot have descendants that are BaseParts!
+        if instance:IsA("BasePart") then
+            error(
+                ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
+                    instance:GetFullName()
+                )
+            )
+        end
     end
 end
 
@@ -121,47 +194,25 @@ end
     Used to help the client detect when a Zone has been fully loaded
     https://create.roblox.com/docs/optimization/content-streaming#streaming-in
 ]]
-local function writeBasePartTotals()
+local function writeBasePartTotals(writeModels: { Model })
     -- ERROR: Models is empty (ensure we're doing *something*)
-    if #models == 0 then
+    if #staticModels == 0 then
         error("Models is empty")
     end
 
-    local function processInstance(instance: Instance)
-        -- Children
-        local totalBasePartChildren = 0
-        for _, child in pairs(instance:GetChildren()) do
-            processInstance(child)
+    for _, model in pairs(writeModels) do
+        -- Now
+        processInstanceBasePartTotals(model)
 
-            if child:IsA("BasePart") then
-                totalBasePartChildren += 1
+        -- Future adds/removals
+        model.DescendantAdded:Connect(function(descendant: Instance)
+            processInstanceBasePartTotals(descendant)
+        end)
+        model.DescendantRemoving:Connect(function(descendant: Instance)
+            if descendant:IsA("BasePart") and descendant.Parent then
+                readWriteBasePartTotals(descendant.Parent)
             end
-        end
-        if totalBasePartChildren > 0 then
-            instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
-        end
-
-        -- Descendants
-        local totalBasePartDescendants = 0
-        for _, descendant in pairs(instance:GetDescendants()) do
-            if descendant:IsA("BasePart") then
-                totalBasePartDescendants += 1
-            end
-        end
-        if totalBasePartDescendants > 0 then
-            -- ERROR: BaseParts cannot have descendants that are BaseParts!
-            if instance:IsA("BasePart") then
-                error(
-                    ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
-                        instance:GetFullName()
-                    )
-                )
-            end
-        end
-    end
-
-    for _, model in pairs(models) do
-        processInstance(model)
+        end)
     end
 end
 
@@ -170,11 +221,11 @@ end
 ]]
 local function verifyStreamingRadius()
     -- ERROR: Models is empty (ensure we're verifying *something*)
-    if #models == 0 then
+    if #staticModels == 0 then
         error("Models is empty")
     end
 
-    for _, model in pairs(models) do
+    for _, model in pairs(staticModels) do
         local extentsSize = model:GetExtentsSize()
         local diameter = extentsSize.Magnitude
         if diameter > ZoneConstants.StreamingTargetRadius then
@@ -195,23 +246,115 @@ local function verifyStreamingRadius()
     return largestDiameter
 end
 
+local function placeModelOnGrid(model: Model)
+    -- Find next available index
+    local index = 1
+    while usedGridIndexes[index] do
+        index += 1
+    end
+    usedGridIndexes[index] = true
+
+    -- Convert into horizontal and vertical components
+    local horizontal = MathUtil.wrapAround(index, GRID_RAISE_EVERY)
+    local vertical = math.floor((index - 1) / GRID_RAISE_EVERY)
+
+    -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
+    local spiralPosition = MathUtil.getSquaredSpiralPosition(horizontal)
+
+    local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * vertical, gridSideLength * spiralPosition.Y)
+    local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
+    model:PivotTo(cframe)
+
+    -- Listen for release index
+    model.Destroying:Connect(function()
+        usedGridIndexes[index] = nil
+    end)
+end
+
 --[[
     Moves all our zones onto a spaced out grid to ensure we only streaming in one zone at a time
 ]]
 local function setupGrid()
-    local gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
-
-    local function moveModelToIndex(model: Model, xIndex: number, zIndex: number)
-        local position = Vector3.new(gridSideLength * xIndex, 0, gridSideLength * zIndex)
-        local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
-        model:PivotTo(cframe)
-    end
+    gridSideLength = largestDiameter + ZoneConstants.StreamingTargetRadius + GRID_PADDING
 
     -- We loop in a spiral like this: https://i.stack.imgur.com/kjR4H.png
-    for n, model in pairs(models) do
-        local spiralPosition = MathUtil.getSquaredSpiralPosition(n)
-        moveModelToIndex(model, spiralPosition.X, spiralPosition.Y)
+    for _, model in pairs(staticModels) do
+        placeModelOnGrid(model)
     end
+end
+
+local function createCollisionHitbox(zone: ZoneConstants.Zone, departurePart: BasePart)
+    local collisionName = ("%s_%s_%s_CollisionDisabler"):format(zone.ZoneType, zone.ZoneId, departurePart.Name)
+
+    local collisionPart: BasePart = departurePart:Clone()
+    collisionPart.Name = collisionName
+    collisionPart.Size = collisionPart.Size + DEPARTURE_COLLISION_AREA_SIZE
+    collisionPart.CanCollide = false
+    collisionPart.Transparency = 1
+    collisionPart.Parent = collisionDisablers
+
+    local collisionHitbox = PlayersHitbox.new():AddPart(collisionPart)
+    collisionHitbox.PlayerEntered:Connect(function(player)
+        CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_DEPARTURES)
+    end)
+    collisionHitbox.PlayerLeft:Connect(function(player)
+        CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
+    end)
+
+    departurePart.Destroying:Connect(function()
+        collisionHitbox:Destroy(true)
+    end)
+end
+
+local function addCollisionControl(someModels: { Model })
+    for _, model in pairs(someModels) do
+        local zone = ZoneUtil.getZoneFromZoneModel(model)
+        local departures =
+            { ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Minigame), ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Room) }
+        for _, departureDirectory: Instance in pairs(departures) do
+            -- Loop current children
+            for _, departurePart in pairs(departureDirectory:GetChildren()) do
+                -- WARN: Not a BasePart?
+                if not departurePart:IsA("BasePart") then
+                    warn(("%q should be a BasePart?!"):format(departurePart:GetFullName()))
+                    continue
+                end
+
+                createCollisionHitbox(zone, departurePart)
+            end
+
+            -- Handle new parts being added
+            departureDirectory.ChildAdded:Connect(function(child)
+                -- WARN: Not a BasePart?
+                if not child:IsA("BasePart") then
+                    warn(("%q should be a BasePart?!"):format(child:GetFullName()))
+                    return
+                end
+
+                createCollisionHitbox(zone, child)
+            end)
+        end
+    end
+end
+
+local function setupCollisions()
+    -- Setup character collisions around departures
+    collisionDisablers = Instance.new("Folder")
+    collisionDisablers.Name = "ZoneCollisionDisablers"
+    collisionDisablers.Parent = game.Workspace
+
+    addCollisionControl(staticModels)
+end
+
+-------------------------------------------------------------------------------
+--  API
+-------------------------------------------------------------------------------
+
+function ZoneSetup.setupCreatedZone(zoneModel: Model)
+    verifyAndCleanModels({ zoneModel })
+    writeBasePartTotals({ zoneModel })
+    placeModelOnGrid(zoneModel)
+    addCollisionControl({ zoneModel })
 end
 
 --[[
@@ -222,10 +365,11 @@ end
 function ZoneSetup.setup()
     verifyDirectories()
     convertToModels()
-    verifyAndCleanModels()
-    writeBasePartTotals()
+    verifyAndCleanModels(staticModels)
+    writeBasePartTotals(staticModels)
     verifyStreamingRadius()
     setupGrid()
+    setupCollisions()
 end
 
 return ZoneSetup

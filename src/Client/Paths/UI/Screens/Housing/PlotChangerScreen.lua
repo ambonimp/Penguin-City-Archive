@@ -38,7 +38,7 @@ local function preview()
 
     local ownerId: number? = plot:GetAttribute(HousingConstants.PlotOwner)
     if ownerId then
-        ownerLabel.Text = StringUtil.possesiveName(Players:GetPlayerByUserId(ownerId).DisplayName) .. " house"
+        ownerLabel.Text = StringUtil.possessiveName(Players:GetPlayerByUserId(ownerId).DisplayName) .. " house"
         setButtonContainer.Visible = false
 
         CameraUtil.lookAt(camera, plot.WorldPivot, PLOT_OWNED_CAMERA_OFFSET, CAMERA_TWEEN_INFO)

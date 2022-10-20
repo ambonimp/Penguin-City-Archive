@@ -36,12 +36,7 @@ function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopM
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 
     minigameFolder = minigamesDirectory:WaitForChild("Pizza")
-    --TODO Ensure that minigameFolder is fully loaded in
-
-    Transitions.blink(function()
-        PizzaMinigameController.setupView()
-    end)
-
+    PizzaMinigameController.setupView()
     cachedStopMinigameCallback = stopMinigameCallback
 end
 
@@ -49,13 +44,10 @@ function PizzaMinigameController.stopMinigame()
     isStarted = false
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
-    Transitions.blink(function()
-        if runner and runner:IsRunning() then
-            PizzaMinigameController.finish()
-        end
-
-        PizzaMinigameController.clearView()
-    end)
+    if runner and runner:IsRunning() then
+        PizzaMinigameController.finish()
+    end
+    PizzaMinigameController.clearView()
 end
 
 -------------------------------------------------------------------------------

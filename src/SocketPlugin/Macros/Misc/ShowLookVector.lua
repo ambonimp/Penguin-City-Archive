@@ -98,6 +98,10 @@ macroDefinition.Function = function(macro, plugin)
         local lookVectorPart = Instance.new("Part")
         lookVectorPart.Color = color
         lookVectorPart.Size = Vector3.new(width, width, len)
+        lookVectorPart.Anchored = true
+        lookVectorPart.CanCollide = false
+        lookVectorPart.CanQuery = false
+        lookVectorPart.CanTouch = false
 
         local position = part.Position + part.CFrame.LookVector * (len / 2)
         lookVectorPart.CFrame = CFrame.new(position, position + part.CFrame.LookVector)
