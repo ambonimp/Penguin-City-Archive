@@ -228,11 +228,21 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
 
     -- Title
     local displayInfo = chapterStructure.Display[chapterPage.Key]
-    pageTitleText.Text = displayInfo.Text
-    pageTitleText.Visible = not (displayInfo.ImageId and true or false)
+    if displayInfo.ImageId then
+        -- WARN: Missing width
+        local width = StampConstants.TitleIconWidth[displayInfo.ImageId]
+        if width then
+            pageTitleImage.Size = UDim2.new(0, width, 1, 0)
+        else
+            warn(("StampConstants.TitleIconWidth missing for %q (%s)"):format(displayInfo.ImageId, chapterPage.Key))
+        end
 
-    pageTitleImage.Image = displayInfo.ImageId or ""
-    pageTitleImage.Visible = not pageTitleText.Visible
+        pageTitleImage.Image = displayInfo.ImageId
+    else
+        pageTitleText.Text = displayInfo.Text
+    end
+    pageTitleImage.Visible = displayInfo.ImageId and true or false
+    pageTitleText.Visible = not pageTitleImage.Visible
 
     -- Stamp Count
     inside.Chapter.StampCount.Text = ("?/%d Stamps"):format(#chapterStructure.Layout[chapterPage.Key]) --TODO Get total owned stamps

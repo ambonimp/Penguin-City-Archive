@@ -162,6 +162,8 @@ Images.StampBook = {
     },
     Titles = {
         Pizza = "rbxassetid://11251854955",
+        Icecream = "rbxassetid://11326115625",
+        SledRace = "rbxassetid://11326115410",
     },
 }
 --#endregion

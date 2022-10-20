@@ -12,9 +12,13 @@ export type Chapter = {
     LayoutByMetadataKey: string?,
 }
 
-StampConstants.TitleIconResolutions = {
-    [Images.StampBook.Titles.Pizza] = Vector2.new(523, 90),
-} :: { [string]: Vector2 }
+-- Don't exceed ~800, so there is no overlap with the StampCount
+local titleIconWidth: { [string]: number } = {
+    [Images.StampBook.Titles.Icecream] = 800,
+    [Images.StampBook.Titles.Pizza] = 600,
+    [Images.StampBook.Titles.SledRace] = 600,
+}
+StampConstants.TitleIconWidth = titleIconWidth
 
 StampConstants.StampBook = {
     CoverColors = {
