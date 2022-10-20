@@ -8,6 +8,7 @@ export type Stamp = {
     Type: StampType,
     Difficulty: StampDifficulty,
     ImageId: string,
+    Metadata: table?,
 }
 
 local stampTypes: { StampType } = { "Location", "Minigame", "Igloo", "Clothing", "Pets", "Events" }

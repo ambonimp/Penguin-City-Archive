@@ -9,5 +9,8 @@ return {
         Type = "Events",
         Difficulty = "???",
         ImageId = "",
+        Metadata = {
+            Event = "Alpha",
+        },
     },
 }

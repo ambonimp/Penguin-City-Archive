@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
+local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, stamp: Stamps.Stamp)
@@ -50,6 +51,19 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
         end
     else
         table.insert(issues, ("%s needs a non-empty string .ImageId"):format(issuePrefix))
+    end
+
+    -- Chapter
+    for _, chapter in pairs(StampConstants.Chapters) do
+        if chapter.StampType == stamp.Type then
+            -- Metadata
+            if chapter.LayoutByMetadataKey then
+                local hasLayoutByMetadataKey = stamp.Metadata and stamp.Metadata[chapter.LayoutByMetadataKey] and true or false
+                if not hasLayoutByMetadataKey then
+                    table.insert(issues, ("%s needs Metadata with a %q key"):format(issuePrefix, chapter.LayoutByMetadataKey))
+                end
+            end
+        end
     end
 end
 

@@ -9,6 +9,7 @@ export type Chapter = {
     StampType: Stamps.StampType?,
     DisplayName: string,
     Icon: string,
+    LayoutByMetadataKey: string?,
 }
 
 StampConstants.TitleIconResolutions = {
@@ -41,12 +42,12 @@ StampConstants.StampBook = {
 }
 
 local chapters: { Chapter } = {
-    { StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place },
-    { StampType = "Minigame", DisplayName = "Minigames", Icon = Images.Icons.Minigame },
+    { StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place, LayoutByMetadataKey = "Location" },
+    { StampType = "Minigame", DisplayName = "Minigames", Icon = Images.Icons.Minigame, LayoutByMetadataKey = "Minigame" },
     { StampType = "Igloo", DisplayName = "Igloo", Icon = Images.Icons.Igloo },
     { StampType = "Clothing", DisplayName = "Clothing", Icon = Images.Icons.Shirt },
     { StampType = "Pets", DisplayName = "Pets", Icon = Images.Icons.Pets },
-    { StampType = "Events", DisplayName = "Events", Icon = Images.Icons.Events },
+    { StampType = "Events", DisplayName = "Events", Icon = Images.Icons.Events, LayoutByMetadataKey = "Event" },
     { IsSearch = true, DisplayName = "Search", Icon = Images.Icons.Search },
 }
 StampConstants.Chapters = chapters

@@ -209,7 +209,9 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
     currentPageNumber = pageNumber or currentPageNumber
     currentChapter = chapter
 
-    warn("open chapter", currentChapter.DisplayName, currentPageNumber)
+    local chapterStructure = StampUtil.getChapterStructure(chapter)
+
+    warn("open chapter", currentChapter.DisplayName, currentPageNumber, chapterStructure)
 end
 
 function StampBookScreen.open(player: Player)

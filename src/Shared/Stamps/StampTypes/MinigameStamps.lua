@@ -6,5 +6,8 @@ return {
         Type = "Minigame",
         Difficulty = "Easy",
         ImageId = "",
+        Metadata = {
+            Minigame = "Pizza",
+        },
     },
 }

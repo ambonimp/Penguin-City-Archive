@@ -6,5 +6,8 @@ return {
         Type = "Location",
         Difficulty = "Easy",
         ImageId = "",
+        Metadata = {
+            Location = "Neighborhood",
+        },
     },
 }
