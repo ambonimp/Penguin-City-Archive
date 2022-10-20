@@ -229,7 +229,10 @@ function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
 
     -- Iterate through all instances, checking if all baseparts are loaded
-    for _, instance in pairs(zoneModel:GetDescendants()) do
+    local instances = zoneModel:GetDescendants()
+    table.insert(instances, zoneModel)
+
+    for _, instance in pairs(instances) do
         local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
         if totalBaseParts then
             local countedBaseParts = 0
@@ -253,7 +256,10 @@ function ZoneController.getTotalUnloadedBaseParts(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
 
     local totalUnloadedBaseParts = 0
-    for _, instance in pairs(zoneModel:GetDescendants()) do
+    local instances = zoneModel:GetDescendants()
+    table.insert(instances, zoneModel)
+
+    for _, instance in pairs(instances) do
         local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
         if totalBaseParts then
             local countedBaseParts = 0

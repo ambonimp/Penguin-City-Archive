@@ -247,7 +247,7 @@ do
             end
 
             -- RETURN: Bad Zone
-            local zone = ZoneUtil.new(zoneType, zoneId)
+            local zone = ZoneUtil.zone(zoneType, zoneId)
             if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end
