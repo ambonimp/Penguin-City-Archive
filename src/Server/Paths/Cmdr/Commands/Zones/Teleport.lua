@@ -2,8 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 
 return {
-    Name = "zoneTeleport",
-    Aliases = {},
+    Name = "teleport",
+    Aliases = { "tp" },
     Description = "Teleports a player to a zone",
     Group = "|zonesAdmin",
     Args = {

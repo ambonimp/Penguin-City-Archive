@@ -1,15 +1,22 @@
 --[[
-    Wrapper for a boolean variable that manages potentially conflicting value changes
+    Wrapper for a boolean variable that manages potentially conflicting value changes.
+
+    Example:
+        local toggle = Toggle.new(true, print)
+
+        toggle:Set(false, "a") -- "a" (conflicts with previous bool value)
+        toggle:Set(false, "b") -- ""
+        toggle:Set(true, "c") -- ""
+        toggle:Set(true, "b") -- "b"
 ]]
 
 local Toggle = {}
-Toggle.__index = Toggle
 
-function Toggle.new(value: boolean, onToggled: (boolean) -> ())
+function Toggle.new(initialValue: boolean, onToggled: (boolean) -> ())
     local toggle = {}
-    local jobs = {}
 
-    local initialValue: boolean = value
+    local jobs: { any } = {}
+    local value = initialValue
 
     --[[
         Change the value, if flipping back the value to the initial value, all jobs must agree
@@ -35,6 +42,11 @@ function Toggle.new(value: boolean, onToggled: (boolean) -> ())
                 end
             end
         end
+    end
+
+    -- Calls internal onToggled callback without alterating internal workings of Toggle
+    function toggle:CallOnToggled(forceValue: boolean)
+        onToggled(forceValue)
     end
 
     return toggle

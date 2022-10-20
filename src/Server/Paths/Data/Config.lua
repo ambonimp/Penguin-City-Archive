@@ -9,6 +9,9 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
+local GameUtil = require(Paths.Shared.Utils.GameUtil)
+
+DataConfig.DataKey = GameUtil.getDataKey()
 
 --#region Default constants
 local defaultInventory = {}
@@ -194,8 +197,7 @@ local defaultCharacterAppearance = {
 }
 --#endregion
 
-DataConfig.DataKey = "DEV_4"
-function DataConfig.getDefaults(player: Player): DataUtil.Store
+function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,
         Inventory = defaultInventory,

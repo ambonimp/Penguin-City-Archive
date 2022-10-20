@@ -22,10 +22,10 @@ task.delay(0, function()
     -- Require necessary files
     local requiredModulesInOrder = {
         -- Developer -> Live
+        require(server.CollisionsService),
         require(server.DeveloperToLive),
 
         -- Systems
-        require(server.PhysicsService),
         require(server.Data.DataService),
         require(server.AnalyticsTracking),
         require(server.VehicleService),

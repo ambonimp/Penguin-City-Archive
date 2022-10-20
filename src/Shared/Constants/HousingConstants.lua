@@ -5,7 +5,6 @@ HousingConstants.PlotType = "Plot"
 HousingConstants.HouseType = "House"
 
 HousingConstants.ExteriorFolderName = "HousingPlots"
-HousingConstants.InteriorFolderName = "Houses"
 
 HousingConstants.HouseSpawn = "HouseSpawn"
 

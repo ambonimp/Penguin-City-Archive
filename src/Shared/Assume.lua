@@ -9,6 +9,7 @@ function Assume.new(validationFunction: () -> (...any))
 
     local isRunning = false
     local isValidationFinished = false
+    local validationFinishedAtTick: number?
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -84,6 +85,7 @@ function Assume.new(validationFunction: () -> (...any))
         task.spawn(function()
             assume.validationResult = table.pack(self.validationFunction())
             isValidationFinished = true
+            validationFinishedAtTick = tick()
 
             local checkerResult = assume.checkerFunction(table.unpack(assume.validationResult))
             if checkerResult then
@@ -116,6 +118,26 @@ function Assume.new(validationFunction: () -> (...any))
         end
 
         return table.unpack(assume.validationResult)
+    end
+
+    --[[
+        Has the validation function returned something yet? 
+        - `Await()` yields until this returns `true`
+    ]]
+    function assume:IsValidationFinished()
+        return isValidationFinished
+    end
+
+    --[[
+        Returns how many seconds have passed since the validation finished.
+        - Returns `-1` if not yet finished
+    ]]
+    function assume:GetValidationFinishTimeframe()
+        if validationFinishedAtTick then
+            return tick() - validationFinishedAtTick
+        end
+
+        return -1
     end
 
     return assume

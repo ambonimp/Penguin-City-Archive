@@ -7,6 +7,7 @@ local ZoneConstants = {}
 export type PlayerZoneState = {
     RoomId: string,
     MinigameId: string?,
+    IglooId: string?,
     TotalTeleports: number,
 }
 
@@ -25,7 +26,6 @@ ZoneConstants.ZoneType = {
 }
 ZoneConstants.ZoneId = {
     Room = {
-        Start = "Start",
         Narnia = "Narnia",
         Neighborhood = "Neighborhood",
     },
@@ -34,9 +34,12 @@ ZoneConstants.ZoneId = {
     },
 }
 
+ZoneConstants.ZoneInstances = {
+    FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
+}
+
 local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Start,
-    MinigameId = nil,
+    RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
@@ -46,9 +49,10 @@ ZoneConstants.StreamingTargetRadius = 2533
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
--- How long between informing client they're being teleported, and actually teleporting
-ZoneConstants.TeleportBuffer = 1
+ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
+-- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
+ZoneConstants.TeleportBuffer = 0.5
 
-ZoneConstants.DoDebug = true
+ZoneConstants.DoDebug = false
 
 return ZoneConstants
