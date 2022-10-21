@@ -88,7 +88,7 @@ function CameraController.alignCharacter()
     local currentDistance: number = (camera.CFrame.Position - camera.Focus.Position).Magnitude
 
     local characterLookVectorXZ = VectorUtil.getUnit(VectorUtil.getXZComponents(character.PrimaryPart.CFrame.LookVector))
-    local cameraPosition = characterLookVectorXZ * currentDistance
+    local cameraPosition = -characterLookVectorXZ * currentDistance
         + Vector3.new(0, ALIGN_CHARACTER_HEIGHT_GAIN_PER_UNIT * currentDistance, 0)
 
     camera.CFrame = CFrame.new(camera.Focus.Position + cameraPosition, camera.Focus.Position)
