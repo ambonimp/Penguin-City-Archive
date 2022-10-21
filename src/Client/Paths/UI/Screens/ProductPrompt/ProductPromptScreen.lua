@@ -12,6 +12,7 @@ local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
+local CurrencyController = require(Paths.Client.CurrencyController)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -36,19 +37,28 @@ function ResultsScreen.Init()
 
         robuxButton:Mount(contents.Buttons.Robux, true)
         robuxButton:SetIcon(Images.Icons.Robux)
+        robuxButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
         robuxButton.Pressed:Connect(function()
             leaveState()
             ProductController.purchase(currentProduct, "Robux")
         end)
 
         cancelButton:Mount(contents.Buttons.Cancel, true)
+        cancelButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
+        cancelButton:SetText("Cancel")
         cancelButton.Pressed:Connect(leaveState)
 
         coinsButton:Mount(contents.Buttons.Coins, true)
         coinsButton:SetIcon(Images.Coins.Coin)
         coinsButton.Pressed:Connect(function()
-            leaveState()
-            ProductController.purchase(currentProduct, "Coins")
+            local canAfford = currentProduct.CoinData.Cost <= CurrencyController.getCoins()
+
+            if canAfford then
+                leaveState()
+                ProductController.purchase(currentProduct, "Coins")
+            else
+                warn("todo prompt coin purchase to afford")
+            end
         end)
     end
 
@@ -81,19 +91,27 @@ function ResultsScreen.open(data: table)
     descriptionLabel.Text = currentProduct.Description or ""
 
     -- Icon
-    icon.Image = currentProduct.ImageId or ""
-    icon.Visible = not (currentProduct.ImageId == "")
-
-    -- Buttons
-    robuxButton:GetButtonObject().Parent.Visible = currentProduct.RobuxData and true or false
-    if currentProduct.RobuxData then
-        local robuxText = currentProduct.RobuxData.Cost and StringUtil.commaValue(currentProduct.RobuxData.Cost) or "TODO"
-        robuxButton:SetText(robuxText)
+    if currentProduct.ImageId then
+        icon.Image = currentProduct.ImageId
+        icon.Visible = true
+    else
+        icon.Visible = false
     end
 
+    -- Robux Button
+    robuxButton:GetButtonObject().Parent.Visible = currentProduct.RobuxData and true or false
+    if currentProduct.RobuxData then
+        local robuxText = currentProduct.RobuxData.Cost and StringUtil.commaValue(currentProduct.RobuxData.Cost) or "???"
+        robuxButton:SetText(robuxText, true)
+    end
+
+    -- Coin Button
     coinsButton:GetButtonObject().Parent.Visible = currentProduct.CoinData and true or false
     if currentProduct.CoinData then
-        coinsButton:SetText(StringUtil.commaValue(currentProduct.CoinData.Cost))
+        coinsButton:SetText(StringUtil.commaValue(currentProduct.CoinData.Cost), true)
+
+        local canAfford = currentProduct.CoinData.Cost <= CurrencyController.getCoins()
+        coinsButton:SetColor(canAfford and UIConstants.Colors.Buttons.AvailableGreen or UIConstants.Colors.Buttons.UnavailableGrey, true)
     end
 
     screenGui.Enabled = true

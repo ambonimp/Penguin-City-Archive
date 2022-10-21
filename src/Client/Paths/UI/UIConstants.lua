@@ -51,6 +51,8 @@ UIConstants.Colors = {
         PenguinBlue = Color3.fromRGB(186, 218, 253),
         DarkPenguinBlue = Color3.fromRGB(38, 71, 118),
         NextGreen = Color3.fromRGB(43, 195, 114),
+        AvailableGreen = Color3.fromRGB(43, 195, 114),
+        UnavailableGrey = Color3.fromRGB(158, 158, 158),
     },
 }
 
