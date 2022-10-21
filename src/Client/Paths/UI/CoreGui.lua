@@ -45,4 +45,18 @@ do
     Players.LocalPlayer.PlayerGui.ScreenOrientation = Enum.ScreenOrientation.LandscapeSensor
 end
 
+-- Disable Character reset : https://devforum.roblox.com/t/how-to-completely-restart-the-game-for-a-player-when-he-resets-its-character/1435353/5
+do
+    task.delay(1, function()
+        while true do
+            local success, _ = pcall(function()
+                game:GetService("StarterGui"):SetCore("ResetButtonCallback", false)
+            end)
+            if success then
+                break
+            end
+        end
+    end)
+end
+
 return CoreGui
