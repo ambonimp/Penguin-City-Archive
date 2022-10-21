@@ -128,6 +128,7 @@ local function createSimpleChapterStructure(chapter: StampConstants.Chapter, sta
     return chapterStructure
 end
 
+-- Must be a chapter with a `StampType`
 function StampUtil.getChapterStructure(chapter: StampConstants.Chapter)
     -- ERROR: No stamp type
     local stampType = chapter.StampType

@@ -1,7 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
+local StampUtil = require(ReplicatedStorage.Shared.Stamps.StampUtil)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, stamp: Stamps.Stamp)
     local issuePrefix = ("[%s - %s]"):format(stampModuleScript.Name, tostring(stamp.Id) or tostring(stamp.DisplayName) or "?")
@@ -97,29 +99,54 @@ return function()
     local issues: { string } = {}
 
     -- Iterate each StampType, verifying it contains valid stamps
-    local stampsModuleScripts = ReplicatedStorage.Shared.Stamps.StampTypes
-    local setStampIds: { [string]: boolean }? = {}
+    do
+        local stampsModuleScripts = ReplicatedStorage.Shared.Stamps.StampTypes
+        local setStampIds: { [string]: boolean }? = {}
 
-    for _, stampType in pairs(Stamps.StampTypes) do
-        local stampModuleScript = stampsModuleScripts:FindFirstChild(("%sStamps"):format(stampType))
-        if stampModuleScript then
-            local stamps = require(stampModuleScript)
-            for _, stamp: Stamps.Stamp in pairs(stamps) do
-                verifyStamp(issues, stampModuleScript, stamp)
+        for _, stampType in pairs(Stamps.StampTypes) do
+            local stampModuleScript = stampsModuleScripts:FindFirstChild(("%sStamps"):format(stampType))
+            if stampModuleScript then
+                local stamps = require(stampModuleScript)
 
-                -- Verify UniqueId
-                if setStampIds[stamp.Id] then
-                    table.insert(issues, ("Stamp %q (%s) has a duplicate Id!"):format(stamp.DisplayName, stamp.Id))
+                -- Non-array
+                if #stamps ~= TableUtil.length(stamps) then
+                    table.insert(issues, ("Stamps table %q is not an array!"):format(stampModuleScript.Name))
                 end
-                setStampIds[stamp.Id] = true
+
+                for key, stamp: Stamps.Stamp in pairs(stamps) do
+                    -- Key must be numeric
+                    if not tonumber(key) then
+                        table.insert(issues, ("Stamp %q (%s) has a non-numeric id as it's key!"):format(stamp.DisplayName, stamp.Id))
+                    end
+
+                    verifyStamp(issues, stampModuleScript, stamp)
+
+                    -- Verify UniqueId
+                    if setStampIds[stamp.Id] then
+                        table.insert(issues, ("Stamp %q (%s) has a duplicate Id!"):format(stamp.DisplayName, stamp.Id))
+                    end
+                    setStampIds[stamp.Id] = true
+                end
+            else
+                table.insert(issues, ("No StampTypes ModuleScript for %q"):format(stampType))
             end
-        else
-            table.insert(issues, ("No StampTypes ModuleScript for %q"):format(stampType))
         end
+
+        -- Cleanup
+        setStampIds = nil
     end
 
-    -- Cleanup
-    setStampIds = nil
+    -- Verify chapter structure can be called without error
+    do
+        for i, chapter in pairs(StampConstants.Chapters) do
+            if chapter.StampType then
+                local success, err = pcall(StampUtil.getChapterStructure, chapter)
+                if not success then
+                    table.insert(issues, ("Error when getting chapter structure %d (%q): %s"):format(i, chapter.StampType, tostring(err)))
+                end
+            end
+        end
+    end
 
     return issues
 end

@@ -4,6 +4,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 
+export type StampBook = {
+    CoverColors: { [string]: Color3 },
+    CoverPattern: { [string]: string },
+    TextColors: { [string]: Color3 },
+    Seals: { [string]: {
+        Color: Color3,
+        Icon: string,
+    } },
+}
+
 export type Chapter = {
     IsSearch: boolean?,
     StampType: Stamps.StampType?,
@@ -20,7 +30,7 @@ local titleIconWidth: { [string]: number } = {
 }
 StampConstants.TitleIconWidth = titleIconWidth
 
-StampConstants.StampBook = {
+local stampBook: StampBook = {
     CoverColors = {
         Brown = Color3.fromRGB(161, 74, 53),
         Red = Color3.fromRGB(255, 0, 0),
@@ -44,6 +54,7 @@ StampConstants.StampBook = {
         },
     },
 }
+StampConstants.StampBook = stampBook
 
 local chapters: { Chapter } = {
     { StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place, LayoutByMetadataKey = "Location" },
