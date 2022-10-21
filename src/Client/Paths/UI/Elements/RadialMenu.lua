@@ -100,7 +100,7 @@ function RadialMenu.new()
     function radialMenu:Open()
         -- RETURN: Already open
         if isOpen then
-            return
+            return Promise.resolve()
         end
         isOpen = true
 
@@ -139,7 +139,7 @@ function RadialMenu.new()
     function radialMenu:Close()
         -- RETURN: Not open
         if not isOpen then
-            return
+            return Promise.resolve()
         end
         isOpen = false
 
@@ -177,6 +177,11 @@ function RadialMenu.new()
         button:Mount(createButtonHolder())
         table.insert(buttons, button)
         redraw()
+
+        button.Pressed:Connect(function()
+            radialMenu:Close()
+        end)
+
         return button
     end
 

@@ -23,18 +23,12 @@ local Sound = require(Paths.Shared.Sound)
 local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.ZoneController)
+local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
 local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
 local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-local BUTTONS = {
-    Igloo = {
-        Color = Color3.fromRGB(229, 142, 237),
-        Icon = Images.Icons.Igloo,
-    },
-}
-
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
 local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
@@ -141,8 +135,7 @@ function StampBookScreen.openCover()
     do
         -- Igloo
         local iglooButton = createCoverButton(1)
-        iglooButton:SetColor(BUTTONS.Igloo.Color)
-        iglooButton:SetIcon(BUTTONS.Igloo.Icon)
+        ButtonUtil.paintIgloo(iglooButton)
         iglooButton.Pressed:Connect(function()
             local houseZone = ZoneUtil.houseZone(currentPlayer)
             ZoneController.teleportToRoomRequest(houseZone)

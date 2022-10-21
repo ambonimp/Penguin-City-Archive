@@ -14,6 +14,9 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local Images = require(Paths.Shared.Images.Images)
 local StampController = require(Paths.Client.StampController)
 local Sound = require(Paths.Shared.Sound)
+local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneController = require(Paths.Client.ZoneController)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
@@ -32,7 +35,7 @@ local function createBillboardGui()
     billboardGui.AlwaysOnTop = true
     billboardGui.ClipsDescendants = true
     billboardGui.LightInfluence = 0
-    billboardGui.Size = UDim2.fromScale(9, 9)
+    billboardGui.Size = UDim2.fromScale(11, 11)
     billboardGui.StudsOffset = Vector3.new(0, 2, 0)
     billboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     return billboardGui
@@ -42,10 +45,18 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     -- Stamps
     local stampsButton = radialMenu:AddButton()
     stampsButton:RoundOff()
-    stampsButton:SetColor(UIConstants.Colors.Buttons.StampBeige, true)
-    stampsButton:SetIcon(Images.ButtonIcons.StampBook)
+    ButtonUtil.paintStamps(stampsButton)
     stampsButton.Pressed:Connect(function()
         StampController.openStampBook(player)
+    end)
+
+    -- Igloo
+    local iglooButton = radialMenu:AddButton()
+    iglooButton:RoundOff()
+    ButtonUtil.paintIgloo(iglooButton)
+    iglooButton.Pressed:Connect(function()
+        local houseZone = ZoneUtil.houseZone(player)
+        ZoneController.teleportToRoomRequest(houseZone)
     end)
 
     -- Close
