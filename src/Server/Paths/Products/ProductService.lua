@@ -22,8 +22,10 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Output = require(Paths.Shared.Output)
-local CurrencyService = require(Paths.Server.CurrencyService)
 local PlayerService = require(Paths.Server.PlayerService)
+local Remotes = require(Paths.Shared.Remotes)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
@@ -162,7 +164,7 @@ function ProductService.loadPlayer(player: Player)
 end
 
 -- Returns true if successfully prompted
-function ProductService.promptProductPurchase(player: Player, product: Products.Product, currency: ("Robux" | "Coins")?)
+function ProductService.promptProductPurchase(player: Player, product: Products.Product, forceRobuxPurchase: boolean?)
     -- WARN: Cannot prompt purchase of a product if it is 1) already owned 2) not consumable (you either own it or you dont)
     if ProductService.hasProduct(player, product) and not product.IsConsumable then
         warn(("Cannot prompt %s to purchase %s; they already own it, and it is not consumable"):format(player.Name, product.DisplayName))
@@ -177,39 +179,15 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
 
     lastPromptedProductByPlayer[player] = product
 
-    -- First pick a currency
-    if product.CoinData and product.RobuxData then
-        if currency == nil then
-            local playerCanAffordCoins = product.CoinData.Cost <= CurrencyService.getCoins(player)
-            currency = playerCanAffordCoins and "Coins" or "Robux"
-        end
-    elseif product.CoinData then
-        currency = "Coins"
-    elseif product.RobuxData then
-        currency = "Robux"
-    else
-        warn(("Product %s.%S has neither CoinData or RobuxData. WAT?"):format(product.Type, product.Id))
-        return false
+    -- Prompt on client
+    if product.CoinData and not (forceRobuxPurchase and product.RobuxData) then
+        Remotes.fireClient(player, "PromptProductPurchaseOnClient", product.Type, product.Id)
+        return true
     end
-
-    -- Prompt Coins
-    if currency == "Coins" then
-        warn("todo")
-        return false
-    end
-
-    --!! Assume currency == "Robux" from here
 
     -- Prompt Gamepass
     if product.RobuxData.GamepassId then
         MarketplaceService:PromptGamePassPurchase(player, product.RobuxData.GamepassId)
-        return true
-    end
-
-    -- Prompt Generic Developer Product
-    if product.RobuxData.Cost then
-        local genericProduct = ProductUtil.getGenericProduct(product.RobuxData.Cost)
-        MarketplaceService:PromptProductPurchase(player, genericProduct.DeveloperProductId)
         return true
     end
 
@@ -218,6 +196,27 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
         MarketplaceService:PromptProductPurchase(player, product.RobuxData.DeveloperProductId)
         return true
     end
+
+    -- Prompt Generic Developer Product (if not developer product or gamepass)
+    if product.RobuxData.Cost then
+        local genericProduct = ProductUtil.getGenericProduct(product.RobuxData.Cost)
+        MarketplaceService:PromptProductPurchase(player, genericProduct.DeveloperProductId)
+        return true
+    end
+
+    error(("Should not get here! Product: %q"):format(product.Id))
+end
+Remotes.declareEvent("PromptProductPurchaseOnClient")
+
+function ProductService.purchaseInCoins(player: Player, product: Products.Product)
+    -- RETURN: Not enough coins
+    if product.CoinData.Cost > CurrencyService.getCoins(player) then
+        return
+    end
+
+    -- Exchange coins for product
+    CurrencyService.addCoins(player, -product.CoinData.Cost, true)
+    ProductService.addProduct(player, product)
 end
 
 -------------------------------------------------------------------------------
@@ -317,6 +316,45 @@ function ProductService.consumeProduct(player: Player, product: Products.Product
     -- Read + update data
     ProductService.readProducts(player)
     return true
+end
+
+-- Communication
+do
+    Remotes.bindEvents({
+        PromptProductPurchaseOnServer = function(player: Player, dirtyProductType: any, dirtyProductId: any)
+            -- Clean data
+            local productType = TypeUtil.toString(dirtyProductType)
+            local productId = TypeUtil.toString(dirtyProductId)
+            local product = (productType and productId) and ProductUtil.getProduct(productType, productId)
+
+            -- RETURN: No product
+            if not product then
+                warn("Passed bad data", dirtyProductType, dirtyProductId)
+                return
+            end
+
+            ProductService.promptProductPurchase(player, product, true)
+        end,
+        PurchaseProductInCoins = function(player: Player, dirtyProductType: any, dirtyProductId: any)
+            -- Clean data
+            local productType = TypeUtil.toString(dirtyProductType)
+            local productId = TypeUtil.toString(dirtyProductId)
+            local product = (productType and productId) and ProductUtil.getProduct(productType, productId)
+
+            -- RETURN: No product
+            if not product then
+                warn("Passed bad data", dirtyProductType, dirtyProductId)
+                return
+            end
+
+            -- RETURN: Not coins!
+            if not product.CoinData then
+                return
+            end
+
+            ProductService.purchaseInCoins(player, product)
+        end,
+    })
 end
 
 -- Write to handlersByTypeAndId and consumersByTypeAndId

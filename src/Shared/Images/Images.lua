@@ -49,6 +49,7 @@ Images.Icons = {
     Pants = "rbxassetid://11152370202",
     Pets = "rbxassetid://11152370072",
     Place = "rbxassetid://11152370003",
+    Robux = "rbxassetid://11333748345",
     Rotate = "rbxassetid://11152369890",
     RightArrow = "rbxassetid://6583638192",
     Seal = "rbxassetid://11152369785",

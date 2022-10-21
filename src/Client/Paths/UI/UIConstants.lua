@@ -13,6 +13,7 @@ UIConstants.States = {
     HouseSelectionUI = "HouseSelectionUI",
     HUD = "HUD",
     Results = "Results",
+    PromptProduct = "PromptProduct",
 }
 
 UIConstants.Keybinds = {

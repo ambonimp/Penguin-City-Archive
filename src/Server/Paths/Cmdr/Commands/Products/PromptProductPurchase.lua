@@ -21,5 +21,11 @@ return {
             local productTypeArgument = context:GetArgument(2)
             return ProductUtil.getProductIdCmdrArgument(productTypeArgument)
         end,
+        {
+            Type = "number",
+            Name = "forceRobuxPurchase",
+            Description = "forceRobuxPurchase",
+            Optional = true,
+        },
     },
 }
