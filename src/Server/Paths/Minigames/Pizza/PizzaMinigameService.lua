@@ -13,6 +13,7 @@ local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigam
 local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
 local Output = require(Paths.Shared.Output)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 type RecipeRecord = {
     WasCorrect: boolean,
@@ -158,7 +159,7 @@ function PizzaMinigameService.finishRequest(player: Player)
     -- Give reward
     local doGiveReward = not finishedTooQuickly and (totalMistakes <= PizzaMinigameConstants.MaxMistakes) and (doSubtractMistakeCount <= 1)
     if doGiveReward then
-        warn(("TODO: Give %s %d coins for completing %d/%d pizzas!"):format(player.Name, totalReward, totalCorrectPizzas, totalPizzas))
+        CurrencyService.addCoins(player, totalReward, true)
     else
         warn(
             ("%s had an issue. FinishedTooQuickly: %s (Min Time: %.2f, Actual Time: %.2f). Total Mistakes: %d. DoSubtractMistakeCount: %d"):format(
