@@ -1,7 +1,10 @@
 local HouseObjects = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+
 for _, module in script:GetChildren() do
-    HouseObjects[string.gsub(module.Name, "Constants", "")] = require(module)
+    HouseObjects[StringUtil.chopEnd(module.Name, "Constants")] = require(module)
 end
 
 return HouseObjects

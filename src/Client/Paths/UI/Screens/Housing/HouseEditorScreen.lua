@@ -7,6 +7,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Button = require(Paths.Client.UI.Elements.Button)
 local WideButton = require(Paths.Client.UI.Elements.WideButton)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
@@ -33,7 +34,7 @@ local editCategoryTabs: Frame = editFrame.Tabs
 local editCategoryPages: Frame = editFrame.Center
 
 local editToggleContainer: Frame = screenGui.EditToggle
-local editToggleButton
+local editToggleButton: typeof(KeyboardButton.new())
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS

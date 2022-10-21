@@ -26,27 +26,15 @@ function HousingController.Start()
     -- Enter/Exit
     ZoneController.ZoneChanged:Connect(function(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
         if ZoneUtil.isHouseZone(fromZone) then
-            if uiStateMachine:HasState(UIConstants.House) then
-                if uiStateMachine:GetState() ~= UIConstants.House then
-                    uiStateMachine:PopTo(UIConstants.States.House)
-                end
-
-                uiStateMachine:Pop()
-            end
+            uiStateMachine:Remove(UIConstants.States.House)
         end
         if ZoneUtil.isHouseZone(toZone) then
             local zoneOwner = ZoneUtil.getHouseZoneOwner(toZone)
             local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO Check DataController for list of UserId we have edit perms for
 
-            if zoneOwner == player then
-                uiStateMachine:Push(UIConstants.States.House, {
-                    CanEdit = true,
-                })
-            else
-                uiStateMachine:Push(UIConstants.States.House, {
+            uiStateMachine:Push(UIConstants.States.House, {
                     CanEdit = hasEditPerms,
                 })
-            end
         end
     end)
 

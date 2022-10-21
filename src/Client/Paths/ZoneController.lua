@@ -155,6 +155,7 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     zoneMaid:Cleanup()
 
     -- Init new Zone
+    local oldZone = currentZone
     currentZone = zone
     if currentZone.ZoneType == ZoneConstants.ZoneType.Room then
         currentRoomZone = currentZone
@@ -169,7 +170,7 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     setupTeleporters()
 
     -- Inform Client
-    ZoneController.ZoneChanged:Fire(currentZone, zone)
+    ZoneController.ZoneChanged:Fire(oldZone, currentZone)
 end
 
 -------------------------------------------------------------------------------

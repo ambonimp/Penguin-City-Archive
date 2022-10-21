@@ -1,15 +1,16 @@
-local KeyboardButton = require(script.Parent.KeyboardButton)
-local UIConstants = require(script.Parent.Parent.UIConstants)
 local WideButton = {}
 
+local KeyboardButton = require(script.Parent.KeyboardButton)
+local UIConstants = require(script.Parent.Parent.UIConstants)
+
 local DEBOUNCE = 0.2
-local CORNER_RADIUS = UDim.new(0, 20)
+local CORNER_RADIUS = UDim.new(0.15, 0)
 
 function WideButton.new(text: string)
     local wideButton = KeyboardButton.new()
     wideButton:SetPressedDebounce(DEBOUNCE)
     wideButton:SetText(text)
-    wideButton:SetCornerRadius(UDim.new(0.15, 0))
+    wideButton:SetCornerRadius(CORNER_RADIUS)
 
     return wideButton
 end
