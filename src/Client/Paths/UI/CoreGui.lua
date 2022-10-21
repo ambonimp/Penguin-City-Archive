@@ -47,15 +47,14 @@ end
 
 -- Disable Character reset : https://devforum.roblox.com/t/how-to-completely-restart-the-game-for-a-player-when-he-resets-its-character/1435353/5
 do
-    task.delay(1, function()
-        while true do
-            local success, _ = pcall(function()
+    task.spawn(function()
+        local success = false
+        repeat
+            task.wait(1)
+            success = pcall(function()
                 game:GetService("StarterGui"):SetCore("ResetButtonCallback", false)
             end)
-            if success then
-                break
-            end
-        end
+        until success
     end)
 end
 
