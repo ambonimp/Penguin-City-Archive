@@ -157,6 +157,24 @@ do
 
             return DataService.get(player, address)
         end,
+        GetPlayerDataMany = function(_player: Player, dirtyPlayer: any, dirtyAddresses: any)
+            -- Clean parameters
+            local player = typeof(dirtyPlayer) == "Instance" and dirtyPlayer:IsA("Player") and dirtyPlayer
+            local addresses: { string } = TypeUtil.toArray(dirtyAddresses, function(value: any)
+                return TypeUtil.toString(value) and true or false
+            end)
+
+            if not (player and addresses) then
+                return nil
+            end
+
+            local results: { DataUtil.Data } = {}
+            for _, address in pairs(addresses) do
+                table.insert(results, DataService.get(player, address))
+            end
+
+            return results
+        end,
     })
 end
 

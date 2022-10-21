@@ -17,8 +17,27 @@ function DataController.get(address: string)
 end
 
 -- Queries server
-function DataController.getPlayer(player: Player, address: string)
+function DataController.getPlayer(player: Player, address: string): DataUtil.Data
+    -- EDGE CASE: Local player!
+    if player == Players.LocalPlayer then
+        return DataController.get(address)
+    end
+
     return Remotes.invokeServer("GetPlayerData", player, address)
+end
+
+-- Queries server. Returns the results at the same index they are in in `addresses`
+function DataController.getPlayerMany(player: Player, addresses: { string }): { DataUtil.Data }
+    -- EDGE CASE: Local player!
+    if player == Players.LocalPlayer then
+        local result = {}
+        for _, address in pairs(addresses) do
+            table.insert(result, DataController.get(address))
+        end
+        return result
+    end
+
+    return Remotes.invokeServer("GetPlayerDataMany", player, addresses)
 end
 
 local loader = Promise.new(function(resolve)

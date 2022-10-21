@@ -20,6 +20,7 @@ local StampButton = require(Paths.Client.UI.Elements.StampButton)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Sound = require(Paths.Shared.Sound)
+local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -131,7 +132,9 @@ function StampBookScreen.openCover()
     end
 
     -- Picture
-    --todo
+    local playerIcon = PlayerIcon.new(currentPlayer)
+    playerIcon:Mount(cover.Picture.IconHolder, true)
+    viewMaid:GiveTask(playerIcon)
 
     -- Stamps
     if not currentStampData.IsLoading then
