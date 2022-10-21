@@ -21,11 +21,19 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Sound = require(Paths.Shared.Sound)
 local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneController = require(Paths.Client.ZoneController)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
 local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
 local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local BUTTONS = {
+    Igloo = {
+        Color = Color3.fromRGB(229, 142, 237),
+        Icon = Images.Icons.Igloo,
+    },
+}
 
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
@@ -105,6 +113,23 @@ function StampBookScreen.Init()
     end
 end
 
+local function createCoverButton(layoutOrder: number)
+    local holder: Frame = cover.Buttons.template:Clone()
+    holder.Name = tostring(layoutOrder)
+    holder.LayoutOrder = layoutOrder
+    holder.Visible = true
+    holder.Parent = cover.Buttons
+
+    local button = KeyboardButton.new()
+    button:RoundOff()
+    button:Mount(holder.Button)
+
+    viewMaid:GiveTask(holder)
+    viewMaid:GiveTask(button)
+
+    return button
+end
+
 function StampBookScreen.openCover()
     -- Manage Internals
     currentView = "Cover"
@@ -113,22 +138,17 @@ function StampBookScreen.openCover()
     viewMaid:Cleanup()
 
     -- Buttons
-    --!!temp
-    for i = 1, 4 do
-        local holder: Frame = cover.Buttons.template:Clone()
-        holder.Name = tostring(i)
-        holder.LayoutOrder = i
-        holder.Visible = true
-        holder.Parent = cover.Buttons
+    do
+        -- Igloo
+        local iglooButton = createCoverButton(1)
+        iglooButton:SetColor(BUTTONS.Igloo.Color)
+        iglooButton:SetIcon(BUTTONS.Igloo.Icon)
+        iglooButton.Pressed:Connect(function()
+            local houseZone = ZoneUtil.houseZone(currentPlayer)
+            ZoneController.teleportToRoomRequest(houseZone)
 
-        local button = KeyboardButton.new()
-        button:SetText(tostring(i))
-        button:SetColor(Color3.new(math.random(), math.random(), math.random()))
-        button:RoundOff()
-        button:Mount(holder.Button)
-
-        viewMaid:GiveTask(holder)
-        viewMaid:GiveTask(button)
+            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
+        end)
     end
 
     -- Picture
