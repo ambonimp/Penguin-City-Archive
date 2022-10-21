@@ -13,6 +13,7 @@ local RadialMenu = require(Paths.Client.UI.Elements.RadialMenu)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Images = require(Paths.Shared.Images.Images)
 local StampController = require(Paths.Client.StampController)
+local Sound = require(Paths.Shared.Sound)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
@@ -72,6 +73,9 @@ function PlayerMenuController.clickedPlayer(player: Player)
     if not humanoidRootPart then
         return
     end
+
+    -- Open menu!
+    Sound.play("RadialMenuOpen")
 
     cachedPlayer = player
 

@@ -19,6 +19,7 @@ local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local Sound = require(Paths.Shared.Sound)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -64,6 +65,7 @@ function StampBookScreen.Init()
         closeButton:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
         closeButton.Pressed:Connect(function()
             if currentView == "Inside" then
+                Sound.play("CloseBook")
                 StampBookScreen.openCover()
             else
                 UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
@@ -74,7 +76,10 @@ function StampBookScreen.Init()
         sealButton = AnimatedButton.new(cover.Seal.Button)
         sealButton:SetPressAnimation(AnimatedButton.Defaults.PressAnimation)
         sealButton:SetHoverAnimation(AnimatedButton.Defaults.HoverAnimation)
-        sealButton.Pressed:Connect(StampBookScreen.openInside)
+        sealButton.Pressed:Connect(function()
+            Sound.play("OpenBook")
+            StampBookScreen.openInside()
+        end)
 
         cover.Buttons.template.BackgroundTransparency = 1
         cover.Buttons.template.Visible = false
@@ -332,6 +337,7 @@ do
 
         local chapterTabButton = Button.new(chapterTab)
         chapterTabButton.Pressed:Connect(function()
+            Sound.play("PageTurn")
             StampBookScreen.openChapter(chapter)
         end)
         tabButtonsByChapter[chapter] = chapterTabButton
@@ -350,11 +356,23 @@ do
     local navigation: Frame = chapterFrame.Navigation
     previousPage = AnimatedButton.new(navigation.Left)
     previousPage.Pressed:Connect(function()
+        -- RETURN: No previous page
+        if currentPageNumber == 1 then
+            return
+        end
+
+        Sound.play("PageTurn")
         StampBookScreen.openChapter(currentChapter, math.clamp(currentPageNumber - 1, 1, currentMaxPageNumber))
     end)
 
     nextPage = AnimatedButton.new(navigation.Right)
     nextPage.Pressed:Connect(function()
+        -- RETURN: No next page
+        if currentPageNumber == currentMaxPageNumber then
+            return
+        end
+
+        Sound.play("PageTurn")
         StampBookScreen.openChapter(currentChapter, math.clamp(currentPageNumber + 1, 1, currentMaxPageNumber))
     end)
 
