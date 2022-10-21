@@ -118,7 +118,9 @@ function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
         local key = zone.ZoneType .. zone.ZoneId
 
         -- Lighting
-        PropertyStack.setProperties(Lighting, settings.Lighting, key)
+        if settings.Lighting then
+            PropertyStack.setProperties(Lighting, settings.Lighting, key)
+        end
     end
 end
 
@@ -128,7 +130,9 @@ function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
         local key = zone.ZoneType .. zone.ZoneId
 
         -- Lighting
-        PropertyStack.clearProperties(Lighting, settings.Lighting, key)
+        if settings.Lighting then
+            PropertyStack.clearProperties(Lighting, settings.Lighting, key)
+        end
     end
 end
 
