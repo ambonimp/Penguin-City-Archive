@@ -28,30 +28,34 @@ function ProductController.prompt(product: Products.Product, forceRobuxPurchase:
         return
     end
 
-    -- Send over to server to handle
-    Remotes.fireServer("PromptProductPurchaseOnServer", product.Type, product.Id)
+    if product.RobuxData then
+        -- Send over to server to handle
+        Remotes.fireServer("PromptProductPurchaseOnServer", product.Type, product.Id)
+    end
+
+    error(("Cannot prompt %s %s with forceRobuxPurchase: %q"):format(product.Type, product.Id, tostring(forceRobuxPurchase)))
 end
 
---[[
-    Returns a Promise that resolves with a boolean value indicating if it was a successful purchase or not.
-]]
 function ProductController.purchase(product: Products.Product, currency: "Robux" | "Coins")
-    if currency == "Robux" then
+    if currency == "Robux" and product.RobuxData then
         ProductController.prompt(product, true)
         return
     end
 
-    -- Request server + handle clientside coins
-    CurrencyController.addCoins(-product.CoinData.Cost)
-    local serverResponsePromise = Promise.new(function(resolve, _reject, _onCancel)
-        resolve(Remotes.invokeServer("PurchaseProductInCoins", product.Type, product.Id))
-    end):andThen(function(wasSuccess: boolean)
-        if not wasSuccess then
-            CurrencyController.addCoins(product.CoinData.Cost)
-        end
-    end)
+    if currency == "Coins" and product.CoinData then
+        -- Request server + handle clientside coins
+        CurrencyController.addCoins(-product.CoinData.Cost)
+        Promise.new(function(resolve, _reject, _onCancel)
+            resolve(Remotes.invokeServer("PurchaseProductInCoins", product.Type, product.Id))
+        end):andThen(function(wasSuccess: boolean)
+            if not wasSuccess then
+                CurrencyController.addCoins(product.CoinData.Cost)
+            end
+        end)
+        return
+    end
 
-    return serverResponsePromise
+    error(("Cannot purchase %s %s with %q"):format(product.Type, product.Id, currency))
 end
 
 -- Communication
