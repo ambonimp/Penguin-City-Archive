@@ -25,6 +25,8 @@ export type Product = {
     Metadata: table?,
     CoinData: ProductCoinData?,
     RobuxData: ProductRobuxData?,
+    Description: string?,
+    ImageId: string?,
 }
 
 export type GenericProduct = {
@@ -47,9 +49,11 @@ local products: { [string]: { [string]: Product } } = {
         coin_bundle_1 = {
             Id = "coin_bundle_1",
             DisplayName = "Coin Bundle 1",
+            Description = "+20 Coins",
             IsConsumable = true,
             ConsumeImmediately = true,
             RobuxData = {
+                Cost = 49,
                 DeveloperProductId = 1322070855,
             },
             Metadata = {
@@ -62,7 +66,9 @@ local products: { [string]: { [string]: Product } } = {
         coin_login_reward = {
             Id = "coin_login_reward",
             DisplayName = "+5 Coin Login Reward",
+            Description = "Gives you +5 coins each time you log in!",
             RobuxData = {
+                Cost = 123456789,
                 GamepassId = 91726149,
             },
             Metadata = {
@@ -72,9 +78,13 @@ local products: { [string]: { [string]: Product } } = {
         print_name = {
             Id = "print_name",
             DisplayName = "Print Name",
+            Description = "Prints your name when consumed",
             IsConsumable = true,
             RobuxData = {
                 Cost = 99,
+            },
+            CoinData = {
+                Cost = 5,
             },
         },
     },
