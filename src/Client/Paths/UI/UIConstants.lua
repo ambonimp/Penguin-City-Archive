@@ -13,6 +13,7 @@ UIConstants.States = {
     HouseSelectionUI = "HouseSelectionUI",
     HUD = "HUD",
     Results = "Results",
+    PromptProduct = "PromptProduct",
     StampBook = "StampBook",
 }
 
@@ -51,6 +52,8 @@ UIConstants.Colors = {
         PenguinBlue = Color3.fromRGB(186, 218, 253),
         DarkPenguinBlue = Color3.fromRGB(38, 71, 118),
         NextGreen = Color3.fromRGB(43, 195, 114),
+        AvailableGreen = Color3.fromRGB(43, 195, 114),
+        UnavailableGrey = Color3.fromRGB(158, 158, 158),
         StampBeige = Color3.fromRGB(225, 209, 159),
         IglooPink = Color3.fromRGB(229, 142, 237),
     },

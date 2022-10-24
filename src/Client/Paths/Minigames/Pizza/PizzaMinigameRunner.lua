@@ -121,12 +121,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
 
         -- Update Internal counts
         totalPizzasMade += 1
-        if didComplete then
-            totalCoinsEarnt += PizzaMinigameUtil.calculatePizzaReward(totalPizzasMade)
-            totalCorrectPizzasInARow += 1
-        elseif doSubtractMistake then
+        if doSubtractMistake then
             didComplete = true --!! Overrides didComplete
             totalMistakes -= 1
+        end
+
+        if didComplete then
+            totalCoinsEarnt += PizzaMinigameUtil.calculatePizzaReward(totalPizzasMade)
             totalCorrectPizzasInARow += 1
         else
             totalMistakes += 1

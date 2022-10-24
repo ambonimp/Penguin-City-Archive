@@ -12,23 +12,30 @@ return function()
             table.insert(issues, ("[%s] %s"):format(productName, issue))
         end
 
-        -- Members of ProductRobuxData cannot mutually coexist
-        if product.RobuxData and TableUtil.length(product.RobuxData) ~= 1 then
-            addIssue("RobuxData must have exactly 1 entry (Cost/DeveloperProductId/GamepassId)")
-        end
+        -- RobuxData
+        if product.RobuxData then
+            if product.RobuxData.Cost then
+                -- DeveloperProductId/GamepassId
+                if product.RobuxData.DeveloperProductId and product.RobuxData.GamepassId then
+                    addIssue("Only define one DeveloperProductId or GamepassId")
+                end
 
-        -- If RobuxData.Cost, do we have a matching generic product?
-        if product.RobuxData and product.RobuxData.Cost then
-            local robux = product.RobuxData.Cost
-            local genericProduct = ProductUtil.getGenericProduct(robux)
-            if not genericProduct then
-                addIssue(("No matching genericProduct found for a RobuxData.Cost of %d"):format(robux))
+                -- If neither, do we have a matching generic product?
+                if not (product.RobuxData.DeveloperProductId or product.RobuxData.GamepassId) then
+                    local robux = product.RobuxData.Cost
+                    local genericProduct = ProductUtil.getGenericProduct(robux)
+                    if not genericProduct then
+                        addIssue(("No matching genericProduct found for a RobuxData.Cost of %d"):format(robux))
+                    end
+                end
+            else
+                addIssue("Needs a Cost!")
             end
-        end
 
-        -- Gamepass products cannot be consumable!
-        if product.RobuxData and product.RobuxData.GamepassId and product.IsConsumable then
-            addIssue("Gamepass products cannot be consumable!")
+            -- Gamepass products cannot be consumable!
+            if product.RobuxData.GamepassId and product.IsConsumable then
+                addIssue("Gamepass products cannot be consumable!")
+            end
         end
 
         -- Needs a type

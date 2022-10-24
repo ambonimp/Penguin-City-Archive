@@ -85,6 +85,7 @@ function KeyboardButton.new()
     textLabel.TextColor3 = textColor
     textLabel.Font = UIConstants.Font
     textLabel.TextScaled = true
+    textLabel.ZIndex = imageButton.ZIndex + 1
     textLabel.Parent = imageButton
 
     local icon: ImageLabel?
@@ -302,6 +303,7 @@ function KeyboardButton.new()
 
         if skipTween then
             textLabel.Text = text
+            adjustIconAndText()
             return self
         end
 
@@ -361,6 +363,7 @@ function KeyboardButton.new()
             icon.Position = ICON_POSITION
             icon.AnchorPoint = ICON_ANCHOR_POINT
             icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+            icon.ZIndex = textLabel.ZIndex
             icon.ScaleType = Enum.ScaleType.Fit
             icon.Parent = imageButton
         end

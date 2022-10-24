@@ -150,7 +150,8 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         end
 
         -- Calculate new position
-        isOnPizza = raycastResult.Instance:IsDescendantOf(pizzaModel)
+        isOnPizza = pizzaModel and pizzaModel:IsDescendantOf(game.Workspace) and raycastResult.Instance:IsDescendantOf(pizzaModel) and true
+            or false
         local offset = (isOnPizza and not isSauce and PIZZA_INGREDIENT_OFFSET or INGREDIENT_OFFSET) + assetHeightOffset
         local newPosition = raycastResult.Position + offset
 

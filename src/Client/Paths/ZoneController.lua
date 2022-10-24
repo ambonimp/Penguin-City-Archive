@@ -14,18 +14,22 @@ local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
+local Limiter = require(Paths.Shared.Limiter)
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
 local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
+local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 
 local localPlayer = Players.LocalPlayer
-local currentZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
 
-ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
+ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -121,6 +125,7 @@ function ZoneController.transitionToZone(
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
     isPlayingTransition = true
+    ZoneController.ZoneChanging:Fire(currentZone, toZone)
 
     Transitions.blink(function()
         yielder()
@@ -142,6 +147,9 @@ function ZoneController.transitionToZone(
 
             -- Announce Arrival
             ZoneController.arrivedAtZone(toZone)
+        else
+            -- Was cancelled
+            ZoneController.ZoneChanged:Fire(currentZone, currentZone)
         end
     end, blinkOptions)
 
@@ -219,6 +227,15 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
     end)
 
     return requestAssume
+end
+
+function ZoneController.teleportToDefaultZone()
+    -- RETURN: Debounce
+    if not Limiter.debounce("ZoneController", "DefaultZoneTeleport", DEFAULT_ZONE_TELEPORT_DEBOUNCE) then
+        return
+    end
+
+    ZoneController.teleportToRoomRequest(defaultZone)
 end
 
 -------------------------------------------------------------------------------
