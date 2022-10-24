@@ -28,7 +28,8 @@ local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
 
-ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
+ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -124,6 +125,7 @@ function ZoneController.transitionToZone(
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
     isPlayingTransition = true
+    ZoneController.ZoneChanging:Fire(currentZone, toZone)
 
     Transitions.blink(function()
         yielder()
@@ -145,6 +147,9 @@ function ZoneController.transitionToZone(
 
             -- Announce Arrival
             ZoneController.arrivedAtZone(toZone)
+        else
+            -- Was cancelled
+            ZoneController.ZoneChanged:Fire(currentZone, currentZone)
         end
     end, blinkOptions)
 
