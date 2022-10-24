@@ -51,9 +51,7 @@ function ResultsScreen.Init()
         coinsButton:Mount(contents.Buttons.Coins, true)
         coinsButton:SetIcon(Images.Coins.Coin)
         coinsButton.Pressed:Connect(function()
-            local canAfford = currentProduct.CoinData.Cost <= CurrencyController.getCoins()
-
-            if canAfford then
+            if ProductController.canAffordInCoins(currentProduct) then
                 leaveState()
                 ProductController.purchase(currentProduct, "Coins")
             else
@@ -110,7 +108,7 @@ function ResultsScreen.open(data: table)
     if currentProduct.CoinData then
         coinsButton:SetText(StringUtil.commaValue(currentProduct.CoinData.Cost), true)
 
-        local canAfford = currentProduct.CoinData.Cost <= CurrencyController.getCoins()
+        local canAfford = ProductController.canAffordInCoins(currentProduct)
         coinsButton:SetColor(canAfford and UIConstants.Colors.Buttons.AvailableGreen or UIConstants.Colors.Buttons.UnavailableGrey, true)
     end
 

@@ -64,6 +64,9 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
     local address = getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, amount)
 
+    -- Inform Server
+    Remotes.fireClient(player, "AddProduct", product.Type, product.Id, amount)
+
     -- Run Handler
     local handler = getHandler(product.Type, product.Id)
     if handler then
@@ -73,6 +76,7 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
     -- Read
     ProductService.readProducts(player)
 end
+Remotes.declareEvent("AddProduct")
 
 function ProductService.getProductCount(player: Player, product: Products.Product)
     local address = getProductDataAddress(product.Type, product.Id)
@@ -208,15 +212,18 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
 end
 Remotes.declareEvent("PromptProductPurchaseOnClient")
 
+-- Returns true if successful
 function ProductService.purchaseInCoins(player: Player, product: Products.Product)
-    -- RETURN: Not enough coins
+    -- FALSE: Not enough coins
     if product.CoinData.Cost > CurrencyService.getCoins(player) then
-        return
+        return false
     end
 
     -- Exchange coins for product
-    CurrencyService.addCoins(player, -product.CoinData.Cost, true)
+    CurrencyService.addCoins(player, -product.CoinData.Cost)
     ProductService.addProduct(player, product)
+
+    return true
 end
 
 -------------------------------------------------------------------------------
@@ -335,6 +342,8 @@ do
 
             ProductService.promptProductPurchase(player, product, true)
         end,
+    })
+    Remotes.bindFunctions({
         PurchaseProductInCoins = function(player: Player, dirtyProductType: any, dirtyProductId: any)
             -- Clean data
             local productType = TypeUtil.toString(dirtyProductType)
@@ -344,15 +353,15 @@ do
             -- RETURN: No product
             if not product then
                 warn("Passed bad data", dirtyProductType, dirtyProductId)
-                return
+                return false
             end
 
             -- RETURN: Not coins!
             if not product.CoinData then
-                return
+                return false
             end
 
-            ProductService.purchaseInCoins(player, product)
+            return ProductService.purchaseInCoins(player, product)
         end,
     })
 end
