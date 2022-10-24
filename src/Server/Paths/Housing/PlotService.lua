@@ -6,13 +6,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
-local ObjectModule = require(Paths.Shared.HousingObjectData)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
+local DataUtil = require(Paths.Shared.Utils.DataUtil)
+local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
 
 local ID_CHECK_AMOUNT = 1000
@@ -137,17 +138,22 @@ local function loadHouseInterior(player: Player, plot: Model)
     local furniture = DataService.get(player, "Igloo.Placements")
     for _, objectData in pairs(furniture) do
         local itemName = objectData.Name
-        local Object = assets.Housing[ObjectModule[itemName].type]:FindFirstChild(itemName)
+        local Object = assets.Housing.Furniture:FindFirstChild(itemName)
+
+        print(DataUtil.desieralizeValue(objectData.Position, Vector3))
+        print(DataUtil.desieralizeValue(objectData.Rotation, Vector3))
+        print(DataUtil.desieralizeValue(objectData.Color, Color3))
 
         if Object then
             Object = Object:Clone()
             Object:PivotTo(
                 houseCFrame
-                    * CFrame.new(objectData.Position[1], objectData.Position[2], objectData.Position[3])
-                    * CFrame.Angles(0, math.rad(objectData.Rotation[2]), 0)
+                    * CFrame.new(DataUtil.desieralizeValue(objectData.Position, Vector3))
+                    * CFrame.Angles(0, math.rad(DataUtil.desieralizeValue(objectData.Rotation, Vector3).Y), 0)
             )
+
             Object:SetAttribute("Id", objectData.Id)
-            setModelColor(Object, Color3.fromRGB(objectData.Color[1], objectData.Color[2], objectData.Color[3]))
+            setModelColor(Object, DataUtil.desieralizeValue(objectData.Color, Color3))
             Object.Parent = plot.Furniture
         end
     end
@@ -307,9 +313,9 @@ function PlotService.changeObject(player: Player, id: number, position: CFrame, 
 
         for _, itemData in pairs(items) do
             if itemData.Id == id then
-                itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
-                itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
-                itemData.Color = { color.R * 255, color.G * 255, color.B * 255 }
+                itemData.Position = DataUtil.serializeValue(realPosition)
+                itemData.Rotation = DataUtil.serializeValue(rotation)
+                itemData.Color = DataUtil.serializeValue(color)
                 break
             end
         end
@@ -356,12 +362,18 @@ end
 --add an object to the players house
 --todo: add buying objects you have 0 of
 function PlotService.newObject(player: Player, name: string, type: string, position: CFrame, rotation: Vector3, color: Color3)
+    -- RETURN: Object does not exist
+    if not HouseObjects.Furniture.Objects[name] then
+        return
+    end
+
     local plot = PlotService.doesPlayerHavePlot(player, HousingConstants.HouseType)
     local items = DataService.get(player, "Igloo.Placements")
     local owned = DataService.get(player, "Igloo.OwnedItems")
     local houseCFrame = CFrame.new(plot.Plot.Position)
+
     if
-        (houseCFrame.Position - position.Position).magnitude < 150 --todo: swap to InBounds method
+        (houseCFrame.Position - position.Position).Magnitude < 150 --todo: swap to InBounds method
         and (assets.Housing:FindFirstChild(type) and assets.Housing:FindFirstChild(type):FindFirstChild(name))
         and (owned[name] and owned[name] :: number > 0)
     then
@@ -374,9 +386,9 @@ function PlotService.newObject(player: Player, name: string, type: string, posit
         local itemData = {}
         itemData.Id = getEmptyId(items)
         itemData.Name = name
-        itemData.Position = { realPosition.X, realPosition.Y, realPosition.Z }
-        itemData.Rotation = { rotation.X, rotation.Y, rotation.Z }
-        itemData.Color = { color.R * 255, color.G * 255, color.B * 255 }
+        itemData.Position = DataUtil.serializeValue(realPosition)
+        itemData.Rotation = DataUtil.serializeValue(rotation)
+        itemData.Color = DataUtil.serializeValue(color)
 
         object:SetAttribute("Id", itemData.Id)
         object:PivotTo(houseCFrame * realPosition * CFrame.Angles(0, math.rad(rotation.Y), 0))

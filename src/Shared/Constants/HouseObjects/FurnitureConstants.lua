@@ -19,50 +19,148 @@ FurnitureConstants.Types = {
     Table = "Tables",
     Decoration = "Decorations",
     Miscellaneous = "Miscellaneous",
+    Shelf = "Shelfs",
+    Light = "Lighting",
+}
+FurnitureConstants.Colors = {
+    Orange = Color3.fromRGB(165, 55, 71),
+    DullPink = Color3.fromRGB(171, 63, 115),
+    Blue = Color3.fromRGB(16, 42, 220),
+    Yellow = Color3.fromRGB(226, 155, 64),
+    Green = Color3.fromRGB(58, 125, 21),
+    Teal = Color3.fromRGB(18, 238, 212),
+    DullBrown = Color3.fromRGB(99, 95, 98),
 }
 
 local objects: { [string]: Object } = {}
-objects["Chair"] = {
-    Name = "Chair",
-    Type = FurnitureConstants.Types.Seating,
-    Price = 0,
-    Icon = "",
-    Interactable = true,
-    DefaultColor = Color3.fromRGB(124, 92, 70),
-}
-objects["Couch"] = {
-    Name = "Couch",
-    Type = FurnitureConstants.Types.Seating,
-    Price = 0,
-    Icon = "",
-    Interactable = true,
-    DefaultColor = Color3.fromRGB(150, 85, 85),
-}
-objects["Plant"] = {
-    Name = "Plant",
-    Type = FurnitureConstants.Types.Decoration,
+objects["Bean_Bag"] = {
+    Name = "Bean Bag",
+    Type = FurnitureConstants.Types.Seat,
     Price = 0,
     Icon = "",
     Interactable = false,
-    DefaultColor = Color3.fromRGB(248, 248, 248),
+    DefaultColor = FurnitureConstants.Colors.Orange,
+}
+objects["Bed"] = {
+    Name = "Bed",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = false,
+    DefaultColor = FurnitureConstants.Colors.DullPink,
+}
+objects["Bookshelf"] = {
+    Name = "BookShelf",
+    Type = FurnitureConstants.Types.Shelf,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Blue,
+}
+objects["Camping_Chair"] = {
+    Name = "Camping Chair",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Blue,
+}
+objects["Chair"] = {
+    Name = "Chair",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Orange,
+}
+objects["Couch_01"] = {
+    Name = "Couch",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Green,
+}
+objects["Couch_02"] = {
+    Name = "Couch",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.DullBrown,
+}
+objects["Couch_03"] = {
+    Name = "Couch",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Blue,
+}
+objects["Floor_Lamp_01"] = {
+    Name = "Floor Lamp",
+    Type = FurnitureConstants.Types.Light,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Orange,
+}
+objects["Floor_Lamp_01"] = {
+    Name = "Floor Lamp",
+    Type = FurnitureConstants.Types.Light,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Green,
+}
+objects["Fridge"] = {
+    Name = "Fridge",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Teal,
+}
+objects["Fireplace"] = {
+    Name = "FirePlace",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.DullBrown,
+}
+objects["Sink"] = {
+    Name = "Sink",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Green,
+}
+objects["Stove"] = {
+    Name = "Stove",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Orange,
 }
 objects["Table"] = {
     Name = "Table",
-    Type = FurnitureConstants.Types.Seating,
-    Price = 0,
-    Icon = "",
-    Interactable = false,
-    DefaultColor = Color3.fromRGB(124, 92, 70),
-}
-objects["Table_Lamp"] = {
-    Name = "Table_Lamp",
-    Type = FurnitureConstants.Types.Decoration,
+    Type = FurnitureConstants.Types.Table,
     Price = 0,
     Icon = "",
     Interactable = true,
-    DefaultColor = Color3.fromRGB(255, 240, 213),
+    DefaultColor = FurnitureConstants.Colors.Yellow,
 }
-
+objects["Table_Lamp_01"] = {
+    Name = "Table",
+    Type = FurnitureConstants.Types.Light,
+    Price = 0,
+    Icon = "",
+    Interactable = true,
+    DefaultColor = FurnitureConstants.Colors.Orange,
+}
 FurnitureConstants.Objects = objects
 
 return FurnitureConstants

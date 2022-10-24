@@ -8,6 +8,7 @@ local DataUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+
 --local Output = require(ReplicatedStorage.Shared.Output)
 
 export type Data = string | number | {}
@@ -150,6 +151,32 @@ function DataUtil.readAsArray(store: Store): { [string | number]: Data }
     end
 
     return returning
+end
+
+function DataUtil.serializeValue<T>(value: T): string
+    local valueType = typeof(value)
+    if valueType == "Color3" then
+        return ("%d,%d,%d"):format(value.R, value.G, value.B)
+    elseif valueType == "Vector3" then
+        return ("%d,%d,%d"):format(value.X, value.Y, value.Z)
+    end
+end
+
+function DataUtil.desieralizeValue<T>(serializedValue: string, valueType: T): T
+    if valueType == Color3 then
+        local color = {}
+        for value in string.gmatch(serializedValue, "[^%,]+") do
+            table.insert(color, value)
+        end
+
+        return Color3.new(color[1], color[2], color[3])
+    elseif valueType == Vector3 then
+        local vector = {}
+        for axis in string.gmatch(serializedValue, "[^%,]+") do
+            table.insert(vector, axis)
+        end
+        return Vector3.new(vector[1], vector[2], vector[3])
+    end
 end
 
 return DataUtil
