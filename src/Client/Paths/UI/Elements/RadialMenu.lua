@@ -1,6 +1,6 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RadialMenu = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIElement = require(script.Parent.UIElement)
 local KeyboardButton = require(script.Parent.KeyboardButton)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
