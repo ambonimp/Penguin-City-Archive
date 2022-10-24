@@ -31,6 +31,7 @@ function ProductController.prompt(product: Products.Product, forceRobuxPurchase:
     if product.RobuxData then
         -- Send over to server to handle
         Remotes.fireServer("PromptProductPurchaseOnServer", product.Type, product.Id)
+        return
     end
 
     error(("Cannot prompt %s %s with forceRobuxPurchase: %q"):format(product.Type, product.Id, tostring(forceRobuxPurchase)))
