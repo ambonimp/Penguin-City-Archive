@@ -6,12 +6,6 @@ local GameConstants = require(ReplicatedStorage.Shared.Constants.GameConstants)
 
 type PlaceName = "Dev" | "Live" | "QA" | "feature"
 
-local DATA_NUM = {
-    Dev = 7,
-    QA = 1,
-    Live = 1, --!! Dangerous. Past nums: (1: Alpha)
-}
-
 function GameUtil.getPlaceId()
     return game.PlaceId
 end
@@ -45,7 +39,7 @@ function GameUtil.getPlaceName(): PlaceName
 end
 
 function GameUtil.getDataKey()
-    local num = DATA_NUM[GameUtil.getPlaceName()] or DATA_NUM.Dev
+    local num = GameConstants.DataIds[GameUtil.getPlaceName()] or GameConstants.DataIds.Dev
     return ("%s_%d"):format(GameUtil.getPlaceName(), num)
 end
 

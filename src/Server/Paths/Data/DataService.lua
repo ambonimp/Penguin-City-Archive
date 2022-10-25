@@ -14,6 +14,7 @@ local Signal = require(Paths.Shared.Signal)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
@@ -145,8 +146,34 @@ do
     Remotes.declareEvent("DataUpdated")
 
     Remotes.bindFunctions({
-        GetPlayerData = function(player: Player, address: string)
+        GetPlayerData = function(_player: Player, dirtyPlayer: any, dirtyAddress: any)
+            -- Clean parameters
+            local player = typeof(dirtyPlayer) == "Instance" and dirtyPlayer:IsA("Player") and dirtyPlayer
+            local address = TypeUtil.toString(dirtyAddress)
+
+            if not (player and address) then
+                return nil
+            end
+
             return DataService.get(player, address)
+        end,
+        GetPlayerDataMany = function(_player: Player, dirtyPlayer: any, dirtyAddresses: any)
+            -- Clean parameters
+            local player = typeof(dirtyPlayer) == "Instance" and dirtyPlayer:IsA("Player") and dirtyPlayer
+            local addresses: { string } = TypeUtil.toArray(dirtyAddresses, function(value: any)
+                return TypeUtil.toString(value) and true or false
+            end)
+
+            if not (player and addresses) then
+                return nil
+            end
+
+            local results: { DataUtil.Data } = {}
+            for _, address in pairs(addresses) do
+                table.insert(results, DataService.get(player, address))
+            end
+
+            return results
         end,
     })
 end
