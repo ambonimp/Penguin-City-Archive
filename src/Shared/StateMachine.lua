@@ -6,6 +6,8 @@ StateMachine.__index = StateMachine
 
 type Operation = string
 
+export type StateMachine = typeof(StateMachine.new({}, ""))
+
 local OPERATION_PUSH: Operation = "Push"
 local OPERATION_REPLACE: Operation = "Replace"
 local OPERATION_POP: Operation = "Pop"
@@ -14,7 +16,7 @@ local OPERATION_POP_TO_AND_PUSH: Operation = "PopToAndPush"
 local OPERATION_CLEAR_AND_PUSH: Operation = "ClearAndPush"
 local OPERATION_REMOVE: Operation = "Remove"
 local SHOW_TRACEBACK_IN_DEBUG = false
-local SHOW_DEBUG = false
+local SHOW_DEBUG = true
 
 local function prettyError(operation: string, state: string, append: string)
     error(("[StateMachine] Error during %s operation with %s state: %s"):format(operation, tostring(state), append), 3)
