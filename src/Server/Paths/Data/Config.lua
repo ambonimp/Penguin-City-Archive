@@ -15,20 +15,16 @@ DataConfig.DataKey = GameUtil.getDataKey()
 
 --#region Default constants
 local defaultInventory = {}
-local defaultIgloo = {
-    IglooPlot = "Default",
-    IglooHouse = "Default",
-    Placements = {
+local defaultHouse = {
+    Blueprint = "Default",
+    -- TODO: Make this save items for every blueprint
+    Furniture = {
         ["1"] = {
-            Id = 1,
             Name = "Floor_Lamp_01",
             Color = "239,184,56",
             Rotation = "0,0,0",
             Position = "6.01904296875, 4.8195648193359375, -15.5107421875",
         },
-    },
-    OwnedItems = {
-        ["Floor_Lamp_01"] = 3,
     },
 }
 local defaultCharacterAppearance = {
@@ -46,7 +42,7 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,
         Inventory = defaultInventory,
-        Igloo = defaultIgloo,
+        House = defaultHouse,
         Products = {},
         ProductPurchaseReceiptKeys = {},
         Settings = {},

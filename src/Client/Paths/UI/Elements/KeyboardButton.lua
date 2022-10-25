@@ -298,6 +298,10 @@ function KeyboardButton.new()
 
     -- Nicely changes the text displayed on this keyboardButton. Supports UIStroke!
     function keyboardButton:SetText(newText: string, skipTween: boolean?)
+        -- ReTURN: No need to update something that's already set
+        if text == newText then
+            return
+        end
         text = newText
 
         if skipTween then

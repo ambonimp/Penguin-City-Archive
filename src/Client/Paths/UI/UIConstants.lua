@@ -8,6 +8,7 @@ UIConstants.States = {
     PizzaMinigame = "PizzaMinigame",
     House = "House",
     HouseEditor = "HouseEditor",
+    FurniturePlacement = "FurniturePlacement",
     PlotSettings = "PlotSettings",
     PlotChanger = "PlotChanger",
     HouseSelectionUI = "HouseSelectionUI",

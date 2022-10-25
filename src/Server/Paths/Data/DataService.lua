@@ -48,15 +48,24 @@ function DataService.set(player: Player, address: string, newValue: any, event: 
     end
 end
 
--- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function DataService.append(player: Player, address: string, newValue: any, event: string?, eventMeta: table?): string
+--[[
+    Doesn't add on to length so accounts for gaps
+    No point in having insert since event wouldn't be usefull if you're setting the whole table and key would have to be a string otherwise
+]]
+--
+function DataService.getAppendageKey(player: Player, address: string)
     local length = 0
     for i in DataService.get(player, address) do
         local index = tonumber(i)
         length = math.max(index, length)
     end
 
-    local key = tostring(length + 1)
+    return tostring(length + 1)
+end
+
+-- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
+function DataService.append(player: Player, address: string, newValue: any, event: string?, eventMeta: table?): string
+    local key = DataService.getAppendageKey(player, address)
     DataService.set(player, address .. "." .. key, newValue, event, eventMeta)
 
     return key

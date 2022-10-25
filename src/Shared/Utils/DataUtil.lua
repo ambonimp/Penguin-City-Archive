@@ -155,27 +155,16 @@ end
 
 function DataUtil.serializeValue<T>(value: T): string
     local valueType = typeof(value)
-    if valueType == "Color3" then
-        return ("%d,%d,%d"):format(value.R, value.G, value.B)
-    elseif valueType == "Vector3" then
-        return ("%d,%d,%d"):format(value.X, value.Y, value.Z)
+    if valueType == "Color3" or "Vector3" then
+        return tostring(valueType)
     end
 end
 
-function DataUtil.desieralizeValue<T>(serializedValue: string, valueType: T): T
+function DataUtil.deserializeValue<T>(serializedValue: string, valueType: T): T
     if valueType == Color3 then
-        local color = {}
-        for value in string.gmatch(serializedValue, "[^%,]+") do
-            table.insert(color, value)
-        end
-
-        return Color3.new(color[1], color[2], color[3])
+        return Color3.new(table.unpack(string.split(serializedValue, ", ")))
     elseif valueType == Vector3 then
-        local vector = {}
-        for axis in string.gmatch(serializedValue, "[^%,]+") do
-            table.insert(vector, axis)
-        end
-        return Vector3.new(vector[1], vector[2], vector[3])
+        return Vector3.new(table.unpack(string.split(serializedValue, ", ")))
     end
 end
 
