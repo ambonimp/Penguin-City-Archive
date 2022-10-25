@@ -1,6 +1,10 @@
 local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
     -- Rooms
-    Room = {},
+    Room = {
+        PizzaPlace = {
+            Music = "PizzaPlace",
+        },
+    },
 
     -- Minigames
     Minigame = {
@@ -10,6 +14,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
                 Ambient = Color3.fromRGB(130, 120, 113),
             },
             DisableCollisions = true,
+            Music = false,
         },
     },
 }
@@ -19,6 +24,7 @@ export type ZoneSettings = {
         Ambient: Color3?,
     }?,
     DisableCollisions: boolean?,
+    Music: boolean | string?, -- Set to false to disable music. nil/true for MainTheme.
 }
 
 return ZoneSettings

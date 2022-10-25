@@ -49,12 +49,15 @@ Images.Icons = {
     Pants = "rbxassetid://11152370202",
     Pets = "rbxassetid://11152370072",
     Place = "rbxassetid://11152370003",
+    Robux = "rbxassetid://11333748345",
     Rotate = "rbxassetid://11152369890",
     RightArrow = "rbxassetid://6583638192",
     Seal = "rbxassetid://11152369785",
     Search = "rbxassetid://11152369702",
     Shirt = "rbxassetid://11152369627",
+    Stamp = "rbxassetid://11250982379",
     Text = "rbxassetid://11152369398",
+    VoldexLogo = "rbxassetid://11250982454",
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
@@ -143,6 +146,26 @@ Images.BodyTypes = {
     ["Kid"] = "rbxassetid://11191456481",
     ["Teen"] = "rbxassetid://11191457026",
     ["Adult"] = "rbxassetid://11191456133",
+}
+--#endregion
+--#region StampBook
+Images.StampBook = {
+    Cover = "rbxassetid://11251247354",
+    Page = "rbxassetid://11251357764",
+    MetalCoil = "rbxassetid://11251357312",
+    Seal = "rbxassetid://11251246916",
+    PictureFrame = "rbxassetid://11251159219",
+    NavigationArrowRight = "rbxassetid://11252175153",
+    NavigationArrowLeft = "rbxassetid://11252199030",
+    Patterns = {
+        Circles = "rbxassetid://11251328139",
+        Voldex = "rbxassetid://11251328429",
+    },
+    Titles = {
+        Pizza = "rbxassetid://11251854955",
+        Icecream = "rbxassetid://11326115625",
+        SledRace = "rbxassetid://11326115410",
+    },
 }
 --#endregion
 

@@ -156,10 +156,13 @@ end
 -- We got a new UIScale in the building!
 local function newUIScale(uiScale: UIScale)
     -- Init Data
+    local thisSize: UDim2 = uiScale.Parent.Size
+    local thisScale = uiScale.Scale
+
     local data: UIScaleData = {
         Container = {
             Instance = uiScale.Parent,
-            Value = uiScale.Parent.Size,
+            Value = UDim2.new(thisSize.X.Scale * thisScale, thisSize.X.Offset, thisSize.Y.Scale * thisScale, thisSize.Y.Offset), -- Convert from developer
         },
         SpecialInstances = {},
     }
