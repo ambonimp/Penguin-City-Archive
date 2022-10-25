@@ -40,7 +40,7 @@ local cosmeticsEnabled = Toggle.new(false, function(value)
     end
 end)
 
-local function inn(directionOut: UDim2, frame: Frame, cosmetics)
+local function inn(directionOut: UDim2, frame: GuiObject, cosmetics)
     if cosmetics then
         cosmeticsEnabled:Set(true, frame)
     end
@@ -54,12 +54,12 @@ local function inn(directionOut: UDim2, frame: Frame, cosmetics)
     TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Position = initialPosition }))
 end
 
-local function outt(directionOut: UDim2, frame: Frame, cosmetics)
+local function outt(directionOut: UDim2, frame: GuiObject, cosmetics)
     if cosmetics then
         cosmeticsEnabled:Set(true, frame)
     end
 
-    local initialPosition = frame.Position
+    local initialPosition = Binder.bindFirst(frame, "InitialPosition", frame.Position)
 
     frame.Visible = true
 
@@ -73,14 +73,14 @@ local function outt(directionOut: UDim2, frame: Frame, cosmetics)
     )
 end
 
-function ScreenUtil.sizeOut(frame: Frame)
+function ScreenUtil.sizeOut(frame: GuiObject)
     frame.Visible = true
     TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = UDim2.fromScale(0, 0) }), function()
         frame.Visible = false
     end)
 end
 
-function ScreenUtil.sizeIn(frame: Frame)
+function ScreenUtil.sizeIn(frame: GuiObject)
     local MaxSize = frame:GetAttribute("Size") or frame.Size
     if frame:GetAttribute("Size") == nil then
         frame:SetAttribute("Size", frame.Size)
@@ -93,42 +93,48 @@ end
 --[[
     Tweens a frame into view from the bottom of the screen to it's initial position
 ]]
-function ScreenUtil.inUp(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.inUp(frame: GuiObject, cosmetics: boolean?)
     inn(UDim2.fromScale(0, 1), frame, cosmetics)
+end
+--[[
+    Tweens a frame out view from the bottom of the screen to it's initial position
+]]
+function ScreenUtil.outUp(frame: GuiObject, cosmetics: boolean?)
+    outt(UDim2.fromScale(0, -1), frame, cosmetics)
 end
 --[[
     Tweens a frame out of view from the bottom of the screen
 ]]
-function ScreenUtil.outDown(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.outDown(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(0, 1), frame, cosmetics)
 end
 --[[
     Tweens a frame into view from the top of the screen to it's initial position
 ]]
-function ScreenUtil.inDown(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.inDown(frame: GuiObject, cosmetics: boolean?)
     inn(UDim2.fromScale(0, -1), frame, cosmetics)
 end
 --[[
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
-function ScreenUtil.inRight(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.inRight(frame: GuiObject, cosmetics: boolean?)
     inn(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
 
-function ScreenUtil.outRight(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.outRight(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
 --[[
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
-function ScreenUtil.inLeft(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.inLeft(frame: GuiObject, cosmetics: boolean?)
     inn(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
-function ScreenUtil.outLeft(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.outLeft(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
 
-function ScreenUtil.out(frame: Frame, cosmetics: boolean?)
+function ScreenUtil.out(frame: GuiObject, cosmetics: boolean?)
     frame.Visible = false
 
     if cosmetics then

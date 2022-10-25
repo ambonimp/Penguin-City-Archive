@@ -2,7 +2,6 @@ local HousingScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Remotes = require(Paths.Shared.Remotes)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Button = require(Paths.Client.UI.Elements.Button)
@@ -12,21 +11,18 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local EditMode: typeof(require(Paths.Client.HousingController.EditMode))
-local PlayerData = require(Paths.Client.DataController)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
+local ZoneController = require(Paths.Client.ZoneController)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local DEFAULT_EDIT_CATEGORY = "Furniture"
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
-local loadedPrompts = false
-
 local uiStateMachine = UIController.getStateMachine()
-
 local templates: Folder = Paths.Templates.Housing
-local assets: Folder = Paths.Assets.Housing
-
 local screenGui: ScreenGui = Paths.UI.Housing
 local paintFrame: Frame = screenGui.Paint
 local editFrame: Frame = screenGui.Edit
@@ -76,7 +72,6 @@ do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.House, function(data)
         if data.CanEdit then
             editToggleContainer.Visible = true
-            editToggleButton:SetText("Edit")
         end
     end, function()
         if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
@@ -85,7 +80,7 @@ do
     end)
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function()
-        editToggleButton:SetText("Exit Edit")
+        ScreenUtil.inDown(editToggleContainer)
         editToggleContainer.Visible = true
 
         ScreenUtil.inUp(editFrame)
@@ -101,16 +96,20 @@ do
         end
 
         ScreenUtil.outDown(editFrame)
+        ScreenUtil.outUp(editToggleContainer)
     end)
 end
 
 -- Manipulate UIStates
 do
     local function close()
-        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = true })
+        local houseOwner = ZoneUtil.getHouseZoneOwner(ZoneController.getCurrentZone())
+        local canEdit = houseOwner and ZoneController.hasEditPerms(houseOwner) or false
+        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = canEdit })
     end
 
-    editToggleButton = WideButton.green("Edit")
+    UIUtil.offsetGuiInset(editToggleContainer)
+    editToggleButton = WideButton.green("Exit Edit")
     editToggleButton.Pressed:Connect(function()
         if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
             close()
@@ -119,6 +118,7 @@ do
         end
     end)
     editToggleButton:Mount(editToggleContainer, true)
+    ScreenUtil.outUp(editToggleContainer)
 
     local exitButton = ExitButton.new()
     exitButton:Mount(editFrame.ExitButton, true)
@@ -165,7 +165,7 @@ do
     local currentCategory: string?
     local selectedBackground: Frame = editCategoryTabs.SelectedTab
 
-    local function addModelToViewport(model: Model, viewport: ViewportFrame)
+    local function _addModelToViewport(model: Model, viewport: ViewportFrame)
         local _, size
         _, size = model:GetBoundingBox()
 
@@ -220,7 +220,7 @@ do
         page.Parent = editCategoryPages
 
         -- Load objects
-        for objectName, objectInfo in pairs(categoryConstants.Objects) do
+        for objectName, _objectInfo in pairs(categoryConstants.Objects) do
             local objectButtonObject: ImageButton = templates.Object:Clone()
             objectButtonObject.Name = objectName
 

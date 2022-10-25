@@ -59,7 +59,7 @@ local function igloo(button: AnimatedButton.AnimatedButton)
     -- toggle edit functionality
     button.Pressed:Connect(function()
         if isIglooButtonEdit() then
-            print("edit")
+            UIController.getStateMachine():Push(UIConstants.States.HouseEditor)
         else
             ZoneController.teleportToRoomRequest(ZoneController.getHouseZone())
         end
@@ -84,8 +84,8 @@ end
 
 local function createButton(frame: Frame, _alignment: "Left" | "Right")
     local imageButton = Instance.new("ImageButton")
-    imageButton.Size = UDim2.fromScale(0.7, 0.7)
-    imageButton.AnchorPoint = Vector2.new(0.2, 0.8)
+    imageButton.Size = UDim2.fromScale(0.9, 0.9)
+    imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
     imageButton.Position = UDim2.fromScale(0.5, 0.5)
     imageButton.BackgroundTransparency = 1
     imageButton.ScaleType = Enum.ScaleType.Fit
@@ -124,8 +124,8 @@ function HUDScreen.Init()
         -- Igloo Button (toggle edit look)
         do
             local pencilImage = Instance.new("ImageLabel")
-            pencilImage.Size = UDim2.fromScale(0.9, 0.9)
-            pencilImage.AnchorPoint = Vector2.new(0.5, 0.5)
+            pencilImage.Size = UDim2.fromScale(0.7, 0.7)
+            pencilImage.AnchorPoint = Vector2.new(0.2, 0.8)
             pencilImage.Position = UDim2.fromScale(0.5, 0.5)
             pencilImage.BackgroundTransparency = 1
             pencilImage.ScaleType = Enum.ScaleType.Fit
