@@ -42,7 +42,7 @@ function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
     return ZoneUtil.getZoneTypeDirectory(zone.ZoneType):FindFirstChild(zone.ZoneId) and true or false
 end
 
-function ZoneUtil.getHouseZoneOwner(zone: ZoneConstants.Zone)
+function ZoneUtil.getHouseZoneOwner(zone: ZoneConstants.Zone): Player?
     -- RETURN: Not a house zone
     if not ZoneUtil.isHouseZone(zone) then
         return nil

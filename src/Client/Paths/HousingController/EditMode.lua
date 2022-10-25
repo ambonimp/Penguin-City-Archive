@@ -6,20 +6,24 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
 local HousingController = require(Paths.Client.HousingController)
 local InputController = require(Paths.Client.Input.InputController)
-local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
+local HousingScreen = require(Paths.Client.UI.Screens.Housing.HouseEditorScreen)
 local PlayerData = require(Paths.Client.DataController)
 local Remotes = require(Paths.Shared.Remotes)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController = require(Paths.Client.UI.UIController)
 
 local ATTRIBUTE_IS_SETUP = "Setup"
 local ATTRIBUTE_CAN_COLLIDE = "CanCollide"
-local MOVE_TWEEN_INFO = TweenInfo.new(0.146, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+local MOVE_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+
+local uiStateMachine = UIController.getStateMachine()
 
 local player = Players.LocalPlayer
-local housingScreenItemMove: Frame = HousingScreen.itemMove
+local housingScreenItemMove: Frame = HousingScreen.ItemMove
 local housingScreenItemButtons: Frame = housingScreenItemMove.Frame.Center.Buttons
 local moveButton: TextButton = housingScreenItemMove.Frame.Move.Button
 local closeButton: TextButton = housingScreenItemButtons.Close.Button
@@ -224,7 +228,7 @@ function EditMode.newObjectSelected(object: Model)
 
     object:PivotTo(NewCFrame)
     objectType = "NewObject"
-    object.Parent = HousingController.currentHouse.Parent.Furniture
+    object.Parent = HousingController.CurrentHouse.Parent.Furniture
 
     itemSelected(object)
 end
@@ -238,14 +242,14 @@ moveButton.MouseButton1Down:Connect(function()
                     hasObjectMoved = true
                 end
                 local ignore = { selectedModel, player.Character }
-                for _, v: Model in HousingController.currentHouse.Parent.Furniture:GetChildren() do
+                for _, v: Model in HousingController.CurrentHouse.Parent.Furniture:GetChildren() do
                     if v:IsA("Model") then
                         table.insert(ignore, v.PrimaryPart)
                     end
                 end
                 local result = MouseUtil.getMouseTarget(ignore, true)
                 local Target, Position = result.Instance, result.Position
-                if Target and Target:IsDescendantOf(HousingController.currentHouse.Parent) and Position and selectedModel then
+                if Target and Target:IsDescendantOf(HousingController.CurrentHouse.Parent) and Position and selectedModel then
                     lastPosition = Position
                     moveSelected(Position)
                 end
@@ -309,7 +313,7 @@ end)
 
 InputController.CursorDown:Connect(function()
     -- RETURN: Not in a fit state to be editing
-    if not (HousingController.isEditing and HousingController.currentHouse) then
+    if not (uiStateMachine:HasState(UIConstants.States.HouseEditor) and HousingController.CurrentHouse) then
         return
     end
     local OldSelected = selectedModel
@@ -325,7 +329,7 @@ InputController.CursorDown:Connect(function()
     local result = MouseUtil.getMouseTarget({ player.Character }, true)
     local target = result.Instance
 
-    if target and target:IsDescendantOf(HousingController.currentHouse.Parent.Furniture) then
+    if target and target:IsDescendantOf(HousingController.CurrentHouse.Parent.Furniture) then
         if target.Parent.Name == "CanColor" then
             target = target.Parent
         end

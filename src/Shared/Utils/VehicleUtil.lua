@@ -61,7 +61,7 @@ end
 function VehicleUtil.new(player: Player, model: Model)
     et = 0
 
-    platform = model.Platform
+    platform = model:WaitForChild("Platform")
     platformSize = platform.Size / 2
 
     moveVelocity = Vector3.new()

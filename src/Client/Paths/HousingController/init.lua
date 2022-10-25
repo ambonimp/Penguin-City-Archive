@@ -3,50 +3,40 @@ local HousingController = {}
 local Paths = require(script.Parent)
 
 local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local Remotes = require(Paths.Shared.Remotes)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
-local HousingScreen = require(Paths.Client.UI.Screens.HousingScreen)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
+local player = Players.LocalPlayer
 local plots = workspace.Rooms.Neighborhood.HousingPlots
 
-HousingController.currentHouse = nil :: Model?
-
-function HousingController.Init()
-    HousingController.isEditing = false :: boolean
-end
+local uiStateMachine = UIController.getStateMachine()
+HousingController.CurrentHouse = nil :: Model?
 
 local function setupPlayerHouse()
     --wait for character to load house
-    local Character = Player.Character or Player.CharacterAdded:Wait()
-    HousingController.loadPlayerHouse(Player, Character)
-
-    --show edit button, true: has access to edit
-    HousingScreen.houseEntered(true)
+    local Character = player.Character or player.CharacterAdded:Wait()
+    HousingController.loadPlayerHouse(player, Character)
 end
 
 function HousingController.Start()
     -- Enter/Exit
     ZoneController.ZoneChanged:Connect(function(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
         if ZoneUtil.isHouseZone(fromZone) then
-            HousingScreen.houseExited()
+            uiStateMachine:Remove(UIConstants.States.House)
         end
         if ZoneUtil.isHouseZone(toZone) then
             local zoneOwner = ZoneUtil.getHouseZoneOwner(toZone)
             local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO Check DataController for list of UserId we have edit perms for
-            HousingScreen.houseEntered(hasEditPerms)
+
+            uiStateMachine:Push(UIConstants.States.House, {
+                    CanEdit = hasEditPerms,
+                })
         end
     end)
-
-    -- Communication
-    Remotes.bindEvents({
-        PlotChanged = function(newPlot: Model)
-            HousingScreen.plotChanged(newPlot)
-        end,
-    })
 
     setupPlayerHouse()
 end
@@ -76,9 +66,9 @@ function HousingController.getPlayerPlot(player: Player, type: string)
 end
 
 --Loads a players house
-function HousingController.loadPlayerHouse(player: Player, character: Model)
-    local plot = HousingController.getPlayerPlot(player, HousingConstants.HouseType)
-    HousingController.currentHouse = plot:FindFirstChildOfClass("Model")
+function HousingController.loadPlayerHouse(owner: Player, character: Model)
+    local plot = HousingController.getPlayerPlot(owner, HousingConstants.HouseType)
+    HousingController.CurrentHouse = plot:FindFirstChildOfClass("Model")
 end
 
 return HousingController

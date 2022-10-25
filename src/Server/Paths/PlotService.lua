@@ -3,12 +3,14 @@ local PlotService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ObjectModule = require(Paths.Shared.HousingObjectData)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
 local PlayerService = require(Paths.Server.PlayerService)
@@ -29,6 +31,13 @@ function PlotService.Init()
     Remotes.declareEvent("ExitedHouse")
     Remotes.declareEvent("PlotChanged")
     Remotes.declareEvent("UpdateHouseUI")
+
+    for _, plot in ipairs(Workspace.Rooms.Neighborhood.HousingPlots:GetChildren()) do
+        InteractionUtil.createInteraction(plot.Mailbox, {
+            ObjectText = "Mailbox",
+            ActionText = "Open",
+        })
+    end
 end
 
 local function findInPlacements(id: number, placements)
