@@ -16,6 +16,8 @@ type ButtonAnimation = {
 }
 type AnimationConstructor = (...any) -> ButtonAnimation
 
+export type AnimatedButton = typeof(AnimatedButton.new(Instance.new("ImageButton")))
+
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 

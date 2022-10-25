@@ -15,6 +15,7 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local MAX_YIELD_TIME_ZONE_LOADING = 10
 local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
@@ -45,6 +46,21 @@ end
 
 function ZoneController.getCurrentRoomZone()
     return currentRoomZone
+end
+
+-- Returns the local players' house zone
+function ZoneController.getHouseZone()
+    return ZoneUtil.houseZone(Players.LocalPlayer)
+end
+
+-- Returns true if the local player has edit perms
+function ZoneController.hasEditPerms(houseOwner: Player)
+    if houseOwner == Players.LocalPlayer then
+        return true
+    end
+
+    --TODO Check DataController for list of UserId we have edit perms for
+    return false
 end
 
 -------------------------------------------------------------------------------
@@ -237,6 +253,12 @@ function ZoneController.teleportToDefaultZone()
     end
 
     ZoneController.teleportToRoomRequest(defaultZone)
+end
+
+function ZoneController.teleportToRandomRoom()
+    local zoneId = TableUtil.getRandom(ZoneConstants.ZoneId.Room)
+    local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, zoneId)
+    ZoneController.teleportToRoomRequest(roomZone)
 end
 
 -------------------------------------------------------------------------------

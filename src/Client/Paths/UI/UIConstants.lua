@@ -19,9 +19,10 @@ UIConstants.States = {
 UIConstants.PseudoStates = {
     [UIConstants.States.HUD] = {
         UIConstants.States.Vehicles,
-        UIConstants.States.PlotSettingss,
+        UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
+        UIConstants.States.House,
     },
 }
 

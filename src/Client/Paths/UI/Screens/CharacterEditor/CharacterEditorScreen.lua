@@ -223,23 +223,6 @@ do
     exitButton.InternalPress:Connect(function()
         uiStateMachine:Pop()
     end)
-
-    -- TODO: Replace this with something on the HUD
-    UserInputService.InputBegan:Connect(function(inputObject, gameProcessedEvent)
-        -- RETURN: Game processed event
-        if gameProcessedEvent then
-            return
-        end
-
-        if inputObject.KeyCode == Enum.KeyCode.R then
-            local isOpen = uiStateMachine:GetState() == UIConstants.States.CharacterEditor
-            if isOpen then
-                uiStateMachine:Pop()
-            else
-                uiStateMachine:Push(UIConstants.States.CharacterEditor)
-            end
-        end
-    end)
 end
 
 return CharacterEditorScreen

@@ -30,11 +30,11 @@ function HousingController.Start()
         end
         if ZoneUtil.isHouseZone(toZone) then
             local zoneOwner = ZoneUtil.getHouseZoneOwner(toZone)
-            local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO Check DataController for list of UserId we have edit perms for
+            local hasEditPerms = ZoneController.hasEditPerms(zoneOwner)
 
             uiStateMachine:Push(UIConstants.States.House, {
-                    CanEdit = hasEditPerms,
-                })
+                CanEdit = hasEditPerms,
+            })
         end
     end)
 
