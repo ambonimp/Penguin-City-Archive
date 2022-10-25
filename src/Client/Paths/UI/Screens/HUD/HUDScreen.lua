@@ -12,6 +12,16 @@ local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Sound = require(Paths.Shared.Sound)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+
+local BUTTON_PROPERTIES = {
+    Position = UDim2.fromScale(0.5, 0.5),
+    Size = UDim2.fromScale(0.9, 0.9),
+}
+local UNFURLED_MAP_PROPERTIES = {
+    Position = UDim2.fromScale(0.75, 0.5),
+    Size = UDim2.fromScale(1.5, 0.9),
+}
 
 local screenGui: ScreenGui = Ui.HUD
 local buttons: {
@@ -22,6 +32,8 @@ local buttons: {
         Left = {},
         Right = {},
     }
+local openCallbacks: { () -> () } = {}
+local closeCallbacks: { () -> () } = {}
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
@@ -82,16 +94,19 @@ local function inventory(button: AnimatedButton.AnimatedButton)
     end)
 end
 
-local function createButton(frame: Frame, _alignment: "Left" | "Right")
+local function createAnimatedButton(frame: Frame, _alignment: "Left" | "Right")
     local imageButton = Instance.new("ImageButton")
-    imageButton.Size = UDim2.fromScale(0.9, 0.9)
+    imageButton.Size = BUTTON_PROPERTIES.Size
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    imageButton.Position = UDim2.fromScale(0.5, 0.5)
+    imageButton.Position = BUTTON_PROPERTIES.Position
     imageButton.BackgroundTransparency = 1
     imageButton.ScaleType = Enum.ScaleType.Fit
     imageButton.Parent = frame
 
     local button = AnimatedButton.new(imageButton)
+    button:SetPressAnimation(AnimatedButton.Animations.Squish)
+    button:SetHoverAnimation(AnimatedButton.Animations.Nod)
+
     return button
 end
 
@@ -106,17 +121,18 @@ function HUDScreen.Init()
         end
 
         -- Create Buttons
-        table.insert(buttons.Left, createButton(screenGui.Left.Buttons["1"], "Left"))
-        table.insert(buttons.Left, createButton(screenGui.Left.Buttons["2"], "Left"))
-        table.insert(buttons.Right, createButton(screenGui.Right.Buttons["1"], "Right"))
-        table.insert(buttons.Right, createButton(screenGui.Right.Buttons["2"], "Right"))
-        table.insert(buttons.Right, createButton(screenGui.Right.Buttons["3"], "Right"))
+        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["1"], "Left"))
+        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["2"], "Left"))
+        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["1"], "Right"))
+        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["2"], "Right"))
+        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["3"], "Right"))
 
         -- Setup
+        local mapButton = buttons.Left[2]
         local iglooButton = buttons.Right[1]
 
         party(buttons.Left[1])
-        map(buttons.Left[2])
+        map(mapButton)
         igloo(iglooButton)
         stampBook(buttons.Right[2])
         inventory(buttons.Right[3])
@@ -142,6 +158,30 @@ function HUDScreen.Init()
 
             ZoneController.ZoneChanged:Connect(updateIgloo)
             updateIgloo()
+        end
+
+        -- Map button (folded and open)
+        do
+            mapButton:SetHoverAnimation(nil)
+            local buttonObject: ImageButton = mapButton:GetButtonObject()
+
+            local function fold()
+                buttonObject.Position = BUTTON_PROPERTIES.Position
+                buttonObject.Size = BUTTON_PROPERTIES.Size
+                buttonObject.Image = Images.ButtonIcons.FoldedMap
+            end
+
+            local function unfurl()
+                buttonObject.Position = UNFURLED_MAP_PROPERTIES.Position
+                buttonObject.Size = UNFURLED_MAP_PROPERTIES.Size
+                buttonObject.Image = Images.ButtonIcons.Map
+            end
+
+            mapButton.InternalEnter:Connect(unfurl)
+            mapButton.InternalLeave:Connect(fold)
+            table.insert(openCallbacks, fold)
+
+            fold()
         end
     end
 
@@ -183,11 +223,27 @@ function HUDScreen.Init()
 end
 
 function HUDScreen.open()
-    screenGui.Enabled = true
+    for _, callback in pairs(openCallbacks) do
+        task.spawn(callback)
+    end
+
+    ScreenUtil.inRight(screenGui.Left)
+    ScreenUtil.inLeft(screenGui.Right)
 end
 
 function HUDScreen.close()
-    screenGui.Enabled = false
+    for _, callback in pairs(closeCallbacks) do
+        task.spawn(callback)
+    end
+
+    ScreenUtil.outLeft(screenGui.Left)
+    ScreenUtil.outRight(screenGui.Right)
 end
+
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
+
+screenGui.Enabled = true
 
 return HUDScreen

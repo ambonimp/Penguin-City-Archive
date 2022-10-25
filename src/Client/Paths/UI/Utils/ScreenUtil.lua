@@ -102,18 +102,20 @@ end
 function ScreenUtil.outUp(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(0, -1), frame, cosmetics)
 end
---[[
-    Tweens a frame out of view from the bottom of the screen
-]]
-function ScreenUtil.outDown(frame: GuiObject, cosmetics: boolean?)
-    outt(UDim2.fromScale(0, 1), frame, cosmetics)
-end
+
 --[[
     Tweens a frame into view from the top of the screen to it's initial position
 ]]
 function ScreenUtil.inDown(frame: GuiObject, cosmetics: boolean?)
     inn(UDim2.fromScale(0, -1), frame, cosmetics)
 end
+--[[
+    Tweens a frame out of view from the bottom of the screen
+]]
+function ScreenUtil.outDown(frame: GuiObject, cosmetics: boolean?)
+    outt(UDim2.fromScale(0, 1), frame, cosmetics)
+end
+
 --[[
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
@@ -122,13 +124,14 @@ function ScreenUtil.inRight(frame: GuiObject, cosmetics: boolean?)
 end
 
 function ScreenUtil.outRight(frame: GuiObject, cosmetics: boolean?)
-    outt(UDim2.fromScale(-1, 0), frame, cosmetics)
+    outt(UDim2.fromScale(1, 0), frame, cosmetics)
 end
+
 --[[
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
 function ScreenUtil.inLeft(frame: GuiObject, cosmetics: boolean?)
-    inn(UDim2.fromScale(-1, 0), frame, cosmetics)
+    inn(UDim2.fromScale(1, 0), frame, cosmetics)
 end
 function ScreenUtil.outLeft(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(-1, 0), frame, cosmetics)
