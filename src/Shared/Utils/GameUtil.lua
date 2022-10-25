@@ -7,7 +7,7 @@ local GameConstants = require(ReplicatedStorage.Shared.Constants.GameConstants)
 type PlaceName = "Dev" | "Live" | "QA" | "feature"
 
 local DATA_NUM = {
-    Dev = 7,
+    Dev = 8,
     QA = 1,
     Live = 1, --!! Dangerous. Past nums: (1: Alpha)
 }
