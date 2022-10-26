@@ -82,7 +82,6 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
 
     local houseCFrame = CFrame.new(plot.Origin.Position)
 
-    warn(metadata)
     local position = metadata.Position -- Local, relative to house cframe
     local rotation = metadata.Rotation
     local color = metadata.Color

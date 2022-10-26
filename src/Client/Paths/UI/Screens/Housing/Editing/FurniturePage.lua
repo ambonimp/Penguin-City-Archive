@@ -180,176 +180,182 @@ do
         end
 
         -- Initialize info
-        if isNewObject then
-            rotationY = 0
-            name = model.Name
-            color = FurnitureConstants.Objects[model.Name].DefaultColor
-            position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0) + heightOffset
+        do
+            if isNewObject then
+                rotationY = 0
+                name = model.Name
+                color = FurnitureConstants.Objects[model.Name].DefaultColor
+                position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0) + heightOffset
 
-            model:PivotTo(CFrame.new(position))
-            model.Parent = plot.Furniture
+                model:PivotTo(CFrame.new(position))
+                model.Parent = plot.Furniture
 
-            applyColor()
-            applyCFrame() -- Just for the selection box
+                applyColor()
+                applyCFrame() -- Just for the selection box
 
-            placementSession:GiveTask(model)
-        else
-            local store = DataController.get("House.Furniture." .. model.Name)
-            color = DataUtil.deserializeValue(store.Color, Color3)
-            rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
-            position = plotCFrame:PointToWorldSpace(DataUtil.deserializeValue(store.Position, Vector3))
+                placementSession:GiveTask(model)
+            else
+                local store = DataController.get("House.Furniture." .. model.Name)
+                color = DataUtil.deserializeValue(store.Color, Color3)
+                rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
+                position = plotCFrame:PointToWorldSpace(DataUtil.deserializeValue(store.Position, Vector3))
+            end
         end
 
         -- Initialize model
-        if not model:GetAttribute(ATT_MODEL_INITALIZED) then -- Allows model to be tweened
-            model:SetAttribute(ATT_MODEL_INITALIZED, true)
+        do
+            if not model:GetAttribute(ATT_MODEL_INITALIZED) then -- Allows model to be tweened
+                model:SetAttribute(ATT_MODEL_INITALIZED, true)
 
-            local primaryPart = model.PrimaryPart
-            for _, basePart in pairs(model:GetDescendants()) do
-                if basePart:IsA("BasePart") and basePart ~= primaryPart then
-                    basePart.Anchored = false
-                    PartUtil.weld(primaryPart, basePart)
+                local primaryPart = model.PrimaryPart
+                for _, basePart in pairs(model:GetDescendants()) do
+                    if basePart:IsA("BasePart") and basePart ~= primaryPart then
+                        basePart.Anchored = false
+                        PartUtil.weld(primaryPart, basePart)
+                    end
                 end
             end
-        end
 
-        for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
-            if basePart:IsA("BasePart") then
-                Binder.bind(basePart, "PreSelectedProps", {
-                    CanTouch = basePart.CanTouch,
-                    CanCollide = basePart.CanCollide,
-                })
-
-                basePart.CanCollide = false
-                basePart.CanTouch = false
-            end
-        end
-
-        placementSession:GiveTask(function()
             for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
                 if basePart:IsA("BasePart") then
-                    local preSelectedProps = Binder.getBinded(basePart, "PreSelectedProps")
-                    basePart.CanTouch = preSelectedProps.CanTouch
-                    basePart.CanCollide = preSelectedProps.CanCollide
-                end
-            end
-        end)
+                    Binder.bind(basePart, "PreSelectedProps", {
+                        CanTouch = basePart.CanTouch,
+                        CanCollide = basePart.CanCollide,
+                    })
 
-        -- Placement controls
-        placementControls.Enabled = true
-        placementControls.Adornee = model
-        placementSession:GiveTask(function()
-            placementControls.Enabled = false
-            placementControls.Adornee = nil :: Instance
-        end)
-
-        -- Moving
-        local moving
-
-        local function closeMoving()
-            -- RETURN: Can't close something that isn't open
-            if not moving then
-                return
-            end
-
-            moving = false
-
-            UserInputService.MouseIconEnabled = true
-            placementControls.Others.Visible = true
-
-            RunService:UnbindFromRenderStep("MoveObject")
-        end
-
-        placementSession:GiveTask(InputController.CursorUp:Connect(closeMoving))
-        placementSession:GiveTask(closeMoving)
-
-        placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
-            moving = true
-
-            UserInputService.MouseIconEnabled = false
-            placementControls.Others.Visible = false
-
-            local ignore = { model, player.Character }
-            for _, otherFurniture: Model in pairs(plot.Furniture:GetChildren()) do
-                if otherFurniture:IsA("Model") then
-                    table.insert(ignore, otherFurniture.PrimaryPart)
+                    basePart.CanCollide = false
+                    basePart.CanTouch = false
                 end
             end
 
-            -- ty joel
-            local offset = position - (MouseUtil.getMouseTarget(ignore, true).Position + heightOffset)
-            RunService:BindToRenderStep("MoveObject", Enum.RenderPriority.First.Value, function()
-                local result = MouseUtil.getMouseTarget(ignore, true)
-                local target, newPosition = result.Instance, result.Position
-                if target and target:IsDescendantOf(plot) and newPosition then
-                    position = newPosition + heightOffset + offset
-                    applyCFrame()
+            placementSession:GiveTask(function()
+                for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
+                    if basePart:IsA("BasePart") then
+                        local preSelectedProps = Binder.getBinded(basePart, "PreSelectedProps")
+                        basePart.CanTouch = preSelectedProps.CanTouch
+                        basePart.CanCollide = preSelectedProps.CanCollide
+                    end
                 end
             end)
-        end))
-
-        -- Rotating
-        placementSession:GiveTask(rotateButton.MouseButton1Down:Connect(function()
-            rotationY = rotationY + ROTATION_ADDEND
-            applyCFrame()
-        end))
-
-        -- Accepting changes
-        placementSession:GiveTask(acceptButton.MouseButton1Down:Connect(function()
-            -- RETURN: Cannot place item that is colliding
-            if selectionBox.Color3 == INVALID_PLACEMENT_COLOR then
-                return
-            end
-
-            local metadata = {
-                Name = name,
-                Position = plotCFrame:PointToObjectSpace(position),
-                Rotation = Vector3.new(0, rotationY, 0),
-                Color = color,
-            }
-
-            if isNewObject then
-                Remotes.fireServer("PlaceHouseObject", "Furniture", metadata)
-            else
-                Remotes.fireServer("UpdateFurniture", model.Name, metadata)
-            end
-
-            uiStateMachine:Pop()
-        end))
-
-        -- Closing / Selling
-        placementSession:GiveTask(closeRemoveButton.MouseButton1Down:Connect(function()
-            if not isNewObject then
-                Remotes.fireServer("RemoveFurniture", model.Name)
-            end
-
-            uiStateMachine:Pop()
-        end))
-
-        -- Color picker
-        for _, colorButton in pairs(paintColors:GetChildren()) do
-            if colorButton:IsA("ImageButton") then
-                local colorName = colorButton.Name
-                local colorValue = colorButton:GetAttribute("ColorValue")
-                placementSession:GIveTask(colorButton.MouseButton1Down:Connect(function()
-                    if color ~= colorName then
-                        deselectPaintColor(color)
-
-                        color = colorValue
-                        selectPaintColor(colorValue)
-                        applyColor()
-                    end
-                end))
-            end
         end
 
-        selectPaintColor(color) --TODO: Scroll to this position
-        placementSession:GiveTask(function()
-            -- Reset colors
-            deselectPaintColor(color)
-        end)
+        -- Placement controls
+        do
+            placementControls.Enabled = true
+            placementControls.Adornee = model
+            placementSession:GiveTask(function()
+                placementControls.Enabled = false
+                placementControls.Adornee = nil :: Instance
+            end)
 
-        ScreenUtil.inLeft(paintFrame)
+            -- Moving
+            local moving
+
+            local function closeMoving()
+                -- RETURN: Can't close something that isn't open
+                if not moving then
+                    return
+                end
+
+                moving = false
+
+                UserInputService.MouseIconEnabled = true
+                placementControls.Others.Visible = true
+
+                RunService:UnbindFromRenderStep("MoveObject")
+            end
+
+            placementSession:GiveTask(InputController.CursorUp:Connect(closeMoving))
+            placementSession:GiveTask(closeMoving)
+
+            placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
+                moving = true
+
+                UserInputService.MouseIconEnabled = false
+                placementControls.Others.Visible = false
+
+                local ignore = { model, player.Character }
+                for _, otherFurniture: Model in pairs(plot.Furniture:GetChildren()) do
+                    if otherFurniture:IsA("Model") then
+                        table.insert(ignore, otherFurniture.PrimaryPart)
+                    end
+                end
+
+                -- ty joel
+                local offset = position - (MouseUtil.getMouseTarget(ignore, true).Position + heightOffset)
+                RunService:BindToRenderStep("MoveObject", Enum.RenderPriority.First.Value, function()
+                    local result = MouseUtil.getMouseTarget(ignore, true)
+                    local target, newPosition = result.Instance, result.Position
+                    if target and target:IsDescendantOf(plot) and newPosition then
+                        position = newPosition + heightOffset + offset
+                        applyCFrame()
+                    end
+                end)
+            end))
+
+            -- Rotating
+            placementSession:GiveTask(rotateButton.MouseButton1Down:Connect(function()
+                rotationY = rotationY + ROTATION_ADDEND
+                applyCFrame()
+            end))
+
+            -- Accepting changes
+            placementSession:GiveTask(acceptButton.MouseButton1Down:Connect(function()
+                -- RETURN: Cannot place item that is colliding
+                if selectionBox.Color3 == INVALID_PLACEMENT_COLOR then
+                    return
+                end
+
+                local metadata = {
+                    Name = name,
+                    Position = plotCFrame:PointToObjectSpace(position),
+                    Rotation = Vector3.new(0, rotationY, 0),
+                    Color = color,
+                }
+
+                if isNewObject then
+                    Remotes.fireServer("PlaceHouseObject", "Furniture", metadata)
+                else
+                    Remotes.fireServer("UpdateFurniture", model.Name, metadata)
+                end
+
+                uiStateMachine:Pop()
+            end))
+
+            -- Closing / Selling
+            placementSession:GiveTask(closeRemoveButton.MouseButton1Down:Connect(function()
+                if not isNewObject then
+                    Remotes.fireServer("RemoveFurniture", model.Name)
+                end
+
+                uiStateMachine:Pop()
+            end))
+        end
+
+        -- Color picker
+        do
+            for _, colorButton in pairs(paintColors:GetChildren()) do
+                if colorButton:IsA("ImageButton") then
+                    local colorName = colorButton.Name
+                    local colorValue = colorButton:GetAttribute("ColorValue")
+                    placementSession:GiveTask(colorButton.MouseButton1Down:Connect(function()
+                        if color ~= colorName then
+                            deselectPaintColor(color)
+
+                            color = colorValue
+                            selectPaintColor(colorValue)
+                            applyColor()
+                        end
+                    end))
+                end
+            end
+
+            selectPaintColor(color) -- TODO: Scroll to this position
+            placementSession:GiveTask(function()
+                deselectPaintColor(color) -- Reset colors
+            end)
+            ScreenUtil.inLeft(paintFrame)
+        end
     end, function()
         placementSession:Cleanup()
         ScreenUtil.outLeft(paintFrame)
