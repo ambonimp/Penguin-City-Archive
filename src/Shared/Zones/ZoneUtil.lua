@@ -29,11 +29,11 @@ function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zon
     return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
 end
 
-function ZoneUtil.houseZone(player: Player)
+function ZoneUtil.houseInteriorZone(player: Player)
     return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
 end
 
-function ZoneUtil.isHouseZone(zone: ZoneConstants.Zone)
+function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
     local userId = tonumber(zone.ZoneId)
     return userId and game.Players:GetPlayerByUserId(userId) and true or false
 end
@@ -42,9 +42,9 @@ function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
     return ZoneUtil.getZoneTypeDirectory(zone.ZoneType):FindFirstChild(zone.ZoneId) and true or false
 end
 
-function ZoneUtil.getHouseZoneOwner(zone: ZoneConstants.Zone)
+function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)
     -- RETURN: Not a house zone
-    if not ZoneUtil.isHouseZone(zone) then
+    if not ZoneUtil.isHouseInteriorZone(zone) then
         return nil
     end
 

@@ -1,8 +1,8 @@
 local HousingConstants = {}
 
 HousingConstants.PlotOwner = "Owner"
-HousingConstants.PlotType = "Plot"
-HousingConstants.HouseType = "House"
+HousingConstants.ExteriorType = "Exterior"
+HousingConstants.InteriorType = "Interior"
 
 HousingConstants.ExteriorFolderName = "HousingPlots"
 

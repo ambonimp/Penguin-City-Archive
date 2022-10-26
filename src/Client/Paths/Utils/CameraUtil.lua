@@ -43,4 +43,18 @@ function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame
     return tween, goal
 end
 
+function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
+    local _, size
+    _, size = model:GetBoundingBox()
+
+    local camera = viewport.CurrentCamera or Instance.new("Camera")
+    camera.Parent = viewport
+    viewport.CurrentCamera = camera
+    local fitDepth = CameraUtil.getFitDeph(camera.ViewportSize, camera.FieldOfView, size) -- +offset
+    local clone = model:Clone()
+    clone.Parent = viewport
+
+    camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
+end
+
 return CameraUtil

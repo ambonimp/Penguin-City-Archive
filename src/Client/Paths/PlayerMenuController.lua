@@ -55,7 +55,7 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     iglooButton:RoundOff()
     ButtonUtil.paintIgloo(iglooButton)
     iglooButton.Pressed:Connect(function()
-        local houseZone = ZoneUtil.houseZone(player)
+        local houseZone = ZoneUtil.houseInteriorZone(player)
         ZoneController.teleportToRoomRequest(houseZone)
     end)
 
