@@ -58,18 +58,18 @@ local plotCFrame: CFrame?
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
-local function isPartCollideable(part: BasePart)
+local function isPartNotCollideable(part: BasePart)
     return part.Name == "Hitbox" or part.Name == "Spawn" or part.Transparency == 1
 end
 
 local function isModelColliding(model: Model)
     for _, part: BasePart in model:GetDescendants() do
-        if part:IsA("BasePart") and not isPartCollideable(part) then
+        if part:IsA("BasePart") and not isPartNotCollideable(part) then
             for _, collidingPart: BasePart in workspace:GetPartsInPart(part) do
                 if
                     not collidingPart:IsDescendantOf(model)
-                    and not collidingPart:IsDescendantOf(plot)
-                    and not isPartCollideable(collidingPart)
+                    and collidingPart:IsDescendantOf(plot.Furniture)
+                    and not isPartNotCollideable(collidingPart)
                 then
                     return true
                 end
@@ -244,7 +244,31 @@ do
         end)
 
         -- Moving
+        local moving
+
+        local function closeMoving()
+            -- RETURN: Can't close something that isn't open
+            if not moving then
+                return
+            end
+
+            moving = false
+
+            UserInputService.MouseIconEnabled = true
+            placementControls.Others.Visible = true
+
+            RunService:UnbindFromRenderStep("MoveObject")
+        end
+
+        placementSession:GiveTask(InputController.CursorUp:Connect(closeMoving))
+        placementSession:GiveTask(closeMoving)
+
         placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
+            moving = true
+
+            UserInputService.MouseIconEnabled = false
+            placementControls.Others.Visible = false
+
             local ignore = { model, player.Character }
             for _, otherFurniture: Model in pairs(plot.Furniture:GetChildren()) do
                 if otherFurniture:IsA("Model") then
@@ -262,18 +286,6 @@ do
                     applyCFrame()
                 end
             end)
-
-            local closeMoving
-            closeMoving = InputController.CursorUp:Connect(function()
-                closeMoving:Disconnect()
-
-                UserInputService.MouseIconEnabled = true
-                placementControls.Others.Visible = true
-
-                RunService:UnbindFromRenderStep("MoveObject")
-            end)
-            UserInputService.MouseIconEnabled = false
-            placementControls.Others.Visible = false
         end))
 
         -- Rotating

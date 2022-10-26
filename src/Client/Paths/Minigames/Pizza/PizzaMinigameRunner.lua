@@ -383,7 +383,11 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         error(("Missing edgecase for hitbox %s"):format(hitbox:GetFullName()))
     end
 
-    local function cursorDown()
+    local function cursorDown(gameProcessedEvent)
+        -- RETURN: Clicked something else
+        if gameProcessedEvent then
+            return
+        end
         cursorDownMaid:GiveTask(currentHitbox:CallbackNonNil(processHitboxClick, HITBOX_COYOTE_TIME))
     end
 
