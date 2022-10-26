@@ -12,7 +12,7 @@ local Maid = require(Paths.Packages.maid)
 local RadialMenu = require(Paths.Client.UI.Elements.RadialMenu)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Images = require(Paths.Shared.Images.Images)
-local StampController = require(Paths.Client.StampController)
+-- local StampController = require(Paths.Client.StampController)
 local Sound = require(Paths.Shared.Sound)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -47,7 +47,7 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     stampsButton:RoundOff()
     ButtonUtil.paintStamps(stampsButton)
     stampsButton.Pressed:Connect(function()
-        StampController.openStampBook(player)
+        -- StampController.openStampBook(player)
     end)
 
     -- Igloo
@@ -55,7 +55,7 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     iglooButton:RoundOff()
     ButtonUtil.paintIgloo(iglooButton)
     iglooButton.Pressed:Connect(function()
-        local houseZone = ZoneUtil.houseZone(player)
+        local houseZone = ZoneUtil.houseInteriorZone(player)
         ZoneController.teleportToRoomRequest(houseZone)
     end)
 

@@ -77,7 +77,7 @@ function CharacterEditorCamera.look(preview: Model)
     -- Destroy function
     return function()
         viewportSizeChanged:Disconnect()
-        ContextActionService:UnbindAction("TogglePreviewRotation")
+        ContextActionService:UnbindAction("ToggleRotation")
 
         CameraController.setPlayerControl()
     end

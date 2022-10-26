@@ -5,7 +5,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 
 return function(_context, players: { Player }, player: Player)
-    local zone = ZoneUtil.houseZone(player)
+    local zone = ZoneUtil.houseInteriorZone(player)
 
     local output = ""
     for _, somePlayer in pairs(players) do

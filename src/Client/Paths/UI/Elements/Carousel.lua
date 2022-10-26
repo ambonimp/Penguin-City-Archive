@@ -53,7 +53,7 @@ function Carousel.new(direction: "X" | "Y")
     list.BorderSizePixel = 0
     list.CanvasSize = UDim2.fromScale(0, 0)
     list.ScrollingDirection = Enum.ScrollingDirection[direction]
-    list.ElasticBehavior = Enum.ElasticBehavior.Never
+    list.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
     list.ScrollBarThickness = 0
     list.ScrollBarImageTransparency = 1
     list.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -241,7 +241,10 @@ function Carousel.new(direction: "X" | "Y")
             local visibleContentSize, visibleContentStart = getVisibleListContentSize()
             local visibleContentEnd = visibleContentStart + visibleContentSize
 
-            local positionDelta = visibleContentEnd - (list.AbsolutePosition[direction] + list.AbsoluteSize[direction]) - visibleContentSize
+            local positionDelta = visibleContentEnd
+                - (list.AbsolutePosition[direction] + list.AbsoluteSize[direction])
+                - visibleContentSize
+                - childPadding
             positionDelta = math.max(positionDelta, -canvasPosition[direction])
 
             local scroll = TweenService:Create(list, SCROLL_PREV_TWEEN_INFO, {
