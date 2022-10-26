@@ -371,7 +371,12 @@ do
         end
         plotCFrame = CFrame.new(plot:WaitForChild("Origin").Position)
 
-        editingSession:GiveTask(InputController.CursorDown:Connect(function()
+        editingSession:GiveTask(InputController.CursorDown:Connect(function(gameProcessedEvent)
+            -- RETURN: Clicked something unrelated
+            if gameProcessedEvent then
+                return
+            end
+
             -- Selecting an item to edit
             local result = MouseUtil.getMouseTarget({ player.Character }, true)
             local target = result.Instance

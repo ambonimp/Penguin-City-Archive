@@ -42,7 +42,7 @@ function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
     return ZoneUtil.getZoneTypeDirectory(zone.ZoneType):FindFirstChild(zone.ZoneId) and true or false
 end
 
-function ZoneUtil.gethouseInteriorZoneOwner(zone: ZoneConstants.Zone)
+function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)
     -- RETURN: Not a house zone
     if not ZoneUtil.isHouseInteriorZone(zone) then
         return nil

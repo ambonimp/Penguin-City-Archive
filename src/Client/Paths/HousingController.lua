@@ -39,7 +39,7 @@ function HousingController.Start()
             uiStateMachine:Remove(UIConstants.States.House)
         end
         if ZoneUtil.isHouseInteriorZone(toZone) then
-            local zoneOwner = ZoneUtil.gethouseInteriorZoneOwner(toZone)
+            local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(toZone)
             local hasEditPerms = zoneOwner == Players.LocalPlayer --TODO: Check DataController for list of UserId we have edit perms for
 
             uiStateMachine:Push(UIConstants.States.House, {
