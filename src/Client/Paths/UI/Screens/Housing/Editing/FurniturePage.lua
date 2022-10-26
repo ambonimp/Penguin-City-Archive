@@ -331,7 +331,7 @@ do
             if colorButton:IsA("ImageButton") then
                 local colorName = colorButton.Name
                 local colorValue = colorButton:GetAttribute("ColorValue")
-                colorButton.MouseButton1Down:Connect(function()
+                placementSession:GIveTask(colorButton.MouseButton1Down:Connect(function()
                     if color ~= colorName then
                         deselectPaintColor(color)
 
@@ -339,7 +339,7 @@ do
                         selectPaintColor(colorValue)
                         applyColor()
                     end
-                end)
+                end))
             end
         end
 
