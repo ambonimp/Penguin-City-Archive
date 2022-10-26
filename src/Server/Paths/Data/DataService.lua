@@ -14,6 +14,7 @@ local Signal = require(Paths.Shared.Signal)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
@@ -48,15 +49,24 @@ function DataService.set(player: Player, address: string, newValue: any, event: 
     end
 end
 
--- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
-function DataService.append(player: Player, address: string, newValue: any, event: string?, eventMeta: table?): string
+--[[
+    Doesn't add on to length so accounts for gaps
+    No point in having insert since event wouldn't be usefull if you're setting the whole table and key would have to be a string otherwise
+]]
+--
+function DataService.getAppendageKey(player: Player, address: string)
     local length = 0
     for i in DataService.get(player, address) do
         local index = tonumber(i)
         length = math.max(index, length)
     end
 
-    local key = tostring(length + 1)
+    return tostring(length + 1)
+end
+
+-- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
+function DataService.append(player: Player, address: string, newValue: any, event: string?, eventMeta: table?): string
+    local key = DataService.getAppendageKey(player, address)
     DataService.set(player, address .. "." .. key, newValue, event, eventMeta)
 
     return key
@@ -145,8 +155,34 @@ do
     Remotes.declareEvent("DataUpdated")
 
     Remotes.bindFunctions({
-        GetPlayerData = function(player: Player, address: string)
+        GetPlayerData = function(_player: Player, dirtyPlayer: any, dirtyAddress: any)
+            -- Clean parameters
+            local player = typeof(dirtyPlayer) == "Instance" and dirtyPlayer:IsA("Player") and dirtyPlayer
+            local address = TypeUtil.toString(dirtyAddress)
+
+            if not (player and address) then
+                return nil
+            end
+
             return DataService.get(player, address)
+        end,
+        GetPlayerDataMany = function(_player: Player, dirtyPlayer: any, dirtyAddresses: any)
+            -- Clean parameters
+            local player = typeof(dirtyPlayer) == "Instance" and dirtyPlayer:IsA("Player") and dirtyPlayer
+            local addresses: { string } = TypeUtil.toArray(dirtyAddresses, function(value: any)
+                return TypeUtil.toString(value) and true or false
+            end)
+
+            if not (player and addresses) then
+                return nil
+            end
+
+            local results: { DataUtil.Data } = {}
+            for _, address in pairs(addresses) do
+                table.insert(results, DataService.get(player, address))
+            end
+
+            return results
         end,
     })
 end

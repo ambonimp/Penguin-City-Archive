@@ -8,6 +8,7 @@ local DataUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+
 --local Output = require(ReplicatedStorage.Shared.Output)
 
 export type Data = string | number | {}
@@ -30,7 +31,7 @@ end
 --[[
     Retrieves a value stored in an array
 ]]
-function DataUtil.getFromAddress(store: Store, address: string): any
+function DataUtil.getFromAddress(store: Store, address: string): Data | Store
     local keys = DataUtil.keysFromAddress(address)
     local childStore = store
     for i = 1, #keys do -- master directory is 1
@@ -150,6 +151,21 @@ function DataUtil.readAsArray(store: Store): { [string | number]: Data }
     end
 
     return returning
+end
+
+function DataUtil.serializeValue<T>(value: T): string
+    local valueType = typeof(value)
+    if valueType == "Color3" or "Vector3" then
+        return tostring(value)
+    end
+end
+
+function DataUtil.deserializeValue<T>(serializedValue: string, valueType: T): T
+    if valueType == Color3 then
+        return Color3.new(table.unpack(string.split(serializedValue, ", ")))
+    elseif valueType == Vector3 then
+        return Vector3.new(table.unpack(string.split(serializedValue, ", ")))
+    end
 end
 
 return DataUtil

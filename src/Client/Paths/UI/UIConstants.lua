@@ -7,12 +7,14 @@ UIConstants.States = {
     PizzaMinigame = "PizzaMinigame",
     House = "House",
     HouseEditor = "HouseEditor",
+    FurniturePlacement = "FurniturePlacement",
     PlotSettings = "PlotSettings",
     PlotChanger = "PlotChanger",
     HouseSelectionUI = "HouseSelectionUI",
     HUD = "HUD",
     Results = "Results",
     PromptProduct = "PromptProduct",
+    StampBook = "StampBook",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -60,6 +62,8 @@ UIConstants.Colors = {
         NextGreen = Color3.fromRGB(43, 195, 114),
         AvailableGreen = Color3.fromRGB(43, 195, 114),
         UnavailableGrey = Color3.fromRGB(158, 158, 158),
+        StampBeige = Color3.fromRGB(225, 209, 159),
+        IglooPink = Color3.fromRGB(229, 142, 237),
     },
 }
 

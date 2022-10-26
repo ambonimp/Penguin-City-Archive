@@ -67,8 +67,10 @@ local function outt(directionOut: UDim2, frame: GuiObject, cosmetics)
         frame,
         BINDING_KEY_EXIT,
         TweenService:Create(frame, OUT_TWEEN_INFO, { Position = directionOut + initialPosition }),
-        function()
-            frame.Visible = false
+        function(playbackState)
+            if playbackState == Enum.PlaybackState.Completed then
+                frame.Visible = false
+            end
         end
     )
 end
