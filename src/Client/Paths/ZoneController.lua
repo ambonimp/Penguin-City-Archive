@@ -49,8 +49,8 @@ function ZoneController.getCurrentRoomZone()
 end
 
 -- Returns the local players' house zone
-function ZoneController.getHouseZone()
-    return ZoneUtil.houseZone(Players.LocalPlayer)
+function ZoneController.getHouseInteriorZone()
+    return ZoneUtil.houseInteriorZone(Players.LocalPlayer)
 end
 
 -- Returns true if the local player has edit perms

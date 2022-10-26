@@ -37,7 +37,7 @@ local closeCallbacks: { () -> () } = {}
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
-    local houseOwner = ZoneUtil.getHouseZoneOwner(ZoneController.getCurrentZone())
+    local houseOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
     if not houseOwner then
         return
     end
@@ -73,7 +73,7 @@ local function igloo(button: AnimatedButton.AnimatedButton)
         if isIglooButtonEdit() then
             UIController.getStateMachine():Push(UIConstants.States.HouseEditor)
         else
-            ZoneController.teleportToRoomRequest(ZoneController.getHouseZone())
+            ZoneController.teleportToRoomRequest(ZoneController.getHouseInteriorZone())
         end
     end)
 end

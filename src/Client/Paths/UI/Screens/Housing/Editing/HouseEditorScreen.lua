@@ -89,6 +89,7 @@ do
         end
 
         ScreenUtil.outDown(editFrame)
+        ScreenUtil.outUp(editToggleContainer)
     end)
 end
 
@@ -101,7 +102,7 @@ do
     end
 
     UIUtil.offsetGuiInset(editToggleContainer)
-    editToggleButton = WideButton.green("Stop Edit")
+    editToggleButton = WideButton.red("Stop Edit")
     editToggleButton.Pressed:Connect(function()
         if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
             close()
