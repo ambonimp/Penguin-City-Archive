@@ -156,7 +156,7 @@ end
 function DataUtil.serializeValue<T>(value: T): string
     local valueType = typeof(value)
     if valueType == "Color3" or "Vector3" then
-        return tostring(valueType)
+        return tostring(value)
     end
 end
 
