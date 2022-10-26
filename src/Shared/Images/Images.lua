@@ -24,13 +24,16 @@ Images.Icons = {
     Badge = "rbxassetid://11152372668",
     Bag = "rbxassetid://11152372582",
     Book = "rbxassetid://11152372490",
+    Checkmark = "rbxassetid://11374895711",
     Close = "rbxassetid://11152372397",
+    CoinWhite = "rbxassetid://11374896378",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
     Shoe = "rbxassetid://11200887082",
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
+    Gift = "rbxassetid://11374896210",
     Hat = "rbxassetid://11152371685",
     Heart = "rbxassetid://11154920458",
     Igloo = "rbxassetid://11152371572",
@@ -97,7 +100,6 @@ Images.PizzaMinigame = {
 Images.CharacterEditor = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",
 }
---#endregion
 --#region Shirts
 Images.Shirts = {
     ["Purple_Shirt"] = "rbxassetid://11192098373",
@@ -148,6 +150,7 @@ Images.BodyTypes = {
     ["Adult"] = "rbxassetid://11191456133",
 }
 --#endregion
+--#endregion
 --#region StampBook
 Images.StampBook = {
     Cover = "rbxassetid://11251247354",
@@ -168,7 +171,18 @@ Images.StampBook = {
     },
 }
 --#endregion
+--#region Misc
+Images.Misc = {
+    McGrawSignature = "rbxassetid://11374895887",
+}
+--#endregion
+--#region Rewards
+Images.Rewards = {
+    DailyRewards = "rbxassetid://11374896618",
+    Paycheck = "rbxassetid://11374896889",
+}
 
+--#endregion
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images
