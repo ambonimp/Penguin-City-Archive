@@ -100,36 +100,60 @@ function TimeUtil.formatSecondsToHMS(seconds: number)
     return ("%s:%s:%s"):format(formatToTimeUnit(hours), formatToTimeUnit(minutes), formatToTimeUnit(seconds))
 end
 
-function TimeUtil.formatRelativeTime(seconds: number)
-    local isNegative = seconds < 0
+local function formatRelativeTime(seconds: number)
+    local sign = seconds < 0 and -1 or 1
     seconds = math.abs(seconds)
 
-    local function formatRelativeTime(a: number, longSuffix: string)
-        a = math.floor(a) * (isNegative and -1 or 1)
+    local function timeToString(num: number, longSuffix: string)
+        num = math.floor(num) * sign
 
-        local plural = math.abs(a) > 1 and "s" or ""
-        return ("%d %s%s"):format(a, longSuffix, plural)
+        local plural = math.abs(num) > 1 and "s" or ""
+        return ("%d %s%s"):format(num, longSuffix, plural)
     end
 
     if seconds < SECONDS_PER_MINUTE then
-        local a = math.floor(seconds)
-        return formatRelativeTime(a, "second")
+        local num = math.floor(seconds)
+        return timeToString(num, "second"), 0
     elseif seconds < SECONDS_PER_HOUR then
-        local a = math.floor(seconds / SECONDS_PER_MINUTE)
-        return formatRelativeTime(a, "minute")
+        local num = math.floor(TimeUtil.secondsToMinutes(seconds))
+        return timeToString(num, "minute"), (seconds - TimeUtil.minutesToSeconds(num)) * sign
     elseif seconds < SECONDS_PER_DAY then
-        local a = math.floor(seconds / SECONDS_PER_HOUR)
-        return formatRelativeTime(a, "hour")
+        local num = math.floor(TimeUtil.secondsToHours(seconds))
+        return timeToString(num, "hour"), (seconds - TimeUtil.hoursToSeconds(num)) * sign
     elseif seconds < SECONDS_PER_MONTH then
-        local a = math.floor(seconds / SECONDS_PER_DAY)
-        return formatRelativeTime(a, "day")
+        local num = math.floor(TimeUtil.secondsToDays(seconds))
+        return timeToString(num, "day"), (seconds - TimeUtil.daysToSeconds(num)) * sign
     elseif seconds < SECONDS_PER_YEAR then
-        local a = math.floor(seconds / SECONDS_PER_MONTH)
-        return formatRelativeTime(a, "month")
+        local num = math.floor(TimeUtil.secondsToMonths(seconds))
+        return timeToString(num, "month"), (seconds - TimeUtil.monthsToSeconds(num)) * sign
     else
-        local a = math.floor(seconds / SECONDS_PER_YEAR)
-        return formatRelativeTime(a, "year")
+        local num = math.floor(TimeUtil.secondsToYears(seconds))
+        return timeToString(num, "year"), (seconds - TimeUtil.yearsToSeconds(num)) * sign
     end
+end
+
+--[[
+    Formats the given time in seconds as relative time, such as "1 Minute" or "6 Days".
+    `length` defines how many "types" to show
+    e.g., a length of `2` for `90` seconds would return "1 Minute 30 Seconds"
+
+    Returns the leftover seconds as a second parameter.
+    e.g., `formatRelativeTime(70) -> "1 Minute", 10`
+]]
+function TimeUtil.formatRelativeTime(seconds: number, length: number?)
+    length = length or 1
+
+    local output = ""
+    for i = 1, (length or 1) do
+        if math.abs(seconds) > 0 then
+            local str, leftoverSeconds = formatRelativeTime(seconds)
+
+            output = ("%s%s%s"):format(output, i == 1 and "" or ", ", str)
+            seconds = leftoverSeconds
+        end
+    end
+
+    return output, seconds
 end
 
 --[[
