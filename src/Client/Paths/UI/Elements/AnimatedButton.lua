@@ -16,6 +16,8 @@ type ButtonAnimation = {
 }
 type AnimationConstructor = (...any) -> ButtonAnimation
 
+export type AnimatedButton = typeof(AnimatedButton.new(Instance.new("ImageButton")))
+
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 
@@ -135,11 +137,19 @@ function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("Image
         return container
     end
 
-    function animatedButton:SetPressAnimation(animation: ButtonAnimation?)
+    function animatedButton:SetPressAnimation(animation: ButtonAnimation | AnimationConstructor | nil)
+        if typeof(animation) == "function" then
+            animation = animation()
+        end
+
         pressAnimation = animation
     end
 
-    function animatedButton:SetHoverAnimation(animation: ButtonAnimation?)
+    function animatedButton:SetHoverAnimation(animation: ButtonAnimation | AnimationConstructor | nil)
+        if typeof(animation) == "function" then
+            animation = animation()
+        end
+
         hoverAnimation = animation
     end
 

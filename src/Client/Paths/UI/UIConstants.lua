@@ -1,7 +1,6 @@
 local UIConstants = {}
 
 UIConstants.States = {
-    Nothing = "Nothing",
     Loading = "Loading",
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
@@ -18,6 +17,17 @@ UIConstants.States = {
     StampBook = "StampBook",
 }
 
+-- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
+UIConstants.PseudoStates = {
+    [UIConstants.States.HUD] = {
+        UIConstants.States.Vehicles,
+        UIConstants.States.PlotSettings,
+        UIConstants.States.PlotChanger,
+        UIConstants.States.HouseSelectionUI,
+        UIConstants.States.House,
+    },
+}
+
 UIConstants.Keybinds = {
     PopStateMachine = {
         Enum.KeyCode.ButtonB,
@@ -28,13 +38,6 @@ UIConstants.Keybinds = {
 UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
-}
-
-UIConstants.AllowHUDWith = {
-    UIConstants.States.Vehicles,
-    UIConstants.States.PlotSettingss,
-    UIConstants.States.PlotChanger,
-    UIConstants.States.HouseSelectionUI,
 }
 
 UIConstants.EnableCoreGuiInStates = {
