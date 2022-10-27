@@ -7,16 +7,35 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
 local RewardsUtil = require(Paths.Shared.Utils.RewardsUtil)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local ZoneController = require(Paths.Client.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Promise = require(Paths.Packages.promise)
 
-function RewardsController.dailyStreakUpdated(days: number)
-    warn("DAYS:", days)
+-- Will prompt the daily streak view as soon as appropriate
+function RewardsController.promptDailyRewards()
+    Promise.new(function(resolve, _reject, _onCancel)
+        while true do
+            local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
+                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
+            if canShow then
+                break
+            else
+                task.wait()
+            end
+        end
+        resolve()
+    end):andThen(function()
+        UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
+    end)
 end
 
 -- DailyStreakUpdated
 do
-    DataController.Updated:Connect(function(event: string, newValue: any)
+    DataController.Updated:Connect(function(event: string, _newValue: any)
         if event == "DailyStreakUpdated" then
-            RewardsController.dailyStreakUpdated(RewardsUtil.getDailyStreakDays(newValue))
+            RewardsController.promptDailyRewards()
         end
     end)
 end

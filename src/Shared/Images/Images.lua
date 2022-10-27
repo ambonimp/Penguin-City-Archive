@@ -17,6 +17,7 @@ Images.ButtonIcons = {
     Pencil = "rbxassetid://11374218958",
     StampBook = "rbxassetid://11152369533",
     Toolbox = "rbxassetid://11152369313",
+    Rewards = "rbxassetid://11390824777",
 }
 --#endregion
 --#region Icons
