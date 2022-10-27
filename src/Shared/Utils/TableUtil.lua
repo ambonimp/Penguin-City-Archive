@@ -209,4 +209,13 @@ function TableUtil.remove(tbl: table, value: any, maxOccurences: number?)
     end
 end
 
+function TableUtil.mapKeys(tbl: table, map: (key: any) -> (any))
+    local mappedTbl = {}
+    for key, value in pairs(tbl) do
+        mappedTbl[map(key)] = value
+    end
+
+    return mappedTbl
+end
+
 return TableUtil
