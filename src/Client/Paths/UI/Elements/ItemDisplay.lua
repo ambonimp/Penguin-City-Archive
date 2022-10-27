@@ -157,7 +157,9 @@ function ItemDisplay.new()
     imageLabel.Name = "imageLabel"
     imageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     imageLabel.BackgroundTransparency = 1
-    imageLabel.Size = UDim2.new(1, 0, 1, -49)
+    imageLabel.Position = UDim2.new(0, 0, 0, 38)
+    imageLabel.Size = UDim2.new(1, 0, 1, -93)
+    imageLabel.ScaleType = Enum.ScaleType.Fit
     imageLabel.Parent = back
 
     back.Parent = detailedWidget
@@ -198,12 +200,6 @@ function ItemDisplay.new()
 
     local icon: ImageLabel
     local colorObjects: { UIStroke | GuiObject } = { uIStroke, corners, flat, corners1, rightFlat, leftFlat, overlay }
-
-    -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
 
     -------------------------------------------------------------------------------
     -- Private Methods

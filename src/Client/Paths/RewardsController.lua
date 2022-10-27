@@ -6,7 +6,7 @@ local RewardsController = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
-local RewardsUtil = require(Paths.Shared.Utils.RewardsUtil)
+local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ZoneController = require(Paths.Client.ZoneController)
@@ -29,6 +29,18 @@ function RewardsController.promptDailyRewards()
     end):andThen(function()
         UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
     end)
+end
+
+function RewardsController.getCurrentDailyStreak()
+    return -1 --todo
+end
+
+function RewardsController.getBestDailyStreak()
+    return -5 --todo
+end
+
+function RewardsController.getTimeUntilNextDailyStreakReward()
+    return math.random(100, 10000) --todo
 end
 
 -- DailyStreakUpdated

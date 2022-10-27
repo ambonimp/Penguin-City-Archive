@@ -6,7 +6,7 @@ local RewardsService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
-local RewardsUtil = require(Paths.Shared.Utils.RewardsUtil)
+local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local PlayerService = require(Paths.Server.PlayerService)
 
 --[[

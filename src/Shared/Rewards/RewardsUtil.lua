@@ -4,6 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local DataUtil = require(ReplicatedStorage.Shared.Utils.DataUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local RewardsConstants = require(ReplicatedStorage.Shared.Rewards.RewardsConstants)
+local TimeUtil = require(ReplicatedStorage.Shared.Utils.TimeUtil)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 
 export type DailyStreakEntry = {
     StreakNumber: number,
@@ -11,12 +14,6 @@ export type DailyStreakEntry = {
     RenewAtServerTime: number,
     ExpiresAtServerTime: number,
 }
-
-local STORE_DAILY_STREAK_MAX_DAYS = 5
-local RENEW_DAILY_STREAK_AFTER_HOURS = 24
-local EXPIRE_DAILY_STREAK_AFTER_HOURS = 28
-local SECONDS_IN_AN_HOUR = 60 * 60
-local SECONDS_IN_A_DAY = SECONDS_IN_AN_HOUR * 24
 
 function RewardsUtil.getDailyStreakNumber(dailyStreakData: DataUtil.Data)
     local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
@@ -55,7 +52,7 @@ function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
 
         if hasExpired then
             -- Very old; remove
-            if expiredTime > SECONDS_IN_A_DAY * STORE_DAILY_STREAK_MAX_DAYS then
+            if expiredTime > TimeUtil.daysToSeconds(RewardsConstants.DailyStreak.StoreMaxDays) then
                 table.remove(arrayDailyStreakEntries, i)
             end
         end
@@ -79,8 +76,8 @@ function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
         entry.Days += 1
         dailyStreakData.Unclaimed[tostring(entry.Days)] = true
 
-        entry.RenewAtServerTime = now + RENEW_DAILY_STREAK_AFTER_HOURS * SECONDS_IN_AN_HOUR
-        entry.ExpiresAtServerTime = entry.RenewAtServerTime + EXPIRE_DAILY_STREAK_AFTER_HOURS * SECONDS_IN_AN_HOUR
+        entry.RenewAtServerTime = now + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.RenewAfterHours)
+        entry.ExpiresAtServerTime = entry.RenewAtServerTime + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.ExpireAfterHours)
     end
 
     return {
@@ -97,6 +94,18 @@ function RewardsUtil.setDailyStreakRenewTime(dailyStreakData: DataUtil.Data, ren
     if entry then
         entry.RenewAtServerTime = renewTime
     end
+end
+
+function RewardsUtil.getReward(day: number)
+    local wrappedDay = MathUtil.wrapAround(day, #RewardsConstants.DailyStreak.Rewards)
+    local rewardLevel = math.ceil(day / #RewardsConstants.DailyStreak.Rewards)
+
+    local reward = RewardsConstants.DailyStreak.Rewards[wrappedDay]
+    if reward.Gift then
+        reward.Gift = rewardLevel == 1 and "Small" or rewardLevel == 2 and "Medium" or "Large" --TODO Implement gifts properly
+    end
+
+    return reward
 end
 
 function RewardsUtil.getDailyStreakDataAddress()
