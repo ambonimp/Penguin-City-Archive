@@ -49,7 +49,10 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
         RedeemedCodes = {},
         Coins = 0,
         Rewards = {
-            DailyStreak = {},
+            DailyStreak = {
+                Entries = {},
+                Unclaimed = {},
+            },
         },
     } :: DataUtil.Store
 end
