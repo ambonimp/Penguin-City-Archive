@@ -49,7 +49,7 @@ function ZoneController.getCurrentRoomZone()
 end
 
 -- Returns the local players' house zone
-function ZoneController.getHouseInteriorZone()
+function ZoneController.getLocalHouseInteriorZone()
     return ZoneUtil.houseInteriorZone(Players.LocalPlayer)
 end
 

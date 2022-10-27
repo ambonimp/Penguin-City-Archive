@@ -73,7 +73,7 @@ local function igloo(button: AnimatedButton.AnimatedButton)
         if isIglooButtonEdit() then
             UIController.getStateMachine():Push(UIConstants.States.HouseEditor)
         else
-            ZoneController.teleportToRoomRequest(ZoneController.getHouseInteriorZone())
+            ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone())
         end
     end)
 end
