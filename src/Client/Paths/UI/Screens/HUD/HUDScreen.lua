@@ -23,6 +23,8 @@ local UNFURLED_MAP_PROPERTIES = {
     Size = UDim2.fromScale(1.5, 0.9),
 }
 
+local uiStateMachine = UIController.getStateMachine()
+
 local screenGui: ScreenGui = Ui.HUD
 local buttons: {
     Left: { typeof(AnimatedButton.new(Instance.new("ImageButton"))) },
@@ -71,7 +73,9 @@ local function igloo(button: AnimatedButton.AnimatedButton)
     -- toggle edit functionality
     button.Pressed:Connect(function()
         if isIglooButtonEdit() then
-            UIController.getStateMachine():Push(UIConstants.States.HouseEditor)
+            uiStateMachine:Push(UIConstants.States.HouseEditor, {
+                        InteriorPlot = uiStateMachine:GetData().InteriorPlot
+                    })
         else
             ZoneController.teleportToRoomRequest(ZoneController.getHouseInteriorZone())
         end
@@ -90,7 +94,7 @@ end
 local function inventory(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.Inventory
     button.Pressed:Connect(function()
-        UIController.getStateMachine():Push(UIConstants.States.CharacterEditor)
+        uiStateMachine:Push(UIConstants.States.CharacterEditor)
     end)
 end
 
@@ -210,14 +214,14 @@ function HUDScreen.Init()
         end
 
         local function readState()
-            if UIUtil.getPseudoState(UIConstants.States.HUD, UIController.getStateMachine()) then
+            if UIUtil.getPseudoState(UIConstants.States.HUD, uiStateMachine) then
                 enter()
             else
                 exit()
             end
         end
 
-        UIController.getStateMachine():RegisterGlobalCallback(readState)
+        uiStateMachine:RegisterGlobalCallback(readState)
         readState()
     end
 end
