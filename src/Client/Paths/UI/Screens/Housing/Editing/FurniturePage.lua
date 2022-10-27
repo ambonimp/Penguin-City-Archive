@@ -198,7 +198,7 @@ do
                 local store = DataController.get("House.Furniture." .. model.Name)
                 color = DataUtil.deserializeValue(store.Color, Color3)
                 rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
-                position = plotCFrame:PointToWorldSpace(DataUtil.deserializeValue(store.Position, Vector3))
+                position = model.PrimaryPart.Position
             end
         end
 

@@ -98,7 +98,7 @@ do
     local function close()
         local houseOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
         local canEdit = houseOwner and ZoneController.hasEditPerms(houseOwner)
-        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = canEdit })
+        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = canEdit, InteriorPlot = interiorPlot })
     end
 
     UIUtil.offsetGuiInset(editToggleContainer)
