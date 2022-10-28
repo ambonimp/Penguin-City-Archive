@@ -50,6 +50,7 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
         Coins = 0,
         Rewards = {
             DailyStreak = {
+                BestStreak = 0,
                 Entries = {},
                 Unclaimed = {},
             },

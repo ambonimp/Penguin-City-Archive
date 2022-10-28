@@ -5,11 +5,11 @@ local UIConstants = require(StarterPlayer.StarterPlayerScripts.Paths.UI.UIConsta
 local Button = require(script.Parent.Button)
 
 local TEXT_POSITION = UDim2.fromScale(0.5, 0.5)
-local TEXT_SIZE = UDim2.fromScale(0.7, 0.7)
-local ICON_SIZE = UDim2.fromScale(0.7, 0.7)
-local ICON_POSITION = UDim2.fromScale(0.5, 0.48)
+local TEXT_SIZE = UDim2.fromScale(0.95, 0.95)
+local ICON_SIZE = UDim2.fromScale(0.9, 0.9)
+local ICON_POSITION = UDim2.fromScale(0.5, 0.52)
 local ICON_ANCHOR_POINT = Vector2.new(0.5, 0.5)
-local ICON_TEXT_PADDING_SCALE = 0.05
+local ICON_TEXT_PADDING_SCALE = 0.025
 local LEFT_ALIGN_ANCHOR_POINT = Vector2.new(0, 0.5)
 local RIGHT_ALIGN_ANCHOR_POINT = Vector2.new(1, 0.5)
 local CENTER_ALIGN_ANCHOR_POINT = Vector2.new(0.5, 0.5)

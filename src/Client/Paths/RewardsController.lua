@@ -4,6 +4,7 @@
 local RewardsController = {}
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
@@ -32,15 +33,15 @@ function RewardsController.promptDailyRewards()
 end
 
 function RewardsController.getCurrentDailyStreak()
-    return -1 --todo
+    return RewardsUtil.getDailyStreakDays(DataController.get(RewardsUtil.getDailyStreakDataAddress()))
 end
 
 function RewardsController.getBestDailyStreak()
-    return -5 --todo
+    return RewardsUtil.getBestDailyStreak(DataController.get(RewardsUtil.getDailyStreakDataAddress()))
 end
 
 function RewardsController.getTimeUntilNextDailyStreakReward()
-    return math.random(100, 10000) --todo
+    return RewardsUtil.getTimeUntilNextDailyStreakRenew(DataController.get(RewardsUtil.getDailyStreakDataAddress()))
 end
 
 -- DailyStreakUpdated

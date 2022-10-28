@@ -31,6 +31,18 @@ function RewardsUtil.getDailyStreakDays(dailyStreakData: DataUtil.Data)
     return nil
 end
 
+function RewardsUtil.getBestDailyStreak(dailyStreakData: DataUtil.Data)
+    return dailyStreakData.BestStreak
+end
+
+function RewardsUtil.getTimeUntilNextDailyStreakRenew(dailyStreakData: DataUtil.Data)
+    local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
+    if entry then
+        return math.clamp(entry.RenewAtServerTime - Workspace:GetServerTimeNow(), 0, math.huge)
+    end
+    return 0
+end
+
 --[[
     dailyStreakData = {
         Entries = {},
@@ -85,6 +97,7 @@ function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
             return tostring(key)
         end),
         Unclaimed = dailyStreakData.Unclaimed,
+        BestStreak = math.max(dailyStreakData.BestStreak, entry.Days),
     }
 end
 

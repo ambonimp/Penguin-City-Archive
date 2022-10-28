@@ -79,28 +79,35 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     maid:GiveTask(function()
         runWriteLoop = false
     end)
+
+    local function writeFunction()
+        -- Only update if visible
+        if not isUi or isOpen then
+            streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
+            bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
+
+            local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
+            nextReward.Text = timeUntilNextDailyStreakReward > 0
+                    and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
+                or "Claim your reward!"
+        end
+    end
     task.spawn(function()
         while runWriteLoop do
-            -- Only update if visible
-            if not isUi or isOpen then
-                streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
-                bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
-
-                local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
-                nextReward.Text = timeUntilNextDailyStreakReward > 0
-                        and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
-                    or "Claim your reward!"
-            end
+            writeFunction()
             task.wait(1)
         end
     end)
+    table.insert(openCallbacks, writeFunction)
 
     -- Days
     local displayDaysMaid = Maid.new()
     maid:GiveTask(displayDaysMaid)
 
     local currentDisplayingDay = 1
-    local function displayDays(day: number)
+    local function displayDays(day: number?)
+        day = day or 1
+
         currentDisplayingDay = day
         displayDaysMaid:Cleanup()
 
@@ -133,7 +140,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
 
     displayDays(1)
     table.insert(openCallbacks, function()
-        displayDays(1)
+        displayDays(RewardsController.getCurrentDailyStreak())
     end)
 
     local leftButton = AnimatedButton.new(background.Left.ImageButton)
