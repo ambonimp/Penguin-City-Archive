@@ -71,7 +71,10 @@ function ZoneService.getPlayerMinigame(player: Player)
 end
 
 -- Returns a function to remove this zone cleanly. Returns the zoneModel as a second parameter
-function ZoneService.createZone(zoneType: string, zoneId: string, zoneModelChildren: { Instance }, spawnpoint: BasePart)
+function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { Instance }, spawnpoint: BasePart)
+    local zoneType = zone.ZoneType
+    local zoneId = zone.ZoneId
+
     -- ERROR: Zone already exists
     local zoneTypeDirectory = ZoneUtil.getZoneTypeDirectory(zoneType)
     local existingZoneModel = ZoneUtil.getZoneTypeDirectory(zoneType):FindFirstChild(zoneId)

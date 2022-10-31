@@ -218,7 +218,7 @@ function PlotService.loadPlayer(player: Player)
 
     local spawnPart = interiorPlot:FindFirstChildOfClass("Model").Spawn
 
-    local destroyFunction = ZoneService.createZone(houseInteriorZone.ZoneType, houseInteriorZone.ZoneId, { interiorPlot }, spawnPart)
+    local destroyFunction = ZoneService.createZone(houseInteriorZone, { interiorPlot }, spawnPart)
     PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
 
     local exitPart = interiorPlot:FindFirstChildOfClass("Model").Exit
