@@ -266,8 +266,10 @@ local function placeModelOnGrid(model: Model)
     model:PivotTo(cframe)
 
     -- Listen for release index
-    model.Destroying:Connect(function()
-        usedGridIndexes[index] = nil
+    model.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            usedGridIndexes[index] = nil
+        end
     end)
 end
 
@@ -301,8 +303,10 @@ local function createCollisionHitbox(zone: ZoneConstants.Zone, departurePart: Ba
         CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
     end)
 
-    departurePart.Destroying:Connect(function()
-        collisionHitbox:Destroy(true)
+    departurePart.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            collisionHitbox:Destroy(true)
+        end
     end)
 end
 

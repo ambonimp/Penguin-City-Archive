@@ -31,8 +31,10 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
         end)
 
         -- Cleanup cache
-        instance.Destroying:Connect(function()
-            instanceCheckerCallbackPairs[instance] = nil
+        instance.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                instanceCheckerCallbackPairs[instance] = nil
+            end
         end)
     end
 

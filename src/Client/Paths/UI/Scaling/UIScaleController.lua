@@ -174,8 +174,10 @@ local function newUIScale(uiScale: UIScale)
     end, { data.Container.Instance }, false)
 
     -- Handle removal
-    uiScale.Destroying:Connect(function()
-        uiScaleDatas[uiScale] = nil
+    uiScale.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            uiScaleDatas[uiScale] = nil
+        end
     end)
 
     -- Init

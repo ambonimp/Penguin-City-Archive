@@ -210,8 +210,11 @@ end
 
 function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     local maid = Maid.new()
-    part.Destroying:Connect(function()
-        maid:Destroy()
+    part.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            print("destroy", part)
+            maid:Destroy()
+        end
     end)
 
     local surfaceGui = Instance.new("SurfaceGui")
@@ -221,6 +224,7 @@ function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     surfaceGui.CanvasSize = Vector2.new(container.Size.X.Offset, container.Size.Y.Offset)
     surfaceGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     surfaceGui.Parent = Paths.UI
+    maid:GiveTask(surfaceGui)
 
     local background = backgroundClone:Clone()
     background.Parent = surfaceGui

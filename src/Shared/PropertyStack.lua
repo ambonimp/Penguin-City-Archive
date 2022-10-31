@@ -96,8 +96,10 @@ end
 
 local function setupMemory(instance: Instance)
     local instanceMemory: InstanceMemory = {
-        DestroyingConnection = instance.Destroying:Connect(function()
-            memory[instance] = nil
+        DestroyingConnection = instance.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                memory[instance] = nil
+            end
         end),
         PropertyStates = {},
     }

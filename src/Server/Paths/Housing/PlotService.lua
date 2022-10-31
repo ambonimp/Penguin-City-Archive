@@ -165,9 +165,11 @@ local function loadHouse(player: Player, plot: Model, type: string)
         spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
 
         -- Cleanup
-        model.Destroying:Connect(function()
-            entrancePart:Destroy()
-            spawnPart:Destroy()
+        model.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                entrancePart:Destroy()
+                spawnPart:Destroy()
+            end
         end)
     end
 end
