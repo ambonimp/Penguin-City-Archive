@@ -2,7 +2,7 @@
     Tracks what minigames players are playing.
     Ensures a player can only be engaging with + be rewarded for 1 minigame at a time (those pesky clients!)
 ]]
-local MinigameService = {}
+local SinglePlayerMinigameService = {}
 
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -16,7 +16,7 @@ local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
-type MinigameService = {
+type SinglePlayerMinigameService = {
     startMinigame: (player: Player, ...any) -> nil,
     stopMinigame: (player: Player, ...any) -> nil,
     developerToLive: ((minigamesDirectory: Folder) -> nil)?, -- Optional method to clean up a minigame from "developer mode" to "live mode"
@@ -25,16 +25,16 @@ type MinigameService = {
 
 local playSessions: { [Player]: MinigameConstants.Session } = {}
 local sessionIdCounter = 0
-local minigameToService: { [string]: MinigameService } = {
+local minigameToService: { [string]: SinglePlayerMinigameService } = {
     [MinigameConstants.Minigames.Pizza] = require(Paths.Server.Minigames.Pizza.PizzaMinigameService),
 }
 
-function MinigameService.requestToPlay(player: Player, minigame: string, invokedServerTime: number?)
+function SinglePlayerMinigameService.requestToPlay(player: Player, minigame: string, invokedServerTime: number?)
     Output.doDebug(MinigameConstants.DoDebug, "requestToPlay", player)
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- ERROR: No linked service
-    local minigameService = MinigameService.getServiceFromMinigame(minigame)
+    local minigameService = SinglePlayerMinigameService.getServiceFromMinigame(minigame)
     if not minigameService then
         error(("No serviced linked to minigame %q"):format(minigame))
     end
@@ -81,15 +81,15 @@ function MinigameService.requestToPlay(player: Player, minigame: string, invoked
     return playRequest, teleportBuffer
 end
 
-function MinigameService.getSession(player: Player): MinigameConstants.Session | nil
+function SinglePlayerMinigameService.getSession(player: Player): MinigameConstants.Session | nil
     return playSessions[player]
 end
 
-function MinigameService.getServiceFromMinigame(minigame: string)
+function SinglePlayerMinigameService.getServiceFromMinigame(minigame: string)
     return minigameToService[minigame]
 end
 
-function MinigameService.stopPlaying(player: Player, invokedServerTime: number?)
+function SinglePlayerMinigameService.stopPlaying(player: Player, invokedServerTime: number?)
     Output.doDebug(MinigameConstants.DoDebug, "stopPlaying", player)
     invokedServerTime = invokedServerTime or game.Workspace:GetServerTimeNow()
 
@@ -113,8 +113,8 @@ function MinigameService.stopPlaying(player: Player, invokedServerTime: number?)
     end
 
     -- Stop Minigame
-    local session = MinigameService.getSession(player)
-    local minigameService = MinigameService.getServiceFromMinigame(session.Minigame)
+    local session = SinglePlayerMinigameService.getSession(player)
+    local minigameService = SinglePlayerMinigameService.getServiceFromMinigame(session.Minigame)
     minigameService.stopMinigame(player)
 
     -- Clear Cache
@@ -124,7 +124,7 @@ function MinigameService.stopPlaying(player: Player, invokedServerTime: number?)
     return playRequest, roomZone.ZoneId, teleportBuffer
 end
 
-function MinigameService.getMinigamesDirectory()
+function SinglePlayerMinigameService.getMinigamesDirectory()
     return game.Workspace.Minigames :: Folder
 end
 
@@ -132,12 +132,12 @@ end
 do
     Players.PlayerRemoving:Connect(function(player)
         -- RETURN: No session!
-        local currentSession = MinigameService.getSession(player)
+        local currentSession = SinglePlayerMinigameService.getSession(player)
         if not currentSession then
             return
         end
 
-        MinigameService.stopPlaying(player)
+        SinglePlayerMinigameService.stopPlaying(player)
     end)
 end
 
@@ -152,7 +152,7 @@ do
                 return
             end
 
-            return MinigameService.requestToPlay(player, minigame, invokedServerTime)
+            return SinglePlayerMinigameService.requestToPlay(player, minigame, invokedServerTime)
         end,
 
         RequestToStopPlaying = function(player: Player, dirtyInvokedServerTime: any)
@@ -162,7 +162,7 @@ do
                 return
             end
 
-            return MinigameService.stopPlaying(player, invokedServerTime)
+            return SinglePlayerMinigameService.stopPlaying(player, invokedServerTime)
         end,
     })
 end
@@ -175,4 +175,4 @@ do
     end
 end
 
-return MinigameService
+return SinglePlayerMinigameService

@@ -1,12 +1,12 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local MinigameService = require(Paths.Server.Minigames.MinigameService)
+local SinglePlayerMinigameService = require(Paths.Server.Minigames.SinglePlayerMinigameService)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 
 return function()
     local issues: { string } = {}
 
-    local minigameDirectory = MinigameService.getMinigamesDirectory().Pizza
+    local minigameDirectory = SinglePlayerMinigameService.getMinigamesDirectory().Pizza
 
     -- Assets
     do
