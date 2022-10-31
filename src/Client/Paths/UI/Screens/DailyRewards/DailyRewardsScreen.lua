@@ -52,6 +52,13 @@ function DailyRewardsScreen.Init()
 end
 
 function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new()), isUi: boolean)
+    -- Hoist
+    local update: () -> ()
+    local displayDays: (days: number?) -> ()
+
+    local currentDisplayingDay = 1
+    local isAttemptingClaim = false
+
     -- Button
     local canClaim = true
     local claimButton = KeyboardButton.new()
@@ -60,7 +67,24 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     claimButton:SetText("Claim Reward", true)
     claimButton.Pressed:Connect(function()
         if canClaim then
-            RewardsController.claimDailyStreakRequest()
+            -- RETURN: Attempting claim
+            if isAttemptingClaim then
+                return
+            end
+
+            isAttemptingClaim = true
+            local claimAssume = RewardsController.claimDailyStreakRequest()
+
+            task.wait()
+
+            update()
+            displayDays(currentDisplayingDay)
+
+            local function afterClaim()
+                isAttemptingClaim = false
+                update()
+            end
+            claimAssume:Then(afterClaim):Else(afterClaim)
         else
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
         end
@@ -71,51 +95,11 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     local bestStreak: TextLabel = background.BestStreak
     local nextReward: TextLabel = background.NextReward
 
-    -- Updating
-    local runWriteLoop = true
-    maid:GiveTask(function()
-        runWriteLoop = false
-    end)
-
-    local function update()
-        -- RETURN: Not visible
-        if isUi and not isOpen then
-            return
-        end
-
-        -- TextLabels
-        streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
-        bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
-
-        local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
-        nextReward.Text = timeUntilNextDailyStreakReward > 0
-                and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
-            or "Claim your reward!"
-
-        -- Button
-        canClaim = not TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays())
-        if canClaim then
-            claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
-            claimButton:SetText("Claim Reward")
-        else
-            claimButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
-            claimButton:SetText("Close")
-        end
-    end
-    task.spawn(function()
-        while runWriteLoop do
-            update()
-            task.wait(1)
-        end
-    end)
-    table.insert(openCallbacks, update)
-
     -- Days
     local displayDaysMaid = Maid.new()
     maid:GiveTask(displayDaysMaid)
 
-    local currentDisplayingDay = 1
-    local function displayDays(day: number?)
+    function displayDays(day: number?)
         day = day or 1
 
         currentDisplayingDay = day
@@ -147,7 +131,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             itemDisplay:SetBorderColor(rewardColor)
             displayDaysMaid:GiveTask(itemDisplay)
 
-            if not RewardsController.getUnclaimedDailyStreakDays()[dayNum] and dayNum <= currentDailyStreak then
+            if (not RewardsController.getUnclaimedDailyStreakDays()[dayNum] or isAttemptingClaim) and dayNum <= currentDailyStreak then
                 itemDisplay:SetOverlay("Completed")
             end
         end
@@ -162,11 +146,57 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     leftButton.Pressed:Connect(function()
         displayDays(math.clamp(currentDisplayingDay - #RewardsConstants.DailyStreak.Rewards, 1, math.huge))
     end)
+    maid:GiveTask(leftButton)
 
     local rightButton = AnimatedButton.new(background.Right.ImageButton)
     rightButton.Pressed:Connect(function()
         displayDays(math.clamp(currentDisplayingDay + #RewardsConstants.DailyStreak.Rewards, 1, math.huge))
     end)
+    maid:GiveTask(rightButton)
+
+    -- Updating
+    local runWriteLoop = true
+    maid:GiveTask(function()
+        runWriteLoop = false
+    end)
+
+    function update()
+        -- RETURN: Not visible
+        if isUi and not isOpen then
+            return
+        end
+
+        -- TextLabels
+        streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
+        bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
+
+        local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
+        nextReward.Text = timeUntilNextDailyStreakReward > 0
+                and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
+            or "Claim your reward!"
+
+        -- Button
+        canClaim = not TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays()) and isAttemptingClaim == false
+        if canClaim then
+            claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
+            claimButton:SetText("Claim Reward")
+        else
+            claimButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
+            claimButton:SetText("Close")
+        end
+    end
+    task.spawn(function()
+        while runWriteLoop do
+            update()
+            task.wait(1)
+        end
+    end)
+    table.insert(openCallbacks, update)
+
+    maid:GiveTask(RewardsController.DailyStreakUpdated:Connect(function()
+        displayDays(RewardsController.getCurrentDailyStreak())
+        update()
+    end))
 end
 
 function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)

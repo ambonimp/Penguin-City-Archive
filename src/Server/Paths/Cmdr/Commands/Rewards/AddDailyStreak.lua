@@ -12,6 +12,7 @@ return {
         {
             Type = "number",
             Name = "days",
+            Default = 1,
             Description = "How many days to add",
         },
     },

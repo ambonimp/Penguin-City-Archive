@@ -11,6 +11,7 @@ local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
 local PlayerService = require(Paths.Server.PlayerService)
 local Remotes = require(Paths.Shared.Remotes)
 local CurrencySevice = require(Paths.Server.CurrencyService)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local function getDailyStreakData(player: Player)
     return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
@@ -67,10 +68,21 @@ end
 do
     Remotes.bindFunctions({
         ClaimDailyStreakRequest = function(player: Player, dirtyUnclaimedDays: any)
+            -- FALSE: Not a table
+            if typeof(dirtyUnclaimedDays) ~= "table" then
+                return false
+            end
+
+            -- Convert to integer dict
+            dirtyUnclaimedDays = TableUtil.mapKeys(dirtyUnclaimedDays, function(key)
+                return tonumber(key)
+            end)
+
             -- FALSE: Mismatch
             local unclaimedDays = RewardsUtil.getUnclaimedDailyStreakDays(getDailyStreakData(player))
             for dayNum, amount in pairs(unclaimedDays) do
                 if not (dirtyUnclaimedDays[dayNum] == amount) then
+                    warn("Mismatch", dirtyUnclaimedDays, unclaimedDays)
                     return false
                 end
             end
@@ -81,8 +93,8 @@ do
                 RewardsService.giveReward(player, reward, amount)
             end
 
-            local address = ("%s.%s"):format(RewardsUtil.getDailyStreakDataAddress(), "Unclaimed")
-            DataService.set(player, address, {}, "DailyStreakUpdated")
+            local unclaimedAddress = ("%s.%s"):format(RewardsUtil.getDailyStreakDataAddress(), "Unclaimed")
+            DataService.set(player, unclaimedAddress, {}, "DailyStreakUpdated")
 
             return true
         end,

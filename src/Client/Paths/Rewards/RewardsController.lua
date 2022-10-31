@@ -19,6 +19,9 @@ local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
 local Maid = require(Paths.Packages.maid)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CurrencyController = require(Paths.Client.CurrencyController)
+local Signal = require(Paths.Shared.Signal)
+
+RewardsController.DailyStreakUpdated = Signal.new()
 
 -------------------------------------------------------------------------------
 -- DailyStreak
@@ -26,12 +29,16 @@ local CurrencyController = require(Paths.Client.CurrencyController)
 
 -- Will prompt the daily streak view as soon as appropriate
 function RewardsController.promptDailyRewards()
+    -- RETURN: Already open
+    if UIController.getStateMachine():GetState() == UIConstants.States.DailyRewards then
+        return
+    end
+
+    -- Start opening logic
     Promise.new(function(resolve, _reject, _onCancel)
         while true do
-            local canShow = (
-                UIController.getStateMachine():GetState() == UIConstants.States.HUD
-                or UIController.getStateMachine():GetState() == UIConstants.States.DailyRewards
-            ) and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
+            local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
+                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
             if canShow then
                 break
             else
@@ -49,13 +56,19 @@ function RewardsController.claimDailyStreakRequest()
     -- RETURN: Nothing to claim!
     local unclaimedDays = RewardsController.getUnclaimedDailyStreakDays()
     if TableUtil.isEmpty(unclaimedDays) then
+        warn("Nothing to claim")
         return
     end
 
-    local displayMaid = Maid.new()
+    -- Convert to non-mixed
+    local toServerUnclaimedDays = TableUtil.mapKeys(unclaimedDays, function(key)
+        return tostring(key)
+    end)
+
+    local rewardMaid = Maid.new()
 
     local claimAssume = Assume.new(function()
-        return Remotes.invokeServer("ClaimDailyStreakRequest", unclaimedDays)
+        return Remotes.invokeServer("ClaimDailyStreakRequest", toServerUnclaimedDays)
     end)
     claimAssume:Check(function(wasSuccess: boolean)
         return wasSuccess and true or false
@@ -66,21 +79,23 @@ function RewardsController.claimDailyStreakRequest()
                 local doReward = true
                 for dayNum, amount in pairs(unclaimedDays) do
                     local reward = RewardsUtil.getDailyStreakReward(dayNum)
-                    displayMaid:GiveTask(RewardsController.giveReward(reward, amount))
+                    rewardMaid:GiveTask(RewardsController.giveReward(reward, amount))
 
                     if not doReward then
                         break
                     end
                 end
 
-                displayMaid:GiveTask(function()
+                rewardMaid:GiveTask(function()
                     doReward = false
                 end)
             end)
         end)
         :Else(function()
-            displayMaid:Destroy()
+            rewardMaid:Destroy()
         end)
+
+    return claimAssume
 end
 
 -- Returns a maid that will cleanup + revert the application of this reward
@@ -128,6 +143,7 @@ end
 do
     DataController.Updated:Connect(function(event: string, _newValue: any)
         if event == "DailyStreakUpdated" then
+            RewardsController.DailyStreakUpdated:Fire()
             RewardsController.promptDailyRewards()
         end
     end)
