@@ -7,14 +7,7 @@ local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 type PhysicsGroups = { string }
 
-local groupNames = CollisionsConstants.Groups
-local groups: PhysicsGroups = { groupNames.Default }
-
-local function createGroup(name: string)
-    PhysicsService:CreateCollisionGroup(name)
-    table.insert(groups, name)
-end
-
+local groups = CollisionsConstants.Groups
 local function _setGroupCollideableBlacklist(group: string, blacklist: PhysicsGroups)
     for _, otherGroup in groups do
         if not table.find(blacklist, otherGroup) then
@@ -49,16 +42,23 @@ function CollisionsService.getCollisionGroupId(groupName: string)
     return PhysicsService:GetCollisionGroupId(groupName)
 end
 
+for _, group in pairs(CollisionsConstants.Groups) do
+    if group ~= CollisionsConstants.Groups.Default then
+        PhysicsService:CreateCollisionGroup(group)
+    end
+end
+
 -- Characters
-createGroup(groupNames.Characters)
-setGroupCollideableWhitelist(groupNames.Characters, { groupNames.Default, groupNames.Characters })
+setGroupCollideableWhitelist(groups.Characters, { groups.Default, groups.Characters })
 
 -- Hidden Characters
-createGroup(groupNames.HiddenCharacters)
-setGroupCollideableWhitelist(groupNames.HiddenCharacters, { groupNames.Default })
+setGroupCollideableWhitelist(groups.HiddenCharacters, { groups.Default })
 
 -- Ethereal Characters
-createGroup(groupNames.EtherealCharacters)
-setGroupCollideableWhitelist(groupNames.EtherealCharacters, { groupNames.Default })
+setGroupCollideableWhitelist(groups.EtherealCharacters, { groups.Default })
+
+-- Sled race
+setGroupCollideableWhitelist(groups.SledRaceCharacters, {})
+setGroupCollideableWhitelist(groups.SledRaceCollectables, { groups.Default })
 
 return CollisionsService
