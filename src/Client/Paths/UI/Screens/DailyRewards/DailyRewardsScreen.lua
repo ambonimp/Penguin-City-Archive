@@ -8,7 +8,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Maid = require(Paths.Packages.maid)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local RewardsController = require(Paths.Client.Rewards.RewardsController)
+local RewardsController: typeof(require(Paths.Client.Rewards.RewardsController))
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
@@ -19,11 +19,15 @@ local Images = require(Paths.Shared.Images.Images)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local screenGui: ScreenGui = Ui.DailyRewards
+local container: Frame = screenGui.Container
 local backgroundClone: ImageLabel
 local isOpen = false
 local openCallbacks: { () -> () } = {}
 
 function DailyRewardsScreen.Init()
+    -- Dependencies
+    RewardsController = require(Paths.Client.Rewards.RewardsController)
+
     -- Register UIState
     do
         local function enter()
@@ -38,14 +42,14 @@ function DailyRewardsScreen.Init()
     end
 
     -- Setup Background
-    local background: ImageLabel = screenGui.Container.Background
+    local background: ImageLabel = container.Background
     background.Days.Day.Visible = false
 
     backgroundClone = background:Clone()
     DailyRewardsScreen.setup(background, Maid.new(), true)
 
     -- Init Screen
-    ScreenUtil.outUp(screenGui.Container)
+    ScreenUtil.outUp(container)
     task.delay(1, function()
         screenGui.Enabled = true
     end)
@@ -85,7 +89,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
                 update()
             end
             claimAssume:Then(afterClaim):Else(afterClaim)
-        else
+        elseif isUi then
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
         end
     end)
@@ -181,8 +185,13 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
             claimButton:SetText("Claim Reward")
         else
-            claimButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
-            claimButton:SetText("Close")
+            if isUi then
+                claimButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
+                claimButton:SetText("Close")
+            else
+                claimButton:SetColor(UIConstants.Colors.Buttons.WaitOrange)
+                claimButton:SetText("No Reward")
+            end
         end
     end
     task.spawn(function()
@@ -200,12 +209,27 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
 end
 
 function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
-    --todo
+    local maid = Maid.new()
+    part.Destroying:Connect(function()
+        maid:Destroy()
+    end)
+
+    local surfaceGui = Instance.new("SurfaceGui")
+    surfaceGui.Adornee = part
+    surfaceGui.Face = face
+    surfaceGui.Name = ("DailyRewards_%s"):format(part:GetFullName())
+    surfaceGui.CanvasSize = Vector2.new(container.Size.X.Offset, container.Size.Y.Offset)
+    surfaceGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    surfaceGui.Parent = Paths.UI
+
+    local background = backgroundClone:Clone()
+    background.Parent = surfaceGui
+    DailyRewardsScreen.setup(background, maid, false)
 end
 
 function DailyRewardsScreen.open()
     isOpen = true
-    ScreenUtil.inDown(screenGui.Container)
+    ScreenUtil.inDown(container)
 
     for _, callback in pairs(openCallbacks) do
         callback()
@@ -214,7 +238,7 @@ end
 
 function DailyRewardsScreen.close()
     isOpen = false
-    ScreenUtil.outUp(screenGui.Container)
+    ScreenUtil.outUp(container)
 end
 
 return DailyRewardsScreen

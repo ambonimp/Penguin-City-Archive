@@ -20,6 +20,10 @@ local Maid = require(Paths.Packages.maid)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CurrencyController = require(Paths.Client.CurrencyController)
 local Signal = require(Paths.Shared.Signal)
+local DescendantLooper = require(Paths.Shared.DescendantLooper)
+local DailyRewardsScreen = require(Paths.Client.UI.Screens.DailyRewards.DailyRewardsScreen)
+
+local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 
 RewardsController.DailyStreakUpdated = Signal.new()
 
@@ -148,5 +152,14 @@ do
         end
     end)
 end
+
+-- DailyRewardsViewports
+DescendantLooper.workspace(function(instance)
+    return instance:GetAttribute(ATTRIBUTE_DAILY_REWARDS_VIEWPORT) and true or false
+end, function(instance)
+    local faceString = instance:GetAttribute(ATTRIBUTE_DAILY_REWARDS_VIEWPORT)
+    local face = Enum.NormalId[faceString]
+    DailyRewardsScreen.attachToPart(instance, face)
+end)
 
 return RewardsController

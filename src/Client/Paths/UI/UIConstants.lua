@@ -65,6 +65,7 @@ UIConstants.Colors = {
         UnavailableGrey = Color3.fromRGB(158, 158, 158),
         StampBeige = Color3.fromRGB(225, 209, 159),
         IglooPink = Color3.fromRGB(229, 142, 237),
+        WaitOrange = Color3.fromRGB(255, 151, 32),
     },
 }
 
