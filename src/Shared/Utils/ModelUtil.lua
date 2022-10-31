@@ -3,6 +3,7 @@ local ModelUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+local BasePartUtil = require(ReplicatedStorage.Shared.Utils.BasePartUtil)
 
 local ATTRIBUTE_CACHED_TRANSPARENCY = "_ModelUtilCachedTransparency"
 local SCALE_MODEL_RELATIVE_CLASSNAMES = { "Attachment", "Bone" }
@@ -130,6 +131,51 @@ function ModelUtil.scale(model: Model, scaleFactor: number)
         local pivotOffsetPosition = getScaledRelativePosition(pivotOffset.Position)
         model.PrimaryPart.PivotOffset = CFrame.new(pivotOffsetPosition) * (pivotOffset - pivotOffset.Position)
     end
+end
+
+function ModelUtil.getGlobalExtentsSize(model: Model, offset: CFrame?)
+    offset = if offset then offset.Rotation else CFrame.new()
+
+    local extentSize = {}
+    for _, axis in { "X", "Y", "Z" } do
+        local min = math.huge
+        local max = -math.huge
+
+        for _, part in pairs(model:GetDescendants()) do
+            -- CONTINUE: Descendant isn't a part
+            if not part:IsA("BasePart") then
+                continue
+            end
+
+            local cframe = CFrame.new(part.Position) * offset
+            local size = BasePartUtil.getGlobalExtentsSize(part, offset) / 2
+            local negativeSide = offset:PointToObjectSpace(cframe:PointToWorldSpace(-size))[axis]
+            local positiveSide = offset:PointToObjectSpace(cframe:PointToWorldSpace(size))[axis]
+
+            if negativeSide < min then
+                min = negativeSide
+            end
+            if positiveSide > max then
+                max = positiveSide
+            end
+        end
+
+        extentSize[axis] = math.abs(max - min)
+    end
+
+    return Vector3.new(extentSize.X, extentSize.Y, extentSize.Z)
+end
+
+function ModelUtil.getAssemblyMass(model: Model)
+    local totalMass = 0
+
+    for _, basePart in pairs(model:GetChildren()) do
+        if basePart:IsA("BasePart") then
+            totalMass += basePart.Mass
+        end
+    end
+
+    return totalMass
 end
 
 return ModelUtil

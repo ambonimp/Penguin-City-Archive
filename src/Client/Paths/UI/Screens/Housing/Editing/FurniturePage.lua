@@ -16,7 +16,7 @@ local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
-local PartUtil = require(Paths.Shared.Utils.PartUtil)
+local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
 
@@ -211,7 +211,7 @@ do
                 for _, basePart in pairs(model:GetDescendants()) do
                     if basePart:IsA("BasePart") and basePart ~= primaryPart then
                         basePart.Anchored = false
-                        PartUtil.weld(primaryPart, basePart)
+                        BasePartUtil.weld(primaryPart, basePart)
                     end
                 end
             end

@@ -7,7 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local VehicleConstants = require(Shared.Constants.VehicleConstants)
-local VectorUtil = require(Shared.Utils.VectorUtil)
+local Vector3Util = require(Shared.Utils.Vector3Util)
 
 -- Float Spring
 local FLOAT_STRENGTH = 350
@@ -123,7 +123,7 @@ function VehicleUtil.applyMoveFoce(dt: number)
     moveVelocity += dV
 
     local dA = (moveVelocity - platform.AssemblyLinearVelocity * Vector3.new(1, 0, 1)) / dt
-    dA = VectorUtil.ifNanThen0(dA.Unit * math.min(dA.Magnitude, maxForce))
+    dA = Vector3Util.ifNanThen0(dA.Unit * math.min(dA.Magnitude, maxForce))
 
     platform.Move.Force = dA * platform.AssemblyMass
 end
