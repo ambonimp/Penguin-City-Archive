@@ -32,7 +32,7 @@ blurSize:BindToProperty(blurEffect, "Size")
 -- Whether or not special effects like blackground blur are enabled when a frame is opened
 local cosmeticsEnabled = Toggle.new(false, function(value)
     if value then
-        blurSize:Set(COSMETICS.BlurSize)
+        blurSize:Tween(COSMETICS.BlurSize)
         CameraController.setFov(COSMETICS.CameraFOV, ANIMATION_LENGTH)
     else
         blurSize:Reset()

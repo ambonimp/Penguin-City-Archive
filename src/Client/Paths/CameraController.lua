@@ -9,6 +9,7 @@ local TweenableValue = require(Paths.Shared.TweenableValue)
 local Maid = require(Paths.Packages.maid)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 
 -- We transform our followMopuse cframes into this object space for easy calculation
@@ -44,7 +45,7 @@ function CameraController.isPlayerControlled()
 end
 
 function CameraController.setFov(fov: number, animationLength: number?)
-    tweenableFov:Set(fov, animationLength)
+    tweenableFov:Haste(fov, animationLength)
 end
 
 function CameraController.getFov()
@@ -52,7 +53,11 @@ function CameraController.getFov()
 end
 
 function CameraController.resetFov(animationLength: number?)
-    tweenableFov:Reset(animationLength)
+    if animationLength then
+        tweenableFov:HasteReset(animationLength)
+    else
+        tweenableFov:TweenReset()
+    end
 end
 
 function CameraController.lookAt(subject: BasePart | Model | {}, offset: Vector3, fov: number?): (Tween, CFrame)
@@ -87,7 +92,7 @@ function CameraController.alignCharacter()
 
     local currentDistance: number = (camera.CFrame.Position - camera.Focus.Position).Magnitude
 
-    local characterLookVectorXZ = VectorUtil.getUnit(VectorUtil.getXZComponents(character.PrimaryPart.CFrame.LookVector))
+    local characterLookVectorXZ = VectorUtil.getUnit(Vector3Util.getXZComponents(character.PrimaryPart.CFrame.LookVector))
     local cameraPosition = -characterLookVectorXZ * currentDistance
         + Vector3.new(0, ALIGN_CHARACTER_HEIGHT_GAIN_PER_UNIT * currentDistance, 0)
 

@@ -2,18 +2,44 @@ local TweenableValue = {}
 
 local TweenService = game:GetService("TweenService")
 
-function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo | (old: T, new: T) -> TweenInfo)
+function TweenableValue.new<T>(
+    valueType: "BoolValue" | "BrickColorValue" | "CFrameValue" | "Color3Value" | "IntValue" | "NumberValue" | "ObjectValue" | "RayValue" | "StringValue" | "Vector3Value",
+    initialValue: T,
+    tweenInfo: TweenInfo | (old: T, new: T) -> TweenInfo
+)
     local tweenableValue = {}
 
-    local initialValue = goal
+    -------------------------------------------------------------------------------
+    -- PRIVATE MEMBERS
+    -------------------------------------------------------------------------------
+    local goal: T = initialValue
     local tween: Tween?
+    local tweenCreatedTime: number?
+    local tweenLength: number?
 
     local valueInstance = Instance.new(valueType)
     valueInstance.Value = goal
 
-    --[[
-        When the value changes, so does the instance's property
-    ]]
+    -------------------------------------------------------------------------------
+    -- PRIVATE METHODS
+    -------------------------------------------------------------------------------
+    local function playTween(playing: Tween)
+        tween = playing
+
+        tweenLength = tween.TweenInfo.Time
+        tweenCreatedTime = os.clock()
+        tween.Completed:Connect(function(playbackState)
+            if playbackState == Enum.PlaybackState.Completed then
+                tween = nil
+            end
+        end)
+
+        playing:Play()
+    end
+    -------------------------------------------------------------------------------
+    -- PUBLIC METHODS
+    -------------------------------------------------------------------------------
+    -- When the value changes, so does the instance's property
     function tweenableValue:BindToProperty(instance: Instance, property: string)
         instance[property] = valueInstance.Value
         valueInstance.Changed:Connect(function(newVal)
@@ -23,9 +49,16 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         return tweenableValue
     end
 
-    --[[
-        Cancels any ongoing tweens and tweens to new value
-    ]]
+    -- When the value changes, so does the instance's property
+    function tweenableValue:BindToCalback(callback: (newValue: T, completed: number) -> ())
+        valueInstance.Changed:Connect(function(newValue)
+            callback(newValue, math.min(1, (os.clock() - tweenCreatedTime) / tweenLength))
+        end)
+
+        return tweenableValue
+    end
+
+    -- Cancels any ongoing tweens and tweens to new value
     function tweenableValue:Tween(newGoal: T, customTweenInfo: TweenInfo?)
         if newGoal == goal then
             return
@@ -35,59 +68,62 @@ function TweenableValue.new<T>(valueType: string, goal: T, tweenInfo: TweenInfo 
         goal = newGoal
 
         customTweenInfo = customTweenInfo or (if typeof(tweenInfo) == "function" then tweenInfo(goal, valueInstance.Value) else tweenInfo)
-        tween = TweenService:Create(valueInstance, customTweenInfo, { Value = goal })
-        tween:Play()
+        playTween(TweenService:Create(valueInstance, customTweenInfo, { Value = goal }))
     end
 
-    --[[
-        Cancels any ongoing tweens and tweens to new value in time `length`
-    ]]
-    function tweenableValue:Set(newGoal: any, length: number)
+    -- Cancels any ongoing tweens and tweens to new value in time `length`
+    function tweenableValue:Haste(newGoal: T, length: number)
         if newGoal == goal then
             return
         end
 
-        self:Stop()
+        tweenableValue:Stop()
         goal = newGoal
 
-        tween =
+        playTween(
             TweenService:Create(valueInstance, TweenInfo.new(length, tweenInfo.EasingStyle, tweenInfo.EasingDirection), { Value = goal })
-        tween:Play()
+        )
+    end
+
+    function tweenableValue:Set(newGoal: T)
+        tweenableValue:Stop()
+        goal = newGoal
+
+        valueInstance.Value = newGoal
     end
 
     function tweenableValue:Get(): T
-        return tweenableValue.Value.Value
+        return valueInstance.Value
     end
 
     function tweenableValue:GetGoal(): T
         return goal
     end
 
-    --[[
-        Sets the value to the initial value
-    ]]
-    function tweenableValue:Reset(length: number?)
-        if length then
-            tweenableValue:Set(initialValue, length)
-        else
-            tweenableValue:Tween(initialValue)
-        end
+    function tweenableValue:Reset()
+        tweenableValue:Set(initialValue)
     end
 
-    --[[
-        Sets the value to the initial value
-    ]]
-    function tweenableValue:ResetTween(customTweenInfo: TweenInfo?)
+    function tweenableValue:TweenReset(customTweenInfo: TweenInfo?)
         tweenableValue:Tween(initialValue, customTweenInfo)
     end
 
-    --[[
-        Pauses any ongoing tweens
-    ]]
+    function tweenableValue:HasteReset(length: number)
+        TweenableValue:Haste(initialValue, length)
+    end
+
+    function tweenableValue:IsPlaying(): boolean
+        return tween ~= nil
+    end
+
+    -- Cancels any ongoing tweens
     function tweenableValue:Stop()
         if tween then
             tween:Cancel()
             tween = nil
+
+            tweenCreatedTime = nil
+            tweenLength = nil
         end
     end
 
