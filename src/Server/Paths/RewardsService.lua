@@ -7,14 +7,21 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
+local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
 local PlayerService = require(Paths.Server.PlayerService)
+local Remotes = require(Paths.Shared.Remotes)
+local CurrencySevice = require(Paths.Server.CurrencyService)
+
+local function getDailyStreakData(player: Player)
+    return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
+end
 
 --[[
     Updates a players daily streak, calculating if their streak should be increased, expired etc..
     Informs the client.
 ]]
 function RewardsService.updateDailyStreak(player: Player)
-    local dailyStreakData = DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
+    local dailyStreakData = getDailyStreakData(player)
     local updatedDailyStreakData = RewardsUtil.getUpdatedDailyStreak(dailyStreakData)
 
     -- Streak updated!
@@ -40,6 +47,46 @@ function RewardsService.loadPlayer(player: Player)
     PlayerService.getPlayerMaid(player):GiveTask(function()
         RewardsService.updateDailyStreak(player)
     end)
+end
+
+function RewardsService.giveReward(player: Player, reward: RewardsConstants.DailyStreakReward, amount: number)
+    if reward.Coins then
+        CurrencySevice.addCoins(player, reward.Coins * amount)
+        return
+    end
+
+    if reward.Gift then
+        warn("todo give gift", reward.Gift, amount)
+        return
+    end
+
+    warn("Don't know how to give reward", reward)
+end
+
+-- Communication
+do
+    Remotes.bindFunctions({
+        ClaimDailyStreakRequest = function(player: Player, dirtyUnclaimedDays: any)
+            -- FALSE: Mismatch
+            local unclaimedDays = RewardsUtil.getUnclaimedDailyStreakDays(getDailyStreakData(player))
+            for dayNum, amount in pairs(unclaimedDays) do
+                if not (dirtyUnclaimedDays[dayNum] == amount) then
+                    return false
+                end
+            end
+
+            -- Hand over stuffs
+            for dayNum, amount in pairs(unclaimedDays) do
+                local reward = RewardsUtil.getDailyStreakReward(dayNum)
+                RewardsService.giveReward(player, reward, amount)
+            end
+
+            local address = ("%s.%s"):format(RewardsUtil.getDailyStreakDataAddress(), "Unclaimed")
+            DataService.set(player, address, {}, "DailyStreakUpdated")
+
+            return true
+        end,
+    })
 end
 
 return RewardsService

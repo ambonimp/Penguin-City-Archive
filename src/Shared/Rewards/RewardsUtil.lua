@@ -20,7 +20,7 @@ function RewardsUtil.getDailyStreakNumber(dailyStreakData: DataUtil.Data)
     if entry then
         return entry.StreakNumber
     end
-    return nil
+    return 0
 end
 
 function RewardsUtil.getDailyStreakDays(dailyStreakData: DataUtil.Data)
@@ -28,10 +28,10 @@ function RewardsUtil.getDailyStreakDays(dailyStreakData: DataUtil.Data)
     if entry then
         return entry.Days
     end
-    return nil
+    return 0
 end
 
-function RewardsUtil.getBestDailyStreak(dailyStreakData: DataUtil.Data)
+function RewardsUtil.getBestDailyStreak(dailyStreakData: DataUtil.Data): number
     return dailyStreakData.BestStreak
 end
 
@@ -41,6 +41,12 @@ function RewardsUtil.getTimeUntilNextDailyStreakRenew(dailyStreakData: DataUtil.
         return math.clamp(entry.RenewAtServerTime - Workspace:GetServerTimeNow(), 0, math.huge)
     end
     return 0
+end
+
+function RewardsUtil.getUnclaimedDailyStreakDays(dailyStreakData: DataUtil.Data): { [number]: number }
+    return TableUtil.mapKeys(dailyStreakData.Unclaimed, function(key)
+        return tonumber(key)
+    end)
 end
 
 --[[
@@ -86,7 +92,7 @@ function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
     -- Try renew
     if entry.RenewAtServerTime < now then
         entry.Days += 1
-        dailyStreakData.Unclaimed[tostring(entry.Days)] = true
+        dailyStreakData.Unclaimed[tostring(entry.Days)] = (dailyStreakData.Unclaimed[tostring(entry.Days)] or 0) + 1
 
         entry.RenewAtServerTime = now + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.RenewAfterHours)
         entry.ExpiresAtServerTime = entry.RenewAtServerTime + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.ExpireAfterHours)
@@ -109,7 +115,7 @@ function RewardsUtil.setDailyStreakRenewTime(dailyStreakData: DataUtil.Data, ren
     end
 end
 
-function RewardsUtil.getReward(day: number)
+function RewardsUtil.getDailyStreakReward(day: number)
     local wrappedDay = MathUtil.wrapAround(day, #RewardsConstants.DailyStreak.Rewards)
     local rewardLevel = math.ceil(day / #RewardsConstants.DailyStreak.Rewards)
 
@@ -118,6 +124,20 @@ function RewardsUtil.getReward(day: number)
         reward.Gift = rewardLevel == 1 and "Small" or rewardLevel == 2 and "Medium" or "Large" --TODO Implement gifts properly
     end
 
+    return reward
+end
+
+function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number)
+    -- ERROR: Not a gift!
+    local reward = RewardsUtil.getDailyStreakReward(day)
+    if not reward.Gift then
+        error(("Cannot get Gift for day %d; not a gift reward day!"):format(day))
+    end
+
+    local seed = streakNumber * 10000 + day -- Unique enough seed for our purposes
+    local random = Random.new(seed)
+
+    warn("todo")
     return reward
 end
 

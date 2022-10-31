@@ -5,11 +5,10 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Maid = require(Paths.Packages.maid)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local RewardsController = require(Paths.Client.RewardsController)
+local RewardsController = require(Paths.Client.Rewards.RewardsController)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
@@ -17,22 +16,14 @@ local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local ItemDisplay = require(Paths.Client.UI.Elements.ItemDisplay)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local screenGui: ScreenGui = Ui.DailyRewards
-local closeButton = ExitButton.new()
 local backgroundClone: ImageLabel
 local isOpen = false
 local openCallbacks: { () -> () } = {}
 
 function DailyRewardsScreen.Init()
-    -- Setup Buttons
-    do
-        closeButton:Mount(screenGui.Container.CloseButton, true)
-        closeButton.Pressed:Connect(function()
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
-        end)
-    end
-
     -- Register UIState
     do
         local function enter()
@@ -62,12 +53,17 @@ end
 
 function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new()), isUi: boolean)
     -- Button
+    local canClaim = true
     local claimButton = KeyboardButton.new()
     claimButton:Mount(background.Button, true)
     claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen, true)
     claimButton:SetText("Claim Reward", true)
     claimButton.Pressed:Connect(function()
-        print("todo claim")
+        if canClaim then
+            RewardsController.claimDailyStreakRequest()
+        else
+            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+        end
     end)
 
     -- Text Labels
@@ -75,30 +71,44 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     local bestStreak: TextLabel = background.BestStreak
     local nextReward: TextLabel = background.NextReward
 
+    -- Updating
     local runWriteLoop = true
     maid:GiveTask(function()
         runWriteLoop = false
     end)
 
-    local function writeFunction()
-        -- Only update if visible
-        if not isUi or isOpen then
-            streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
-            bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
+    local function update()
+        -- RETURN: Not visible
+        if isUi and not isOpen then
+            return
+        end
 
-            local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
-            nextReward.Text = timeUntilNextDailyStreakReward > 0
-                    and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
-                or "Claim your reward!"
+        -- TextLabels
+        streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
+        bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
+
+        local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
+        nextReward.Text = timeUntilNextDailyStreakReward > 0
+                and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
+            or "Claim your reward!"
+
+        -- Button
+        canClaim = not TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays())
+        if canClaim then
+            claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
+            claimButton:SetText("Claim Reward")
+        else
+            claimButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
+            claimButton:SetText("Close")
         end
     end
     task.spawn(function()
         while runWriteLoop do
-            writeFunction()
+            update()
             task.wait(1)
         end
     end)
-    table.insert(openCallbacks, writeFunction)
+    table.insert(openCallbacks, update)
 
     -- Days
     local displayDaysMaid = Maid.new()
@@ -112,6 +122,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
         displayDaysMaid:Cleanup()
 
         local lowestDay = (math.ceil(day / 5) - 1) * 5 + 1
+        local currentDailyStreak = RewardsController.getCurrentDailyStreak()
         for dayNum = lowestDay, lowestDay + 4 do
             local holder: Frame = background.Days.Day:Clone()
             holder.Visible = true
@@ -119,7 +130,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             holder.Parent = background.Days
             displayDaysMaid:GiveTask(holder)
 
-            local reward = RewardsUtil.getReward(dayNum)
+            local reward = RewardsUtil.getDailyStreakReward(dayNum)
             local rewardText = reward.Coins and ("%s Coins"):format(StringUtil.commaValue(reward.Coins))
                 or reward.Gift and ("%s Gift"):format(reward.Gift)
                 or "undefined"
@@ -135,6 +146,10 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             itemDisplay:SetImage(rewardImage)
             itemDisplay:SetBorderColor(rewardColor)
             displayDaysMaid:GiveTask(itemDisplay)
+
+            if not RewardsController.getUnclaimedDailyStreakDays()[dayNum] and dayNum <= currentDailyStreak then
+                itemDisplay:SetOverlay("Completed")
+            end
         end
     end
 

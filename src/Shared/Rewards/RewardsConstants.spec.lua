@@ -7,7 +7,8 @@ return function()
 
     -- DailyStreakRewards Coins OR Gift
     for i, reward in pairs(RewardsConstants.DailyStreak.Rewards) do
-        if (reward.Coins and reward.Gift) or not (reward.Coins or reward.Gift) then
+        local totalOptions = (reward.Coins and 1 or 0) + (reward.Gift and 1 or 0)
+        if totalOptions ~= 1 then
             table.insert(issues, ("DailyStreak.Rewards.%s must have `Coins` OR `Gift` defined"):format(tostring(i)))
         end
     end
