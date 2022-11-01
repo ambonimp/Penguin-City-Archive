@@ -122,6 +122,39 @@ function ProductUtil.isCharacterItemProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- House Objects
+-------------------------------------------------------------------------------
+
+function ProductUtil.getHouseObjectProductId(categoryName: string, itemKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(itemKey))
+end
+
+function ProductUtil.getHouseObjectProduct(categoryName: string, itemKey: string)
+    local product = Products.Products[ProductConstants.ProductType.HouseObject][ProductUtil.getHouseObjectProductId(categoryName, itemKey)]
+    if not product then
+        error(("No House Object Product %s.%s"):format(categoryName, itemKey))
+    end
+
+    return product
+end
+
+function ProductUtil.getHouseObjectProductData(product: Products.Product)
+    -- ERROR: Not a HouseObject product
+    if not ProductUtil.isHouseObjectProduct(product) then
+        error("Passed a non-HouseObject product")
+    end
+
+    return {
+        CategoryName = product.Metadata.CategoryName,
+        ObjectKey = product.Metadata.ObjectKey,
+    }
+end
+
+function ProductUtil.isHouseObjectProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.HouseObject
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 

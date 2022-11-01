@@ -63,6 +63,19 @@ return function()
         end
     end
 
+    local function testHouseObjectProduct(product: Products.Product)
+        local productName = ("%s.%s"):format("HouseObject", product.Id)
+        local function addIssue(issue: string)
+            table.insert(issues, ("[%s] %s"):format(productName, issue))
+        end
+
+        -- Product Id must match ProductUtil getter
+        local houseObjectData = ProductUtil.getHouseObjectProductData(product)
+        if product.Id ~= ProductUtil.getCharacterItemProductId(houseObjectData.CategoryName, houseObjectData.ObjectKey) then
+            addIssue("ProductId does not match return value for ProductUtil.getHouseObjectProductData")
+        end
+    end
+
     -- ProductType must have key == value
     for key, value in pairs(Products.ProductType) do
         if key ~= value then
@@ -90,6 +103,10 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.CharacterItem then
                 testCharacterItemProduct(product)
+            end
+
+            if productTypeKey == ProductConstants.ProductType.HouseObject then
+                testHouseObjectProduct(product)
             end
         end
     end
