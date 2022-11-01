@@ -26,12 +26,12 @@ items["Boot_Hat"] = {
 }
 items["Detectives_Hat"] = {
     Name = "Detective's_Hat",
-    Price = 0,
+    Price = 1000,
     Icon = Images.Hats["Detective's_Hat"],
 }
 items["100k_Glasses"] = {
     Name = "100k_Glasses",
-    Price = 0,
+    Price = 100,
     Icon = Images.Hats["100k_Glasses"],
 }
 items["Thug_Life_Glasses"] = {
@@ -60,7 +60,7 @@ items["Green_Headphones"] = {
     Icon = Images.Hats["Green_Headphones"],
 }
 
-HatConstants.InventoryPath = "Hats"
+HatConstants.AssetsPath = "Hats"
 HatConstants.TabOrder = 5
 HatConstants.TabIcon = Images.Icons.Hat
 HatConstants.SortOrder = Enum.SortOrder.Name

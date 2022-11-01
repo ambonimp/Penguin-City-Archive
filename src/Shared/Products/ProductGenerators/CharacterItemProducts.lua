@@ -24,8 +24,9 @@ for categoryName, itemConstants in pairs(CharacterItems) do
             Id = productId,
             Type = ProductConstants.ProductType.CharacterItem,
             DisplayName = StringUtil.getFriendlyString(item.Name),
+            ImageId = item.Icon,
             CoinData = {
-                Coins = item.Price,
+                Cost = item.Price,
             },
             Metadata = {
                 CategoryName = categoryName,

@@ -9,6 +9,10 @@ local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConsta
 -- Getters
 -------------------------------------------------------------------------------
 
+function ProductUtil.getProductDataAddress(productType: string, productId: string)
+    return ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
+end
+
 function ProductUtil.getProduct(productType: string, productId: string): Products.Product | nil
     -- ERROR: Bad product type
     local products = Products.Products[productType]

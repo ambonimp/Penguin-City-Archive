@@ -1,6 +1,6 @@
 local CharacterItems: {
     [string]: {
-        InventoryPath: string,
+        AssetsPath: string,
         TabOrder: number,
         TabIcon: string,
         SortOrder: Enum.SortOrder,
@@ -15,6 +15,9 @@ type Item = {
     Name: string,
     Price: number,
     Icon: string,
+    Color: Color3?, -- FurColor
+    LayoutOrder: number?, -- BodyType
+    Height: number?, -- BodyType
 }
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

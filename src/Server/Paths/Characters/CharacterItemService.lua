@@ -10,11 +10,13 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local ProductService = require(Paths.Server.Products.ProductService)
 
 local assets = ReplicatedStorage.Assets.Character
 
 local function initAccessoryModels(type: string)
-    for _, model: Model in pairs(assets[CharacterItems[type].InventoryPath]:GetChildren()) do
+    for _, model: Model in pairs(assets[CharacterItems[type].AssetsPath]:GetChildren()) do
         model:SetAttribute("AccessoryType", type)
 
         local handle: BasePart = model:FindFirstChild("Handle")
@@ -40,7 +42,7 @@ local function initAccessoryModels(type: string)
 end
 
 local function initClothingModels(type: string)
-    for _, model: Model in pairs(assets[CharacterItems[type].InventoryPath]:GetChildren()) do
+    for _, model: Model in pairs(assets[CharacterItems[type].AssetsPath]:GetChildren()) do
         for _, piece in pairs(model:GetChildren()) do
             piece:SetAttribute("ClothingType", type)
             if piece:IsA("BasePart") then
@@ -86,23 +88,22 @@ Remotes.bindFunctions({
             return
         end
 
-        local inventory = DataService.get(client, "Inventory")
-
         -- Verify that every item that's being changed into is owned or free
-        for category, items in pairs(changes) do
-            local constants = CharacterItems[category]
-            if constants and #items <= constants.MaxEquippables then
+        for categoryName, items in pairs(changes) do
+            local itemConstants = CharacterItems[categoryName]
+            if itemConstants and #items <= itemConstants.MaxEquippables then
                 local allItemsAreValid = true
-                for _, item in pairs(items) do
-                    if not (constants.Items[item].Price == 0 or inventory[constants.InventoryPath][item]) then
+                for _, itemKey in pairs(items) do
+                    local product = ProductUtil.getCharacterItemProduct(categoryName, itemKey)
+                    if not (ProductUtil.isFree(product) or ProductService.hasProduct(client, product)) then
                         allItemsAreValid = false
                         break
                     end
                 end
 
                 if allItemsAreValid then
-                    DataService.set(client, "CharacterAppearance." .. category, items, "OnCharacterAppareanceChanged_" .. category)
-                    CharacterUtil.applyAppearance(character, { [category] = items })
+                    DataService.set(client, "CharacterAppearance." .. categoryName, items, "OnCharacterAppareanceChanged_" .. categoryName)
+                    CharacterUtil.applyAppearance(character, { [categoryName] = items })
                 end
             end
         end

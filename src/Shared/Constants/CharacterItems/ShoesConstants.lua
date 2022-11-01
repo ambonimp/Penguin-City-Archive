@@ -15,7 +15,7 @@ items["Red_Sneakers"] = {
     Icon = Images.Shoes["Red_Sneakers"],
 }
 
-ShoesConstants.InventoryPath = "Shoes"
+ShoesConstants.AssetsPath = "Shoes"
 ShoesConstants.TabOrder = 3
 ShoesConstants.TabIcon = Images.Icons.Shoe
 ShoesConstants.SortOrder = Enum.SortOrder.LayoutOrder

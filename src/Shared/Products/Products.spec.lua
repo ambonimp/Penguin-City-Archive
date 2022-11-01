@@ -39,6 +39,11 @@ return function()
             end
         end
 
+        -- CoinData
+        if product.CoinData and not product.CoinData.Cost then
+            addIssue("CoinData has no .Cost")
+        end
+
         -- Needs a type
         if product.Type == nil then
             addIssue("Needs a .Type (should be automatically populated though)")
