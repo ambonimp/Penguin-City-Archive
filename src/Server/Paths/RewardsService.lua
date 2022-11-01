@@ -12,6 +12,7 @@ local PlayerService = require(Paths.Server.PlayerService)
 local Remotes = require(Paths.Shared.Remotes)
 local CurrencySevice = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ProductService = require(Paths.Server.Products.ProductService)
 
 local function getDailyStreakData(player: Player)
     return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
@@ -57,7 +58,7 @@ function RewardsService.giveReward(player: Player, reward: RewardsConstants.Dail
     end
 
     if reward.Gift then
-        warn("todo give gift", reward.Gift, amount)
+        warn("todo give reward gift", reward, amount)
         return
     end
 
@@ -90,6 +91,15 @@ do
             -- Hand over stuffs
             for dayNum, amount in pairs(unclaimedDays) do
                 local reward = RewardsUtil.getDailyStreakReward(dayNum)
+                if reward.Gift then
+                    reward = RewardsUtil.getDailyStreakGift(
+                        dayNum,
+                        RewardsUtil.getDailyStreakNumber(getDailyStreakData(player)),
+                        player.UserId,
+                        ProductService.getOwnedProducts(player)
+                    )
+                end
+
                 RewardsService.giveReward(player, reward, amount)
             end
 

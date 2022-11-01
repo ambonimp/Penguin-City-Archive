@@ -136,9 +136,14 @@ function RewardsUtil.getDailyStreakReward(day: number)
 end
 
 --[[
-    productBlacklist `productType: productIds: amount`
+    productBlacklist `productIds: amount`
 ]]
-function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, productBlacklist: { [string]: { [string]: number } }?)
+function RewardsUtil.getDailyStreakGift(
+    day: number,
+    streakNumber: number,
+    seedContribution: number?,
+    productBlacklist: { [Products.Product]: number }?
+)
     -- ERROR: Not a gift!
     local reward = RewardsUtil.getDailyStreakReward(day)
     if not (reward.Gift and reward.Gift.Name) then
@@ -147,7 +152,7 @@ function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, produ
     end
 
     -- Get our Random for this context
-    local seed = streakNumber * 1000000 + day -- Unique enough seed for our purposes
+    local seed = streakNumber * 1000000 + day + (seedContribution or 0) -- Unique enough seed for our purposes
     local random = Random.new(seed)
 
     local function isProductAllowed(product: Products.Product)
@@ -155,11 +160,7 @@ function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, produ
             return true
         end
 
-        if
-            productBlacklist[product.Type]
-            and productBlacklist[product.Type][product.Id]
-            and productBlacklist[product.Type][product.Id] > 0
-        then
+        if productBlacklist[product.Id] and productBlacklist[product.Id] > 0 then
             return false
         end
 
@@ -171,11 +172,17 @@ function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, produ
     while TableUtil.isEmpty(reward.Gift.Data) do
         local gifts = RewardsConstants.Gifts[reward.Gift.Name]
 
-        local weightByGifts: { [RewardsConstants.Gift]: number } = {}
+        local weightedGifts: { {
+            Weight: number,
+            Value: any,
+        } } = {}
         for _, gift in pairs(gifts) do
-            weightByGifts[gift] = gift.Weight
+            table.insert(weightedGifts, {
+                Weight = gift.Weight,
+                Value = gift,
+            })
         end
-        local gift: RewardsConstants.Gift = MathUtil.weightedChoice(weightByGifts, random)
+        local gift: RewardsConstants.Gift = MathUtil.weightedChoice(weightedGifts, random)
 
         -- Write to Reward
         reward.Gift.Type = gift.Type
@@ -184,7 +191,7 @@ function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, produ
             reward.Gift.Data.Coins = gift.Data.Coins
         elseif gift.Type == "Clothing" then
             for _ = 1, GIFT_ATTEMPTS do
-                local categoryName, itemNames = TableUtil.getRandom(gift.Data.Clothing)
+                local itemNames, categoryName = TableUtil.getRandom(gift.Data.Clothing)
                 local itemName = TableUtil.getRandom(itemNames)
                 local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
 
@@ -196,7 +203,7 @@ function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, produ
             end
         elseif gift.Type == "House" then
             for _ = 1, GIFT_ATTEMPTS do
-                local categoryName, objectNames = TableUtil.getRandom(gift.Data.House)
+                local objectNames, categoryName = TableUtil.getRandom(gift.Data.House)
                 local objectName = TableUtil.getRandom(objectNames)
                 local product = ProductUtil.getHouseObjectProduct(categoryName, objectName)
 

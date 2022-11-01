@@ -35,7 +35,7 @@ function TableUtil.getRandom(tbl: table)
     local selection = math.random(1, TableUtil.length(tbl))
     local index = 1
 
-    for k, v in tbl do
+    for k, v in pairs(tbl) do
         if index == selection then
             return v, k
         else

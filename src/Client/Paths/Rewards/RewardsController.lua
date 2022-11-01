@@ -23,6 +23,7 @@ local Signal = require(Paths.Shared.Signal)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local DailyRewardsScreen = require(Paths.Client.UI.Screens.DailyRewards.DailyRewardsScreen)
 local Effects = require(Paths.Shared.Effects)
+local ProductController = require(Paths.Client.ProductController)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
@@ -90,6 +91,14 @@ function RewardsController.claimDailyStreakRequest()
                 local doReward = true
                 for dayNum, amount in pairs(unclaimedDays) do
                     local reward = RewardsUtil.getDailyStreakReward(dayNum)
+                    if reward.Gift then
+                        reward = RewardsUtil.getDailyStreakGift(
+                            dayNum,
+                            RewardsController.getDailyStreakNumber(),
+                            Players.LocalPlayer.UserId,
+                            ProductController.getOwnedProducts()
+                        )
+                    end
                     rewardMaid:GiveTask(RewardsController.giveReward(reward, amount))
 
                     if not doReward then
@@ -171,6 +180,10 @@ end
 
 function RewardsController.getUnclaimedDailyStreakDays()
     return RewardsUtil.getUnclaimedDailyStreakDays(getDailyStreakData())
+end
+
+function RewardsController.getDailyStreakNumber()
+    return RewardsUtil.getDailyStreakNumber(getDailyStreakData())
 end
 
 -- DailyStreakUpdated
