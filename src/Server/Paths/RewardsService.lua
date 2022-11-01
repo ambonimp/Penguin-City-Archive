@@ -52,6 +52,7 @@ function RewardsService.loadPlayer(player: Player)
     end)
 end
 
+-- Gives a reward on the server - assumes client knows this is happening
 function RewardsService.giveReward(player: Player, reward: RewardsConstants.DailyStreakReward, amount: number)
     local coins = reward.Coins or (reward.Gift and reward.Gift.Data.Coins)
     if coins then
@@ -69,6 +70,21 @@ function RewardsService.giveReward(player: Player, reward: RewardsConstants.Dail
 
     warn("Don't know how to give reward", reward)
 end
+
+-- Custom function to give a gift to a player, that informs the client!
+function RewardsService.giveGift(player: Player, giftName: string)
+    local reward = RewardsUtil.getDailyStreakGift(
+        math.random(1, 100),
+        math.random(1, 100),
+        math.random(1, 100),
+        ProductService.getOwnedProducts(player),
+        giftName
+    )
+
+    RewardsService.giveReward(player, reward, 1)
+    Remotes.fireClient(player, "GiftGiven", reward.Gift)
+end
+Remotes.declareEvent("GiftGiven")
 
 -- Communication
 do

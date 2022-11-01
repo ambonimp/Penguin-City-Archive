@@ -4,7 +4,6 @@
 local RewardsController = {}
 
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
@@ -28,6 +27,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
+local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
 RewardsController.DailyStreakUpdated = Signal.new()
 
@@ -143,15 +143,9 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
             CurrencyController.addCoins(-coins)
         end)
 
-        -- World Effect
-        UIController.getStateMachine():InvokeInState(function()
-            if not didRevert then
-                maid:GiveTask(Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION))
-            end
-        end, UIConstants.States.HUD)
-
-        -- Reward
+        -- From Reward
         if reward.Gift then
+            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
             UIController.getStateMachine():Push(UIConstants.States.GiftPopup, {
                 Coins = coins,
             })
@@ -159,6 +153,13 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
                 UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
             end)
         end
+
+        -- World Effect
+        UIController.getStateMachine():InvokeInState(function()
+            if not didRevert then
+                maid:GiveTask(Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION))
+            end
+        end, UIConstants.States.HUD)
 
         -- Screen Add
         --TODO
@@ -168,6 +169,8 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
 
     if reward.Gift and reward.Gift.Data.ProductType and reward.Gift.Data.ProductId then
         local product = ProductUtil.getProduct(reward.Gift.Data.ProductType, reward.Gift.Data.ProductId)
+
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
         UIController.getStateMachine():Push(UIConstants.States.GiftPopup, {
             Product = product,
         })
@@ -223,5 +226,22 @@ end, function(instance)
     local face = Enum.NormalId[faceString]
     DailyRewardsScreen.attachToPart(instance, face)
 end)
+
+local function giftGiven(reward: RewardsConstants.DailyStreakReward)
+    RewardsController.giveReward(reward, 1)
+end
+
+-- Communcation
+do
+    Remotes.bindEvents({
+        GiftGiven = function(gift)
+            local reward: RewardsConstants.DailyStreakReward = {
+                Gift = gift,
+                Color = COLOR_WHITE, -- Filler value to satisfying types
+            }
+            giftGiven(reward)
+        end,
+    })
+end
 
 return RewardsController

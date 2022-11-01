@@ -143,13 +143,20 @@ function RewardsUtil.getDailyStreakGift(
     day: number,
     streakNumber: number,
     seedContribution: number?,
-    productBlacklist: { [Products.Product]: number }?
+    productBlacklist: { [Products.Product]: number }?,
+    overrideGiftName: string?
 )
     -- ERROR: Not a gift!
     local reward = RewardsUtil.getDailyStreakReward(day)
-    if not (reward.Gift and reward.Gift.Name) then
+    if not ((reward.Gift and reward.Gift.Name) or overrideGiftName) then
         warn(reward)
         error(("Cannot get Gift for day %d; not a gift reward day or .Name was not defined!"):format(day))
+    end
+
+    -- Override?
+    if overrideGiftName then
+        reward.Gift = reward.Gift or {}
+        reward.Gift.Name = overrideGiftName
     end
 
     -- Get our Random for this context
