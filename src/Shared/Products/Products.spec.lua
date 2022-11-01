@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 local ProductUtil = require(ReplicatedStorage.Shared.Products.ProductUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
 
 return function()
     local issues: { string } = {}
@@ -44,6 +45,19 @@ return function()
         end
     end
 
+    local function testCharacterItemProduct(product: Products.Product)
+        local productName = ("%s.%s"):format("CharacterItem", product.Id)
+        local function addIssue(issue: string)
+            table.insert(issues, ("[%s] %s"):format(productName, issue))
+        end
+
+        -- Product Id must match ProductUtil getter
+        local characterItemData = ProductUtil.getCharacterItemProductData(product)
+        if product.Id ~= ProductUtil.getCharacterItemProductId(characterItemData.CategoryName, characterItemData.ItemKey) then
+            addIssue("ProductId does not match return value for ProductUtil.getCharacterItemProductId")
+        end
+    end
+
     -- ProductType must have key == value
     for key, value in pairs(Products.ProductType) do
         if key ~= value then
@@ -68,6 +82,10 @@ return function()
             end
 
             testProduct(productTypeKey, product)
+
+            if productTypeKey == ProductConstants.ProductType.CharacterItem then
+                testCharacterItemProduct(product)
+            end
         end
     end
 

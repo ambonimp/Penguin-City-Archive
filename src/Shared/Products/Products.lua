@@ -1,6 +1,10 @@
-local MarketplaceService = game:GetService("MarketplaceService")
-local RunService = game:GetService("RunService")
 local Products = {}
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
 
 -------------------------------------------------------------------------------
 -- Types
@@ -38,10 +42,7 @@ export type GenericProduct = {
 -- Products
 -------------------------------------------------------------------------------
 
-local productType: { [string]: string } = {
-    Coin = "Coin",
-    Test = "Test",
-}
+local productType: { [string]: string } = ProductConstants.ProductType
 
 local products: { [string]: { [string]: Product } } = {
     --#region Coin
@@ -93,6 +94,18 @@ local products: { [string]: { [string]: Product } } = {
 local genericProducts: { GenericProduct } = {
     { DeveloperProductId = 1322114146, Robux = 99 },
 }
+
+-------------------------------------------------------------------------------
+-- Generated Products
+-------------------------------------------------------------------------------
+
+local productGenerators = ReplicatedStorage.Shared.Products.ProductGenerators
+for _, generatorScript: ModuleScript in pairs(productGenerators:GetChildren()) do
+    local generatorProductType = StringUtil.chopEnd(generatorScript.Name, "Products")
+    local generatorProducts = require(generatorScript)
+
+    products[generatorProductType] = generatorProducts
+end
 
 -------------------------------------------------------------------------------
 -- Logic / Assign to scope

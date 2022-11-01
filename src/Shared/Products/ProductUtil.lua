@@ -3,6 +3,11 @@ local ProductUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
+local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
+
+-------------------------------------------------------------------------------
+-- Getters
+-------------------------------------------------------------------------------
 
 function ProductUtil.getProduct(productType: string, productId: string): Products.Product | nil
     -- ERROR: Bad product type
@@ -69,6 +74,48 @@ function ProductUtil.getAllGamepassProducts()
 
     return gamepassProducts
 end
+
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
+
+function ProductUtil.isFree(product: Products.Product)
+    return product.CoinData and product.CoinData.Cost <= 0 and true or false
+end
+
+-------------------------------------------------------------------------------
+-- Character Items
+-------------------------------------------------------------------------------
+
+function ProductUtil.getCharacterItemProductId(categoryName: string, itemKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(itemKey))
+end
+
+function ProductUtil.getCharacterItemProduct(categoryName: string, itemKey: string)
+    local product =
+        Products.Products[ProductConstants.ProductType.CharacterItem][ProductUtil.getCharacterItemProductId(categoryName, itemKey)]
+    if not product then
+        error(("No Character Item Product %s.%s"):format(categoryName, itemKey))
+    end
+
+    return product
+end
+
+function ProductUtil.getCharacterItemProductData(product: Products.Product)
+    -- ERROR: Not a CharacterItem product
+    if product.Type ~= ProductConstants.ProductType.CharacterItem then
+        error("Passed a non-CharacterItem product")
+    end
+
+    return {
+        CategoryName = product.Metadata.CategoryName,
+        ItemKey = product.Metadata.ItemKey,
+    }
+end
+
+-------------------------------------------------------------------------------
+-- Cmdr
+-------------------------------------------------------------------------------
 
 function ProductUtil.getProductIdCmdrArgument(productTypeArgument)
     local productType = productTypeArgument:GetValue()

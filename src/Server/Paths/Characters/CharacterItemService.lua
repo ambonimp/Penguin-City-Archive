@@ -9,6 +9,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local DataService = require(Paths.Server.Data.DataService)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
 local assets = ReplicatedStorage.Assets.Character
 
@@ -61,7 +62,24 @@ initClothingModels("Pants")
 initClothingModels("Shoes")
 
 Remotes.bindFunctions({
-    UpdateCharacterAppearance = function(client, changes: { [string]: { string } })
+    UpdateCharacterAppearance = function(client: Player, changes: { [string]: { string } })
+        -- RETURN: Data is bad type
+        if typeof(changes) ~= "table" then
+            return
+        end
+        for key, strings in pairs(changes) do
+            if typeof(key) ~= "string" then
+                return
+            end
+
+            local arrayStrings = TypeUtil.toArray(strings, function(str)
+                return typeof(str) == "string"
+            end)
+            if not arrayStrings then
+                return
+            end
+        end
+
         -- RETURN: No character
         local character = client.Character
         if not character then
