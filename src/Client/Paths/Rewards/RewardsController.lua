@@ -24,6 +24,7 @@ local DailyRewardsScreen = require(Paths.Client.UI.Screens.DailyRewards.DailyRew
 local Effects = require(Paths.Shared.Effects)
 local ProductController = require(Paths.Client.ProductController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local Sound = require(Paths.Shared.Sound)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
@@ -152,6 +153,8 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
             maid:GiveTask(function()
                 UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
             end)
+        else
+            Sound.play("Prize")
         end
 
         -- World Effect

@@ -11,6 +11,7 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Products = require(Paths.Shared.Products.Products)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -111,10 +112,11 @@ function ProductPromptScreen.open(data: table)
     end
 
     screenGui.Enabled = true
+    ScreenUtil.inDown(screenGui.Back)
 end
 
 function ProductPromptScreen.close()
-    screenGui.Enabled = false
+    ScreenUtil.outUp(screenGui.Back)
 end
 
 return ProductPromptScreen

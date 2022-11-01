@@ -9,6 +9,8 @@ local UIController = require(Paths.Client.UI.UIController)
 local Products = require(Paths.Shared.Products.Products)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
+local Sound = require(Paths.Shared.Sound)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local screenGui: ScreenGui = Ui.GiftPopup
 local contents: Frame = screenGui.Back.Contents
@@ -53,6 +55,8 @@ function GiftPopupScreen.open(data: table)
         return
     end
 
+    Sound.play("OpenGift")
+
     if product then
         -- Text
         descriptionLabel.Text = product.DisplayName
@@ -73,11 +77,12 @@ function GiftPopupScreen.open(data: table)
         icon.Visible = true
     end
 
+    ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
 function GiftPopupScreen.close()
-    screenGui.Enabled = false
+    ScreenUtil.outUp(screenGui.Back)
 end
 
 return GiftPopupScreen
