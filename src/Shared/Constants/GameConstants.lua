@@ -17,9 +17,9 @@ GameConstants.GameId = {
 }
 
 GameConstants.DataIds = {
-    Dev = 8,
+    Dev = 10,
     QA = 1,
-    Live = 1, --!! Dangerous. Past nums: (1: Alpha)
+    Live = 1, --!! Dangerous. Past nums: (1: Development)
 }
 
 return GameConstants

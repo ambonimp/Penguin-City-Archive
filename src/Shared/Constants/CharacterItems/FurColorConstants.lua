@@ -41,7 +41,6 @@ items["Yellow"] = {
     Color = Color3.fromRGB(255, 255, 0),
 }
 
-FurColorConstants.InventoryPath = "FurColors"
 FurColorConstants.TabOrder = 8
 FurColorConstants.TabIcon = Images.Icons.PaintBucket
 FurColorConstants.SortOrder = Enum.SortOrder.Name

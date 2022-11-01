@@ -9,7 +9,7 @@ local assets = ReplicatedStorage.Assets.Character
 local function doesModelContainerExist(issues, itemType: string): boolean
     local passed: boolean = true
 
-    if not assets:FindFirstChild(CharacterItems[itemType].InventoryPath) then
+    if not assets:FindFirstChild(CharacterItems[itemType].AssetsPath) then
         table.insert(
             issues,
             string.format(
@@ -27,7 +27,7 @@ end
 local function doModelsExist(issues, itemType: string)
     local itemConstants = CharacterItems[itemType]
 
-    local models = assets[itemConstants.InventoryPath]
+    local models = assets[itemConstants.AssetsPath]
     for item in pairs(itemConstants.Items) do
         if not models:FindFirstChild(item) then
             table.insert(issues, string.format("%s character item model does not exist : %s", itemType, item))
@@ -39,7 +39,7 @@ local function doModelsHaveA(issues, itemType: string, descedant: string)
     local itemConstants = CharacterItems[itemType]
     local items: { [string]: table } = itemConstants.Items
 
-    for _, model in pairs(assets[itemConstants.InventoryPath]:GetChildren()) do
+    for _, model in pairs(assets[itemConstants.AssetsPath]:GetChildren()) do
         local name = model.Name
         if items[name] and not InstanceUtil.findFirstDescendant(model, descedant) then
             table.insert(
