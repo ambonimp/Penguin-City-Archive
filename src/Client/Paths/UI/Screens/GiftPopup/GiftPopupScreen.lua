@@ -7,17 +7,18 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local Products = require(Paths.Shared.Products.Products)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
+local Images = require(Paths.Shared.Images.Images)
 
 local screenGui: ScreenGui = Ui.GiftPopup
 local contents: Frame = screenGui.Back.Contents
 local claimButton = KeyboardButton.new()
 local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
-local currentProduct: Products.Product
 
 function GiftPopupScreen.Init()
     local function leaveState()
-        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.PromptProduct)
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
     end
 
     -- Buttons
@@ -43,24 +44,33 @@ function GiftPopupScreen.Init()
 end
 
 function GiftPopupScreen.open(data: table)
-    -- RETURN: No product!
+    -- RETURN: No product or coins!
     local product: Products.Product = data.Product
-    if not product then
-        warn("Data missing .Product")
+    local coins: number = data.Coins
+    if not (product or coins) then
+        warn("Data missing .Product and/or .Coins")
         UIController.getStateMachine():Pop()
         return
     end
-    currentProduct = product
 
-    -- Text
-    descriptionLabel.Text = currentProduct.DisplayName
+    if product then
+        -- Text
+        descriptionLabel.Text = product.DisplayName
 
-    -- Icon
-    if currentProduct.ImageId then
-        icon.Image = currentProduct.ImageId
-        icon.Visible = true
+        -- Icon
+        if product.ImageId then
+            icon.Image = product.ImageId
+            icon.Visible = true
+        else
+            icon.Visible = false
+        end
     else
-        icon.Visible = false
+        -- Text
+        descriptionLabel.Text = ("%s Coins"):format(StringUtil.commaValue(coins))
+
+        -- Icon
+        icon.Image = Images.Coins.Coin
+        icon.Visible = true
     end
 
     screenGui.Enabled = true

@@ -13,6 +13,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local CurrencySevice = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local function getDailyStreakData(player: Player)
     return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
@@ -52,13 +53,17 @@ function RewardsService.loadPlayer(player: Player)
 end
 
 function RewardsService.giveReward(player: Player, reward: RewardsConstants.DailyStreakReward, amount: number)
-    if reward.Coins then
-        CurrencySevice.addCoins(player, reward.Coins * amount)
+    local coins = reward.Coins or (reward.Gift and reward.Gift.Data.Coins)
+    if coins then
+        coins *= amount
+
+        CurrencySevice.addCoins(player, coins)
         return
     end
 
-    if reward.Gift then
-        warn("todo give reward gift", reward, amount)
+    if reward.Gift and reward.Gift.Data.ProductType and reward.Gift.Data.ProductId then
+        local product = ProductUtil.getProduct(reward.Gift.Data.ProductType, reward.Gift.Data.ProductId)
+        ProductService.addProduct(player, product)
         return
     end
 

@@ -136,7 +136,8 @@ function RewardsUtil.getDailyStreakReward(day: number)
 end
 
 --[[
-    productBlacklist `productIds: amount`
+    - `productBlacklist` `productIds: amount`
+    - `streakNumber` and `seedContribution` helps keep gifts random between players and playtime
 ]]
 function RewardsUtil.getDailyStreakGift(
     day: number,

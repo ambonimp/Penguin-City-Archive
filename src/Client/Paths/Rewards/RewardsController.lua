@@ -24,6 +24,7 @@ local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local DailyRewardsScreen = require(Paths.Client.UI.Screens.DailyRewards.DailyRewardsScreen)
 local Effects = require(Paths.Shared.Effects)
 local ProductController = require(Paths.Client.ProductController)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
@@ -132,8 +133,9 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
         didRevert = true
     end)
 
-    if reward.Coins then
-        local coins = reward.Coins * amount
+    local coins = reward.Coins or (reward.Gift and reward.Gift.Data.Coins)
+    if coins then
+        coins *= amount
 
         -- Coins
         CurrencyController.addCoins(coins)
@@ -148,18 +150,35 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
             end
         end, UIConstants.States.HUD)
 
+        -- Reward
+        if reward.Gift then
+            UIController.getStateMachine():Push(UIConstants.States.GiftPopup, {
+                Coins = coins,
+            })
+            maid:GiveTask(function()
+                UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
+            end)
+        end
+
         -- Screen Add
         --TODO
+
+        return maid
     end
 
-    if reward.Gift then
-        warn("todo give gift reward", reward, amount)
+    if reward.Gift and reward.Gift.Data.ProductType and reward.Gift.Data.ProductId then
+        local product = ProductUtil.getProduct(reward.Gift.Data.ProductType, reward.Gift.Data.ProductId)
+        UIController.getStateMachine():Push(UIConstants.States.GiftPopup, {
+            Product = product,
+        })
         maid:GiveTask(function()
-            warn("revoke gift reward", reward, amount)
+            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
         end)
+
+        return maid
     end
 
-    return maid
+    warn("Don't know how to give reward", reward)
 end
 
 local function getDailyStreakData()
