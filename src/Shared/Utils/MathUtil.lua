@@ -110,33 +110,41 @@ function MathUtil.significantFigures(value: number, figures: number, integer: bo
 end
 
 --[[
-    Makes a weighted choice based on the given table (keys are entries, values are weights).
+    Makes a weighted choice based on the given table.
+    Returns `Value`
 ]]
-function MathUtil.weightedChoice(t: { [any]: number }, random: Random?)
+function MathUtil.weightedChoice(
+    tbl: { {
+        Weight: number,
+        Value: any,
+    } },
+    random: Random?
+)
     local sum = 0
-    for _, weight in pairs(t) do
-        if weight < 0 then
-            warn(t)
+    for _, entry in pairs(tbl) do
+        if entry.Weight < 0 then
+            warn(tbl)
             error("[MathUtil.weightedChoice] Weight value cannot be less than zero. Culprit: %s")
         end
-        sum = sum + weight
+        sum = sum + entry.Weight
     end
 
     if sum <= 0 then
-        warn(t)
+        warn(tbl)
         error(("[MathUtil.weightedChoice] The sum of all weights is not greater than 0 (%d)"):format(sum))
     end
 
     local rnd = MathUtil.nextNumber(0, sum, random)
-    local last = nil
-    for k, v in pairs(t) do
-        last = k
-        if rnd < v then
-            return k
+    local lastEntry = nil
+    for _, entry in pairs(tbl) do
+        lastEntry = entry
+        if rnd < entry.Weight then
+            return entry.Value
         end
-        rnd = rnd - v
+        rnd = rnd - entry.Weight
     end
-    return last
+
+    return lastEntry.Value
 end
 
 --[[
