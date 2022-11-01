@@ -219,6 +219,8 @@ function CharacterEditorCategory.new(categoryName: string)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    -- Create UI
     for itemName, itemConstants in pairs(constants.Items) do
         local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
         button:Mount(page)
@@ -230,12 +232,6 @@ function CharacterEditorCategory.new(categoryName: string)
         end
 
         local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-        ProductController.ProductAdded:Connect(function(addedProduct, _amount)
-            if product == addedProduct then
-                onItemOwned(itemName)
-            end
-        end)
-
         button.InternalPress:Connect(function()
             if isItemOwned(itemName) then
                 if not canEquip then
@@ -254,6 +250,16 @@ function CharacterEditorCategory.new(categoryName: string)
             end
         end)
     end
+
+    -- Listen for added products
+    ProductController.ProductAdded:Connect(function(addedProduct, _amount)
+        if ProductUtil.isCharacterItemProduct(addedProduct) then
+            local data = ProductUtil.getCharacterItemProductData(addedProduct)
+            if data.CategoryName == categoryName then
+                onItemOwned(data.ItemKey)
+            end
+        end
+    end)
 
     if canEquip then
         equippedItems = {}

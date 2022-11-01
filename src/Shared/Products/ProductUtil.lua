@@ -107,7 +107,7 @@ end
 
 function ProductUtil.getCharacterItemProductData(product: Products.Product)
     -- ERROR: Not a CharacterItem product
-    if product.Type ~= ProductConstants.ProductType.CharacterItem then
+    if not ProductUtil.isCharacterItemProduct(product) then
         error("Passed a non-CharacterItem product")
     end
 
@@ -115,6 +115,10 @@ function ProductUtil.getCharacterItemProductData(product: Products.Product)
         CategoryName = product.Metadata.CategoryName,
         ItemKey = product.Metadata.ItemKey,
     }
+end
+
+function ProductUtil.isCharacterItemProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.CharacterItem
 end
 
 -------------------------------------------------------------------------------
