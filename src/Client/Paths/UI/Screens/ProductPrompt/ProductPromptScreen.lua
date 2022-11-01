@@ -1,4 +1,4 @@
-local ResultsScreen = {}
+local ProductPromptScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -9,10 +9,8 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Products = require(Paths.Shared.Products.Products)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
-local CurrencyController = require(Paths.Client.CurrencyController)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -25,7 +23,7 @@ local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
 local currentProduct: Products.Product
 
-function ResultsScreen.Init()
+function ProductPromptScreen.Init()
     local function leaveState()
         UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.PromptProduct)
     end
@@ -63,18 +61,18 @@ function ResultsScreen.Init()
     -- Register UIState
     do
         local function enter(data: table)
-            ResultsScreen.open(data)
+            ProductPromptScreen.open(data)
         end
 
         local function exit()
-            ResultsScreen.close()
+            ProductPromptScreen.close()
         end
 
         UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PromptProduct, enter, exit)
     end
 end
 
-function ResultsScreen.open(data: table)
+function ProductPromptScreen.open(data: table)
     -- RETURN: No product!
     local product: Products.Product = data.Product
     if not product then
@@ -115,8 +113,8 @@ function ResultsScreen.open(data: table)
     screenGui.Enabled = true
 end
 
-function ResultsScreen.close()
+function ProductPromptScreen.close()
     screenGui.Enabled = false
 end
 
-return ResultsScreen
+return ProductPromptScreen

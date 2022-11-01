@@ -112,7 +112,7 @@ end
 --[[
     Makes a weighted choice based on the given table (keys are entries, values are weights).
 ]]
-function MathUtil.weightedChoice(t: { [any]: number })
+function MathUtil.weightedChoice(t: { [any]: number }, random: Random?)
     local sum = 0
     for _, weight in pairs(t) do
         if weight < 0 then
@@ -127,7 +127,7 @@ function MathUtil.weightedChoice(t: { [any]: number })
         error(("[MathUtil.weightedChoice] The sum of all weights is not greater than 0 (%d)"):format(sum))
     end
 
-    local rnd = MathUtil.nextNumber(0, sum)
+    local rnd = MathUtil.nextNumber(0, sum, random)
     local last = nil
     for k, v in pairs(t) do
         last = k
@@ -274,8 +274,8 @@ end
 --[[
     Returns a pseudorandom float uniformly distributed over [min, max].
 ]]
-function MathUtil.nextNumber(min: number, max: number)
-    return MathUtil.lerp(min, max, internalRandom:NextNumber())
+function MathUtil.nextNumber(min: number, max: number, random: Random?)
+    return MathUtil.lerp(min, max, random and random:NextNumber() or internalRandom:NextNumber())
 end
 
 --[[

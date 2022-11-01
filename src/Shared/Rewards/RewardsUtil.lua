@@ -7,6 +7,8 @@ local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local RewardsConstants = require(ReplicatedStorage.Shared.Rewards.RewardsConstants)
 local TimeUtil = require(ReplicatedStorage.Shared.Utils.TimeUtil)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local ProductUtil = require(ReplicatedStorage.Shared.Products.ProductUtil)
+local Products = require(ReplicatedStorage.Shared.Products.Products)
 
 export type DailyStreakEntry = {
     StreakNumber: number,
@@ -14,6 +16,8 @@ export type DailyStreakEntry = {
     RenewAtServerTime: number,
     ExpiresAtServerTime: number,
 }
+
+local GIFT_ATTEMPTS = 10
 
 function RewardsUtil.getDailyStreakNumber(dailyStreakData: DataUtil.Data)
     local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
@@ -121,23 +125,103 @@ function RewardsUtil.getDailyStreakReward(day: number)
 
     local reward = RewardsConstants.DailyStreak.Rewards[wrappedDay]
     if reward.Gift then
-        reward.Gift = rewardLevel == 1 and "Small" or rewardLevel == 2 and "Medium" or "Large" --TODO Implement gifts properly
+        reward.Gift.Name = rewardLevel == 1 and RewardsConstants.GiftNames["Small Gift"]
+            or rewardLevel == 2 and RewardsConstants.GiftNames["Medium Gift"]
+            or rewardLevel == 3 and RewardsConstants.GiftNames["Large Gift"]
+            or (rewardLevel % 2 == 0) and RewardsConstants.GiftNames["Rare Gift"] -- 4, 6, 8, ...
+            or RewardsConstants.GiftNames["Extraordinary Gift"] -- 5, 7, 9, ...
     end
 
     return reward
 end
 
-function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number)
+--[[
+    productBlacklist `productType: productIds: amount`
+]]
+function RewardsUtil.getDailyStreakGift(day: number, streakNumber: number, productBlacklist: { [string]: { [string]: number } }?)
     -- ERROR: Not a gift!
     local reward = RewardsUtil.getDailyStreakReward(day)
-    if not reward.Gift then
-        error(("Cannot get Gift for day %d; not a gift reward day!"):format(day))
+    if not (reward.Gift and reward.Gift.Name) then
+        warn(reward)
+        error(("Cannot get Gift for day %d; not a gift reward day or .Name was not defined!"):format(day))
     end
 
-    local seed = streakNumber * 10000 + day -- Unique enough seed for our purposes
+    -- Get our Random for this context
+    local seed = streakNumber * 1000000 + day -- Unique enough seed for our purposes
     local random = Random.new(seed)
 
-    warn("todo")
+    local function isProductAllowed(product: Products.Product)
+        if not productBlacklist then
+            return true
+        end
+
+        if
+            productBlacklist[product.Type]
+            and productBlacklist[product.Type][product.Id]
+            and productBlacklist[product.Type][product.Id] > 0
+        then
+            return false
+        end
+
+        return true
+    end
+
+    -- Select a gift from weight
+    reward.Gift.Data = {}
+    while TableUtil.isEmpty(reward.Gift.Data) do
+        local gifts = RewardsConstants.Gifts[reward.Gift.Name]
+
+        local weightByGifts: { [RewardsConstants.Gift]: number } = {}
+        for _, gift in pairs(gifts) do
+            weightByGifts[gift] = gift.Weight
+        end
+        local gift: RewardsConstants.Gift = MathUtil.weightedChoice(weightByGifts, random)
+
+        -- Write to Reward
+        reward.Gift.Type = gift.Type
+
+        if gift.Type == "Coins" then
+            reward.Gift.Data.Coins = gift.Data.Coins
+        elseif gift.Type == "Clothing" then
+            for _ = 1, GIFT_ATTEMPTS do
+                local categoryName, itemNames = TableUtil.getRandom(gift.Data.Clothing)
+                local itemName = TableUtil.getRandom(itemNames)
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+
+                if isProductAllowed(product) then
+                    reward.Gift.Data.ProductId = product.Id
+                    reward.Gift.Data.ProductType = product.Type
+                    break
+                end
+            end
+        elseif gift.Type == "House" then
+            for _ = 1, GIFT_ATTEMPTS do
+                local categoryName, objectNames = TableUtil.getRandom(gift.Data.House)
+                local objectName = TableUtil.getRandom(objectNames)
+                local product = ProductUtil.getHouseObjectProduct(categoryName, objectName)
+
+                if isProductAllowed(product) then
+                    reward.Gift.Data.ProductId = product.Id
+                    reward.Gift.Data.ProductType = product.Type
+                    break
+                end
+            end
+        elseif gift.Type == "Outfit" then
+            for _ = 1, GIFT_ATTEMPTS do
+                local outfitName = TableUtil.getRandom(gift.Data.Outfit)
+                local product = ProductUtil.getCharacterItemProduct("Outfit", outfitName)
+
+                if isProductAllowed(product) then
+                    reward.Gift.Data.ProductId = product.Id
+                    reward.Gift.Data.ProductType = product.Type
+                    break
+                end
+            end
+        else
+            error(("Missing case for gift type %q"):format(gift.Type))
+        end
+    end
+
     return reward
 end
 

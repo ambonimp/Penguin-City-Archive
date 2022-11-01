@@ -126,16 +126,21 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
     if reward.Coins then
         local coins = reward.Coins * amount
 
+        -- Coins
         CurrencyController.addCoins(coins)
         maid:GiveTask(function()
             CurrencyController.addCoins(-coins)
         end)
 
+        -- World Effect
         UIController.getStateMachine():InvokeInState(function()
             if not didRevert then
                 maid:GiveTask(Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION))
             end
         end, UIConstants.States.HUD)
+
+        -- Screen Add
+        --TODO
     end
 
     if reward.Gift then

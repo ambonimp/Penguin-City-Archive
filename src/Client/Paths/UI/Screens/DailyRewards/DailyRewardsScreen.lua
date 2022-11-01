@@ -120,7 +120,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
 
             local reward = RewardsUtil.getDailyStreakReward(dayNum)
             local rewardText = reward.Coins and ("%s Coins"):format(StringUtil.commaValue(reward.Coins))
-                or reward.Gift and ("%s Gift"):format(reward.Gift)
+                or reward.Gift and reward.Gift.Name
                 or "undefined"
             local rewardIcon = reward.Coins and Images.Coins.Coin or ""
             local rewardImage = reward.Icon or ""
