@@ -1,7 +1,7 @@
 --[[
     This is the main hub where a player requests to start/stop a minigame, and gets permission from the server.
 ]]
-local MinigameController = {}
+local SinglePlayerMinigameController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -13,24 +13,24 @@ local ZoneController = require(Paths.Client.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
-type MinigameController = {
+type SinglePlayerMinigameController = {
     startMinigame: (minigamesDirectory: Folder, () -> MinigameConstants.PlayRequest, ...any) -> nil,
     stopMinigame: (...any) -> nil,
     [any]: any,
 }
 
 local currentSession: MinigameConstants.Session | nil
-local minigameToController: { [string]: MinigameController } = {
+local minigameToController: { [string]: SinglePlayerMinigameController } = {
     [MinigameConstants.Minigames.Pizza] = require(Paths.Client.Minigames.Pizza.PizzaMinigameController),
 }
 local minigamesDirectory = game.Workspace:WaitForChild("Minigames")
 
 -- Returns Assume
-function MinigameController.play(minigame: string)
+function SinglePlayerMinigameController.play(minigame: string)
     Output.doDebug(MinigameConstants.DoDebug, "play", minigame)
 
     -- ERROR: No linked controller
-    local minigameController = MinigameController.getControllerFromMinigame(minigame)
+    local minigameController = SinglePlayerMinigameController.getControllerFromMinigame(minigame)
     if not minigameController then
         error(("No serviced linked to minigame %q"):format(minigame))
     end
@@ -74,7 +74,7 @@ function MinigameController.play(minigame: string)
                     task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
 
                     -- Start Minigame
-                    minigameController.startMinigame(minigamesDirectory, MinigameController.stopPlaying)
+                    minigameController.startMinigame(minigamesDirectory, SinglePlayerMinigameController.stopPlaying)
                 end
             end
 
@@ -90,16 +90,16 @@ function MinigameController.play(minigame: string)
     return requestAssume
 end
 
-function MinigameController.getSession()
+function SinglePlayerMinigameController.getSession()
     return currentSession
 end
 
-function MinigameController.getControllerFromMinigame(minigame: string)
+function SinglePlayerMinigameController.getControllerFromMinigame(minigame: string)
     return minigameToController[minigame]
 end
 
 -- Returns Assume
-function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
+function SinglePlayerMinigameController.stopPlaying(): MinigameConstants.PlayRequest
     Output.doDebug(MinigameConstants.DoDebug, "stopPlaying")
 
     -- WARN: Not playing!
@@ -128,7 +128,7 @@ function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
                 local oldSession = currentSession
                 currentSession = nil
 
-                local minigameController = MinigameController.getControllerFromMinigame(oldSession.Minigame)
+                local minigameController = SinglePlayerMinigameController.getControllerFromMinigame(oldSession.Minigame)
                 minigameController.stopMinigame()
 
                 -- Wait for Response
@@ -153,4 +153,4 @@ function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
     return requestAssume
 end
 
-return MinigameController
+return SinglePlayerMinigameController

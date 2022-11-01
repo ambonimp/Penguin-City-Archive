@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local MinigameController = require(Paths.Client.Minigames.MinigameController)
+local SinglePlayerMinigameController = require(Paths.Client.Minigames.SinglePlayerMinigameController)
 
 return function(minigame: string)
-    MinigameController.play(minigame)
+    SinglePlayerMinigameController.play(minigame)
 end
