@@ -373,6 +373,10 @@ function CharacterUtil.isCollidingWithOtherCharacter(character: Model)
     return false
 end
 
+function CharacterUtil.getHumanoidRootPart(player: Player)
+    return player.Character and player.Character:FindFirstChild("HumanoidRootPart") or nil
+end
+
 -------------------------------------------------------------------------------
 -- Logic
 -------------------------------------------------------------------------------

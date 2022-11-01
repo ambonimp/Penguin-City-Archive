@@ -22,8 +22,10 @@ local CurrencyController = require(Paths.Client.CurrencyController)
 local Signal = require(Paths.Shared.Signal)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local DailyRewardsScreen = require(Paths.Client.UI.Screens.DailyRewards.DailyRewardsScreen)
+local Effects = require(Paths.Shared.Effects)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
+local COIN_EFFECT_DURATION = 3
 
 RewardsController.DailyStreakUpdated = Signal.new()
 
@@ -104,23 +106,41 @@ end
 
 -- Returns a maid that will cleanup + revert the application of this reward
 function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward, amount: number)
+    -- WARN: Wat
+    if not (reward.Coins or reward.Gift) then
+        warn("Don't know how to give reward", reward)
+        return
+    end
+
+    local didRevert = false
+    local maid = Maid.new()
+    maid:GiveTask(function()
+        didRevert = true
+    end)
+
     if reward.Coins then
         local coins = reward.Coins * amount
 
         CurrencyController.addCoins(coins)
-        return Maid.new(function()
+        maid:GiveTask(function()
             CurrencyController.addCoins(-coins)
         end)
+
+        UIController.getStateMachine():InvokeInState(function()
+            if not didRevert then
+                maid:GiveTask(Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION))
+            end
+        end, UIConstants.States.HUD)
     end
 
     if reward.Gift then
         warn("todo give gift reward", reward, amount)
-        return Maid.new(function()
+        maid:GiveTask(function()
             warn("revoke gift reward", reward, amount)
         end)
     end
 
-    warn("Don't know how to give reward", reward)
+    return maid
 end
 
 local function getDailyStreakData()

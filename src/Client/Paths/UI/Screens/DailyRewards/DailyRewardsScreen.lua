@@ -212,7 +212,6 @@ function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     local maid = Maid.new()
     part.AncestryChanged:Connect(function(_, parent)
         if not parent then
-            print("destroy", part)
             maid:Destroy()
         end
     end)
