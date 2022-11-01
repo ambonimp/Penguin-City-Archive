@@ -47,10 +47,6 @@ local function getConsumer(productType: string, productId: string): ((player: Pl
     return consumersByTypeAndId[productType] and consumersByTypeAndId[productType][productId]
 end
 
-local function getProductDataAddress(productType: string, productId: string)
-    return ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
-end
-
 -------------------------------------------------------------------------------
 -- Data Getters/Setters
 -------------------------------------------------------------------------------
@@ -61,7 +57,7 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
     Output.doDebug(ProductConstants.DoDebug, "addProduct", player, product.Type, product.Id, ("x%d"):format(amount))
 
     -- Manage Data
-    local address = getProductDataAddress(product.Type, product.Id)
+    local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, amount)
 
     -- Inform Server
@@ -79,7 +75,7 @@ end
 Remotes.declareEvent("AddProduct")
 
 function ProductService.getProductCount(player: Player, product: Products.Product)
-    local address = getProductDataAddress(product.Type, product.Id)
+    local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     return DataService.get(player, address) or 0
 end
 
@@ -112,7 +108,7 @@ end
 ]]
 function ProductService.clearProduct(player: Player, product: Products.Product, kickPlayer: boolean?)
     -- Detract
-    local address = getProductDataAddress(product.Type, product.Id)
+    local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     DataService.set(player, address, 0)
 
     -- Read
@@ -241,7 +237,7 @@ function ProductService.readProducts(player: Player)
     for productType, products in pairs(storedProducts) do
         for productId, amount in pairs(products) do
             -- Get State
-            local address = getProductDataAddress(productType, productId)
+            local address = ProductUtil.getProductDataAddress(productType, productId)
             local product = ProductUtil.getProduct(productType, productId)
 
             -- Run logic off of product
@@ -317,7 +313,7 @@ function ProductService.consumeProduct(player: Player, product: Products.Product
     consumer(player)
 
     -- Detract
-    local address = getProductDataAddress(product.Type, product.Id)
+    local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, -1)
 
     -- Read + update data
