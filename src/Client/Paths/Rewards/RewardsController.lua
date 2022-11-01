@@ -34,9 +34,14 @@ RewardsController.DailyStreakUpdated = Signal.new()
 -------------------------------------------------------------------------------
 
 -- Will prompt the daily streak view as soon as appropriate
-function RewardsController.promptDailyRewards()
+function RewardsController.promptDailyRewards(needsUnclaimedDays: boolean?)
     -- RETURN: Already open
     if UIController.getStateMachine():GetState() == UIConstants.States.DailyRewards then
+        return
+    end
+
+    -- RETURN: Needs unclaimed days and there are none
+    if needsUnclaimedDays and TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays()) == true then
         return
     end
 
@@ -168,7 +173,7 @@ do
     DataController.Updated:Connect(function(event: string, _newValue: any)
         if event == "DailyStreakUpdated" then
             RewardsController.DailyStreakUpdated:Fire()
-            RewardsController.promptDailyRewards()
+            RewardsController.promptDailyRewards(true)
         end
     end)
 end
