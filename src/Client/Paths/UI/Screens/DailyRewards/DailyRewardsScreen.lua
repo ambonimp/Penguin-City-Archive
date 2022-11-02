@@ -79,8 +79,6 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             isAttemptingClaim = true
             local claimAssume = RewardsController.claimDailyRewardRequest()
 
-            task.wait()
-
             update()
             displayDays(currentDisplayingDay)
 

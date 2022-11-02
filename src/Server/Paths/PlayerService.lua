@@ -45,6 +45,7 @@ function PlayerService.Start()
     Players.PlayerRemoving:Connect(function(player)
         -- Unload routines
         PlotService.unloadPlayer(player)
+        RewardsService.unloadPlayer(player)
 
         -- Destroy Maid
         maidByPlayer[player]:Destroy()

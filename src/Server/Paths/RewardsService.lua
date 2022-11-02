@@ -9,12 +9,13 @@ local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
-local PlayerService = require(Paths.Server.PlayerService)
 local Remotes = require(Paths.Shared.Remotes)
 local CurrencySevice = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+
+local UPDATE_DAILY_REWARD_EVERY = 5 * 60
 
 local totalPaychecksByPlayer: { [Player]: number } = {}
 
@@ -24,7 +25,7 @@ end
 
 --[[
     Updates a players daily streak, calculating if their streak should be increased, expired etc..
-    Informs the client.
+    Informs the client if anything has changed.
 ]]
 function RewardsService.updateDailyReward(player: Player)
     local dailyRewardData = getDailyRewardData(player)
@@ -51,7 +52,7 @@ end
 function RewardsService.givePaycheck(player: Player)
     -- RETURN: Player is gone!
     if not (totalPaychecksByPlayer[player] and player:IsDescendantOf(Players)) then
-        return
+        return false
     end
 
     -- Give Paycheck
@@ -67,21 +68,31 @@ function RewardsService.givePaycheck(player: Player)
 
     -- Inform
     Remotes.fireClient(player, "PaycheckReceived", paycheckAmount, totalPaychecks)
+
+    return true
 end
 Remotes.declareEvent("PaycheckReceived")
 
 function RewardsService.loadPlayer(player: Player)
     -- Daily Streak
     RewardsService.updateDailyReward(player)
-    PlayerService.getPlayerMaid(player):GiveTask(function()
-        RewardsService.updateDailyReward(player)
+
+    task.spawn(function()
+        -- While player is online, check every UPDATE_DAILY_REWARD_EVERY when their daily streak renews - and schedule an update if so
+        while player:IsDescendantOf(Players) do
+            local timeUntilNextDailyRewardRenew = RewardsUtil.getTimeUntilNextDailyRewardRenew(getDailyRewardData(player))
+            if timeUntilNextDailyRewardRenew < UPDATE_DAILY_REWARD_EVERY then
+                task.delay(timeUntilNextDailyRewardRenew + 1, function() -- +1 for extra leeway
+                    RewardsService.updateDailyReward(player)
+                end)
+            end
+
+            task.wait(UPDATE_DAILY_REWARD_EVERY)
+        end
     end)
 
     -- Paycheck
     totalPaychecksByPlayer[player] = 0
-    PlayerService.getPlayerMaid(player):GiveTask(function()
-        totalPaychecksByPlayer[player] = nil
-    end)
 
     task.spawn(function()
         while task.wait(RewardsConstants.Paycheck.EverySeconds) do
@@ -90,6 +101,10 @@ function RewardsService.loadPlayer(player: Player)
             end
         end
     end)
+end
+
+function RewardsService.unloadPlayer(player: Player)
+    totalPaychecksByPlayer[player] = nil
 end
 
 -- Gives a reward on the server - assumes client knows this is happening

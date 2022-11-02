@@ -1,3 +1,8 @@
+--[[
+    Element used for displaying an "Item" - used in the DailyRewardsScreen.
+
+    Inherits `Button`
+]]
 local ItemDisplay = {}
 
 local StarterPlayer = game:GetService("StarterPlayer")
@@ -326,12 +331,6 @@ function ItemDisplay.new()
     function itemDisplay:SetOverlay(overlayType: "Completed" | nil)
         overlay.Visible = overlayType and true or false
     end
-
-    -------------------------------------------------------------------------------
-    -- Logic
-    -------------------------------------------------------------------------------
-
-    --todo
 
     return itemDisplay
 end
