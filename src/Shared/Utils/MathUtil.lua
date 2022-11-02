@@ -480,4 +480,21 @@ function MathUtil.getSquaredSpiralPosition(n: number): Vector2
     return Vector2.new(pos[1], pos[2])
 end
 
+--[[
+    Example:
+
+    getDigit(457, 2) -> 4, 400
+    getDigit(457, 1) -> 5, 50
+    getDigit(457, 0) -> 7, 7
+    getDigit(457, 3) -> 0, 0
+]]
+function MathUtil.getDigit(n: number, exponent: number)
+    local digit = 10 ^ exponent
+    local digitPlus = 10 ^ (exponent + 1)
+    n = n % digitPlus
+
+    local result = math.floor(n / digit)
+    return result, result * digit
+end
+
 return MathUtil

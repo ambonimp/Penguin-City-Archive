@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local StateMachine = require(Paths.Shared.StateMachine)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local Promise = require(Paths.Packages.promise)
 
 --[[
     If we design a button to be at the top of the screen, it will still be so when we load in (even with the "roblox top bar")
@@ -39,6 +40,27 @@ function UIUtil.getPseudoState(pseudoState: string, stateMachine: StateMachine.S
     end
 
     return false
+end
+
+-- Will return a Promise that is resolved when we are in the HUD UIState and are in a Room Zone
+function UIUtil.waitForHudAndRoomZone()
+    -- Grab Dependencies in scope to avoid dependency issues
+    local UIController = require(Paths.Client.UI.UIController)
+    local ZoneController = require(Paths.Client.ZoneController)
+    local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+
+    return Promise.new(function(resolve, _reject, _onCancel)
+        while true do
+            local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
+                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
+            if canShow then
+                break
+            else
+                task.wait()
+            end
+        end
+        resolve()
+    end)
 end
 
 return UIUtil

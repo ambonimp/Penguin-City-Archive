@@ -66,7 +66,7 @@ function RewardsService.givePaycheck(player: Player)
     CurrencySevice.addCoins(player, paycheckAmount)
 
     -- Inform
-    Remotes.fireClient(player, "PaycheckReceived", paycheckAmount)
+    Remotes.fireClient(player, "PaycheckReceived", paycheckAmount, totalPaychecks)
 end
 Remotes.declareEvent("PaycheckReceived")
 

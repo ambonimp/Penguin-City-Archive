@@ -23,6 +23,7 @@ type UIScaleData = {
 -------------------------------------------------------------------------------
 -- Private Members
 -------------------------------------------------------------------------------
+
 local uiScaleDatas: { [UIScale]: UIScaleData } = {}
 local scale: number -- Allows for the retention of aspect ratios
 local camera: Camera = Workspace.CurrentCamera
@@ -30,6 +31,7 @@ local camera: Camera = Workspace.CurrentCamera
 -------------------------------------------------------------------------------
 -- PublicMembers
 -------------------------------------------------------------------------------
+
 UIScaleController.ScaleChanged = Signal.new()
 
 -------------------------------------------------------------------------------
@@ -69,9 +71,10 @@ local classnameToUpdater: { [string]: (instance: Instance, value: any) -> nil } 
     end,
 }
 
-local function updateUIScale(uiScale: UIScale)
+-- Updates the scope of a UIScale to a new scale
+function UIScaleController.updateUIScale(uiScale: UIScale, toScale: number?)
     -- UIScale
-    uiScale.Scale = scale
+    uiScale.Scale = scale or toScale
 
     -- UIScale Container
     local data = uiScaleDatas[uiScale]
@@ -91,14 +94,16 @@ local function updateScale()
     scale = if math.abs(1 - ratio.X) > math.abs(1 - ratio.Y) then ratio.X else ratio.Y
 
     for uiScale, _ in pairs(uiScaleDatas) do
-        updateUIScale(uiScale)
+        UIScaleController.updateUIScale(uiScale)
     end
 
     UIScaleController.ScaleChanged:Fire(scale)
 end
+
 -------------------------------------------------------------------------------
 -- Public Methods
 -------------------------------------------------------------------------------
+
 function UIScaleController.getScale()
     return scale
 end
@@ -181,7 +186,7 @@ local function newUIScale(uiScale: UIScale)
     end)
 
     -- Init
-    updateUIScale(uiScale)
+    UIScaleController.updateUIScale(uiScale)
 end
 
 -------------------------------------------------------------------------------

@@ -25,6 +25,7 @@ local Effects = require(Paths.Shared.Effects)
 local ProductController = require(Paths.Client.ProductController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Sound = require(Paths.Shared.Sound)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
@@ -49,18 +50,7 @@ function RewardsController.promptDailyRewards(needsUnclaimedDays: boolean?)
     end
 
     -- Start opening logic
-    Promise.new(function(resolve, _reject, _onCancel)
-        while true do
-            local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
-                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
-            if canShow then
-                break
-            else
-                task.wait()
-            end
-        end
-        resolve()
-    end):andThen(function()
+    UIUtil.waitForHudAndRoomZone():andThen(function()
         UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
         UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
     end)
@@ -234,8 +224,20 @@ end)
 -- Paychecks
 -------------------------------------------------------------------------------
 
-function RewardsController.paycheckReceived(paycheckAmount: number)
-    warn("paycehck recieved", paycheckAmount)
+function RewardsController.paycheckReceived(paycheckAmount: number, totalPaychecks: number)
+    -- Display Paycheck
+    UIUtil.waitForHudAndRoomZone():andThen(function()
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.Paycheck)
+        UIController.getStateMachine():Push(UIConstants.States.Paycheck, {
+            Amount = paycheckAmount,
+            TotalPaychecks = totalPaychecks,
+        })
+    end)
+
+    -- Add Coins after it's been cashed out
+    UIController.getStateMachine():InvokeInState(function()
+        CurrencyController.addCoins(paycheckAmount)
+    end, UIConstants.States.HUD)
 end
 
 -------------------------------------------------------------------------------
