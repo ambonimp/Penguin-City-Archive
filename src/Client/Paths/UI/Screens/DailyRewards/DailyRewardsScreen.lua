@@ -142,8 +142,12 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     end
 
     displayDays(1)
-    table.insert(openCallbacks, function()
+    local function displayDaysOnOpen()
         displayDays(RewardsController.getCurrentDailyReward())
+    end
+    table.insert(openCallbacks, displayDaysOnOpen)
+    displayDaysMaid:GiveTask(function()
+        TableUtil.remove(openCallbacks, displayDaysOnOpen)
     end)
 
     local leftButton = AnimatedButton.new(background.Left.ImageButton)
@@ -211,8 +215,9 @@ end
 function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     local maid = Maid.new()
     part.AncestryChanged:Connect(function(_, parent)
-        if not parent then
+        if not parent and maid then
             maid:Destroy()
+            maid = nil
         end
     end)
 
