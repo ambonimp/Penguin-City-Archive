@@ -1,20 +1,31 @@
 local UIConstants = {}
 
 UIConstants.States = {
-    Nothing = "Nothing",
     Loading = "Loading",
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
-    HousingEdit = "HousingEdit",
-    EditingHouse = "EditingHouse",
-    PlotSetting = "PlotSetting",
+    House = "House",
+    HouseEditor = "HouseEditor",
+    FurniturePlacement = "FurniturePlacement",
+    PlotSettings = "PlotSettings",
     PlotChanger = "PlotChanger",
     HouseSelectionUI = "HouseSelectionUI",
     HUD = "HUD",
     Results = "Results",
     PromptProduct = "PromptProduct",
     StampBook = "StampBook",
+}
+
+-- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
+UIConstants.PseudoStates = {
+    [UIConstants.States.HUD] = {
+        UIConstants.States.Vehicles,
+        UIConstants.States.PlotSettings,
+        UIConstants.States.PlotChanger,
+        UIConstants.States.HouseSelectionUI,
+        UIConstants.States.House,
+    },
 }
 
 UIConstants.Keybinds = {
@@ -29,12 +40,6 @@ UIConstants.DontPopStatesFromKeybind = {
     UIConstants.States.Loading,
 }
 
-UIConstants.AllowHUDWith = {
-    UIConstants.States.Vehicles,
-    UIConstants.States.PlotSetting,
-    UIConstants.States.HouseSelectionUI,
-}
-
 UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
@@ -45,6 +50,9 @@ UIConstants.EnableCoreGuiInStates = {
 UIConstants.Font = Enum.Font.GothamBold
 
 UIConstants.Colors = {
+    Misc = {
+        White = Color3.fromRGB(255, 255, 255),
+    },
     Buttons = {
         PlayGreen = Color3.fromRGB(56, 196, 13),
         InstructionsOrange = Color3.fromRGB(214, 145, 15),

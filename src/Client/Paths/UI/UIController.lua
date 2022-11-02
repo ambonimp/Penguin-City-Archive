@@ -13,7 +13,7 @@ local CoreGui = require(Paths.Client.UI.CoreGui)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
-local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.Nothing)
+local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.HUD)
 
 -- Init
 do

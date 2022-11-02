@@ -86,7 +86,7 @@ Remotes.bindEvents({
         end)
     end,
     VehicleCreated = function(owner, vehicle)
-        local driverSeat = vehicle.Seats.Driver
+        local driverSeat = vehicle.Seats:WaitForChild("Driver")
 
         if owner == player then
             driverSeat:FindFirstChildOfClass("ProximityPrompt").ActionText = "Drive"

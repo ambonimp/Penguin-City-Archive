@@ -19,7 +19,7 @@ function PlayerService.Start()
     local CharacterService = require(Paths.Server.Characters.CharacterService)
     local ProductService = require(Paths.Server.Products.ProductService)
     local ZoneService = require(Paths.Server.Zones.ZoneService)
-    local PlotService = require(Paths.Server.PlotService)
+    local PlotService = require(Paths.Server.Housing.PlotService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)

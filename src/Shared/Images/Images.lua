@@ -14,6 +14,7 @@ Images.ButtonIcons = {
     Inventory = "rbxassetid://11152371230",
     Map = "rbxassetid://11152371075",
     Party = "rbxassetid://11152370136",
+    Pencil = "rbxassetid://11374218958",
     StampBook = "rbxassetid://11152369533",
     Toolbox = "rbxassetid://11152369313",
 }

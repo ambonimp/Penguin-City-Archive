@@ -17,7 +17,7 @@ items["Brown_Backpack"] = {
     Icon = Images.Backpacks["Brown_Backpack"],
 }
 
-BackpackConstant.InventoryPath = "Backpacks"
+BackpackConstant.AssetsPath = "Backpacks"
 BackpackConstant.TabOrder = 6
 BackpackConstant.TabIcon = Images.Icons.Bag
 BackpackConstant.SortOrder = Enum.SortOrder.Name

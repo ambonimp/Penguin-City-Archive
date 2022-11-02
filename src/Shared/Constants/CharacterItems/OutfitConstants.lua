@@ -28,7 +28,6 @@ items["Farmer"] = {
     },
 }
 
-OutfitConstants.InventoryPath = "Outfits"
 OutfitConstants.TabOrder = 4
 OutfitConstants.TabIcon = Images.Icons.Outfit
 OutfitConstants.SortOrder = Enum.SortOrder.LayoutOrder

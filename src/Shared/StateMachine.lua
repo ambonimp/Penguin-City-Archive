@@ -6,6 +6,8 @@ StateMachine.__index = StateMachine
 
 type Operation = string
 
+export type StateMachine = typeof(StateMachine.new({}, ""))
+
 local OPERATION_PUSH: Operation = "Push"
 local OPERATION_REPLACE: Operation = "Replace"
 local OPERATION_POP: Operation = "Pop"
