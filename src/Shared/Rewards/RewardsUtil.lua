@@ -10,7 +10,7 @@ local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local ProductUtil = require(ReplicatedStorage.Shared.Products.ProductUtil)
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 
-export type DailyStreakEntry = {
+export type DailyRewardEntry = {
     StreakNumber: number,
     Days: number,
     RenewAtServerTime: number,
@@ -19,69 +19,69 @@ export type DailyStreakEntry = {
 
 local GIFT_ATTEMPTS = 10
 
-function RewardsUtil.getDailyStreakNumber(dailyStreakData: DataUtil.Data)
-    local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
+function RewardsUtil.getDailyRewardNumber(dailyRewardData: DataUtil.Data)
+    local entry = dailyRewardData.Entries["1"] :: DailyRewardEntry
     if entry then
         return entry.StreakNumber
     end
     return 0
 end
 
-function RewardsUtil.getDailyStreakDays(dailyStreakData: DataUtil.Data)
-    local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
+function RewardsUtil.getDailyRewardDays(dailyRewardData: DataUtil.Data)
+    local entry = dailyRewardData.Entries["1"] :: DailyRewardEntry
     if entry then
         return entry.Days
     end
     return 0
 end
 
-function RewardsUtil.getBestDailyStreak(dailyStreakData: DataUtil.Data): number
-    return dailyStreakData.BestStreak
+function RewardsUtil.getBestDailyReward(dailyRewardData: DataUtil.Data): number
+    return dailyRewardData.BestStreak
 end
 
-function RewardsUtil.getTimeUntilNextDailyStreakRenew(dailyStreakData: DataUtil.Data)
-    local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
+function RewardsUtil.getTimeUntilNextDailyRewardRenew(dailyRewardData: DataUtil.Data)
+    local entry = dailyRewardData.Entries["1"] :: DailyRewardEntry
     if entry then
         return math.clamp(entry.RenewAtServerTime - Workspace:GetServerTimeNow(), 0, math.huge)
     end
     return 0
 end
 
-function RewardsUtil.getUnclaimedDailyStreakDays(dailyStreakData: DataUtil.Data): { [number]: number }
-    return TableUtil.mapKeys(dailyStreakData.Unclaimed, function(key)
+function RewardsUtil.getUnclaimedDailyRewardDays(dailyRewardData: DataUtil.Data): { [number]: number }
+    return TableUtil.mapKeys(dailyRewardData.Unclaimed, function(key)
         return tonumber(key)
     end)
 end
 
 --[[
-    dailyStreakData = {
+    dailyRewardData = {
         Entries = {},
         Unclaimed = {},
     }
 ]]
-function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
+function RewardsUtil.getUpdatedDailyReward(dailyRewardData: DataUtil.Data)
     -- Convert to array for easier manipulation
-    local arrayDailyStreakEntries: { DailyStreakEntry } = TableUtil.mapKeys(TableUtil.deepClone(dailyStreakData.Entries), function(key)
+    local arrayDailyRewardEntries: { DailyRewardEntry } = TableUtil.mapKeys(TableUtil.deepClone(dailyRewardData.Entries), function(key)
         return tonumber(key)
     end)
     local now = Workspace:GetServerTimeNow()
 
     -- Cull old entries
-    for i = #arrayDailyStreakEntries, 1, -1 do
-        local entry = arrayDailyStreakEntries[i]
+    for i = #arrayDailyRewardEntries, 1, -1 do
+        local entry = arrayDailyRewardEntries[i]
         local expiredTime = now - entry.ExpiresAtServerTime
         local hasExpired = expiredTime > 0
 
         if hasExpired then
             -- Very old; remove
-            if expiredTime > TimeUtil.daysToSeconds(RewardsConstants.DailyStreak.StoreMaxDays) then
-                table.remove(arrayDailyStreakEntries, i)
+            if expiredTime > TimeUtil.daysToSeconds(RewardsConstants.DailyReward.StoreMaxDays) then
+                table.remove(arrayDailyRewardEntries, i)
             end
         end
     end
 
     -- Ensure good entry is at the top
-    local entry = arrayDailyStreakEntries[1]
+    local entry = arrayDailyRewardEntries[1]
     local streakNumber = entry and entry.StreakNumber or 0
     if not entry or (entry.ExpiresAtServerTime < now) then
         entry = {
@@ -90,40 +90,40 @@ function RewardsUtil.getUpdatedDailyStreak(dailyStreakData: DataUtil.Data)
             RenewAtServerTime = 0,
             ExpiresAtServerTime = 0,
         }
-        table.insert(arrayDailyStreakEntries, 1, entry)
+        table.insert(arrayDailyRewardEntries, 1, entry)
     end
 
     -- Try renew
     if entry.RenewAtServerTime < now then
         entry.Days += 1
-        dailyStreakData.Unclaimed[tostring(entry.Days)] = (dailyStreakData.Unclaimed[tostring(entry.Days)] or 0) + 1
+        dailyRewardData.Unclaimed[tostring(entry.Days)] = (dailyRewardData.Unclaimed[tostring(entry.Days)] or 0) + 1
 
-        entry.RenewAtServerTime = now + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.RenewAfterHours)
-        entry.ExpiresAtServerTime = entry.RenewAtServerTime + TimeUtil.hoursToSeconds(RewardsConstants.DailyStreak.ExpireAfterHours)
+        entry.RenewAtServerTime = now + TimeUtil.hoursToSeconds(RewardsConstants.DailyReward.RenewAfterHours)
+        entry.ExpiresAtServerTime = entry.RenewAtServerTime + TimeUtil.hoursToSeconds(RewardsConstants.DailyReward.ExpireAfterHours)
     end
 
     return {
-        Entries = TableUtil.mapKeys(arrayDailyStreakEntries, function(key)
+        Entries = TableUtil.mapKeys(arrayDailyRewardEntries, function(key)
             return tostring(key)
         end),
-        Unclaimed = dailyStreakData.Unclaimed,
-        BestStreak = math.max(dailyStreakData.BestStreak, entry.Days),
+        Unclaimed = dailyRewardData.Unclaimed,
+        BestStreak = math.max(dailyRewardData.BestStreak, entry.Days),
     }
 end
 
--- Cheeky utlility to change the time this dailyStreakData can renew
-function RewardsUtil.setDailyStreakRenewTime(dailyStreakData: DataUtil.Data, renewTime: number)
-    local entry = dailyStreakData.Entries["1"] :: DailyStreakEntry
+-- Cheeky utlility to change the time this dailyRewardData can renew
+function RewardsUtil.setDailyRewardRenewTime(dailyRewardData: DataUtil.Data, renewTime: number)
+    local entry = dailyRewardData.Entries["1"] :: DailyRewardEntry
     if entry then
         entry.RenewAtServerTime = renewTime
     end
 end
 
-function RewardsUtil.getDailyStreakReward(day: number)
-    local wrappedDay = MathUtil.wrapAround(day, #RewardsConstants.DailyStreak.Rewards)
-    local rewardLevel = math.ceil(day / #RewardsConstants.DailyStreak.Rewards)
+function RewardsUtil.getDailyRewardReward(day: number)
+    local wrappedDay = MathUtil.wrapAround(day, #RewardsConstants.DailyReward.Rewards)
+    local rewardLevel = math.ceil(day / #RewardsConstants.DailyReward.Rewards)
 
-    local reward = RewardsConstants.DailyStreak.Rewards[wrappedDay]
+    local reward = RewardsConstants.DailyReward.Rewards[wrappedDay]
     if reward.Gift then
         reward.Gift.Name = rewardLevel == 1 and RewardsConstants.GiftNames["Small Gift"]
             or rewardLevel == 2 and RewardsConstants.GiftNames["Medium Gift"]
@@ -139,7 +139,7 @@ end
     - `productBlacklist` `productIds: amount`
     - `streakNumber` and `seedContribution` helps keep gifts random between players and playtime
 ]]
-function RewardsUtil.getDailyStreakGift(
+function RewardsUtil.getDailyRewardGift(
     day: number,
     streakNumber: number,
     seedContribution: number?,
@@ -147,7 +147,7 @@ function RewardsUtil.getDailyStreakGift(
     overrideGiftName: string?
 )
     -- ERROR: Not a gift!
-    local reward = RewardsUtil.getDailyStreakReward(day)
+    local reward = RewardsUtil.getDailyRewardReward(day)
     if not ((reward.Gift and reward.Gift.Name) or overrideGiftName) then
         warn(reward)
         error(("Cannot get Gift for day %d; not a gift reward day or .Name was not defined!"):format(day))
@@ -240,8 +240,8 @@ function RewardsUtil.getDailyStreakGift(
     return reward
 end
 
-function RewardsUtil.getDailyStreakDataAddress()
-    return "Rewards.DailyStreak"
+function RewardsUtil.getDailyRewardDataAddress()
+    return "Rewards.DailyReward"
 end
 
 return RewardsUtil

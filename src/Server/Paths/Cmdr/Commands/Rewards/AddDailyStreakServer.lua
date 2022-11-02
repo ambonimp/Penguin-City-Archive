@@ -8,7 +8,7 @@ return function(_context, players: { Player }, days: number?)
     local output = ""
 
     for _, player in pairs(players) do
-        RewardsService.addDailyStreak(player, days)
+        RewardsService.addDailyReward(player, days)
         output ..= (" > %s +%d days\n"):format(player.Name, StringUtil.commaValue(days))
     end
 

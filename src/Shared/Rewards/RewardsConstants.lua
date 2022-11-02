@@ -3,7 +3,7 @@ local RewardsConstants = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
-export type DailyStreakReward = {
+export type DailyRewardReward = {
     Coins: number | nil,
     Gift: {
         Name: string,
@@ -35,7 +35,7 @@ export type Gift = {
     },
 }
 
-local dailyStreakRewards: { DailyStreakReward } = {
+local dailyRewardRewards: { DailyRewardReward } = {
     { Coins = 25, Icon = Images.Coins.Bundle1, Color = Color3.fromRGB(38, 164, 162) },
     { Coins = 100, Icon = Images.Coins.Bundle2, Color = Color3.fromRGB(38, 164, 162) },
     { Coins = 250, Icon = Images.Coins.Bundle3, Color = Color3.fromRGB(38, 164, 162) },
@@ -43,11 +43,11 @@ local dailyStreakRewards: { DailyStreakReward } = {
     { Gift = {}, Icon = Images.Icons.Gift, Color = Color3.fromRGB(222, 125, 37) },
 }
 
-RewardsConstants.DailyStreak = {
+RewardsConstants.DailyReward = {
     StoreMaxDays = 5,
     RenewAfterHours = 24,
     ExpireAfterHours = 28,
-    Rewards = dailyStreakRewards,
+    Rewards = dailyRewardRewards,
 }
 
 local giftTypes: { GiftType } = { "Coins", "Clothing", "House", "Outfit" }

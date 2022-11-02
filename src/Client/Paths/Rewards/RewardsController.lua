@@ -28,10 +28,10 @@ local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
-RewardsController.DailyStreakUpdated = Signal.new()
+RewardsController.DailyRewardUpdated = Signal.new()
 
 -------------------------------------------------------------------------------
--- DailyStreak
+-- DailyReward
 -------------------------------------------------------------------------------
 
 -- Will prompt the daily streak view as soon as appropriate
@@ -42,7 +42,7 @@ function RewardsController.promptDailyRewards(needsUnclaimedDays: boolean?)
     end
 
     -- RETURN: Needs unclaimed days and there are none
-    if needsUnclaimedDays and TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays()) == true then
+    if needsUnclaimedDays and TableUtil.isEmpty(RewardsController.getUnclaimedDailyRewardDays()) == true then
         return
     end
 
@@ -53,9 +53,9 @@ function RewardsController.promptDailyRewards(needsUnclaimedDays: boolean?)
     end)
 end
 
-function RewardsController.claimDailyStreakRequest()
+function RewardsController.claimDailyRewardRequest()
     -- RETURN: Nothing to claim!
-    local unclaimedDays = RewardsController.getUnclaimedDailyStreakDays()
+    local unclaimedDays = RewardsController.getUnclaimedDailyRewardDays()
     if TableUtil.isEmpty(unclaimedDays) then
         warn("Nothing to claim")
         return
@@ -69,7 +69,7 @@ function RewardsController.claimDailyStreakRequest()
     local rewardMaid = Maid.new()
 
     local claimAssume = Assume.new(function()
-        return Remotes.invokeServer("ClaimDailyStreakRequest", toServerUnclaimedDays)
+        return Remotes.invokeServer("ClaimDailyRewardRequest", toServerUnclaimedDays)
     end)
     claimAssume:Check(function(wasSuccess: boolean)
         return wasSuccess and true or false
@@ -79,11 +79,11 @@ function RewardsController.claimDailyStreakRequest()
             task.spawn(function()
                 local doReward = true
                 for dayNum, amount in pairs(unclaimedDays) do
-                    local reward = RewardsUtil.getDailyStreakReward(dayNum)
+                    local reward = RewardsUtil.getDailyRewardReward(dayNum)
                     if reward.Gift then
-                        reward = RewardsUtil.getDailyStreakGift(
+                        reward = RewardsUtil.getDailyRewardGift(
                             dayNum,
-                            RewardsController.getDailyStreakNumber(),
+                            RewardsController.getDailyRewardNumber(),
                             Players.LocalPlayer.UserId,
                             ProductController.getOwnedProducts()
                         )
@@ -108,7 +108,7 @@ function RewardsController.claimDailyStreakRequest()
 end
 
 -- Returns a maid that will cleanup + revert the application of this reward
-function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward, amount: number)
+function RewardsController.giveReward(reward: RewardsConstants.DailyRewardReward, amount: number)
     -- WARN: Wat
     if not (reward.Coins or reward.Gift) then
         warn("Don't know how to give reward", reward)
@@ -174,35 +174,35 @@ function RewardsController.giveReward(reward: RewardsConstants.DailyStreakReward
     warn("Don't know how to give reward", reward)
 end
 
-local function getDailyStreakData()
-    return DataController.get(RewardsUtil.getDailyStreakDataAddress())
+local function getDailyRewardData()
+    return DataController.get(RewardsUtil.getDailyRewardDataAddress())
 end
 
-function RewardsController.getCurrentDailyStreak()
-    return RewardsUtil.getDailyStreakDays(getDailyStreakData())
+function RewardsController.getCurrentDailyReward()
+    return RewardsUtil.getDailyRewardDays(getDailyRewardData())
 end
 
-function RewardsController.getBestDailyStreak()
-    return RewardsUtil.getBestDailyStreak(getDailyStreakData())
+function RewardsController.getBestDailyReward()
+    return RewardsUtil.getBestDailyReward(getDailyRewardData())
 end
 
-function RewardsController.getTimeUntilNextDailyStreakReward()
-    return RewardsUtil.getTimeUntilNextDailyStreakRenew(getDailyStreakData())
+function RewardsController.getTimeUntilNextDailyRewardReward()
+    return RewardsUtil.getTimeUntilNextDailyRewardRenew(getDailyRewardData())
 end
 
-function RewardsController.getUnclaimedDailyStreakDays()
-    return RewardsUtil.getUnclaimedDailyStreakDays(getDailyStreakData())
+function RewardsController.getUnclaimedDailyRewardDays()
+    return RewardsUtil.getUnclaimedDailyRewardDays(getDailyRewardData())
 end
 
-function RewardsController.getDailyStreakNumber()
-    return RewardsUtil.getDailyStreakNumber(getDailyStreakData())
+function RewardsController.getDailyRewardNumber()
+    return RewardsUtil.getDailyRewardNumber(getDailyRewardData())
 end
 
--- DailyStreakUpdated
+-- DailyRewardUpdated
 do
     DataController.Updated:Connect(function(event: string, _newValue: any)
-        if event == "DailyStreakUpdated" then
-            RewardsController.DailyStreakUpdated:Fire()
+        if event == "DailyRewardUpdated" then
+            RewardsController.DailyRewardUpdated:Fire()
             RewardsController.promptDailyRewards(true)
         end
     end)
@@ -241,13 +241,13 @@ end
 -- Communication
 -------------------------------------------------------------------------------
 
-local function giftGiven(reward: RewardsConstants.DailyStreakReward)
+local function giftGiven(reward: RewardsConstants.DailyRewardReward)
     RewardsController.giveReward(reward, 1)
 end
 
 Remotes.bindEvents({
     GiftGiven = function(gift)
-        local reward: RewardsConstants.DailyStreakReward = {
+        local reward: RewardsConstants.DailyRewardReward = {
             Gift = gift,
             Color = COLOR_WHITE, -- Filler value to satisfying types
         }

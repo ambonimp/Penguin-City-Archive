@@ -1,7 +1,7 @@
 return {
-    Name = "addDailyStreak",
+    Name = "addDailyReward",
     Aliases = {},
-    Description = "Adds days to a players dailystreak",
+    Description = "Adds days to a players dailyreward",
     Group = "|rewardsAdmin",
     Args = {
         {

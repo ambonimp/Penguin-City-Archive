@@ -77,7 +77,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             end
 
             isAttemptingClaim = true
-            local claimAssume = RewardsController.claimDailyStreakRequest()
+            local claimAssume = RewardsController.claimDailyRewardRequest()
 
             task.wait()
 
@@ -110,7 +110,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
         displayDaysMaid:Cleanup()
 
         local lowestDay = (math.ceil(day / 5) - 1) * 5 + 1
-        local currentDailyStreak = RewardsController.getCurrentDailyStreak()
+        local currentDailyReward = RewardsController.getCurrentDailyReward()
         for dayNum = lowestDay, lowestDay + 4 do
             local holder: Frame = background.Days.Day:Clone()
             holder.Visible = true
@@ -118,7 +118,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             holder.Parent = background.Days
             displayDaysMaid:GiveTask(holder)
 
-            local reward = RewardsUtil.getDailyStreakReward(dayNum)
+            local reward = RewardsUtil.getDailyRewardReward(dayNum)
             local rewardText = reward.Coins and ("%s Coins"):format(StringUtil.commaValue(reward.Coins))
                 or reward.Gift and reward.Gift.Name
                 or "undefined"
@@ -135,7 +135,7 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             itemDisplay:SetBorderColor(rewardColor)
             displayDaysMaid:GiveTask(itemDisplay)
 
-            if (not RewardsController.getUnclaimedDailyStreakDays()[dayNum] or isAttemptingClaim) and dayNum <= currentDailyStreak then
+            if (not RewardsController.getUnclaimedDailyRewardDays()[dayNum] or isAttemptingClaim) and dayNum <= currentDailyReward then
                 itemDisplay:SetOverlay("Completed")
             end
         end
@@ -143,18 +143,18 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
 
     displayDays(1)
     table.insert(openCallbacks, function()
-        displayDays(RewardsController.getCurrentDailyStreak())
+        displayDays(RewardsController.getCurrentDailyReward())
     end)
 
     local leftButton = AnimatedButton.new(background.Left.ImageButton)
     leftButton.Pressed:Connect(function()
-        displayDays(math.clamp(currentDisplayingDay - #RewardsConstants.DailyStreak.Rewards, 1, math.huge))
+        displayDays(math.clamp(currentDisplayingDay - #RewardsConstants.DailyReward.Rewards, 1, math.huge))
     end)
     maid:GiveTask(leftButton)
 
     local rightButton = AnimatedButton.new(background.Right.ImageButton)
     rightButton.Pressed:Connect(function()
-        displayDays(math.clamp(currentDisplayingDay + #RewardsConstants.DailyStreak.Rewards, 1, math.huge))
+        displayDays(math.clamp(currentDisplayingDay + #RewardsConstants.DailyReward.Rewards, 1, math.huge))
     end)
     maid:GiveTask(rightButton)
 
@@ -171,16 +171,16 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
         end
 
         -- TextLabels
-        streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyStreak())
-        bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyStreak())
+        streak.Text = ("Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getCurrentDailyReward())
+        bestStreak.Text = ("Best Streak:<font size='65'> <b>%d</b></font>"):format(RewardsController.getBestDailyReward())
 
-        local timeUntilNextDailyStreakReward = RewardsController.getTimeUntilNextDailyStreakReward()
-        nextReward.Text = timeUntilNextDailyStreakReward > 0
-                and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyStreakReward, 2))
+        local timeUntilNextDailyRewardReward = RewardsController.getTimeUntilNextDailyRewardReward()
+        nextReward.Text = timeUntilNextDailyRewardReward > 0
+                and ("Next reward in <b>%s</b>"):format(TimeUtil.formatRelativeTime(timeUntilNextDailyRewardReward, 2))
             or "Claim your reward!"
 
         -- Button
-        canClaim = not TableUtil.isEmpty(RewardsController.getUnclaimedDailyStreakDays()) and isAttemptingClaim == false
+        canClaim = not TableUtil.isEmpty(RewardsController.getUnclaimedDailyRewardDays()) and isAttemptingClaim == false
         if canClaim then
             claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
             claimButton:SetText("Claim Reward")
@@ -202,8 +202,8 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     end)
     table.insert(openCallbacks, update)
 
-    maid:GiveTask(RewardsController.DailyStreakUpdated:Connect(function()
-        displayDays(RewardsController.getCurrentDailyStreak())
+    maid:GiveTask(RewardsController.DailyRewardUpdated:Connect(function()
+        displayDays(RewardsController.getCurrentDailyReward())
         update()
     end))
 end

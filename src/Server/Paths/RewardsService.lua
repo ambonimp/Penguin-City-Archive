@@ -18,32 +18,32 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local totalPaychecksByPlayer: { [Player]: number } = {}
 
-local function getDailyStreakData(player: Player)
-    return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
+local function getDailyRewardData(player: Player)
+    return DataService.get(player, RewardsUtil.getDailyRewardDataAddress())
 end
 
 --[[
     Updates a players daily streak, calculating if their streak should be increased, expired etc..
     Informs the client.
 ]]
-function RewardsService.updateDailyStreak(player: Player)
-    local dailyStreakData = getDailyStreakData(player)
-    local updatedDailyStreakData = RewardsUtil.getUpdatedDailyStreak(dailyStreakData)
+function RewardsService.updateDailyReward(player: Player)
+    local dailyRewardData = getDailyRewardData(player)
+    local updatedDailyRewardData = RewardsUtil.getUpdatedDailyReward(dailyRewardData)
 
     -- Streak updated!
-    local hasStreakNumberMismatch = RewardsUtil.getDailyStreakNumber(dailyStreakData)
-        ~= RewardsUtil.getDailyStreakNumber(updatedDailyStreakData)
-    local hasDaysMismatch = RewardsUtil.getDailyStreakDays(dailyStreakData) ~= RewardsUtil.getDailyStreakDays(updatedDailyStreakData)
+    local hasStreakNumberMismatch = RewardsUtil.getDailyRewardNumber(dailyRewardData)
+        ~= RewardsUtil.getDailyRewardNumber(updatedDailyRewardData)
+    local hasDaysMismatch = RewardsUtil.getDailyRewardDays(dailyRewardData) ~= RewardsUtil.getDailyRewardDays(updatedDailyRewardData)
     if hasStreakNumberMismatch or hasDaysMismatch then
-        DataService.set(player, RewardsUtil.getDailyStreakDataAddress(), updatedDailyStreakData, "DailyStreakUpdated")
+        DataService.set(player, RewardsUtil.getDailyRewardDataAddress(), updatedDailyRewardData, "DailyRewardUpdated")
     end
 end
 
-function RewardsService.addDailyStreak(player: Player, days: number)
-    RewardsService.updateDailyStreak(player)
+function RewardsService.addDailyReward(player: Player, days: number)
+    RewardsService.updateDailyReward(player)
     for _ = 1, days do
-        RewardsUtil.setDailyStreakRenewTime(DataService.get(player, RewardsUtil.getDailyStreakDataAddress()), 0)
-        RewardsService.updateDailyStreak(player)
+        RewardsUtil.setDailyRewardRenewTime(DataService.get(player, RewardsUtil.getDailyRewardDataAddress()), 0)
+        RewardsService.updateDailyReward(player)
     end
 end
 
@@ -72,9 +72,9 @@ Remotes.declareEvent("PaycheckReceived")
 
 function RewardsService.loadPlayer(player: Player)
     -- Daily Streak
-    RewardsService.updateDailyStreak(player)
+    RewardsService.updateDailyReward(player)
     PlayerService.getPlayerMaid(player):GiveTask(function()
-        RewardsService.updateDailyStreak(player)
+        RewardsService.updateDailyReward(player)
     end)
 
     -- Paycheck
@@ -93,7 +93,7 @@ function RewardsService.loadPlayer(player: Player)
 end
 
 -- Gives a reward on the server - assumes client knows this is happening
-function RewardsService.giveReward(player: Player, reward: RewardsConstants.DailyStreakReward, amount: number)
+function RewardsService.giveReward(player: Player, reward: RewardsConstants.DailyRewardReward, amount: number)
     local coins = reward.Coins or (reward.Gift and reward.Gift.Data.Coins)
     if coins then
         coins *= amount
@@ -113,7 +113,7 @@ end
 
 -- Custom function to give a gift to a player, that informs the client!
 function RewardsService.giveGift(player: Player, giftName: string)
-    local reward = RewardsUtil.getDailyStreakGift(
+    local reward = RewardsUtil.getDailyRewardGift(
         math.random(1, 100),
         math.random(1, 100),
         math.random(1, 100),
@@ -129,7 +129,7 @@ Remotes.declareEvent("GiftGiven")
 -- Communication
 do
     Remotes.bindFunctions({
-        ClaimDailyStreakRequest = function(player: Player, dirtyUnclaimedDays: any)
+        ClaimDailyRewardRequest = function(player: Player, dirtyUnclaimedDays: any)
             -- FALSE: Not a table
             if typeof(dirtyUnclaimedDays) ~= "table" then
                 return false
@@ -141,7 +141,7 @@ do
             end)
 
             -- FALSE: Mismatch
-            local unclaimedDays = RewardsUtil.getUnclaimedDailyStreakDays(getDailyStreakData(player))
+            local unclaimedDays = RewardsUtil.getUnclaimedDailyRewardDays(getDailyRewardData(player))
             for dayNum, amount in pairs(unclaimedDays) do
                 if not (dirtyUnclaimedDays[dayNum] == amount) then
                     warn("Mismatch", dirtyUnclaimedDays, unclaimedDays)
@@ -151,11 +151,11 @@ do
 
             -- Hand over stuffs
             for dayNum, amount in pairs(unclaimedDays) do
-                local reward = RewardsUtil.getDailyStreakReward(dayNum)
+                local reward = RewardsUtil.getDailyRewardReward(dayNum)
                 if reward.Gift then
-                    reward = RewardsUtil.getDailyStreakGift(
+                    reward = RewardsUtil.getDailyRewardGift(
                         dayNum,
-                        RewardsUtil.getDailyStreakNumber(getDailyStreakData(player)),
+                        RewardsUtil.getDailyRewardNumber(getDailyRewardData(player)),
                         player.UserId,
                         ProductService.getOwnedProducts(player)
                     )
@@ -164,8 +164,8 @@ do
                 RewardsService.giveReward(player, reward, amount)
             end
 
-            local unclaimedAddress = ("%s.%s"):format(RewardsUtil.getDailyStreakDataAddress(), "Unclaimed")
-            DataService.set(player, unclaimedAddress, {}, "DailyStreakUpdated")
+            local unclaimedAddress = ("%s.%s"):format(RewardsUtil.getDailyRewardDataAddress(), "Unclaimed")
+            DataService.set(player, unclaimedAddress, {}, "DailyRewardUpdated")
 
             return true
         end,
