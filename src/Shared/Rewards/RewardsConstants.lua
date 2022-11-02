@@ -276,4 +276,13 @@ local gifts: { [string]: { Gift } } = {
 }
 RewardsConstants.Gifts = gifts
 
+RewardsConstants.Paycheck = {
+    EverySeconds = 10 * 60,
+    Coins = {
+        Base = 100,
+        Add = 25,
+        Max = 200,
+    },
+}
+
 return RewardsConstants

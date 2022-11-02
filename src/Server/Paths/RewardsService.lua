@@ -3,6 +3,7 @@
 ]]
 local RewardsService = {}
 
+local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
@@ -14,6 +15,8 @@ local CurrencySevice = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+
+local totalPaychecksByPlayer: { [Player]: number } = {}
 
 local function getDailyStreakData(player: Player)
     return DataService.get(player, RewardsUtil.getDailyStreakDataAddress())
@@ -44,11 +47,48 @@ function RewardsService.addDailyStreak(player: Player, days: number)
     end
 end
 
+-- Returns true if successful, false o/w (e.g., is now offline)
+function RewardsService.givePaycheck(player: Player)
+    -- RETURN: Player is gone!
+    if not (totalPaychecksByPlayer[player] and player:IsDescendantOf(Players)) then
+        return
+    end
+
+    -- Give Paycheck
+    local totalPaychecks = totalPaychecksByPlayer[player] + 1
+    totalPaychecksByPlayer[player] = totalPaychecks
+
+    local paycheckAmount = math.clamp(
+        RewardsConstants.Paycheck.Coins.Base + RewardsConstants.Paycheck.Coins.Add * (totalPaychecks - 1),
+        0,
+        RewardsConstants.Paycheck.Coins.Max
+    )
+    CurrencySevice.addCoins(player, paycheckAmount)
+
+    -- Inform
+    Remotes.fireClient(player, "PaycheckReceived", paycheckAmount)
+end
+Remotes.declareEvent("PaycheckReceived")
+
 function RewardsService.loadPlayer(player: Player)
     -- Daily Streak
     RewardsService.updateDailyStreak(player)
     PlayerService.getPlayerMaid(player):GiveTask(function()
         RewardsService.updateDailyStreak(player)
+    end)
+
+    -- Paycheck
+    totalPaychecksByPlayer[player] = 0
+    PlayerService.getPlayerMaid(player):GiveTask(function()
+        totalPaychecksByPlayer[player] = nil
+    end)
+
+    task.spawn(function()
+        while task.wait(RewardsConstants.Paycheck.EverySeconds) do
+            if RewardsService.givePaycheck(player) == false then
+                break
+            end
+        end
     end)
 end
 

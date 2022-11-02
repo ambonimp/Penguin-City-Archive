@@ -230,21 +230,31 @@ end, function(instance)
     DailyRewardsScreen.attachToPart(instance, face)
 end)
 
+-------------------------------------------------------------------------------
+-- Paychecks
+-------------------------------------------------------------------------------
+
+function RewardsController.paycheckReceived(paycheckAmount: number)
+    warn("paycehck recieved", paycheckAmount)
+end
+
+-------------------------------------------------------------------------------
+-- Communication
+-------------------------------------------------------------------------------
+
 local function giftGiven(reward: RewardsConstants.DailyStreakReward)
     RewardsController.giveReward(reward, 1)
 end
 
--- Communcation
-do
-    Remotes.bindEvents({
-        GiftGiven = function(gift)
-            local reward: RewardsConstants.DailyStreakReward = {
-                Gift = gift,
-                Color = COLOR_WHITE, -- Filler value to satisfying types
-            }
-            giftGiven(reward)
-        end,
-    })
-end
+Remotes.bindEvents({
+    GiftGiven = function(gift)
+        local reward: RewardsConstants.DailyStreakReward = {
+            Gift = gift,
+            Color = COLOR_WHITE, -- Filler value to satisfying types
+        }
+        giftGiven(reward)
+    end,
+    PaycheckReceived = RewardsController.paycheckReceived,
+})
 
 return RewardsController
