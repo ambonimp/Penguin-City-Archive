@@ -73,7 +73,7 @@ function PaycheckScreen.open(data: table)
     nextPaycheck.Text = ("Next Paycheck in: <b>%s</b>"):format(TimeUtil.formatRelativeTime(RewardsConstants.Paycheck.EverySeconds - 1))
     numberValue.Text = StringUtil.commaValue(amount)
     playerName.Text = Players.LocalPlayer.DisplayName
-    stringValue.Text = StringUtil.writtenNumber(amount)
+    stringValue.Text = ("%s Only"):format(StringUtil.writtenNumber(amount))
 
     -- Grow + Spin in
     ScreenUtil.inDown(container)
