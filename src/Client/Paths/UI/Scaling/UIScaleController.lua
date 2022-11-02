@@ -62,28 +62,34 @@ end
 -- Instance updating
 -------------------------------------------------------------------------------
 
-local classnameToUpdater: { [string]: (instance: Instance, value: any) -> nil } = {
-    UICorner = function(instance: UICorner, initUDim: UDim)
-        instance.CornerRadius = UDim.new(initUDim.Scale, initUDim.Offset * scale)
+local classnameToUpdater: { [string]: (instance: Instance, value: any, toScale: number?) -> nil } = {
+    UICorner = function(instance: UICorner, initUDim: UDim, toScale: number?)
+        toScale = toScale or scale
+
+        instance.CornerRadius = UDim.new(initUDim.Scale, initUDim.Offset * toScale)
     end,
-    UITextSizeConstraint = function(instance: UITextSizeConstraint, initTextSize: number)
-        instance.MaxTextSize = initTextSize * scale
+    UITextSizeConstraint = function(instance: UITextSizeConstraint, initTextSize: number, toScale: number?)
+        toScale = toScale or scale
+
+        instance.MaxTextSize = initTextSize * toScale
     end,
 }
 
 -- Updates the scope of a UIScale to a new scale
 function UIScaleController.updateUIScale(uiScale: UIScale, toScale: number?)
+    toScale = toScale or scale
+
     -- UIScale
-    uiScale.Scale = scale or toScale
+    uiScale.Scale = toScale
 
     -- UIScale Container
     local data = uiScaleDatas[uiScale]
     local initSize: UDim2 = data.Container.Value
-    data.Container.Instance.Size = UDim2.new(initSize.X.Scale / scale, initSize.X.Offset, initSize.Y.Scale / scale, initSize.Y.Offset)
+    data.Container.Instance.Size = UDim2.new(initSize.X.Scale / toScale, initSize.X.Offset, initSize.Y.Scale / toScale, initSize.Y.Offset)
 
     -- Special Instances
     for _, instanceValuePair in pairs(data.SpecialInstances) do
-        classnameToUpdater[instanceValuePair.Instance.ClassName](instanceValuePair.Instance, instanceValuePair.Value)
+        classnameToUpdater[instanceValuePair.Instance.ClassName](instanceValuePair.Instance, instanceValuePair.Value, toScale)
     end
 end
 

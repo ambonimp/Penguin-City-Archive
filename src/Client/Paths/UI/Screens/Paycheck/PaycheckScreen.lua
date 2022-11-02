@@ -8,21 +8,15 @@ local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Maid = require(Paths.Packages.maid)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local RewardsController: typeof(require(Paths.Client.Rewards.RewardsController))
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
-local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
-local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
-local ItemDisplay = require(Paths.Client.UI.Elements.ItemDisplay)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
-local Images = require(Paths.Shared.Images.Images)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local Sound = require(Paths.Shared.Sound)
 
-local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
-local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.InOut)
+local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
 local ENTER_ROTATE = 180
 
 local screenGui: ScreenGui = Ui.Paycheck
@@ -93,6 +87,8 @@ function PaycheckScreen.open(data: table)
     openMaid:GiveTask(TweenUtil.run(function(alpha)
         container.Rotation = ENTER_ROTATE - (ENTER_ROTATE * alpha)
     end, ENTER_TWEEN_INFO_ROTATION))
+
+    Sound.play("OpenGift")
 end
 
 function PaycheckScreen.close()
