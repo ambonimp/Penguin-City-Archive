@@ -1,5 +1,16 @@
 local InstanceUtil = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+
+local FADE_CLASSNAME_BY_PROPERTY = {
+    Transparency = { "BasePart", "GuiObject", "UIStroke" },
+    TextTransparency = { "TextLabel", "TextButton" },
+    TextStrokeTransparency = { "TextLabel", "TextButton" },
+}
+local FADE_TWEEN_INFO = TweenInfo.new(0.5)
+local ATTRIBUTE_FADE_FORMAT = "_InstanceUtilFade_%s"
+
 -- Wrapper for creating an instance and defining some basic property values
 function InstanceUtil.new(className, name: string, parent: Instance)
     local instance = Instance.new(className)
@@ -81,6 +92,76 @@ function InstanceUtil.convert(instance: Instance, toClassName: string)
 
     instance:Destroy()
     return newInstance
+end
+
+local function fade(instance: Instance, fadeProperty: string, visible: boolean, tweenInfo: TweenInfo?)
+    tweenInfo = tweenInfo or FADE_TWEEN_INFO
+
+    -- Cache
+    local attributeName = ATTRIBUTE_FADE_FORMAT:format(fadeProperty)
+    local cachedValue = instance:GetAttribute(attributeName)
+    if not cachedValue then
+        cachedValue = instance[fadeProperty]
+        instance:SetAttribute(attributeName, cachedValue)
+    end
+
+    if visible then
+        instance[fadeProperty] = 1
+        return TweenUtil.tween(instance, tweenInfo, { [fadeProperty] = cachedValue })
+    else
+        instance[fadeProperty] = cachedValue
+        return TweenUtil.tween(instance, tweenInfo, { [fadeProperty] = 1 })
+    end
+end
+
+-- Will fade in the passed instance(s) based on an internal table of properties
+function InstanceUtil.fadeIn(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
+    local tweens: { Tween } = {}
+
+    local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
+    for _, instance in pairs(instances) do
+        local found = false
+        for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
+            for _, classname in pairs(classNames) do
+                if instance:IsA(classname) then
+                    table.insert(tweens, fade(instance, fadeProperty, true, tweenInfo))
+                    found = true
+                    break
+                end
+            end
+        end
+
+        if not found then
+            warn(("Missing edge case for %q"):format(instance.ClassName))
+        end
+    end
+
+    return tweens
+end
+
+-- Will fade out the passed instance(s) based on an internal table of properties
+function InstanceUtil.fadeOut(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
+    local tweens: { Tween } = {}
+
+    local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
+    for _, instance in pairs(instances) do
+        local found = false
+        for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
+            for _, classname in pairs(classNames) do
+                if instance:IsA(classname) then
+                    table.insert(tweens, fade(instance, fadeProperty, false, tweenInfo))
+                    found = true
+                    break
+                end
+            end
+        end
+
+        if not found then
+            warn(("Missing edge case for %q"):format(instance.ClassName))
+        end
+    end
+
+    return tweens
 end
 
 return InstanceUtil
