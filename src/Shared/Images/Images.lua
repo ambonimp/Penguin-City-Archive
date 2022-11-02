@@ -94,9 +94,11 @@ Images.PizzaMinigame = {
     Anchovy = "rbxassetid://11152399621",
 }
 --#endregion
---#region CharacterEditor
-Images.CharacterEditor = {
+--#region SelectionPanel
+Images.SelectionPanel = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",
+    BlueArrow = "rbxassetid://11447909821",
+    BeigeArrow = "rbxassetid://11447909674",
 }
 --#endregion
 --#region Shirts
