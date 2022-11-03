@@ -26,19 +26,22 @@ local ZoneController = require(Paths.Client.ZoneController)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
 local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
 local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local EDIT_MODE_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 local screenGui: ScreenGui = Ui.StampBook
+local containerFrame: Frame = screenGui.Container
 local closeButton = KeyboardButton.new()
 local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local previousPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local nextPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
-local cover: ImageLabel = screenGui.Container.Cover
-local inside: Frame = screenGui.Container.Inside
+local cover: ImageLabel = containerFrame.Cover
+local inside: Frame = containerFrame.Inside
 local pageTitleText: TextLabel
 local pageTitleImage: ImageLabel
 local editPanel = SelectionPanel.new()
@@ -60,12 +63,28 @@ local deselectedTabSize: UDim2
 local deselectedTabColor: Color3
 local totalStampsPerPage: number
 local chapterMaid = Maid.new()
+local isEditing = false
+
+local function toggleEditMode(forceEnabled: boolean?)
+    -- RETURN: No change
+    if forceEnabled ~= nil and forceEnabled == isEditing then
+        return
+    end
+    isEditing = not isEditing
+
+    -- Handle active/deactive
+    if isEditing then
+        ScreenUtil.inRight(editPanel:GetContainer())
+    else
+        ScreenUtil.outLeft(editPanel:GetContainer())
+    end
+end
 
 function StampBookScreen.Init()
     -- UI Setup
     do
         -- Close
-        closeButton:Mount(screenGui.Container.CloseButton, true)
+        closeButton:Mount(containerFrame.CloseButton, true)
         closeButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
         closeButton:SetIcon(Images.Icons.Close)
         closeButton:RoundOff()
@@ -102,6 +121,11 @@ function StampBookScreen.Init()
         editPanel:Mount(screenGui)
         editPanel:SetAlignment("Left")
         editPanel:SetSize(1)
+
+        editPanel.ClosePressed:Connect(function()
+            toggleEditMode(false)
+        end)
+
         editPanel:AddTab("CoverColor", Images.Icons.PaintBucket)
         editPanel:AddTab("TextColor", Images.Icons.Text)
         editPanel:AddTab("Stamps", Images.Icons.Badge)
@@ -142,10 +166,6 @@ local function createCoverButton(layoutOrder: number)
     return button
 end
 
-local function toggleEditMode(forceEnabled: boolean?)
-    print("todo toggleedit mode")
-end
-
 function StampBookScreen.openCover()
     -- Manage Internals
     currentView = "Cover"
@@ -159,7 +179,7 @@ function StampBookScreen.openCover()
         local iglooButton = createCoverButton(1)
         ButtonUtil.paintIgloo(iglooButton)
         iglooButton.Pressed:Connect(function()
-            local houseZone = ZoneUtil.houseZone(currentPlayer)
+            local houseZone = ZoneUtil.houseInteriorZone(currentPlayer)
             ZoneController.teleportToRoomRequest(houseZone)
 
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
@@ -353,12 +373,14 @@ function StampBookScreen.open(player: Player)
         end
     end)
 
+    toggleEditMode(false)
+    ScreenUtil.inDown(containerFrame)
     screenGui.Enabled = true
 end
 
 function StampBookScreen.close()
-    screenGui.Enabled = false
-
+    toggleEditMode(false)
+    ScreenUtil.outUp(containerFrame)
     currentChapter = nil
 end
 

@@ -93,9 +93,10 @@ end
 local function stampBook(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.StampBook
 
-    --!!temp
     button.Pressed:Connect(function()
-        Sound.play("OpenBook")
+        uiStateMachine:Push(UIConstants.States.StampBook, {
+            Player = Players.LocalPlayer,
+        })
     end)
 end
 

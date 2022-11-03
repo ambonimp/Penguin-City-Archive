@@ -69,6 +69,7 @@ function SelectionPanel.new()
     -------------------------------------------------------------------------------
 
     selectionPanel.ClosePressed = Signal.new()
+    selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -121,6 +122,7 @@ function SelectionPanel.new()
         end
         containerFrame = containerFrame:Clone()
         backgroundFrame = containerFrame.Background
+        containerMaid:GiveTask(containerFrame)
 
         if parent then
             selectionPanel:Mount(parent)
