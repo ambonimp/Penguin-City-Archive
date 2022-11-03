@@ -14,15 +14,20 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local Sound = require(Paths.Shared.Sound)
+local Effects = require(Paths.Shared.Effects)
+local Scope = require(Paths.Shared.Scope)
 
 local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
 local ENTER_ROTATE = 180
+local COIN_EFFECT_DURATION = 3
+local AUTO_CLOSE_AFTER = 3
 
 local screenGui: ScreenGui = Ui.Paycheck
 local container: Frame = screenGui.Container
 local uiScale: UIScale = container.UIScale
 local cashoutButton = KeyboardButton.new()
+local closeScope = Scope.new()
 
 local openMaid = Maid.new()
 
@@ -34,15 +39,21 @@ local numberValue: TextLabel = fields.NumberValue
 local playerName: TextLabel = fields.PlayerName
 local stringValue: TextLabel = fields.StringValue
 
+-- When we claim, or after a timeout
+local function closePaycheck()
+    closeScope:NewScope()
+
+    UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.Paycheck)
+    Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION)
+end
+
 function PaycheckScreen.Init()
     -- Buttons
     do
         cashoutButton:Mount(container.CashoutButton, true)
         cashoutButton:SetColor(UIConstants.Colors.Buttons.NextGreen)
         cashoutButton:SetText("Cashout!")
-        cashoutButton.Pressed:Connect(function()
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.Paycheck)
-        end)
+        cashoutButton.Pressed:Connect(closePaycheck)
     end
 
     -- Register UIState
@@ -73,7 +84,7 @@ function PaycheckScreen.open(data: table)
     nextPaycheck.Text = ("Next Paycheck in: <b>%s</b>"):format(TimeUtil.formatRelativeTime(RewardsConstants.Paycheck.EverySeconds - 1))
     numberValue.Text = StringUtil.commaValue(amount)
     playerName.Text = Players.LocalPlayer.DisplayName
-    stringValue.Text = ("%s Only"):format(StringUtil.writtenNumber(amount))
+    stringValue.Text = ("%s"):format(StringUtil.writtenNumber(amount))
 
     -- Grow + Spin in
     ScreenUtil.inDown(container)
@@ -89,6 +100,14 @@ function PaycheckScreen.open(data: table)
     end, ENTER_TWEEN_INFO_ROTATION))
 
     Sound.play("OpenGift")
+
+    -- Closing
+    local closeScopeId = closeScope:GetId()
+    task.delay(AUTO_CLOSE_AFTER, function()
+        if closeScope:Matches(closeScopeId) then
+            closePaycheck()
+        end
+    end)
 end
 
 function PaycheckScreen.close()
