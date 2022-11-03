@@ -239,6 +239,10 @@ function SelectionPanel.new()
         end
     end
 
+    function selectionPanel:GetContainer()
+        return containerFrame
+    end
+
     function selectionPanel:OpenTab(tabName: string?)
         openTabName = tabName
         draw()

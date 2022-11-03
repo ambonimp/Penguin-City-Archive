@@ -24,11 +24,14 @@ local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.ZoneController)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
+local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
 local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
 local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+
 local screenGui: ScreenGui = Ui.StampBook
 local closeButton = KeyboardButton.new()
 local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
@@ -38,6 +41,7 @@ local cover: ImageLabel = screenGui.Container.Cover
 local inside: Frame = screenGui.Container.Inside
 local pageTitleText: TextLabel
 local pageTitleImage: ImageLabel
+local editPanel = SelectionPanel.new()
 
 local currentPlayer: Player?
 local currentStampData = {
@@ -93,6 +97,20 @@ function StampBookScreen.Init()
         cover.Stamps.template.Visible = false
     end
 
+    -- Edit Panel Setup
+    do
+        editPanel:Mount(screenGui)
+        editPanel:SetAlignment("Left")
+        editPanel:SetSize(1)
+        editPanel:AddTab("CoverColor", Images.Icons.PaintBucket)
+        editPanel:AddTab("TextColor", Images.Icons.Text)
+        editPanel:AddTab("Stamps", Images.Icons.Badge)
+        editPanel:AddTab("Seal", Images.Icons.Seal)
+        editPanel:AddTab("Texture", Images.Icons.Book)
+
+        ScreenUtil.outLeft(editPanel:GetContainer())
+    end
+
     -- Register UIState
     do
         local function enter(data: table)
@@ -124,6 +142,10 @@ local function createCoverButton(layoutOrder: number)
     return button
 end
 
+local function toggleEditMode(forceEnabled: boolean?)
+    print("todo toggleedit mode")
+end
+
 function StampBookScreen.openCover()
     -- Manage Internals
     currentView = "Cover"
@@ -142,6 +164,15 @@ function StampBookScreen.openCover()
 
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
         end)
+
+        -- Edit
+        if currentPlayer == Players.LocalPlayer then
+            local editButton = createCoverButton(2)
+            ButtonUtil.paintEdit(editButton)
+            editButton.Pressed:Connect(function()
+                toggleEditMode()
+            end)
+        end
     end
 
     -- Picture
