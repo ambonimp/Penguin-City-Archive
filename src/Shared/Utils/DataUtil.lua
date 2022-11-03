@@ -11,7 +11,7 @@ local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 --local Output = require(ReplicatedStorage.Shared.Output)
 
-export type Data = string | number | { [string]: Data }
+export type Data = string | number | Store
 export type Store = { [string]: Data }
 
 --[[

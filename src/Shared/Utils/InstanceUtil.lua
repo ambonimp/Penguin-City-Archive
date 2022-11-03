@@ -2,12 +2,13 @@ local InstanceUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
-local Signal = require(ReplicatedStorage.Shared.Signal)
 
 local FADE_CLASSNAME_BY_PROPERTY = {
-    Transparency = { "BasePart", "GuiObject", "UIStroke" },
+    Transparency = { "BasePart", "UIStroke", "Decal" },
+    BackgroundTransparency = { "GuiObject" },
     TextTransparency = { "TextLabel", "TextButton" },
     TextStrokeTransparency = { "TextLabel", "TextButton" },
+    ImageTransparency = { "ImageLabel", "ImageButton" },
 }
 local FADE_TWEEN_INFO = TweenInfo.new(0.5)
 local ATTRIBUTE_FADE_FORMAT = "_InstanceUtilFade_%s"
