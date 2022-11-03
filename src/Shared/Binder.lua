@@ -1,7 +1,6 @@
 local Binder = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
 Binder.Store = {} :: { [Instance]: { [string]: any } }
 
@@ -12,6 +11,9 @@ function Binder.addInstance(scope: Instance)
     if not Binder.Store[scope] then
         Binder.Store[scope] = Binder.Store[scope] or {}
     end
+
+    -- Avoid circular dependency
+    local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
     InstanceUtil.onDestroyed(scope, function()
         Binder.removeInstance(scope)
