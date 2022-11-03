@@ -3,6 +3,9 @@
 ]]
 local DescendantLooper = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 
 local instanceCheckerCallbackPairs: { [Instance]: { [(descendant: Instance) -> boolean]: (descendant: Instance) -> nil } } = {}
@@ -31,10 +34,8 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
         end)
 
         -- Cleanup cache
-        instance.AncestryChanged:Connect(function(_, parent)
-            if not parent then
-                instanceCheckerCallbackPairs[instance] = nil
-            end
+        InstanceUtil.onDestroyed(instance, function()
+            instanceCheckerCallbackPairs[instance] = nil
         end)
     end
 

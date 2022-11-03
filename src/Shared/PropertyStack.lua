@@ -15,6 +15,7 @@ local PropertyStack = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
 type KeyValuePair = { Key: string, Value: any }
 type PropertyState = { DefaultValue: any, KeyData: { [number]: { KeyValuePair } } } -- Keys in KeyData are keyPriority
@@ -96,10 +97,8 @@ end
 
 local function setupMemory(instance: Instance)
     local instanceMemory: InstanceMemory = {
-        DestroyingConnection = instance.AncestryChanged:Connect(function(_, parent)
-            if not parent then
-                memory[instance] = nil
-            end
+        DestroyingConnection = InstanceUtil.onDestroyed(instance, function()
+            memory[instance] = nil
         end),
         PropertyStates = {},
     }

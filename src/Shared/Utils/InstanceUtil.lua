@@ -2,6 +2,7 @@ local InstanceUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+local Signal = require(ReplicatedStorage.Shared.Signal)
 
 local FADE_CLASSNAME_BY_PROPERTY = {
     Transparency = { "BasePart", "GuiObject", "UIStroke" },
@@ -162,6 +163,22 @@ function InstanceUtil.fadeOut(instanceOrInstances: Instance | { Instance }, twee
     end
 
     return tweens
+end
+
+--[[
+    Calls `callback` when this instance (or one of its ancestors) is destroyed. Mental we need to create a function for this..
+    - Returns the Connection listening for its destruction
+]]
+function InstanceUtil.onDestroyed(instance: Instance, callback: () -> nil)
+    local connection: RBXScriptConnection
+    connection = instance.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            connection:Disconnect()
+            callback()
+        end
+    end)
+
+    return connection
 end
 
 return InstanceUtil

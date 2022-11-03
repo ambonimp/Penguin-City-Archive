@@ -6,6 +6,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Limiter = require(Paths.Shared.Limiter)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local Signal = require(Paths.Shared.Signal)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local BASE_RESOLUTION = Vector2.new(1920, 1080) -- UI is edited using this aspect ratio
 local LIMITER_KEY = "UIScaleResolution"
@@ -185,10 +186,8 @@ local function newUIScale(uiScale: UIScale)
     end, { data.Container.Instance }, false)
 
     -- Handle removal
-    uiScale.AncestryChanged:Connect(function(_, parent)
-        if not parent then
-            uiScaleDatas[uiScale] = nil
-        end
+    InstanceUtil.onDestroyed(uiScale, function()
+        uiScaleDatas[uiScale] = nil
     end)
 
     -- Init

@@ -17,6 +17,7 @@ local ItemDisplay = require(Paths.Client.UI.Elements.ItemDisplay)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local screenGui: ScreenGui = Ui.DailyRewards
 local container: Frame = screenGui.Container
@@ -212,8 +213,8 @@ end
 
 function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     local maid = Maid.new()
-    part.AncestryChanged:Connect(function(_, parent)
-        if not parent and maid then
+    InstanceUtil.onDestroyed(part, function()
+        if maid then
             maid:Destroy()
             maid = nil
         end
