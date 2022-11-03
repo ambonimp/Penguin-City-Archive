@@ -54,6 +54,11 @@ return {
         Id = "igloo_best_house",
         DisplayName = "Best House on the Block",
         IsTiered = true,
+        Tiers = {
+            Bronze = 50,
+            Silver = 100,
+            Gold = 200,
+        },
         Description = {
             Bronze = "Get 50 hearts on your igloo",
             Silver = "Get 100 hearts on your igloo",

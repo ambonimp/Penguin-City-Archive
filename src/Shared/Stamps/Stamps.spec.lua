@@ -20,8 +20,34 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
     end
 
     -- Tiered
-    if stamp.IsTiered and typeof(stamp.IsTiered) ~= "boolean" then
-        table.insert(issues, ("%s .Tiered must be boolean!"):format(issuePrefix))
+    if stamp.IsTiered then
+        if typeof(stamp.IsTiered) ~= "boolean" then
+            table.insert(issues, ("%s .Tiered must be boolean!"):format(issuePrefix))
+        end
+
+        -- Validate Tiers
+        if stamp.Tiers then
+            local lastTierValue = -1
+            for _, stampTier in pairs(Stamps.StampTiers) do
+                local tierValue = stamp.Tiers[stampTier]
+                if tierValue then
+                    if tierValue <= lastTierValue then
+                        table.insert(
+                            issues,
+                            ("%s .Tiers.%s value is smaller than the previous tier! (Or is less than 0)"):format(issuePrefix, stampTier)
+                        )
+                    end
+                    if tierValue ~= math.floor(tierValue) then
+                        table.insert(issues, ("%s .Tiers.%s value must be an integer"):format(issuePrefix, stampTier))
+                    end
+                    lastTierValue = tierValue
+                else
+                    table.insert(issues, ("%s missing .Tiers.%s"):format(issuePrefix, stampTier))
+                end
+            end
+        else
+            table.insert(issues, ("%s missing .Tiers"):format(issuePrefix))
+        end
     end
 
     -- DisplayName

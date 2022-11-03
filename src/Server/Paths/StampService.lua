@@ -6,57 +6,85 @@ local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local DataService = require(Paths.Server.Data.DataService)
 
-function StampService.hasStamp(player: Player, stampId: string, stampTier: Stamps.StampTier | nil)
+local function getStamp(stampId: string)
+    -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered then
-        stampTier = stampTier or "Bronze"
-    else
-        stampTier = nil
+    if not stamp then
+        error(("Bad StampId %q"):format(stampId))
     end
 
-    local data = DataService.get(player, StampUtil.getStampDataAddress(stampId))
+    return stamp
+end
+
+local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil)
     if stamp.IsTiered then
-        -- FALSE: Bad data
-        local ourTier = data and table.find(Stamps.StampTiers, data) and data :: Stamps.StampTier
-        if not ourTier then
-            return false
+        if typeof(stampTierOrProgress) == "string" then
+            return stamp.Tiers[stampTierOrProgress]
+        else
+            return stampTierOrProgress
         end
-
-        return StampUtil.isTierCoveredByTier(ourTier, stampTier)
     else
-        return data and true or false
+        return 1
     end
+end
+
+local function getStampProgress(player: Player, stampId: string)
+    return DataService.get(player, StampUtil.getStampDataAddress(stampId))
+end
+
+function StampService.hasStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
+    local stamp = getStamp(stampId)
+    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
+    local ourStampProgress = getStampProgress(player, stampId)
+
+    if stamp.IsTiered then
+        return ourStampProgress >= stampProgress
+    else
+        return ourStampProgress and true or false
+    end
+end
+
+function StampService.getProgress(player: Player, stampId: string)
+    return getStampProgress(player, stampId)
 end
 
 function StampService.getTier(player: Player, stampId: string)
     -- ERROR: Not tiered
-    local stamp = StampUtil.getStampFromId(stampId)
+    local stamp = getStamp(stampId)
     if not stamp.IsTiered then
         error(("Stamp %q is not tiered"):format(stampId))
     end
 
-    return DataService.get(player, StampUtil.getStampDataAddress(stampId)) :: Stamps.StampTier | nil
+    -- Calculate tier from progress (if applicable)
+    local stampProgress = getStampProgress(player, stampId)
+    if stampProgress then
+        local bestStampTier: string | nil
+        for _, stampTier in pairs(Stamps.StampTiers) do
+            local stampValue = stamp.Tiers[stampTier]
+            if stampProgress >= stampValue then
+                bestStampTier = stampTier
+            else
+                break
+            end
+        end
+        return bestStampTier
+    end
+
+    return nil
 end
 
-function StampService.addStamp(player: Player, stampId: string, stampTier: Stamps.StampTier | nil)
-    local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered then
-        stampTier = stampTier or "Bronze"
-    else
-        stampTier = nil
-    end
+function StampService.addStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
+    local stamp = getStamp(stampId)
+    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
 
-    if stamp and not StampService.hasStamp(player, stampId, stampTier) then
-        DataService.set(
-            player,
-            StampUtil.getStampDataAddress(stampId),
-            stampTier or true,
-            "StampUpdated",
-            { StampId = stampId, StampTier = stampTier }
-        )
-        return true
-    end
-    return false
+    DataService.set(
+        player,
+        StampUtil.getStampDataAddress(stampId),
+        stampProgress,
+        "StampUpdated",
+        { StampId = stampId, StampProgress = stampProgress }
+    )
+    return true
 end
 
 function StampService.revokeStamp(player: Player, stampId: string)

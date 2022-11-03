@@ -64,6 +64,11 @@ return {
         Id = "minigame_sledrace_wins",
         DisplayName = "Racer",
         IsTiered = true,
+        Tiers = {
+            Bronze = 1,
+            Silver = 10,
+            Gold = 25,
+        },
         Description = {
             Bronze = "Win 1 round of Sled Racing",
             Silver = "Win 10 rounds of Sled Racing",
@@ -151,6 +156,11 @@ return {
         Id = "minigame_icecream_wins",
         DisplayName = "Icy Winner",
         IsTiered = true,
+        Tiers = {
+            Bronze = 1,
+            Silver = 10,
+            Gold = 25,
+        },
         Description = {
             Bronze = "Win 1 games of Ice Cream Extravaganza",
             Silver = "Win 10 games of Ice Cream Extravaganza",

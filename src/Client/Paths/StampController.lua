@@ -11,25 +11,41 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 
 StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, stampTier: Stamps.StampTier | nil}
 
-function StampController.hasStamp(stampId: string, stampTier: Stamps.StampTier | nil)
+local function getStamp(stampId: string)
+    -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)
-    if stamp.IsTiered then
-        stampTier = stampTier or "Bronze"
-    else
-        stampTier = nil
+    if not stamp then
+        error(("Bad StampId %q"):format(stampId))
     end
 
-    local data = DataController.get(StampUtil.getStampDataAddress(stampId))
-    if stamp.IsTiered then
-        -- FALSE: Bad data
-        local ourTier = data and table.find(Stamps.StampTiers, data) and data :: Stamps.StampTier
-        if not ourTier then
-            return false
-        end
+    return stamp
+end
 
-        return StampUtil.isTierCoveredByTier(ourTier, stampTier)
+local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil)
+    if stamp.IsTiered then
+        if typeof(stampTierOrProgress) == "string" then
+            return stamp.Tiers[stampTierOrProgress]
+        else
+            return stampTierOrProgress
+        end
     else
-        return data and true or false
+        return 1
+    end
+end
+
+local function getStampProgress(stampId: string)
+    return DataController.get(StampUtil.getStampDataAddress(stampId))
+end
+
+function StampController.hasStamp(stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
+    local stamp = getStamp(stampId)
+    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
+    local ourStampProgress = getStampProgress(stampId)
+
+    if stamp.IsTiered then
+        return ourStampProgress >= stampProgress
+    else
+        return ourStampProgress and true or false
     end
 end
 

@@ -8,8 +8,9 @@ export type Stamp = {
     Description: string | { string },
     Type: StampType,
     Difficulty: StampDifficulty?,
-    ImageId: string,
+    ImageId: string | { string },
     IsTiered: boolean?,
+    Tiers: { [string]: number }?,
     Metadata: table?,
 }
 
