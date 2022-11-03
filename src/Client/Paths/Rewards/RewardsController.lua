@@ -241,17 +241,13 @@ end
 -- Communication
 -------------------------------------------------------------------------------
 
-local function giftGiven(reward: RewardsConstants.DailyRewardReward)
-    RewardsController.giveReward(reward, 1)
-end
-
 Remotes.bindEvents({
     GiftGiven = function(gift)
         local reward: RewardsConstants.DailyRewardReward = {
             Gift = gift,
             Color = COLOR_WHITE, -- Filler value to satisfying types
         }
-        giftGiven(reward)
+        RewardsController.giveReward(reward, 1)
     end,
     PaycheckReceived = RewardsController.paycheckReceived,
 })
