@@ -1,6 +1,52 @@
 local StringUtil = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+
 local MAX_TUPLE = 7997
+--#region Written Numbers
+local WRITTEN_NUMBERS = {
+    [1] = "One",
+    [2] = "Two",
+    [3] = "Three",
+    [4] = "Four",
+    [5] = "Five",
+    [6] = "Six",
+    [7] = "Seven",
+    [8] = "Eight",
+    [9] = "Nine",
+    [10] = "Ten",
+    [11] = "Eleven",
+    [12] = "Twelve",
+    [13] = "Thirteen",
+    [14] = "Fourteen",
+    [15] = "Fifteen",
+    [16] = "Sixteen",
+    [17] = "Seventeen",
+    [18] = "Eighteen",
+    [19] = "Nineteen",
+    [20] = "Twenty",
+    [30] = "Thirty",
+    [40] = "Forty",
+    [50] = "Fifty",
+    [60] = "Sixty",
+    [70] = "Seventy",
+    [80] = "Eighty",
+    [90] = "Ninety",
+    [100] = "Hundred",
+    --
+    [1e3] = "Thousand",
+    [1e6] = "Million",
+    [1e9] = "Billion",
+    [1e12] = "Trillion",
+    [1e15] = "Quadrillion",
+    [1e18] = "Quintillion",
+    [1e21] = "Sextillion",
+    [1e24] = "Septillion",
+    [1e27] = "Octillion",
+    [1e30] = "Nonillion",
+}
+--#endregion
 
 --[[
     Formats a number with commas and dots. (e.g. 1234567 -> 1,234,567)
@@ -13,6 +59,69 @@ function StringUtil.commaValue(n: number)
     -- credit http://richard.warburton.it
     local left, num, right = string.match(tostring(n), "^([^%d]*%d)(%d*)(.-)$")
     return left .. (num:reverse():gsub("(%d%d%d)", "%1,"):reverse()) .. right
+end
+
+--[[
+    Converts a number into words.
+
+    Example 57 -> Fifty Seven
+]]
+function StringUtil.writtenNumber(n: number)
+    if n == 0 then
+        return "Zero"
+    end
+
+    n = math.round(n)
+    local isNegative = n < 0
+    n = math.abs(n)
+    local str = isNegative and "Negative %s" or "%s"
+
+    if n <= 20 then
+        return str:format(WRITTEN_NUMBERS[n])
+    end
+
+    if n <= 99 then
+        local _, tens = MathUtil.getDigit(n, 1)
+        if n == tens then
+            return str:format(WRITTEN_NUMBERS[tens])
+        else
+            return str:format(("%s %s"):format(WRITTEN_NUMBERS[tens], WRITTEN_NUMBERS[n - tens]))
+        end
+    end
+
+    if n <= 999 then
+        local hundredDigit, hundreds = MathUtil.getDigit(n, 2)
+        if n == hundreds then
+            return str:format(("%s Hundred"):format(WRITTEN_NUMBERS[hundredDigit]))
+        else
+            return str:format(("%s Hundred and %s"):format(WRITTEN_NUMBERS[hundredDigit], StringUtil.writtenNumber(n - hundreds)))
+        end
+    end
+
+    -- Search for closest low value
+    local bestValue: number
+    for value, _text in pairs(WRITTEN_NUMBERS) do
+        if value >= 1e3 and n >= value and n < value * 1000 then
+            bestValue = value
+            break
+        end
+    end
+
+    if not bestValue then
+        return str:format("Big Bucks")
+    end
+
+    local prefixNumber = math.floor(n / bestValue) -- Get the up to 3 digits after bestValue e.g., 457,000 -> 457
+    local leftover = n % bestValue
+
+    if leftover == 0 then
+        return str:format(("%s %s"):format(StringUtil.writtenNumber(prefixNumber), WRITTEN_NUMBERS[bestValue]))
+    end
+
+    local split = leftover <= 99 and " and" or ", "
+    return str:format(
+        ("%s %s%s %s"):format(StringUtil.writtenNumber(prefixNumber), WRITTEN_NUMBERS[bestValue], split, StringUtil.writtenNumber(leftover))
+    )
 end
 
 --[[

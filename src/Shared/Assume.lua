@@ -18,8 +18,8 @@ function Assume.new(validationFunction: () -> (...any))
     assume.validationFunction = validationFunction
     assume.validationResult = {}
     assume.checkerFunction = nil :: (...any) -> boolean
-    assume.onCorrect = nil :: (data: any) -> nil
-    assume.onWrong = nil :: (data: any) -> nil
+    assume.onCorrect = {} :: { (...any) -> nil }
+    assume.onWrong = {} :: { (...any) -> nil }
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -46,19 +46,29 @@ function Assume.new(validationFunction: () -> (...any))
         return self
     end
 
-    -- Sets the function that will be invoked if the assumption was correct (passed all of the validation function's arguments)
-    function assume:Then(onCorrect: (data: any) -> nil)
-        assertIsRunning()
+    -- Adds a function that will be invoked if the assumption was correct (passed all of the validation function's arguments)
+    function assume:Then(onCorrect: (...any) -> nil)
+        if assume:IsValidationFinished() then
+            if assume.checkerFunction(assume:Await()) == true then
+                onCorrect(assume:Await())
+            end
+            return
+        end
 
-        assume.onCorrect = onCorrect
+        table.insert(assume.onCorrect, onCorrect)
         return self
     end
 
-    -- Sets the function that will be invoked if the assumption was wrong (passed all of the validation function's arguments)
-    function assume:Else(onWrong: (data: any) -> nil)
-        assertIsRunning()
+    -- Adds a function that will be invoked if the assumption was wrong (passed all of the validation function's arguments)
+    function assume:Else(onWrong: (...any) -> nil)
+        if assume:IsValidationFinished() then
+            if assume.checkerFunction(assume:Await()) == false then
+                onWrong(assume:Await())
+            end
+            return
+        end
 
-        assume.onWrong = onWrong
+        table.insert(assume.onWrong, onWrong)
         return self
     end
 
@@ -89,12 +99,12 @@ function Assume.new(validationFunction: () -> (...any))
 
             local checkerResult = assume.checkerFunction(table.unpack(assume.validationResult))
             if checkerResult then
-                if self.onCorrect then
-                    self.onCorrect(table.unpack(assume.validationResult))
+                for _, correctCallback in pairs(self.onCorrect) do
+                    correctCallback(table.unpack(assume.validationResult))
                 end
             else
-                if self.onWrong then
-                    self.onWrong(table.unpack(assume.validationResult))
+                for _, wrongCallback in pairs(self.onWrong) do
+                    wrongCallback(table.unpack(assume.validationResult))
                 end
             end
         end)

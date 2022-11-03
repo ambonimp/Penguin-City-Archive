@@ -52,6 +52,13 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
             StampBook = StampUtil.getStampBookDataDefaults(),
         },
         Coins = 0,
+        Rewards = {
+            DailyReward = {
+                BestStreak = 0,
+                Entries = {},
+                Unclaimed = {},
+            },
+        },
     } :: DataUtil.Store
 end
 

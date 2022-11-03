@@ -15,6 +15,9 @@ UIConstants.States = {
     Results = "Results",
     PromptProduct = "PromptProduct",
     StampBook = "StampBook",
+    DailyRewards = "DailyRewards",
+    GiftPopup = "GiftPopup",
+    Paycheck = "Paycheck",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -25,6 +28,7 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.House,
+        UIConstants.States.Paycheck,
     },
 }
 
@@ -64,6 +68,7 @@ UIConstants.Colors = {
         UnavailableGrey = Color3.fromRGB(158, 158, 158),
         StampBeige = Color3.fromRGB(225, 209, 159),
         IglooPink = Color3.fromRGB(229, 142, 237),
+        WaitOrange = Color3.fromRGB(255, 151, 32),
     },
 }
 

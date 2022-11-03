@@ -110,33 +110,41 @@ function MathUtil.significantFigures(value: number, figures: number, integer: bo
 end
 
 --[[
-    Makes a weighted choice based on the given table (keys are entries, values are weights).
+    Makes a weighted choice based on the given table.
+    Returns `Value`
 ]]
-function MathUtil.weightedChoice(t: { [any]: number })
+function MathUtil.weightedChoice(
+    tbl: { {
+        Weight: number,
+        Value: any,
+    } },
+    random: Random?
+)
     local sum = 0
-    for _, weight in pairs(t) do
-        if weight < 0 then
-            warn(t)
+    for _, entry in pairs(tbl) do
+        if entry.Weight < 0 then
+            warn(tbl)
             error("[MathUtil.weightedChoice] Weight value cannot be less than zero. Culprit: %s")
         end
-        sum = sum + weight
+        sum = sum + entry.Weight
     end
 
     if sum <= 0 then
-        warn(t)
+        warn(tbl)
         error(("[MathUtil.weightedChoice] The sum of all weights is not greater than 0 (%d)"):format(sum))
     end
 
-    local rnd = MathUtil.nextNumber(0, sum)
-    local last = nil
-    for k, v in pairs(t) do
-        last = k
-        if rnd < v then
-            return k
+    local rnd = MathUtil.nextNumber(0, sum, random)
+    local lastEntry = nil
+    for _, entry in pairs(tbl) do
+        lastEntry = entry
+        if rnd < entry.Weight then
+            return entry.Value
         end
-        rnd = rnd - v
+        rnd = rnd - entry.Weight
     end
-    return last
+
+    return lastEntry.Value
 end
 
 --[[
@@ -274,8 +282,8 @@ end
 --[[
     Returns a pseudorandom float uniformly distributed over [min, max].
 ]]
-function MathUtil.nextNumber(min: number, max: number)
-    return MathUtil.lerp(min, max, internalRandom:NextNumber())
+function MathUtil.nextNumber(min: number, max: number, random: Random?)
+    return MathUtil.lerp(min, max, random and random:NextNumber() or internalRandom:NextNumber())
 end
 
 --[[
@@ -470,6 +478,23 @@ function MathUtil.getSquaredSpiralPosition(n: number): Vector2
     end
 
     return Vector2.new(pos[1], pos[2])
+end
+
+--[[
+    Example:
+
+    getDigit(457, 2) -> 4, 400
+    getDigit(457, 1) -> 5, 50
+    getDigit(457, 0) -> 7, 7
+    getDigit(457, 3) -> 0, 0
+]]
+function MathUtil.getDigit(n: number, exponent: number)
+    local digit = 10 ^ exponent
+    local digitPlus = 10 ^ (exponent + 1)
+    n = n % digitPlus
+
+    local result = math.floor(n / digit)
+    return result, result * digit
 end
 
 return MathUtil

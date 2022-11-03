@@ -38,6 +38,17 @@ function Signal.new()
     end
 
     --[[
+        Same as :Connect, but will disconnect itself after the first time `handler` is ran
+    ]]
+    function Signal:Once(handler: (...any) -> nil)
+        local connection: Connection
+        return Connection.new(function()
+            connection:Disconnect()
+            handler()
+        end, connections)
+    end
+
+    --[[
 		Yields the thread until the signal fired
 	]]
     function signal:Wait(): thread

@@ -102,15 +102,11 @@ function KeyboardButton.new()
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function selectKeyboardButton(skipTween: boolean?)
-        -- Visual Feedback
-        do
-            local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+    local function updateColor(skipTween: boolean?)
+        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
+        local h, s, v = color:ToHSV()
 
-            -- Change color of just imageButton
-            local currentColor = imageButton.BackgroundColor3
-            local h, s, v = currentColor:ToHSV()
-
+        if keyboardButton:IsSelected() then
             if s >= SELECT_COLOR_MIN_SAT then
                 s = s * SELECT_COLOR_FACTOR
             else
@@ -119,20 +115,20 @@ function KeyboardButton.new()
             local newColor = Color3.fromHSV(h, s, v)
 
             TweenUtil.tween(imageButton, tweenInfo, { BackgroundColor3 = newColor })
+        else
+            TweenUtil.tween(imageButton, tweenInfo, { BackgroundColor3 = color })
         end
+
+        local backColor = Color3.fromHSV(h, s, v * BACK_COLOR_FACTOR)
+        TweenUtil.tween(back, tweenInfo, { BackgroundColor3 = backColor })
+    end
+
+    local function selectKeyboardButton(skipTween: boolean?)
+        updateColor(skipTween)
     end
 
     local function deselectKeyboardButton(skipTween: boolean?)
-        -- Visual Feedback
-        do
-            -- Cheeky way to revert back to original color
-            local oldIsSelected = keyboardButton:IsSelected()
-            keyboardButton:_SetSelected(false)
-
-            keyboardButton:SetColor(color, skipTween)
-
-            keyboardButton:_SetSelected(oldIsSelected)
-        end
+        updateColor(skipTween)
     end
 
     local function pressKeyboardButton(skipTween: boolean?)
@@ -240,21 +236,7 @@ function KeyboardButton.new()
 
     function keyboardButton:SetColor(newColor: Color3, skipTween: boolean?)
         color = newColor
-
-        if keyboardButton:IsSelected() then
-            deselectKeyboardButton(true)
-        end
-
-        local tweenInfo = skipTween and INSTANT_TWEEN or COLOR_TWEEN_INFO
-        TweenUtil.tween(imageButton, tweenInfo, { BackgroundColor3 = newColor })
-
-        local h, s, v = newColor:ToHSV()
-        local backColor = Color3.fromHSV(h, s, v * BACK_COLOR_FACTOR)
-        TweenUtil.tween(back, tweenInfo, { BackgroundColor3 = backColor })
-
-        if keyboardButton:IsSelected() then
-            selectKeyboardButton(true)
-        end
+        updateColor(skipTween)
 
         return self
     end

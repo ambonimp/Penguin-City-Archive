@@ -125,14 +125,15 @@ end
 -- House Objects
 -------------------------------------------------------------------------------
 
-function ProductUtil.getHouseObjectProductId(categoryName: string, itemKey: string)
-    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(itemKey))
+function ProductUtil.getHouseObjectProductId(categoryName: string, objectKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(objectKey))
 end
 
-function ProductUtil.getHouseObjectProduct(categoryName: string, itemKey: string)
-    local product = Products.Products[ProductConstants.ProductType.HouseObject][ProductUtil.getHouseObjectProductId(categoryName, itemKey)]
+function ProductUtil.getHouseObjectProduct(categoryName: string, objectKey: string)
+    local product =
+        Products.Products[ProductConstants.ProductType.HouseObject][ProductUtil.getHouseObjectProductId(categoryName, objectKey)]
     if not product then
-        error(("No House Object Product %s.%s"):format(categoryName, itemKey))
+        error(("No House Object Product %s.%s"):format(categoryName, objectKey))
     end
 
     return product

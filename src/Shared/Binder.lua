@@ -1,5 +1,8 @@
 local Binder = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+
 Binder.Store = {} :: { [Instance]: { [string]: any } }
 
 --[[
@@ -10,12 +13,8 @@ function Binder.addInstance(scope: Instance)
         Binder.Store[scope] = Binder.Store[scope] or {}
     end
 
-    local destroyedConn
-    destroyedConn = scope.AncestryChanged:Connect(function(_, parent)
-        if not parent then
-            destroyedConn:Disconnect()
-            Binder.removeInstance(scope)
-        end
+    InstanceUtil.onDestroyed(scope, function()
+        Binder.removeInstance(scope)
     end)
 
     return Binder.Store[scope]

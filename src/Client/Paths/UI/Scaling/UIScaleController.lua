@@ -6,6 +6,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Limiter = require(Paths.Shared.Limiter)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local Signal = require(Paths.Shared.Signal)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local BASE_RESOLUTION = Vector2.new(1920, 1080) -- UI is edited using this aspect ratio
 local LIMITER_KEY = "UIScaleResolution"
@@ -23,6 +24,7 @@ type UIScaleData = {
 -------------------------------------------------------------------------------
 -- Private Members
 -------------------------------------------------------------------------------
+
 local uiScaleDatas: { [UIScale]: UIScaleData } = {}
 local scale: number -- Allows for the retention of aspect ratios
 local camera: Camera = Workspace.CurrentCamera
@@ -30,6 +32,7 @@ local camera: Camera = Workspace.CurrentCamera
 -------------------------------------------------------------------------------
 -- PublicMembers
 -------------------------------------------------------------------------------
+
 UIScaleController.ScaleChanged = Signal.new()
 
 -------------------------------------------------------------------------------
@@ -60,27 +63,34 @@ end
 -- Instance updating
 -------------------------------------------------------------------------------
 
-local classnameToUpdater: { [string]: (instance: Instance, value: any) -> nil } = {
-    UICorner = function(instance: UICorner, initUDim: UDim)
-        instance.CornerRadius = UDim.new(initUDim.Scale, initUDim.Offset * scale)
+local classnameToUpdater: { [string]: (instance: Instance, value: any, toScale: number?) -> nil } = {
+    UICorner = function(instance: UICorner, initUDim: UDim, toScale: number?)
+        toScale = toScale or scale
+
+        instance.CornerRadius = UDim.new(initUDim.Scale, initUDim.Offset * toScale)
     end,
-    UITextSizeConstraint = function(instance: UITextSizeConstraint, initTextSize: number)
-        instance.MaxTextSize = initTextSize * scale
+    UITextSizeConstraint = function(instance: UITextSizeConstraint, initTextSize: number, toScale: number?)
+        toScale = toScale or scale
+
+        instance.MaxTextSize = initTextSize * toScale
     end,
 }
 
-local function updateUIScale(uiScale: UIScale)
+-- Updates the scope of a UIScale to a new scale
+function UIScaleController.updateUIScale(uiScale: UIScale, toScale: number?)
+    toScale = toScale or scale
+
     -- UIScale
-    uiScale.Scale = scale
+    uiScale.Scale = toScale
 
     -- UIScale Container
     local data = uiScaleDatas[uiScale]
     local initSize: UDim2 = data.Container.Value
-    data.Container.Instance.Size = UDim2.new(initSize.X.Scale / scale, initSize.X.Offset, initSize.Y.Scale / scale, initSize.Y.Offset)
+    data.Container.Instance.Size = UDim2.new(initSize.X.Scale / toScale, initSize.X.Offset, initSize.Y.Scale / toScale, initSize.Y.Offset)
 
     -- Special Instances
     for _, instanceValuePair in pairs(data.SpecialInstances) do
-        classnameToUpdater[instanceValuePair.Instance.ClassName](instanceValuePair.Instance, instanceValuePair.Value)
+        classnameToUpdater[instanceValuePair.Instance.ClassName](instanceValuePair.Instance, instanceValuePair.Value, toScale)
     end
 end
 
@@ -91,14 +101,16 @@ local function updateScale()
     scale = if math.abs(1 - ratio.X) > math.abs(1 - ratio.Y) then ratio.X else ratio.Y
 
     for uiScale, _ in pairs(uiScaleDatas) do
-        updateUIScale(uiScale)
+        UIScaleController.updateUIScale(uiScale)
     end
 
     UIScaleController.ScaleChanged:Fire(scale)
 end
+
 -------------------------------------------------------------------------------
 -- Public Methods
 -------------------------------------------------------------------------------
+
 function UIScaleController.getScale()
     return scale
 end
@@ -174,12 +186,12 @@ local function newUIScale(uiScale: UIScale)
     end, { data.Container.Instance }, false)
 
     -- Handle removal
-    uiScale.Destroying:Connect(function()
+    InstanceUtil.onDestroyed(uiScale, function()
         uiScaleDatas[uiScale] = nil
     end)
 
     -- Init
-    updateUIScale(uiScale)
+    UIScaleController.updateUIScale(uiScale)
 end
 
 -------------------------------------------------------------------------------
