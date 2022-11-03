@@ -7,6 +7,8 @@ local Signal = require(Shared.Signal)
 local Limiter = require(Shared.Limiter)
 local UIElement = require(script.Parent.UIElement)
 
+export type Button = typeof(Button.new(Instance.new("ImageButton")))
+
 local idCounter = 0
 
 function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)

@@ -167,6 +167,11 @@ end
 
 -- We got a new UIScale in the building!
 local function newUIScale(uiScale: UIScale)
+    -- RETURN: No parent; may have been instantly destroyed
+    if not uiScale.Parent then
+        return
+    end
+
     -- Init Data
     local thisSize: UDim2 = uiScale.Parent.Size
     local thisScale = uiScale.Scale

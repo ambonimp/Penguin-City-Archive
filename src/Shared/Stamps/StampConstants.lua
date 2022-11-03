@@ -63,7 +63,7 @@ local chapters: { Chapter } = {
     { StampType = "Clothing", DisplayName = "Clothing", Icon = Images.Icons.Shirt },
     { StampType = "Pets", DisplayName = "Pets", Icon = Images.Icons.Pets },
     { StampType = "Events", DisplayName = "Events", Icon = Images.Icons.Events, LayoutByMetadataKey = "Event" },
-    { IsSearch = true, DisplayName = "Search", Icon = Images.Icons.Search },
+    --{ IsSearch = true, DisplayName = "Search", Icon = Images.Icons.Search },
 }
 StampConstants.Chapters = chapters
 

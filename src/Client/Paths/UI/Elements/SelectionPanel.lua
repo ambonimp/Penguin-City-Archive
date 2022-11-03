@@ -9,7 +9,7 @@ local UIElement = require(script.Parent.UIElement)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Maid = require(ReplicatedStorage.Packages.maid)
 local ExitButton = require(script.Parent.ExitButton)
-local AnimatedButton = require(script.Parent.AnimatedButton)
+local Button = require(script.Parent.Button)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Queue = require(ReplicatedStorage.Shared.Queue)
 
@@ -22,10 +22,10 @@ type Tab = {
     Name: string,
     ImageId: string,
     Widgets: { Widget },
-    Button: AnimatedButton.AnimatedButton | nil,
+    Button: Button.Button | nil,
 }
 
-local TABS_PER_VIEW = 6
+local TABS_PER_VIEW = 5
 
 SelectionPanel.Defaults = {
     Alignment = "Right",
@@ -45,7 +45,7 @@ function SelectionPanel.new()
     local size = SelectionPanel.Defaults.Size
 
     local tabs: { Tab } = {}
-    local tabButtons: { AnimatedButton.AnimatedButton } = {}
+    local tabButtons: { Button.Button } = {}
     local openTabName: string | nil
 
     local containerMaid = Maid.new()
@@ -59,8 +59,8 @@ function SelectionPanel.new()
     local tabsFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
-    local backwardArrow: AnimatedButton.AnimatedButton
-    local forwardArrow: AnimatedButton.AnimatedButton
+    local backwardArrow: Button.Button
+    local forwardArrow: Button.Button
 
     local tabsIndex = 1
 
@@ -139,13 +139,13 @@ function SelectionPanel.new()
         -- Arrows
         tabsIndex = 1
 
-        backwardArrow = AnimatedButton.new(backgroundFrame.Side.BackwardArrow.ImageButton)
+        backwardArrow = Button.new(backgroundFrame.Side.BackwardArrow.ImageButton)
         backwardArrow.Pressed:Connect(function()
             updateTabIndex(-1)
         end)
         containerMaid:GiveTask(backwardArrow)
 
-        forwardArrow = AnimatedButton.new(backgroundFrame.Side.ForwardArrow.ImageButton)
+        forwardArrow = Button.new(backgroundFrame.Side.ForwardArrow.ImageButton)
         forwardArrow.Pressed:Connect(function()
             updateTabIndex(1)
         end)
@@ -190,17 +190,17 @@ function SelectionPanel.new()
                     textButton.Icon.Image = visibleTab.ImageId
                     textButton.Parent = tabsFrame
 
-                    button = AnimatedButton.new(textButton)
+                    button = Button.new(textButton)
                     button.Pressed:Connect(function()
                         selectionPanel:OpenTab(visibleTab.Name)
                     end)
                     visibleTab.Button = button
                 end
-                table.insert(tabButtons, button)
+                table.insert(newTabButtons, button)
 
                 -- Update
                 button:GetButtonObject().LayoutOrder = index
-                button:GetButtonObject().Visible = not openTabName == visibleTab.Name
+                button:GetButtonObject().Visible = not (openTabName == visibleTab.Name)
 
                 -- Selected
                 if openTabName == visibleTab.Name then

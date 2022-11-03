@@ -32,7 +32,9 @@ local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
 local SELECTED_TAB_COLOR = Color3.fromRGB(247, 244, 227)
 local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-local EDIT_MODE_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local EDIT_MODE_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local EDIT_MODE_CONTAINER_POSITION = UDim2.fromScale(0.6, 0.5)
+local DEFAULT_CONTAINER_POSITION = UDim2.fromScale(0.5, 0.5)
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container
@@ -75,8 +77,14 @@ local function toggleEditMode(forceEnabled: boolean?)
     -- Handle active/deactive
     if isEditing then
         ScreenUtil.inRight(editPanel:GetContainer())
+        TweenUtil.tween(containerFrame, EDIT_MODE_TWEEN_INFO, {
+            Position = EDIT_MODE_CONTAINER_POSITION,
+        })
     else
         ScreenUtil.outLeft(editPanel:GetContainer())
+        TweenUtil.tween(containerFrame, EDIT_MODE_TWEEN_INFO, {
+            Position = DEFAULT_CONTAINER_POSITION,
+        })
     end
 end
 
@@ -104,6 +112,7 @@ function StampBookScreen.Init()
         sealButton:SetHoverAnimation(AnimatedButton.Defaults.HoverAnimation)
         sealButton.Pressed:Connect(function()
             Sound.play("OpenBook")
+            toggleEditMode(false)
             StampBookScreen.openInside()
         end)
 
