@@ -15,6 +15,9 @@ export type SessionConfig = {
     CoreLength: number,
     AwardShowLength: number,
     CoreCountdown: boolean,
+    -- Play types
+    SinglePlayer: boolean,
+    Multiplayer: boolean,
 }
 
 MinigameConstants.Minigames = {

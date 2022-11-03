@@ -20,7 +20,7 @@ local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
-local TableUtil = require(Paths.Sahred.TableUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 type FurnitureMetadata = {
     Name: string,
     Position: Vector3,

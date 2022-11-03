@@ -13,6 +13,9 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     CoreLength = 70,
     AwardShowLength = 20,
     CoreCountdown = true,
+    -- Play types
+    SinglePlayer = true,
+    Multiplayer = true,
 }
 
 SledRaceConstants.SessionConfig = sessionConfig
