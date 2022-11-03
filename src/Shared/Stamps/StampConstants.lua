@@ -57,14 +57,28 @@ local stampBook: StampBook = {
 StampConstants.StampBook = stampBook
 
 local chapters: { Chapter } = {
-    { StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place, LayoutByMetadataKey = "Location" },
+    --{ StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place, LayoutByMetadataKey = "Location" }, --!! 0 Stamps at time of development
     { StampType = "Minigame", DisplayName = "Minigames", Icon = Images.Icons.Minigame, LayoutByMetadataKey = "Minigame" },
     { StampType = "Igloo", DisplayName = "Igloo", Icon = Images.Icons.Igloo },
     { StampType = "Clothing", DisplayName = "Clothing", Icon = Images.Icons.Shirt },
-    { StampType = "Pets", DisplayName = "Pets", Icon = Images.Icons.Pets },
+    --{ StampType = "Pets", DisplayName = "Pets", Icon = Images.Icons.Pets }, --!! 0 Stamps at time of development
     { StampType = "Events", DisplayName = "Events", Icon = Images.Icons.Events, LayoutByMetadataKey = "Event" },
-    --{ IsSearch = true, DisplayName = "Search", Icon = Images.Icons.Search },
+    --{ IsSearch = true, DisplayName = "Search", Icon = Images.Icons.Search }, --!! Search not implemented at time of development
 }
 StampConstants.Chapters = chapters
+
+StampConstants.DifficultyColors = {
+    Easy = Color3.fromRGB(109, 194, 53),
+    Medium = Color3.fromRGB(231, 162, 57),
+    Hard = Color3.fromRGB(175, 41, 41),
+    Extreme = Color3.fromRGB(115, 64, 209),
+    ["???"] = Color3.fromRGB(66, 243, 243),
+}
+
+StampConstants.TierColors = {
+    Bronze = Color3.fromRGB(205, 127, 50),
+    Silver = Color3.fromRGB(192, 192, 192),
+    Gold = Color3.fromRGB(236, 210, 57),
+}
 
 return StampConstants

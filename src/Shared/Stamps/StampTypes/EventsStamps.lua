@@ -1,25 +1,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local GameConstants = require(ReplicatedStorage.Shared.Constants.GameConstants)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 return {
-    {
-        Id = "events_alpha",
-        DisplayName = "Alpha Tester",
-        Description = ("Play %s in Alpha"):format(GameConstants.PrettyGameName),
-        Type = "Events",
-        Difficulty = "???",
-        ImageId = "",
-        Metadata = {
-            Event = "Alpha",
-        },
-    },
     {
         Id = "events_playtime_payday",
         DisplayName = "Payday!",
         Description = "Collect your first paycheck.",
         Type = "Events",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Payday,
         Metadata = {
             Event = "Playtime_Rewards",
         },
@@ -30,7 +19,7 @@ return {
         Description = "Collect 5 Paychecks!",
         Type = "Events",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.MakingMoney,
         Metadata = {
             Event = "Playtime_Rewards",
         },
@@ -41,7 +30,7 @@ return {
         Description = "Get a 1 day streak!",
         Type = "Events",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.WelcomeBack,
         Metadata = {
             Event = "Playtime_Rewards",
         },
@@ -52,7 +41,7 @@ return {
         Description = "Play for 20 consecutive minutes",
         Type = "Events",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.OfficialCitizen,
         Metadata = {
             Event = "Playtime_Rewards",
         },
@@ -63,7 +52,7 @@ return {
         Description = "Get a 30 Day Streak",
         Type = "Events",
         Difficulty = "Hard",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.OneMonthIn,
         Metadata = {
             Event = "Playtime_Rewards",
         },

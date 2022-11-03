@@ -4,6 +4,7 @@ local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
 local StampUtil = require(ReplicatedStorage.Shared.Stamps.StampUtil)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, stamp: Stamps.Stamp)
     local issuePrefix = ("[%s - %s]"):format(stampModuleScript.Name, tostring(stamp.Id) or tostring(stamp.DisplayName) or "?")
@@ -73,12 +74,27 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
     end
 
     -- ImageId
-    if stamp.ImageId and typeof(stamp.ImageId) == "string" and string.len(stamp.ImageId) > 0 then
-        if not StringUtil.startsWith(stamp.ImageId, "rbxassetid") then
-            table.insert(issues, ("%s .ImageId %q is (likely) not a valid ImageId"):format(issuePrefix, stamp.ImageId))
+    if stamp.IsTiered then
+        if not (stamp.ImageId and typeof(stamp.ImageId) == "table") then
+            table.insert(issues, ("%s needs a table .ImageId for the different tiers"):format(issuePrefix))
+        else
+            for key, value in pairs(stamp.ImageId) do
+                if not table.find(Stamps.StampTiers, key) then
+                    table.insert(issues, ("%s .ImageId key %q does not match a StampTier"):format(issuePrefix, tostring(key)))
+                end
+                if not (typeof(value) == "string" and string.len(value) > 0) then
+                    table.insert(issues, ("%s needs a non-empty string in .ImageId.%s"):format(issuePrefix, tostring(key)))
+                end
+            end
         end
     else
-        table.insert(issues, ("%s needs a non-empty string .ImageId"):format(issuePrefix))
+        if stamp.ImageId and typeof(stamp.ImageId) == "string" and string.len(stamp.ImageId) > 0 then
+            if not StringUtil.startsWith(stamp.ImageId, "rbxassetid") then
+                table.insert(issues, ("%s .ImageId %q is (likely) not a valid ImageId"):format(issuePrefix, stamp.ImageId))
+            end
+        else
+            table.insert(issues, ("%s needs a non-empty string .ImageId"):format(issuePrefix))
+        end
     end
 
     -- Chapter
@@ -145,6 +161,30 @@ return function()
                     table.insert(issues, ("Error when getting chapter structure %d (%q): %s"):format(i, chapter.StampType, tostring(err)))
                 end
             end
+        end
+    end
+
+    -- Verify Images
+    for _, stampType in pairs(Stamps.StampTypes) do
+        local images = Images.Stamps.Types[stampType]
+        if images then
+            if not (images.Background and images.Border and images.Pattern and images.Shine) then
+                table.insert(issues, "Images.Stamps.Types.%s does not have all four required entries!")
+            end
+        else
+            table.insert(issues, ("No Images.Stamps.Types.%s exists! :o"):format(stampType))
+        end
+    end
+
+    -- Difficulty + Tier Colors
+    for _, stampDifficulty in pairs(Stamps.StampDifficulties) do
+        if not StampConstants.DifficultyColors[stampDifficulty] then
+            table.insert(issues, ("Missing Difficulty color %q"):format(stampDifficulty))
+        end
+    end
+    for _, stampTier in pairs(Stamps.StampTiers) do
+        if not StampConstants.TierColors[stampTier] then
+            table.insert(issues, ("Missing Tier color %q"):format(stampTier))
         end
     end
 

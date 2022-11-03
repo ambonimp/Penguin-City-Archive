@@ -1,3 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Images = require(ReplicatedStorage.Shared.Images.Images)
+
 return {
     {
         Id = "clothing_equip",
@@ -5,7 +8,7 @@ return {
         Description = "Equip your first clothing item",
         Type = "Clothing",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Stylish,
     },
     {
         Id = "clothing_twins",
@@ -13,7 +16,7 @@ return {
         Description = "Be in the same room as someone with the same outfit + color",
         Type = "Clothing",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Twins,
     },
     {
         Id = "clothing_items25",
@@ -21,7 +24,7 @@ return {
         Description = "Own 25 unique clothing items.",
         Type = "Clothing",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.FullCloset,
     },
     {
         Id = "clothing_items100",
@@ -29,6 +32,6 @@ return {
         Description = "Own 100 unique clothing items.",
         Type = "Clothing",
         Difficulty = "Hard",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Hoarder,
     },
 }

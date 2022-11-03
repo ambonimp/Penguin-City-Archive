@@ -1,3 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Images = require(ReplicatedStorage.Shared.Images.Images)
+
 return {
     --#region Pizza
     {
@@ -6,7 +9,7 @@ return {
         Description = "Play a round of Pizza Fiasco",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.ChefInTraining,
         Metadata = {
             Minigame = "Pizza",
         },
@@ -17,7 +20,7 @@ return {
         Description = "Lose a game of Pizza Fiasco",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Fired,
         Metadata = {
             Minigame = "Pizza",
         },
@@ -28,7 +31,7 @@ return {
         Description = "Make 5 correct pizzas in a row.",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.OnARoll,
         Metadata = {
             Minigame = "Pizza",
         },
@@ -39,7 +42,7 @@ return {
         Description = "Collect an Extra Life",
         Type = "Minigame",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.LuckyFind,
         Metadata = {
             Minigame = "Pizza",
         },
@@ -50,7 +53,7 @@ return {
         Description = "Make 25 Pizzas without any Errors. (Or 50% of Max Amount)",
         Type = "Minigame",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.LineCook,
         Metadata = {
             Minigame = "Pizza",
         },
@@ -67,7 +70,11 @@ return {
             Gold = "Win 25 rounds of Sled Racing",
         },
         Type = "Minigame",
-        ImageId = "",
+        ImageId = {
+            Bronze = Images.Stamps.Icons.Racer_1,
+            Silver = Images.Stamps.Icons.Racer_10,
+            Gold = Images.Stamps.Icons.Racer_25,
+        },
         Metadata = {
             Minigame = "SledRace",
         },
@@ -78,7 +85,7 @@ return {
         Description = "Hit an obstacle on the Sled Racing minigame.",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.LookOut,
         Metadata = {
             Minigame = "SledRace",
         },
@@ -89,7 +96,7 @@ return {
         Description = "Use a speed boost in the Sled Racing minigame.",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Weeeee,
         Metadata = {
             Minigame = "SledRace",
         },
@@ -100,7 +107,7 @@ return {
         Description = "Win 5 rounds of Sled Racing in a row, against atleast one player",
         Type = "Minigame",
         Difficulty = "Hard",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.RacingStreak,
         Metadata = {
             Minigame = "SledRace",
         },
@@ -113,7 +120,7 @@ return {
         Description = "Play Ice Cream Extravaganza",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.IScreamYouScream,
         Metadata = {
             Minigame = "Icecream",
         },
@@ -124,7 +131,7 @@ return {
         Description = "Collect 5 scoops of ice cream",
         Type = "Minigame",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Scoops,
         Metadata = {
             Minigame = "Icecream",
         },
@@ -135,7 +142,7 @@ return {
         Description = "Collect 10 scoops of ice cream",
         Type = "Minigame",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.LeaningTowerOfIceCream,
         Metadata = {
             Minigame = "Icecream",
         },
@@ -150,7 +157,11 @@ return {
             Gold = "Win 25 games of Ice Cream Extravaganza",
         },
         Type = "Minigame",
-        ImageId = "",
+        ImageId = {
+            Bronze = Images.Stamps.Icons.IcyWinner_1,
+            Silver = Images.Stamps.Icons.IcyWinner_10,
+            Gold = Images.Stamps.Icons.IcyWinner_25,
+        },
         Metadata = {
             Minigame = "Icecream",
         },

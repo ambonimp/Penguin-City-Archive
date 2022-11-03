@@ -1,3 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Images = require(ReplicatedStorage.Shared.Images.Images)
+
 return {
     {
         Id = "igloo_getting_started",
@@ -5,7 +8,7 @@ return {
         Description = "Place your first piece of furniture!",
         Type = "Igloo",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.GettingStarted,
     },
     {
         Id = "igloo_thats_better",
@@ -13,7 +16,7 @@ return {
         Description = "Color your first piece of furniture!",
         Type = "Igloo",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.ThatsBetter,
     },
     {
         Id = "igloo_sleepover",
@@ -21,7 +24,7 @@ return {
         Description = "Visit another player's igloo",
         Type = "Igloo",
         Difficulty = "Easy",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.Sleepover,
     },
     {
         Id = "igloo_critic",
@@ -29,7 +32,7 @@ return {
         Description = "Heart 15 Houses",
         Type = "Igloo",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.IglooCritic,
     },
     {
         Id = "igloo_decorator",
@@ -37,7 +40,7 @@ return {
         Description = "Place 25 items in your igloo",
         Type = "Igloo",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.InteriorDecorator,
     },
     {
         Id = "igloo_party",
@@ -45,7 +48,7 @@ return {
         Description = "Host an Igloo Party.",
         Type = "Igloo",
         Difficulty = "Medium",
-        ImageId = "",
+        ImageId = Images.Stamps.Icons.PartyInMyIggy,
     },
     {
         Id = "igloo_best_house",
@@ -57,6 +60,10 @@ return {
             Gold = "Get 200 hearts on your igloo",
         },
         Type = "Igloo",
-        ImageId = "",
+        ImageId = {
+            Bronze = Images.Stamps.Icons.BestHouseOnTheBlock_50,
+            Silver = Images.Stamps.Icons.BestHouseOnTheBlock_100,
+            Gold = Images.Stamps.Icons.BestHouseOnTheBlock_200,
+        },
     },
 }

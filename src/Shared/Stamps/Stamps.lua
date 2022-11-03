@@ -7,7 +7,7 @@ export type Stamp = {
     DisplayName: string,
     Description: string | { string },
     Type: StampType,
-    Difficulty: StampDifficulty,
+    Difficulty: StampDifficulty?,
     ImageId: string,
     IsTiered: boolean?,
     Metadata: table?,
