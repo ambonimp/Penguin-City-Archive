@@ -9,12 +9,15 @@ local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController = require(Paths.Client.UI.UIController)
 
 type StateData = { [string]: any }
-type State = { Name: string, Data: StateData }
+type State = { Name: string, Data: StateData? }
 type StateCallback = (StateData) -> ()
-
 type Participants = { Player }
+
+local INITIALIZATION_STATE = { Name = MinigameConstants.States.Nothing }
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
@@ -28,6 +31,8 @@ local currentIsMultiplayer: boolean?
 local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = { Template = {} }
 
 local maid = Maid.new()
+
+local uiStateMachine = UIController.getStateMachine()
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBES
@@ -106,6 +111,10 @@ function MinigameController.registerStateCallback(minigame: string, state: strin
     }
 end
 
+function MinigameController.getMinigame(): string
+    return currentMinigame
+end
+
 function MinigameController.getMinigameMaid()
     return maid
 end
@@ -147,15 +156,18 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
     length = math.max(0, currentState.Data.StartTime + length - Workspace:GetServerTimeNow()) -- Syncs with server
 
     if onChanged then
-        onChanged(length)
+        onChanged(math.ceil(length))
     end
 
+    task.wait(length % 1)
+    length = math.floor(length)
     while length > 0 and initialState == currentState do
-        length -= 1
-
         if onChanged then
             onChanged(length)
         end
+
+        task.wait(1)
+        length -= 1
     end
 
     return length == 0
@@ -170,11 +182,16 @@ Remotes.bindEvents({
         currentZone = ZoneUtil.zone(ZoneConstans.ZoneType.Minigame, id)
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
+
+        if state.Name ~= INITIALIZATION_STATE.Name then
+            setState(INITIALIZATION_STATE)
+        end
         setState(state)
+        print(uiStateMachine:GetState())
+        uiStateMachine:Push(UIConstants.States.Minigame)
     end,
     MinigameExited = function()
         maid:Cleanup()
-
         currentMinigame = nil
         currentZone = nil :: ZoneConstans.Zone -- ahh
         currentState = nil
@@ -190,7 +207,6 @@ Remotes.bindEvents({
         MinigameController.ParticipantRemoved:Fire(player)
     end,
     MinigameStateChanged = function(state: State)
-        print(state.Data.StartTime)
         setState(state)
     end,
 })

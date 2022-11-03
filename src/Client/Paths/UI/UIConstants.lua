@@ -5,6 +5,7 @@ UIConstants.States = {
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
+    Minigame = "Minigame",
     House = "House",
     HouseEditor = "HouseEditor",
     FurniturePlacement = "FurniturePlacement",

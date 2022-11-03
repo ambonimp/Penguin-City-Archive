@@ -94,6 +94,15 @@ Images.PizzaMinigame = {
     Anchovy = "rbxassetid://11152399621",
 }
 --#endregion
+--#region SledRace
+Images.SledRace = {
+    Logo = "rbxassetid://11467711828",
+    Countdown3 = "rbxassetid://11468633791",
+    Countdown2 = "rbxassetid://11468634030",
+    Countdown1 = "rbxassetid://11468634160",
+    Countdown0 = "rbxassetid://11468633672",
+}
+--#endregion
 --#region CharacterEditor
 Images.CharacterEditor = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",

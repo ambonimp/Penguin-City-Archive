@@ -104,7 +104,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         minigameSession.ParticipantAdded:Fire(player)
 
         minigameSession:RelayToOtherParticipants(player, "MinigameParticipantAdded", player)
-        print("TOCLENT", stateMachine:GetData())
         Remotes.fireClient(
             player,
             "MinigameJoined",
@@ -123,7 +122,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end
 
         -- Player didn't leave the game
-        if player.Parent == Players then
+        local stillInGame: boolean = player.Character ~= nil
+        if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
@@ -143,7 +143,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             end
 
             table.remove(participants, table.find(participants, player))
-            minigameSession.ParticipantRemoved:Fire(player)
+            minigameSession.ParticipantRemoved:Fire(player, stillInGame)
             minigameSession:RelayToOtherParticipants(player, "MinigameParticipantRemoved", player, participants)
         end
     end
@@ -169,14 +169,27 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     end
 
     function minigameSession:Start() -- Ideally, all events have been connected and everything is ready to go when you run this
-        stateMachine:Push(STATES.Intermission)
         for _, player in pairs(startingParticipants) do
             minigameSession:AddParticipant(player)
         end
 
-        if not isMultiplayer then
-            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function(player)
-                if minigameSession:IsPlayerParticipant(player) and stateMachine:GetState() == STATES.AwardShow then
+        -- Called here so that any callbacks the actual minigame registers can get run before the client is notified
+        stateMachine:RegisterGlobalCallback(function(_, toState)
+            warn("SERVER", toState)
+
+            local data = stateMachine:GetData()
+            data.StartTime = Workspace:GetServerTimeNow()
+
+            minigameSession:RelayToParticipants("MinigameStateChanged", { Name = toState, Data = data })
+        end)
+
+        if isMultiplayer then
+            stateMachine:Push(STATES.Intermission)
+        else
+            maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
+                local state = stateMachine:GetState()
+
+                if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
                     stateMachine:Push(STATES.Intermission)
                 end
             end))
@@ -234,15 +247,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 minigameSession:CountdownSync(config.AwardShowLength)
                 stateMachine:Push(STATES.Intermission)
             end
-        end)
-
-        stateMachine:RegisterGlobalCallback(function(_, toState)
-            warn("SERVER", toState)
-
-            local data = stateMachine:GetData()
-            data.StartTime = Workspace:GetServerTimeNow()
-
-            minigameSession:RelayToParticipants("MinigameStateChanged", { Name = toState, data })
         end)
     end
 

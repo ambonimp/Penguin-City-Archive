@@ -3,9 +3,9 @@ local SledRaceSled = {}
 local PhysicsService = game:GetService("PhysicsService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
+local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
@@ -19,30 +19,25 @@ local sledTemplate = ServerStorage.Minigames.SledRace.Sled
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
 function SledRaceSled.spawnSled(player: Player, spawnPoint: BasePart)
-    local character: Model = player.Character
-
-    -- Clean up
     SledRaceSled.removeSled(player)
 
-    -- Set up character
-    CharacterUtil.setEthereal(player, true, "SledRace")
+    local character: Model = player.Character
+    local model: Model = sledTemplate:Clone()
+    model.Name = SledRaceConstants.SledName
+    model:PivotTo(spawnPoint.CFrame * CFrame.new(0, (-spawnPoint.Size + model:GetExtentsSize()).Y / 2, 0))
+    model.Parent = character
 
-    -- Set up sled
-    local sled: Model = sledTemplate:Clone()
-    sled.Name = SledRaceConstants.SledName
-
-    local sledRoot: BasePart = sled.PrimaryPart
-    sled:PivotTo(spawnPoint.CFrame * CFrame.new(0, (-spawnPoint.Size + sledRoot.Size).Y / 2, 0))
-    sled.Parent = character
-
-    local seat: Seat = sled.Seat
-    seat:Sit(character.Humanoid)
-
-    return character
+    local seat: Seat = model.Seat
+    local seatWeld: Weld = BasePartUtil.weld(seat, character.HumanoidRootPart, seat, "Weld")
+    seatWeld.Name = "SeatWeld"
+    seatWeld.C0 = CFrame.new((seat.Size / 2 + character.Body.Main_Bone.Position) * Vector3.new(0, -1, 0))
 end
 
 function SledRaceSled.removeSled(player)
-    SledRaceUtil.getSled(player):Destroy()
+    local sled = SledRaceUtil.getSled(player)
+    if sled then
+        sled:Destroy()
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -53,6 +48,7 @@ do
     local cframe: CFrame, size: Vector3 = sledTemplate:GetBoundingBox()
 
     local physicsPart = Instance.new("Part")
+    physicsPart.Name = "Physics"
     physicsPart.CFrame = cframe
     physicsPart.Size = size
     physicsPart.CanCollide = true
@@ -89,7 +85,7 @@ do
         displayPart.CanCollide = false
         displayPart.CanTouch = false
         displayPart.CanQuery = false
-        BasePartUtil.weldTo(displayPart, physicsPart, displayPart)
+        BasePartUtil.weld(displayPart, physicsPart)
     end
 
     physicsPart.Parent = sledTemplate

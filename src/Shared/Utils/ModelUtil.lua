@@ -2,7 +2,6 @@ local ModelUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
-local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local BasePartUtil = require(ReplicatedStorage.Shared.Utils.BasePartUtil)
 
 local ATTRIBUTE_CACHED_TRANSPARENCY = "_ModelUtilCachedTransparency"
@@ -18,7 +17,7 @@ function ModelUtil.weld(model: Model)
 
     for _, descendant: BasePart in pairs(model:GetDescendants()) do
         if descendant:IsA("BasePart") and descendant ~= mainPart then
-            InstanceUtil.weld(mainPart, descendant)
+            BasePartUtil.weld(mainPart, descendant)
         end
     end
 end

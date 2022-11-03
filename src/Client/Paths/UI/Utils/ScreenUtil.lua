@@ -24,6 +24,9 @@ local COSMETICS = {
     CameraFOV = 40,
 }
 
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
 local blurSize = TweenableValue.new("IntValue", 0, IN_TWEEN_INFO)
 local blurEffect = Instance.new("BlurEffect")
 blurEffect.Parent = Lighting
@@ -32,14 +35,17 @@ blurSize:BindToProperty(blurEffect, "Size")
 -- Whether or not special effects like blackground blur are enabled when a frame is opened
 local cosmeticsEnabled = Toggle.new(false, function(value)
     if value then
-        blurSize:Tween(COSMETICS.BlurSize)
+        ScreenUtil.openBlur()
         CameraController.setFov(COSMETICS.CameraFOV, ANIMATION_LENGTH)
     else
-        blurSize:Reset()
+        ScreenUtil.closeBlur()
         CameraController.resetFov(ANIMATION_LENGTH)
     end
 end)
 
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
 local function inn(directionOut: UDim2, frame: GuiObject, cosmetics)
     if cosmetics then
         cosmeticsEnabled:Set(true, frame)
@@ -75,21 +81,15 @@ local function outt(directionOut: UDim2, frame: GuiObject, cosmetics)
     )
 end
 
-function ScreenUtil.sizeOut(frame: GuiObject)
-    frame.Visible = true
-    TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = UDim2.fromScale(0, 0) }), function()
-        frame.Visible = false
-    end)
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
+function ScreenUtil.openBlur()
+    blurSize:Tween(COSMETICS.BlurSize)
 end
 
-function ScreenUtil.sizeIn(frame: GuiObject)
-    local MaxSize = frame:GetAttribute("Size") or frame.Size
-    if frame:GetAttribute("Size") == nil then
-        frame:SetAttribute("Size", frame.Size)
-    end
-    frame.Size = UDim2.fromScale(0, 0)
-    frame.Visible = true
-    TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = MaxSize }))
+function ScreenUtil.closeBlur()
+    blurSize:Reset()
 end
 
 --[[
@@ -145,6 +145,23 @@ function ScreenUtil.out(frame: GuiObject, cosmetics: boolean?)
     if cosmetics then
         cosmeticsEnabled:Set(false, frame)
     end
+end
+
+function ScreenUtil.sizeOut(frame: GuiObject)
+    frame.Visible = true
+    TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = UDim2.fromScale(0, 0) }), function()
+        frame.Visible = false
+    end)
+end
+
+function ScreenUtil.sizeIn(frame: GuiObject)
+    local MaxSize = frame:GetAttribute("Size") or frame.Size
+    if frame:GetAttribute("Size") == nil then
+        frame:SetAttribute("Size", frame.Size)
+    end
+    frame.Size = UDim2.fromScale(0, 0)
+    frame.Visible = true
+    TweenUtil.bind(frame, BINDING_KEY_OPEN, TweenService:Create(frame, IN_TWEEN_INFO, { Size = MaxSize }))
 end
 
 return ScreenUtil

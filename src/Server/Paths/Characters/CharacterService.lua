@@ -61,8 +61,8 @@ end
 function CharacterService.loadPlayer(player: Player)
     local character = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
     character.Name = player.Name
-    character.Parent = Workspace
     player.Character = character
+    character.Parent = Workspace
 
     -- Apply saved appearance
     CharacterUtil.applyAppearance(character, DataUtil.readAsArray(DataService.get(player, "CharacterAppearance")))

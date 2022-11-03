@@ -7,7 +7,7 @@ local SledRaceConstants = require(ReplicatedStorage.Shared.Minigames.SledRace.Sl
 local COLLECTABLE_TYPES = SledRaceConstants.Collectables
 
 function SledRaceUtil.getMapOrigin(map: Model): CFrame
-    local primaryPart: BasePart = map.PrimaryPart
+    local primaryPart: BasePart = map:WaitForChild("Root")
     return primaryPart.CFrame:ToWorldSpace(CFrame.new(Vector3.new(0, 0.5, -0.5) * primaryPart.Size))
 end
 function SledRaceUtil.getSlopeBoundingBox(map: Model): (Vector3, CFrame)
@@ -24,18 +24,12 @@ function SledRaceUtil.collectableIsA(collectable, collectableType: string): bool
     end
 end
 
-function SledRaceUtil.getSled(player: Player): Model
-    return player.Character[SledRaceConstants.SledName]
+function SledRaceUtil.getSled(player: Player): Model?
+    return player.Character:FindFirstChild(SledRaceConstants.SledName)
 end
 
 function SledRaceUtil.unanchorSled(player)
     SledRaceUtil.getSled(player).PrimaryPart.Anchored = false
-end
-
-function SledRaceUtil.disableSled(player)
-    local sled = SledRaceUtil.getSled(player)
-    sled.Force.Enabled = false
-    sled.Torque.Enabled = false
 end
 
 return SledRaceUtil

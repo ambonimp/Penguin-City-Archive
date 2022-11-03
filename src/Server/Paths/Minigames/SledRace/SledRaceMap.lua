@@ -21,7 +21,7 @@ local COINS_IN_COLLECTABLE = SledRaceConstants.CoinsPerCollectable
 -------------------------------------------------------------------------------
 local random = Random.new()
 
-local assets: Folder = ServerStorage.SledRace
+local assets: Folder = ServerStorage.Minigames.SledRace
 local mapTemplate: Model = assets.Map
 local collectableTemplates: Folder = assets.Collectables
 
@@ -40,12 +40,12 @@ function SledRaceMap.loadCollectables(map: Model)
 
     local collectables = Instance.new("Folder")
     collectables.Name = "Collectables"
-    collectables.Parent = mapTemplate
+    collectables.Parent = map
 
-    local unusedSpawnPoints = TableUtil.clone(spawnPoints)
+    local unusedSpawnPoints = TableUtil.deepClone(spawnPoints)
     local function spawnCollectable(templates: { Model })
         local spawnIndex = random:NextInteger(1, #unusedSpawnPoints)
-        local spawnPoint: CFrame = unusedSpawnPoints[spawnIndex]
+        local spawnPoint: CFrame = unusedSpawnPoints[spawnIndex] :: CFrame
         table.remove(unusedSpawnPoints, spawnIndex)
 
         local template = templates[random:NextInteger(1, #templates)]
@@ -77,7 +77,6 @@ function SledRaceMap.loadCollectables(map: Model)
         end
     end
 
-    map.Parent = Workspace
     return collectables
 end
 

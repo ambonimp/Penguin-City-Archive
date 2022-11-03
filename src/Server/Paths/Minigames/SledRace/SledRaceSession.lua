@@ -1,5 +1,7 @@
 local SledRaceSession = {}
 
+local PhysicsService = game:GetService("PhysicsService")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
@@ -11,12 +13,16 @@ local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConsta
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local SledRaceSled = require(Paths.Server.Minigames.SledRace.SledRaceSled)
 local SledRaceMap = require(Paths.Server.Minigames.SledRace.SledRaceMap)
+local PropertyStack = require(Paths.Shared.PropertyStack)
+local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
 
+local PROPERTY_STACK_KEY_ETHEREAL = "SledRace.Etherial"
+
 function SledRaceSession.new(id: string, participants: { Player })
-    local minigameSession = MinigameSession("SledRace", id, participants)
+    local minigameSession = MinigameSession.new("SledRace", id, participants)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
@@ -28,7 +34,7 @@ function SledRaceSession.new(id: string, participants: { Player })
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
     local mapDirection: CFrame = mapOrigin.Rotation
 
-    local stateMachine = minigameSession:GetState()
+    local stateMachine = minigameSession:GetStateMachine()
     local stateMaid = Maid.new()
 
     local maid = minigameSession:GetMaid()
@@ -61,11 +67,32 @@ function SledRaceSession.new(id: string, participants: { Player })
     -- LOGIC
     -------------------------------------------------------------------------------
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
+        -- Make characters etherial
+        local collisionId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.SledRaceCharacters)
+        for _, basePart in pairs(participant.Character:GetDescendants()) do
+            if basePart:IsA("BasePart") then
+                PropertyStack.setProperty(basePart, "CollisionGroupId", collisionId, PROPERTY_STACK_KEY_ETHEREAL, math.huge)
+            end
+        end
+
         SledRaceSled.spawnSled(participant, spawnPoints[table.find(participants, participant)])
     end)
 
-    minigameSession.ParticipantRemoved:Connect(function(participant: Player)
-        SledRaceSled.removeSled(participant)
+    minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
+        if stillInGame then
+            SledRaceSled.removeSled(participant)
+
+            -- Remove characters etherial
+            for _, basePart in ipairs(participant.Character:GetDescendants()) do
+                if basePart:IsA("BasePart") then
+                    PropertyStack.clearProperty(basePart, "CollisionGroupId", PROPERTY_STACK_KEY_ETHEREAL)
+                end
+            end
+        end
+
+        if participantData then
+            participantData[participant] = nil
+        end
     end)
 
     -------------------------------------------------------------------------------
@@ -79,6 +106,8 @@ function SledRaceSession.new(id: string, participants: { Player })
     end)
 
     stateMachine:RegisterStateCallbacks(MinigameConstants.States.CoreCountdown, function()
+        participantData = {}
+
         for _, participant in pairs(minigameSession:GetParticipants()) do
             local character = participant.Character
             participantData[participant] = {
@@ -93,13 +122,20 @@ function SledRaceSession.new(id: string, participants: { Player })
                 The client decides when to start moving given the information the server provides it
                 If the client exploits this, we catch it because we monitor velocity
             ]]
+            SledRaceUtil.unanchorSled(participant)
             SledRaceUtil.getSled(participant).PrimaryPart:SetNetworkOwner(participant)
         end
 
         -- Validate speeds
         stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
-            for particpant, data in pairs(participantData) do
-                local character = particpant.Character
+            for participant, data in pairs(participantData) do
+                local character = participant.Character
+
+                --[[                 -- RETURN: Player left the game
+                if not character then
+                    participantData[participant] = nil
+                    return
+                end *]]
 
                 local position: Vector3 = character.PrimaryPart.Position
                 local velocity: number = (mapDirection:PointToObjectSpace(position - data.Position) * XY).Magnitude / dt
@@ -115,12 +151,15 @@ function SledRaceSession.new(id: string, participants: { Player })
         stateMaid:GiveTask(collectables)
     end)
 
-    stateMachine:RegisterStateCallbacks(MinigameSession.States.Core, function()
+    stateMachine:RegisterStateCallbacks(MinigameConstants.States.Core, function()
+        local startTime = os.clock()
+        local finishTimes: { [Player]: number } = {}
+
         for _, partipant in pairs(participants) do
             SledRaceUtil.unanchorSled(partipant)
         end
 
-        stateMaid:GiveTask(Remotes.bindEventTemp("OnSledRaceCollectableCollected", function(player: Player, collectable: Model)
+        stateMaid:GiveTask(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
             -- RETURN: Collectable has already been collected or doesn't exist anymore
             if collectable.Parent ~= collectables then
                 return
@@ -159,17 +198,27 @@ function SledRaceSession.new(id: string, participants: { Player })
                 data.Coins += SledRaceConstants.CoinValue
             end
         end))
+
+        stateMaid:GiveTask(map.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+            local player = Players:GetPlayerFromCharacter(hit.Parent)
+            if player and not finishTimes[player] then
+                print("FINISHED SERVER")
+                finishTimes[player] = os.clock()
+            end
+        end))
     end, function()
         stateMaid:Destroy()
     end)
 
-    stateMachine:RegisterStateCallbacks(MinigameSession.States.AwardShow, function()
+    stateMachine:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
         -- TODO
         stateMaid:Cleanup()
     end, function()
         participantData = {}
         stateMaid:Cleanup()
     end)
+
+    minigameSession:Start()
 
     return minigameSession
 end

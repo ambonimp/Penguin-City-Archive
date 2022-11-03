@@ -96,10 +96,15 @@ function BasePartUtil.getRandomPointInPart(part: BasePart)
     )).Position
 end
 
-function BasePartUtil.weld(mainPart: BasePart, otherPart: BasePart)
-    return InstanceUtil.weld(mainPart, otherPart)
-end
+function BasePartUtil.weld(mainPart: BasePart, otherPart: BasePart, parent: BasePart?, constraintType: string?)
+    local constraint = Instance.new(constraintType or "WeldConstraint")
+    constraint.Name = otherPart:GetFullName()
+    constraint.Part0 = mainPart
+    constraint.Part1 = otherPart
+    constraint.Parent = parent or mainPart
 
+    return constraint
+end
 ---https://devforum.roblox.com/t/checking-if-a-part-is-in-a-cylinder-but-rotatable/1134952
 local function isPointInCylinder(point: Vector3, cylinder: BasePart)
     local radius = math.min(cylinder.Size.Z, cylinder.Size.Y) * 0.5
