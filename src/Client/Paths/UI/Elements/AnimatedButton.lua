@@ -24,15 +24,15 @@ local POSITION = UDim2.fromScale(0.5, 0.5)
 AnimatedButton.Animations = {} :: { [string]: AnimationConstructor }
 --#region Squish Animation
 do
-    local DEFAULT_SCALE = UDim2.fromScale(1.2, 0.8)
-    local DEFUALT_LENGTH = 0.07
+    local DEFAULT_SCALE = UDim2.new(1.2, 1.2, 0.8, 0.8)
+    local DEFAULT_LENGTH = 0.07
     local EASING_STYLE = Enum.EasingStyle.Back
 
     AnimatedButton.Animations.Squish = function(scale: UDim2?, length: number?)
         local animation = {}
 
         scale = scale or DEFAULT_SCALE
-        length = length or DEFUALT_LENGTH
+        length = length or DEFAULT_LENGTH
 
         local infoIn = TweenInfo.new(length, EASING_STYLE, Enum.EasingDirection.Out)
         local infoOut = TweenInfo.new(length, EASING_STYLE, Enum.EasingDirection.In)

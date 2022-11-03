@@ -25,10 +25,13 @@ local NICE_NAMES = {
 function PizzaMinigameUtil.rollRecipeType(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for recipeLabel, weightEquation in pairs(PizzaMinigameConstants.RecipeTypeWeightEquations) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[recipeLabel] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = recipeLabel,
+        })
     end
 
     local selectedRecipeLabel: string = MathUtil.weightedChoice(weightTable)
@@ -45,19 +48,28 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
         error(("Requested to roll %d toppings, only %d toppings exist!"):format(toppingsNeeded, TOTAL_TOPPINGS))
     end
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
+    local totalWeight = 0
     for topping, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Toppings) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[topping] = weight
+        totalWeight += weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = topping,
+        })
     end
 
     local toppings: { string } = {}
     for _ = 1, toppingsNeeded do
-        local totalWeight = TableUtil.sumValues(weightTable)
         if totalWeight > 0 then
             local selectedTopping: string = MathUtil.weightedChoice(weightTable)
             table.insert(toppings, selectedTopping)
-            weightTable[selectedTopping] = nil
+            for index, entry in pairs(weightTable) do
+                if entry.Value == selectedTopping then
+                    table.remove(weightTable, index)
+                    break
+                end
+            end
         else
             local _, selectedTopping = TableUtil.getRandom(weightTable)
             table.insert(toppings, selectedTopping)

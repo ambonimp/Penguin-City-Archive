@@ -47,6 +47,13 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
         Settings = {},
         RedeemedCodes = {},
         Coins = 0,
+        Rewards = {
+            DailyReward = {
+                BestStreak = 0,
+                Entries = {},
+                Unclaimed = {},
+            },
+        },
     } :: DataUtil.Store
 end
 
