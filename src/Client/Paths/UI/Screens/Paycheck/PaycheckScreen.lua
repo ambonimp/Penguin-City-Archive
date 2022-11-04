@@ -31,6 +31,7 @@ local closeScope = Scope.new()
 
 local openMaid = Maid.new()
 
+local stackedPaychecks: Frame = container.StackedPaychecks
 local fields: Frame = container.Paycheck.Fields
 local contextDescription: TextLabel = fields.ContextDescription
 local contextTitle: TextLabel = fields.ContextTitle
@@ -78,13 +79,19 @@ function PaycheckScreen.open(data: table)
         error("Bad Data")
     end
 
-    -- Populate
+    -- Populate Paycheck
     contextDescription.Text = ""
     contextTitle.Text = "Citizen Reward"
     nextPaycheck.Text = ("Next Paycheck in: <b>%s</b>"):format(TimeUtil.formatRelativeTime(RewardsConstants.Paycheck.EverySeconds - 1))
     numberValue.Text = StringUtil.commaValue(amount)
     playerName.Text = Players.LocalPlayer.DisplayName
     stringValue.Text = ("%s"):format(StringUtil.writtenNumber(amount))
+
+    -- Stacked Paychecks
+    for _, paycheckNumFrame: Frame in pairs(stackedPaychecks:GetChildren()) do
+        local num = tonumber(paycheckNumFrame.Name)
+        paycheckNumFrame.Visible = num < data.TotalPaychecks
+    end
 
     -- Grow + Spin in
     ScreenUtil.inDown(container)
