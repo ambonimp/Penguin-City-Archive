@@ -1,6 +1,7 @@
 local Loader = {}
 
 local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
@@ -15,6 +16,7 @@ type Task = {
 
 local LENGTH = 8
 local FULL = 1.1 -- Gradient has 0.1 ease thing
+local VERIFY_PLAYER_GUI_EVERY = 1
 
 local localPlayer = Players.LocalPlayer
 local character: Model, humanoidRootPart: Part
@@ -55,6 +57,64 @@ function Loader.giveTask(scope: string, name: string, task: () -> nil)
         Task = task,
     }
     table.insert(taskQueue, newTask)
+end
+
+-- Will Yield until all ScreenGui in StarterGui are present in PlayerGui, with all of their descendants
+function Loader.yieldPlayerGui()
+    -- Get all ScreenGui + Descendant Counts in StarterGui
+    local checklist: { [string]: number } = {}
+    for _, screenGui: ScreenGui in pairs(StarterGui:GetDescendants()) do
+        if screenGui:IsA("ScreenGui") then
+            local name = screenGui.Name
+            local totalDescendants = #screenGui:GetDescendants()
+
+            -- ERROR: Duplicate Name!
+            if checklist[name] then
+                error(("Duplicate ScreenGui name %q - not allowed!"):format(name))
+            end
+
+            checklist[name] = totalDescendants
+        end
+    end
+
+    local function verify()
+        -- Grab all ScreenGuis in PlayerGui
+        local screenGuis: { ScreenGui } = {}
+        for _, descendant in pairs(Paths.UI:GetDescendants()) do
+            if descendant:IsA("ScreenGui") then
+                table.insert(screenGuis, descendant)
+            end
+        end
+
+        -- Compare
+        for screenGuiName, totalDescendants in pairs(checklist) do
+            -- Get matching ScreenGui
+            local screenGui: ScreenGui
+            for _, someScreenGui in pairs(screenGuis) do
+                if someScreenGui.Name == screenGuiName then
+                    screenGui = someScreenGui
+                    break
+                end
+            end
+
+            -- FALSE: Does not exist
+            if not screenGui then
+                return false
+            end
+
+            -- FALSE: Not enough descendants
+            if #screenGui:GetDescendants() < totalDescendants then
+                return false
+            end
+        end
+
+        -- Passed
+        return true
+    end
+
+    while verify() == false do
+        task.wait(VERIFY_PLAYER_GUI_EVERY)
+    end
 end
 
 function Loader.Start()
