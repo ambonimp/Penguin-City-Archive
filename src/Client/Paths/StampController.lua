@@ -11,7 +11,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 
 StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, stampTier: Stamps.StampTier | nil}
 
-local function getStamp(stampId: string)
+local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)
     if not stamp then
@@ -21,7 +21,7 @@ local function getStamp(stampId: string)
     return stamp
 end
 
-local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil)
+local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
     if stamp.IsTiered then
         if typeof(stampTierOrProgress) == "string" then
             return stamp.Tiers[stampTierOrProgress]
@@ -29,24 +29,60 @@ local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: St
             return stampTierOrProgress
         end
     else
-        return 1
+        return 0
     end
 end
 
-local function getStampProgress(stampId: string)
-    return DataController.get(StampUtil.getStampDataAddress(stampId))
+function StampController.getProgress(stampId: string, ownedStamps: { [string]: number } | nil): number
+    if ownedStamps then
+        return ownedStamps[stampId] or 0
+    end
+
+    return DataController.get(StampUtil.getStampDataAddress(stampId)) or 0
 end
 
-function StampController.hasStamp(stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
+--[[
+    Can pass `ownedStamps` if we're querying another players' stamp data
+]]
+function StampController.hasStamp(
+    stampId: string,
+    stampTierOrProgress: Stamps.StampTier | number | nil,
+    ownedStamps: { [string]: number } | nil
+)
     local stamp = getStamp(stampId)
     local stampProgress = processStampProgress(stamp, stampTierOrProgress)
-    local ourStampProgress = getStampProgress(stampId)
+    local ourStampProgress = StampController.getProgress(stampId, ownedStamps)
 
     if stamp.IsTiered then
         return ourStampProgress >= stampProgress
     else
-        return ourStampProgress and true or false
+        return ourStampProgress > 0
     end
+end
+
+function StampController.getTier(stampId: string, ownedStamps: { [string]: number } | nil)
+    -- ERROR: Not tiered
+    local stamp = getStamp(stampId)
+    if not stamp.IsTiered then
+        error(("Stamp %q is not tiered"):format(stampId))
+    end
+
+    -- Calculate tier from progress (if applicable)
+    local stampProgress = StampController.getProgress(stampId, ownedStamps)
+    if stampProgress then
+        local bestStampTier: string | nil
+        for _, stampTier in pairs(Stamps.StampTiers) do
+            local stampValue = stamp.Tiers[stampTier]
+            if stampProgress >= stampValue then
+                bestStampTier = stampTier
+            else
+                break
+            end
+        end
+        return bestStampTier
+    end
+
+    return nil
 end
 
 function StampController.openStampBook(player: Player)

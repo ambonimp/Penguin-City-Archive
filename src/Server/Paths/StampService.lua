@@ -6,7 +6,7 @@ local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local DataService = require(Paths.Server.Data.DataService)
 
-local function getStamp(stampId: string)
+local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)
     if not stamp then
@@ -16,7 +16,7 @@ local function getStamp(stampId: string)
     return stamp
 end
 
-local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil)
+local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
     if stamp.IsTiered then
         if typeof(stampTierOrProgress) == "string" then
             return stamp.Tiers[stampTierOrProgress]
@@ -24,28 +24,24 @@ local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: St
             return stampTierOrProgress
         end
     else
-        return 1
+        return 0
     end
 end
 
-local function getStampProgress(player: Player, stampId: string)
-    return DataService.get(player, StampUtil.getStampDataAddress(stampId))
+function StampService.getProgress(player: Player, stampId: string)
+    return DataService.get(player, StampUtil.getStampDataAddress(stampId)) or 0
 end
 
 function StampService.hasStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
     local stamp = getStamp(stampId)
     local stampProgress = processStampProgress(stamp, stampTierOrProgress)
-    local ourStampProgress = getStampProgress(player, stampId)
+    local ourStampProgress = StampService.getProgress(player, stampId)
 
     if stamp.IsTiered then
         return ourStampProgress >= stampProgress
     else
-        return ourStampProgress and true or false
+        return ourStampProgress > 0
     end
-end
-
-function StampService.getProgress(player: Player, stampId: string)
-    return getStampProgress(player, stampId)
 end
 
 function StampService.getTier(player: Player, stampId: string)
@@ -56,7 +52,7 @@ function StampService.getTier(player: Player, stampId: string)
     end
 
     -- Calculate tier from progress (if applicable)
-    local stampProgress = getStampProgress(player, stampId)
+    local stampProgress = StampService.getProgress(player, stampId)
     if stampProgress then
         local bestStampTier: string | nil
         for _, stampTier in pairs(Stamps.StampTiers) do
@@ -75,7 +71,7 @@ end
 
 function StampService.addStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
     local stamp = getStamp(stampId)
-    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
+    local stampProgress = stamp.IsTiered and processStampProgress(stamp, stampTierOrProgress) or 1
 
     DataService.set(
         player,
