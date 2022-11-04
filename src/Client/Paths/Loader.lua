@@ -99,11 +99,20 @@ function Loader.yieldPlayerGui()
 
             -- FALSE: Does not exist
             if not screenGui then
+                warn(("Still Loading PlayerGui (Couldn't find %q)"):format(screenGuiName))
                 return false
             end
 
             -- FALSE: Not enough descendants
-            if #screenGui:GetDescendants() < totalDescendants then
+            local currentDescendants = #screenGui:GetDescendants()
+            if currentDescendants < totalDescendants then
+                warn(
+                    ("Still Loading PlayerGui (%q needs %d descendants, has %d)"):format(
+                        screenGuiName,
+                        totalDescendants,
+                        currentDescendants
+                    )
+                )
                 return false
             end
         end
