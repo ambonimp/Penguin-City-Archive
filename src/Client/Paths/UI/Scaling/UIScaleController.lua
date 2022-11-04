@@ -125,14 +125,14 @@ local classnameToCallback: { [string]: (instance: Instance) -> nil } = {
     TextBox = handleTextObject,
 }
 
-local classnameToPair: { [string]: (instance: Instance) -> InstanceValuePair } = {
-    UICorner = function(instance: UICorner)
+local classnameToPair: { [string]: (instance: Instance, initialScale: number) -> InstanceValuePair } = {
+    UICorner = function(instance: UICorner, initialScale: number)
         return {
             Instance = instance,
-            Value = instance.CornerRadius,
+            Value = UDim.new(instance.CornerRadius.Scale / initialScale, instance.CornerRadius.Offset / initialScale),
         }
     end,
-    UITextSizeConstraint = function(instance: UITextSizeConstraint)
+    UITextSizeConstraint = function(instance: UITextSizeConstraint, _initialScale: number)
         return {
             Instance = instance,
             Value = instance.MaxTextSize,
@@ -144,10 +144,10 @@ local function specialChecker(descendant: Instance)
     return (classnameToPair[descendant.ClassName] or classnameToCallback[descendant.ClassName]) and true or false
 end
 
-local function specialAdder(descendant: Instance, uiScale: UIScale)
+local function specialAdder(descendant: Instance, uiScale: UIScale, initialScale: number)
     local pairCreator = classnameToPair[descendant.ClassName]
     if pairCreator then
-        local instanceValuePair = pairCreator(descendant)
+        local instanceValuePair = pairCreator(descendant, initialScale)
         table.insert(uiScaleDatas[uiScale].SpecialInstances, instanceValuePair)
 
         local updater = classnameToUpdater[descendant.ClassName]
@@ -187,7 +187,7 @@ local function newUIScale(uiScale: UIScale)
 
     -- Keep track of special instances
     DescendantLooper.add(specialChecker, function(descendant)
-        specialAdder(descendant, uiScale)
+        specialAdder(descendant, uiScale, thisScale)
     end, { data.Container.Instance }, false)
 
     -- Handle removal
