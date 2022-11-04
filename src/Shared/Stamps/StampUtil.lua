@@ -64,6 +64,23 @@ function StampUtil.isTierCoveredByTier(ourTier: Stamps.StampTier, checkAgainstTi
     return ourIndex >= checkAgainstIndex
 end
 
+function StampUtil.getTierFromProgress(stamp: Stamps.Stamp, progress: number)
+    if not stamp.IsTiered then
+        error(("Stamp %q is not tiered!"):format(stamp.Id))
+    end
+
+    local bestStampTier: string | nil
+    for _, stampTier in pairs(Stamps.StampTiers) do
+        local stampValue = stamp.Tiers[stampTier]
+        if progress >= stampValue then
+            bestStampTier = stampTier
+        else
+            break
+        end
+    end
+    return bestStampTier
+end
+
 local function createChapterLayoutFromMetadata(stamps: { Stamps.Stamp }, metadataKey: string)
     local layout: { [string]: { Stamps.Stamp } } = {}
     for _, stamp in pairs(stamps) do

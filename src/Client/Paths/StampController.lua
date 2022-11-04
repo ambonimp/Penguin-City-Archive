@@ -22,7 +22,7 @@ local function getStamp(stampId: string): Stamps.Stamp
 end
 
 local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
-    if stamp.IsTiered then
+    if stamp.IsTiered and stampTierOrProgress then
         if typeof(stampTierOrProgress) == "string" then
             return stamp.Tiers[stampTierOrProgress]
         else
@@ -60,7 +60,7 @@ function StampController.hasStamp(
     end
 end
 
-function StampController.getTier(stampId: string, ownedStamps: { [string]: number } | nil)
+function StampController.getTier(stampId: string, ownedStamps: { [string]: number } | nil): string | nil
     -- ERROR: Not tiered
     local stamp = getStamp(stampId)
     if not stamp.IsTiered then
@@ -69,20 +69,7 @@ function StampController.getTier(stampId: string, ownedStamps: { [string]: numbe
 
     -- Calculate tier from progress (if applicable)
     local stampProgress = StampController.getProgress(stampId, ownedStamps)
-    if stampProgress then
-        local bestStampTier: string | nil
-        for _, stampTier in pairs(Stamps.StampTiers) do
-            local stampValue = stamp.Tiers[stampTier]
-            if stampProgress >= stampValue then
-                bestStampTier = stampTier
-            else
-                break
-            end
-        end
-        return bestStampTier
-    end
-
-    return nil
+    return StampUtil.getTierFromProgress(stamp, stampProgress)
 end
 
 function StampController.openStampBook(player: Player)

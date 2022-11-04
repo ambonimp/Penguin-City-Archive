@@ -44,7 +44,7 @@ function StampService.hasStamp(player: Player, stampId: string, stampTierOrProgr
     end
 end
 
-function StampService.getTier(player: Player, stampId: string)
+function StampService.getTier(player: Player, stampId: string): string | nil
     -- ERROR: Not tiered
     local stamp = getStamp(stampId)
     if not stamp.IsTiered then
@@ -53,20 +53,7 @@ function StampService.getTier(player: Player, stampId: string)
 
     -- Calculate tier from progress (if applicable)
     local stampProgress = StampService.getProgress(player, stampId)
-    if stampProgress then
-        local bestStampTier: string | nil
-        for _, stampTier in pairs(Stamps.StampTiers) do
-            local stampValue = stamp.Tiers[stampTier]
-            if stampProgress >= stampValue then
-                bestStampTier = stampTier
-            else
-                break
-            end
-        end
-        return bestStampTier
-    end
-
-    return nil
+    return StampUtil.getTierFromProgress(stamp, stampProgress)
 end
 
 function StampService.addStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)

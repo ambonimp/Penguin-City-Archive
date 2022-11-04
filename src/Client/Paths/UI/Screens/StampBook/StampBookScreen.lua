@@ -27,6 +27,7 @@ local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local StampController = require(Paths.Client.StampController)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -333,7 +334,10 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
 
     -- Stamps
     for i, stamp in pairs(chapterPage.Stamps) do
-        local stampButton = StampButton.new(stamp)
+        local state: StampButton.State = {
+            Progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps),
+        }
+        local stampButton = StampButton.new(stamp, state)
         local buttonObject: ImageButton = stampButton:GetButtonObject()
 
         buttonObject.LayoutOrder = i

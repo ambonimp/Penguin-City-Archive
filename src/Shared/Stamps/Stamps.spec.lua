@@ -104,12 +104,14 @@ local function verifyStamp(issues: { string }, stampModuleScript: ModuleScript, 
         if not (stamp.ImageId and typeof(stamp.ImageId) == "table") then
             table.insert(issues, ("%s needs a table .ImageId for the different tiers"):format(issuePrefix))
         else
-            for key, value in pairs(stamp.ImageId) do
-                if not table.find(Stamps.StampTiers, key) then
-                    table.insert(issues, ("%s .ImageId key %q does not match a StampTier"):format(issuePrefix, tostring(key)))
-                end
-                if not (typeof(value) == "string" and string.len(value) > 0) then
-                    table.insert(issues, ("%s needs a non-empty string in .ImageId.%s"):format(issuePrefix, tostring(key)))
+            for _, stampTier in pairs(Stamps.StampTiers) do
+                local imageId = stamp.ImageId[stampTier]
+                if imageId then
+                    if not (typeof(imageId) == "string" and string.len(imageId) > 0) then
+                        table.insert(issues, ("%s needs a non-empty string in .ImageId.%s"):format(issuePrefix, tostring(stampTier)))
+                    end
+                else
+                    table.insert(issues, ("%s .ImageId key %q missing"):format(issuePrefix, stampTier))
                 end
             end
         end

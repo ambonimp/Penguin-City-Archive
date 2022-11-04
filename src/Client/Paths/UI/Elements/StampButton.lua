@@ -7,23 +7,20 @@ local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 local UIConstants = require(StarterPlayer.StarterPlayerScripts.Paths.UI.UIConstants)
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 local StampConstants = require(ReplicatedStorage.Shared.Stamps.StampConstants)
-local BooleanUtil = require(ReplicatedStorage.Shared.Utils.BooleanUtil)
+local StampUtil = require(ReplicatedStorage.Shared.Stamps.StampUtil)
 
 export type State = {
-    IsOwned: boolean?,
-    Tier: string?,
-    Progress: number?, -- Percentage value
+    Progress: number?,
 }
 
 local COLOR_BLACK = Color3.fromRGB(0, 0, 0)
 local VISIBLE_SHINE_TRANSPARENCY = 0.5
+local FADE_TRANSPARENCY = 0.7
 
 function StampButton.new(stamp: Stamps.Stamp, state: State?)
     -- Manage State
     state = state or {}
-    state.IsOwned = BooleanUtil.returnFirstBoolean(state.IsOwned, true)
-    state.Tier = state.Tier or "Gold"
-    state.Progress = state.Progress or 1
+    state.Progress = state.Progress or math.huge
 
     -- Create Class
     local stampFrame = Instance.new("ImageButton")
@@ -76,6 +73,12 @@ function StampButton.new(stamp: Stamps.Stamp, state: State?)
     pattern.Parent = stampFrame
     --#endregion
 
+    -- Read State
+    local stampProgress: number = state.Progress
+    local tier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, stampProgress)
+    local doFade = (stamp.IsTiered and tier == nil) or (not stamp.IsTiered and stampProgress < 1)
+    local useTier = tier or Stamps.StampTiers[1]
+
     -- Draw Stamp type images
     pattern.Image = Images.Stamps.Types[stamp.Type].Pattern
     shine.Image = Images.Stamps.Types[stamp.Type].Shine
@@ -83,14 +86,24 @@ function StampButton.new(stamp: Stamps.Stamp, state: State?)
 
     -- Draw Stamp
     stampFrame.Name = stamp.Id
-    icon.Image = typeof(stamp.ImageId) == "table" and stamp.ImageId.Gold or stamp.ImageId --TODO TEMP
+    icon.Image = (stamp.IsTiered and stamp.ImageId[useTier]) or stamp.ImageId or ""
 
     -- Draw difficulty/tier
     if stamp.Difficulty then
         pattern.ImageColor3 = StampConstants.DifficultyColors[stamp.Difficulty]
     elseif stamp.IsTiered then
-        pattern.ImageColor3 = StampConstants.TierColors[state.Tier]
+        pattern.ImageColor3 = StampConstants.TierColors[useTier]
         shine.ImageTransparency = VISIBLE_SHINE_TRANSPARENCY
+    end
+
+    -- Fade
+    if doFade then
+        for _, guiObject: ImageLabel in pairs({ pattern, icon, shine, border }) do
+            guiObject.ImageTransparency = guiObject.ImageTransparency + (1 - guiObject.ImageTransparency) / (1 / FADE_TRANSPARENCY)
+        end
+
+        local h, s, v = pattern.ImageColor3:ToHSV()
+        pattern.ImageColor3 = Color3.fromHSV(h, s, v / 2)
     end
 
     --!! If no ImageId, add a simple text label (debug)
