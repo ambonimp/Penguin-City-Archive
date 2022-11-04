@@ -4,7 +4,7 @@ local StampService = require(Paths.Server.StampService)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
-return function(_context, players: { Player }, _stampType: Stamps.StampType, stampId: string, stampTier: Stamps.StampTier | nil)
+return function(_context, players: { Player }, _stampType: Stamps.StampType, stampId: string, amount: number)
     local output = ""
 
     -- RETURN: Bad stampId
@@ -13,16 +13,9 @@ return function(_context, players: { Player }, _stampType: Stamps.StampType, sta
         return ("Could not find stamp from passed stampId %q"):format(stampId)
     end
 
-    if stamp.IsTiered then
-        stampTier = stampTier or "Bronze"
-    else
-        stampTier = nil
-    end
-
     for _, player in pairs(players) do
-        StampService.addStamp(player, stampId, stampTier)
-        local tierSuffix = stamp.IsTiered and ("[%s]"):format(stampTier) or ""
-        output ..= (" > %s +%q Stamp (%s) %s\n"):format(player.Name, stamp.DisplayName, stamp.Type, tierSuffix)
+        StampService.incrementStamp(player, stampId, amount)
+        output ..= (" > %s +%q Stamp +%d\n"):format(player.Name, stamp.DisplayName, amount)
     end
 
     return output

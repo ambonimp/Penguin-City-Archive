@@ -16,7 +16,7 @@ local function getStamp(stampId: string): Stamps.Stamp
     return stamp
 end
 
-function StampService.getProgress(player: Player, stampId: string)
+function StampService.getProgress(player: Player, stampId: string): number
     return DataService.get(player, StampUtil.getStampDataAddress(stampId)) or 0
 end
 
@@ -55,7 +55,26 @@ function StampService.addStamp(player: Player, stampId: string, stampTierOrProgr
         "StampUpdated",
         { StampId = stampId, StampProgress = stampProgress }
     )
-    return true
+end
+
+--[[
+    Used for increasing the progress of a tiered stamp
+    - `amount` defaults to `1`
+]]
+function StampService.incrementStamp(player: Player, stampId: string, amount: number?)
+    amount = amount or 1
+
+    local stamp = getStamp(stampId)
+    local currentStampProgress = StampService.getProgress(player, stamp.Id)
+    local newProgress = currentStampProgress + amount
+
+    DataService.set(
+        player,
+        StampUtil.getStampDataAddress(stampId),
+        newProgress,
+        "StampUpdated",
+        { StampId = stampId, StampProgress = newProgress }
+    )
 end
 
 function StampService.revokeStamp(player: Player, stampId: string)
