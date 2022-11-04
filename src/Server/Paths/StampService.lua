@@ -16,25 +16,13 @@ local function getStamp(stampId: string): Stamps.Stamp
     return stamp
 end
 
-local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
-    if stamp.IsTiered then
-        if typeof(stampTierOrProgress) == "string" then
-            return stamp.Tiers[stampTierOrProgress]
-        else
-            return stampTierOrProgress
-        end
-    else
-        return 0
-    end
-end
-
 function StampService.getProgress(player: Player, stampId: string)
     return DataService.get(player, StampUtil.getStampDataAddress(stampId)) or 0
 end
 
 function StampService.hasStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
     local stamp = getStamp(stampId)
-    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
+    local stampProgress = StampUtil.calculateProgressNumber(stamp, stampTierOrProgress)
     local ourStampProgress = StampService.getProgress(player, stampId)
 
     if stamp.IsTiered then
@@ -58,7 +46,7 @@ end
 
 function StampService.addStamp(player: Player, stampId: string, stampTierOrProgress: Stamps.StampTier | number | nil)
     local stamp = getStamp(stampId)
-    local stampProgress = stamp.IsTiered and processStampProgress(stamp, stampTierOrProgress) or 1
+    local stampProgress = stamp.IsTiered and StampUtil.calculateProgressNumber(stamp, stampTierOrProgress) or 1
 
     DataService.set(
         player,

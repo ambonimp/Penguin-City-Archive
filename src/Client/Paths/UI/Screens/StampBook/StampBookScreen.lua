@@ -327,7 +327,17 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
     pageTitleText.Visible = not pageTitleImage.Visible
 
     -- Stamp Count
-    inside.Chapter.StampCount.Text = ("?/%d Stamps"):format(#chapterStructure.Layout[chapterPage.Key]) --TODO Get total owned stamps
+    local totalOwnedStampsOnPage = 0
+    for _, stamp in pairs(chapterPage.Stamps) do
+        if StampController.hasStamp(stamp.Id, nil, currentStampData.OwnedStamps) then
+            totalOwnedStampsOnPage += 1
+        end
+    end
+
+    inside.Chapter.StampCount.Text = ("%s/%d Stamps"):format(
+        currentStampData.IsLoading and "?" or tostring(totalOwnedStampsOnPage),
+        #chapterStructure.Layout[chapterPage.Key]
+    )
 
     -- Pattern
     --todo

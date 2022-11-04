@@ -21,18 +21,6 @@ local function getStamp(stampId: string): Stamps.Stamp
     return stamp
 end
 
-local function processStampProgress(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
-    if stamp.IsTiered and stampTierOrProgress then
-        if typeof(stampTierOrProgress) == "string" then
-            return stamp.Tiers[stampTierOrProgress]
-        else
-            return stampTierOrProgress
-        end
-    else
-        return 0
-    end
-end
-
 function StampController.getProgress(stampId: string, ownedStamps: { [string]: number } | nil): number
     if ownedStamps then
         return ownedStamps[stampId] or 0
@@ -50,7 +38,7 @@ function StampController.hasStamp(
     ownedStamps: { [string]: number } | nil
 )
     local stamp = getStamp(stampId)
-    local stampProgress = processStampProgress(stamp, stampTierOrProgress)
+    local stampProgress = StampUtil.calculateProgressNumber(stamp, stampTierOrProgress)
     local ourStampProgress = StampController.getProgress(stampId, ownedStamps)
 
     if stamp.IsTiered then

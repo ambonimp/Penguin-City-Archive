@@ -81,6 +81,21 @@ function StampUtil.getTierFromProgress(stamp: Stamps.Stamp, progress: number)
     return bestStampTier
 end
 
+-- Funnels multiple data types for a stamps progress into a number
+function StampUtil.calculateProgressNumber(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
+    if stamp.IsTiered then
+        stampTierOrProgress = stampTierOrProgress or Stamps.StampTiers[1]
+
+        if typeof(stampTierOrProgress) == "string" then
+            return stamp.Tiers[stampTierOrProgress]
+        else
+            return stampTierOrProgress
+        end
+    else
+        return 0
+    end
+end
+
 local function createChapterLayoutFromMetadata(stamps: { Stamps.Stamp }, metadataKey: string)
     local layout: { [string]: { Stamps.Stamp } } = {}
     for _, stamp in pairs(stamps) do
