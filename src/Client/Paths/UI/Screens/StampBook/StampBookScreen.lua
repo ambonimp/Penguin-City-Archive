@@ -344,15 +344,16 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
 
     -- Stamps
     for i, stamp in pairs(chapterPage.Stamps) do
+        local holder = Instance.new("Frame")
+        holder.LayoutOrder = i
+        holder.Parent = inside.Chapter.Stamps
+        chapterMaid:GiveTask(holder)
+
         local state: StampButton.State = {
             Progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps),
         }
         local stampButton = StampButton.new(stamp, state)
-        local buttonObject: ImageButton = stampButton:GetButtonObject()
-
-        buttonObject.LayoutOrder = i
-        buttonObject.Parent = inside.Chapter.Stamps
-
+        stampButton:Mount(holder, true)
         chapterMaid:GiveTask(stampButton)
     end
 end
