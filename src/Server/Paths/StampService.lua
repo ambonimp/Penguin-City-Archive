@@ -68,6 +68,15 @@ function StampService.incrementStamp(player: Player, stampId: string, amount: nu
     local currentStampProgress = StampService.getProgress(player, stamp.Id)
     local newProgress = currentStampProgress + amount
 
+    -- Edge Case for non-tiered stamp
+    if not stamp.IsTiered then
+        newProgress = 1
+
+        if StampService.getProgress(player, stampId) == newProgress then
+            return
+        end
+    end
+
     DataService.set(
         player,
         StampUtil.getStampDataAddress(stampId),

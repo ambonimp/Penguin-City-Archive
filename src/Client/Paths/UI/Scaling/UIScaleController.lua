@@ -129,7 +129,7 @@ local classnameToPair: { [string]: (instance: Instance, initialScale: number) ->
     UICorner = function(instance: UICorner, initialScale: number)
         return {
             Instance = instance,
-            Value = UDim.new(instance.CornerRadius.Scale / initialScale, instance.CornerRadius.Offset / initialScale),
+            Value = UDim.new(instance.CornerRadius.Scale, instance.CornerRadius.Offset / initialScale),
         }
     end,
     UITextSizeConstraint = function(instance: UITextSizeConstraint, _initialScale: number)
