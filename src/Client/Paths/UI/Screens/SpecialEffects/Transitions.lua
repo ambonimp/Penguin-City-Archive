@@ -7,7 +7,7 @@ local CameraController = require(Paths.Client.CameraController)
 
 export type BlinkOptions = {
     TweenInfo: TweenInfo?,
-    TweenTime: number?, -- Always overrides
+    HalfTweenTime: number?, -- Always overrides
     DoAlignCamera: boolean?,
 }
 
@@ -21,8 +21,8 @@ function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOpti
     -- Read blink options
     blinkOptions = blinkOptions or {}
     local tweenInfo = blinkOptions.TweenInfo or Transitions.BLINK_TWEEN_INFO
-    if blinkOptions.TweenTime then
-        tweenInfo = TweenInfo.new(blinkOptions.TweenTime, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
+    if blinkOptions.HalfTweenTime then
+        tweenInfo = TweenInfo.new(blinkOptions.HalfTweenTime, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
     end
     local doAlignCamera = blinkOptions.DoAlignCamera and true or false
 
