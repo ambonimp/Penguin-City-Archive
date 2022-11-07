@@ -257,6 +257,8 @@ function SelectionPanel.new()
                 drawMaid:GiveTask(widgetFrame)
 
                 local widgetButton = AnimatedButton.new(widgetFrame.Background)
+                widgetButton:SetHoverAnimation(AnimatedButton.Animations.Nod)
+                widgetButton:SetPressAnimation()
                 drawMaid:GiveTask(widgetButton)
             end
         end

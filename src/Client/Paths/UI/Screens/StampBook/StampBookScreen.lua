@@ -37,6 +37,14 @@ local TAB_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDire
 local EDIT_MODE_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local EDIT_MODE_CONTAINER_POSITION = UDim2.fromScale(0.6, 0.5)
 local DEFAULT_CONTAINER_POSITION = UDim2.fromScale(0.5, 0.5)
+local TABS = {
+    CoverColor = "CoverColor",
+    TextColor = "TextColor",
+    Stamps = "Stamps",
+    Seal = "Seal",
+    Pattern = "Pattern",
+}
+local COLOR_BLACK = Color3.fromRGB(20, 20, 20)
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container
@@ -137,11 +145,34 @@ function StampBookScreen.Init()
             toggleEditMode(false)
         end)
 
-        editPanel:AddTab("CoverColor", Images.Icons.PaintBucket)
-        editPanel:AddTab("TextColor", Images.Icons.Text)
-        editPanel:AddTab("Stamps", Images.Icons.Badge)
-        editPanel:AddTab("Seal", Images.Icons.Seal)
-        editPanel:AddTab("Texture", Images.Icons.Book)
+        -- Cover Color
+        editPanel:AddTab(TABS.CoverColor, Images.Icons.PaintBucket)
+        for colorName, color in pairs(StampConstants.StampBook.CoverColors) do
+            editPanel:AddWidget(TABS.CoverColor, colorName, Images.Icons.Paint, color)
+        end
+
+        -- Text Color
+        editPanel:AddTab(TABS.TextColor, Images.Icons.Text)
+        for colorName, color in pairs(StampConstants.StampBook.TextColors) do
+            editPanel:AddWidget(TABS.TextColor, colorName, Images.Icons.Paint, color)
+        end
+
+        -- Stamps
+        editPanel:AddTab(TABS.Stamps, Images.Icons.Badge)
+        editPanel:AddWidget(TABS.Stamps, "Add", Images.Icons.Add, COLOR_BLACK)
+
+        -- Seal
+        editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
+        for sealName, sealInfo in pairs(StampConstants.StampBook.Seals) do
+            local icon = sealInfo.Icon ~= "" and sealInfo.Icon or Images.Icons.Seal
+            editPanel:AddWidget(TABS.Seal, sealName, icon, sealInfo.Icon == "" and sealInfo.Color or COLOR_BLACK)
+        end
+
+        -- Pattern
+        editPanel:AddTab(TABS.Pattern, Images.Icons.Book)
+        for patternName, imageId in pairs(StampConstants.StampBook.CoverPattern) do
+            editPanel:AddWidget(TABS.Pattern, patternName, imageId, COLOR_BLACK)
+        end
 
         ScreenUtil.outLeft(editPanel:GetContainer())
     end
