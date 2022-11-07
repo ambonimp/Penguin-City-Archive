@@ -147,15 +147,15 @@ function SledRaceDriving.setup()
             local speedyness = math.clamp((goalSpeed - DEFAULT_SPEED) / SPEED_OFFSET_RANGE, -1, 1) -- speed vs default speed deviation percentage
 
             for _, emitter in pairs(driftParticles) do
-                emitter.Rate = driftParticleRate:UpdateOnStepped(
+                emitter.Rate = driftParticleRate:UpdateVariable(
                     math.max(MIN_DRIFT_PARTICLE_RATE, MAX_DRIFT_PARTICLE_RATE * driftyness * MathUtil.map(speedyness, -1, 1, 0, 1)),
                     dt * 5
                 )
             end
 
             camera.FieldOfView = BASE_FOV
-                + driftFOVAddend:UpdateOnStepped(-MAX_DRIFT_FOV_MINUEND * driftyness, dt * 5)
-                + speedFOVAddend:UpdateOnStepped(MAX_SPEED_FOV_ADDEND * math.max(0, speedyness), dt * 3)
+                + driftFOVAddend:UpdateVariable(-MAX_DRIFT_FOV_MINUEND * driftyness, dt * 5)
+                + speedFOVAddend:UpdateVariable(MAX_SPEED_FOV_ADDEND * math.max(0, speedyness), dt * 3)
         end
     end)
 
