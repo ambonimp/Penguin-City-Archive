@@ -165,10 +165,9 @@ function ProductUtil.getStampBookProductId(categoryName: string, propertyKey: st
 end
 
 function ProductUtil.getStampBookProduct(categoryName: string, propertyKey: string)
-    local product =
-        Products.Products[ProductConstants.ProductType.StampBook][ProductUtil.getHouseObjectProductId(categoryName, propertyKey)]
+    local product = Products.Products[ProductConstants.ProductType.StampBook][ProductUtil.getStampBookProductId(categoryName, propertyKey)]
     if not product then
-        error(("No House Object Product %s.%s"):format(categoryName, propertyKey))
+        error(("No StampBook Product %s.%s"):format(categoryName, propertyKey))
     end
 
     return product

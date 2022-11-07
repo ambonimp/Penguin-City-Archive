@@ -29,6 +29,7 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local StampController = require(Paths.Client.StampController)
 local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -147,16 +148,18 @@ function StampBookScreen.Init()
 
         -- Cover Color
         editPanel:AddTab(TABS.CoverColor, Images.Icons.PaintBucket)
-        for colorName, color in pairs(StampConstants.StampBook.CoverColors) do
-            editPanel:AddWidget(TABS.CoverColor, colorName, Images.Icons.Paint, color, function()
+        for colorName, color in pairs(StampConstants.StampBook.CoverColor) do
+            local product = ProductUtil.getStampBookProduct("CoverColor", colorName)
+            editPanel:AddProductWidget(TABS.CoverColor, product, function()
                 print(colorName, color)
             end)
         end
 
         -- Text Color
         editPanel:AddTab(TABS.TextColor, Images.Icons.Text)
-        for colorName, color in pairs(StampConstants.StampBook.TextColors) do
-            editPanel:AddWidget(TABS.TextColor, colorName, Images.Icons.Paint, color, function()
+        for colorName, color in pairs(StampConstants.StampBook.TextColor) do
+            local product = ProductUtil.getStampBookProduct("TextColor", colorName)
+            editPanel:AddProductWidget(TABS.TextColor, product, function()
                 print(colorName, color)
             end)
         end
@@ -169,9 +172,9 @@ function StampBookScreen.Init()
 
         -- Seal
         editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
-        for sealName, sealInfo in pairs(StampConstants.StampBook.Seals) do
-            local icon = sealInfo.Icon ~= "" and sealInfo.Icon or Images.Icons.Seal
-            editPanel:AddWidget(TABS.Seal, sealName, icon, sealInfo.Icon == "" and sealInfo.Color or COLOR_BLACK, function()
+        for sealName, sealInfo in pairs(StampConstants.StampBook.Seal) do
+            local product = ProductUtil.getStampBookProduct("Seal", sealName)
+            editPanel:AddProductWidget(TABS.Seal, product, function()
                 print(sealName, sealInfo)
             end)
         end
@@ -179,7 +182,8 @@ function StampBookScreen.Init()
         -- Pattern
         editPanel:AddTab(TABS.Pattern, Images.Icons.Book)
         for patternName, imageId in pairs(StampConstants.StampBook.CoverPattern) do
-            editPanel:AddWidget(TABS.Pattern, patternName, imageId, COLOR_BLACK, function()
+            local product = ProductUtil.getStampBookProduct("CoverPattern", patternName)
+            editPanel:AddProductWidget(TABS.Pattern, product, function()
                 print(patternName, imageId)
             end)
         end
@@ -267,23 +271,23 @@ function StampBookScreen.openCover()
     end
 
     -- Seal
-    local seal = currentStampData.StampBook.Seal.Selected
-    cover.Seal.Button.ImageColor3 = StampConstants.StampBook.Seals[seal].Color
-    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seals[seal].Icon
+    local seal = currentStampData.StampBook.Seal
+    cover.Seal.Button.ImageColor3 = StampConstants.StampBook.Seal[seal].Color
+    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seal[seal].Icon
 
     -- Pattern
-    local pattern = currentStampData.StampBook.CoverPattern.Selected
+    local pattern = currentStampData.StampBook.CoverPattern
     cover.Pattern.Image = Images.StampBook.Patterns[pattern]
 
     -- Text
     cover.PlayerName.Text = currentPlayer.DisplayName
-    cover.PlayerName.TextColor3 = StampConstants.StampBook.TextColors[currentStampData.StampBook.TextColor.Selected]
+    cover.PlayerName.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
 
     cover.TotalStamps.Text = ("TOTAL: %s/%s"):format(
         currentStampData.IsLoading and "?" or tostring(#currentStampData.OwnedStamps),
         StampUtil.getTotalStamps()
     )
-    cover.TotalStamps.TextColor3 = StampConstants.StampBook.TextColors[currentStampData.StampBook.TextColor.Selected]
+    cover.TotalStamps.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
 end
 
 function StampBookScreen.openInside()

@@ -3,22 +3,27 @@
 ]]
 local SelectionPanel = {}
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local UIElement = require(script.Parent.UIElement)
-local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
-local Maid = require(ReplicatedStorage.Packages.maid)
-local ExitButton = require(script.Parent.ExitButton)
-local Button = require(script.Parent.Button)
-local Signal = require(ReplicatedStorage.Shared.Signal)
-local Queue = require(ReplicatedStorage.Shared.Queue)
-local AnimatedButton = require(script.Parent.AnimatedButton)
+local Players = game:GetService("Players")
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local UIElement = require(Paths.Client.UI.Elements.UIElement)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local Maid = require(Paths.Packages.maid)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Button = require(Paths.Client.UI.Elements.Button)
+local Signal = require(Paths.Shared.Signal)
+local Queue = require(Paths.Shared.Queue)
+local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
+local Products = require(Paths.Shared.Products.Products)
+local ProductController = require(Paths.Client.ProductController)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 type Widget = {
     Name: string,
     ImageId: string,
     ImageColor: Color3,
     Callback: (() -> nil)?,
+    ProductType: string?,
+    ProductId: string?,
 }
 
 type Tab = {
@@ -281,7 +286,10 @@ function SelectionPanel.new()
             for i, widget in pairs(openTab.Widgets) do
                 local section = getSection(i)
 
-                local widgetFrame: Frame = section.template:Clone() --todo temp
+                local product = widget.ProductId and ProductUtil.getProduct(widget.ProductType, widget.ProductId)
+                local ownsProduct = product and (ProductController.hasProduct(product) or ProductUtil.isFree(product))
+
+                local widgetFrame: Frame = section.template:Clone()
                 widgetFrame.Name = widget.Name
                 widgetFrame.LayoutOrder = i
                 widgetFrame.Background.Icon.Image = widget.ImageId or ""
@@ -290,14 +298,24 @@ function SelectionPanel.new()
                 widgetFrame.Parent = section
                 drawMaid:GiveTask(widgetFrame)
 
+                -- Fade if its a product and not owned
+                if product and not ownsProduct then
+                    widgetFrame.Background.Transparency = 0.5
+                    widgetFrame.Background.Icon.ImageTransparency = 0.5
+                end
+
                 local widgetButton = AnimatedButton.new(widgetFrame.Background)
                 widgetButton:SetHoverAnimation(AnimatedButton.Animations.Nod)
                 widgetButton:SetPressAnimation()
                 drawMaid:GiveTask(widgetButton)
 
-                if widget.Callback then
-                    widgetButton.Pressed:Connect(widget.Callback)
-                end
+                widgetButton.Pressed:Connect(function()
+                    if product and not ownsProduct then
+                        ProductController.prompt(product)
+                    elseif widget.Callback then
+                        widget.Callback()
+                    end
+                end)
             end
         end
 
@@ -428,6 +446,41 @@ function SelectionPanel.new()
         end
     end
 
+    -- Will only run `callback` if the product is owned
+    function selectionPanel:AddProductWidget(tabName: string, product: Products.Product, callback: (() -> nil)?)
+        local widgetName = product.Id
+        local imageId = product.ImageId
+        local imageColor = product.ImageColor
+
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        -- WARN: Already exists
+        if getWidget(tab, widgetName) then
+            warn(("Widget %s.%s already exists!"):format(tabName, widgetName))
+            return
+        end
+
+        local widget: Widget = {
+            Name = widgetName,
+            ImageId = imageId,
+            ImageColor = imageColor or COLOR_WHITE,
+            Callback = callback,
+            ProductType = product.Type,
+            ProductId = product.Id,
+        }
+        table.insert(tab.Widgets, widget)
+
+        -- Draw if this would be visible right now
+        if openTabName == tab.Name then
+            draw()
+        end
+    end
+
     function selectionPanel:RemoveWidget(tabName: string, widgetName: string)
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -452,8 +505,22 @@ function SelectionPanel.new()
     -- Logic
     -------------------------------------------------------------------------------
 
+    -- Setup
     draw(true)
     selectionPanel:SetSize(size)
+
+    -- Listen to ProductPurchases to update widgets
+    selectionPanel:GetMaid():GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
+        local openTab = openTabName and getTab(openTabName)
+        if openTab then
+            for _, widget in pairs(openTab.Widgets) do
+                if widget.ProductId == product.Id and widget.ProductType == product.Type then
+                    draw()
+                    return
+                end
+            end
+        end
+    end))
 
     return selectionPanel
 end

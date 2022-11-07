@@ -8,7 +8,7 @@ export type StampBook = {
     CoverColor: { [string]: Color3 },
     CoverPattern: { [string]: string },
     TextColor: { [string]: Color3 },
-    Seals: { [string]: {
+    Seal: { [string]: {
         Color: Color3,
         Icon: string,
     } },
