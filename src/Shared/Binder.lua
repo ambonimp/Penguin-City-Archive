@@ -31,7 +31,7 @@ function Binder.removeInstance(scope: Instance)
     end
 end
 
-function Binder.bind(scope: Instance, key: string, value: any): any
+function Binder.bind<T>(scope: Instance, key: string, value: T?): T
     local store = Binder.addInstance(scope)
     store[key] = value
 
@@ -49,7 +49,7 @@ end
 --[[
     Initialize a bind with value if it doesn't already exist
 ]]
-function Binder.bindFirst(scope: Instance, key: string, value: any)
+function Binder.bindFirst<T>(scope: Instance, key: string, value: any): T
     local binded = Binder.getBinded(scope, key)
     if binded then
         return binded, false
