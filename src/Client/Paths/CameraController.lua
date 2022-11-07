@@ -8,6 +8,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TweenableValue = require(Paths.Shared.TweenableValue)
 local Maid = require(Paths.Packages.maid)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
@@ -60,7 +61,7 @@ function CameraController.resetFov(animationLength: number?)
     end
 end
 
-function CameraController.lookAt(subject: BasePart | Model | {}, offset: Vector3, fov: number?): (Tween, CFrame)
+function CameraController.lookAt(subject: BasePart | Model | BasePartUtil.PsuedoBasePart, offset: Vector3, fov: number?): (Tween, CFrame)
     fov = fov or tweenableFov:GetGoal()
     local cframe: CFrame, size: Vector3
     if subject:IsA("Model") then

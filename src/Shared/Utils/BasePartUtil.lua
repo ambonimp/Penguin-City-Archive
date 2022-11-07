@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local SignedDistanceUtil = require(ReplicatedStorage.Shared.Utils.SignedDistanceUtil)
 
-type PsuedoBasePart = {
+export type PsuedoBasePart = {
     Size: Vector3,
     CFrame: CFrame,
 } | BasePart
