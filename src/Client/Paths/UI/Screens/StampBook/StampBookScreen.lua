@@ -411,6 +411,7 @@ function StampBookScreen.close()
     toggleEditMode(false)
     ScreenUtil.outUp(containerFrame)
     currentChapter = nil
+    StampInfoScreen.close()
 end
 
 -- Setup UI

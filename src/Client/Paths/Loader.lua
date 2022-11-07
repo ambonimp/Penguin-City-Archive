@@ -124,8 +124,6 @@ function Loader.yieldPlayerGui()
     while verify() == false do
         task.wait(VERIFY_PLAYER_GUI_EVERY)
     end
-
-    print("VERIFIED:", verify())
 end
 
 function Loader.Start()

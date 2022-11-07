@@ -47,9 +47,11 @@ function StampInfoScreen.open(stampId: string, progress: number?)
     end
     progress = StampUtil.calculateProgressNumber(stamp, progress)
 
+    local useTier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress) or Stamps.StampTiers[1]
+
     -- Basics
     titleLabel.Text = stamp.DisplayName
-    descriptionLabel.Text = stamp.Description
+    descriptionLabel.Text = stamp.IsTiered and stamp.Description[useTier] or stamp.Description
 
     local stampButton = StampButton.new(stamp, {
         Progress = progress,
@@ -60,10 +62,10 @@ function StampInfoScreen.open(stampId: string, progress: number?)
     -- Tiers
     tiersFrame.Visible = stamp.IsTiered
     if stamp.IsTiered then
-        bronzeTierLabel.Text = ("Bronze | %d"):format(stamp.Tiers.Bronze)
-        silverTierLabel.Text = ("Silver | %d"):format(stamp.Tiers.Silver)
-        goldTierLabel.Text = ("Gold | %d"):format(stamp.Tiers.Gold)
-        currentTierLabel.Text = ("%s (%d)"):format(StampUtil.getTierFromProgress(stamp, progress), progress)
+        bronzeTierLabel.Text = ("<b>Bronze</b> | %d"):format(stamp.Tiers.Bronze)
+        silverTierLabel.Text = ("<b>Silver</b> | %d"):format(stamp.Tiers.Silver)
+        goldTierLabel.Text = ("<b>Gold</b> | %d"):format(stamp.Tiers.Gold)
+        currentTierLabel.Text = ("<b>%s</b> (%d)"):format(StampUtil.getTierFromProgress(stamp, progress) or "-", progress)
     end
 end
 
