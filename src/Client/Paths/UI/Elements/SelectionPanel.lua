@@ -12,10 +12,12 @@ local ExitButton = require(script.Parent.ExitButton)
 local Button = require(script.Parent.Button)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Queue = require(ReplicatedStorage.Shared.Queue)
+local AnimatedButton = require(script.Parent.AnimatedButton)
 
 type Widget = {
     Name: string,
     ImageId: string,
+    ImageColor: Color3,
 }
 
 type Tab = {
@@ -25,7 +27,12 @@ type Tab = {
     Button: Button.Button | nil,
 }
 
-local TABS_PER_VIEW = 5
+local TABS_PER_VIEW = {
+    Left = 5,
+    Right = 5,
+    Bottom = 8,
+}
+local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
 SelectionPanel.Defaults = {
     Alignment = "Right",
@@ -45,7 +52,6 @@ function SelectionPanel.new()
     local size = SelectionPanel.Defaults.Size
 
     local tabs: { Tab } = {}
-    local tabButtons: { Button.Button } = {}
     local openTabName: string | nil
 
     local containerMaid = Maid.new()
@@ -59,8 +65,8 @@ function SelectionPanel.new()
     local tabsFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
-    local backwardArrow: Button.Button
-    local forwardArrow: Button.Button
+    local backwardArrow: AnimatedButton.AnimatedButton
+    local forwardArrow: AnimatedButton.AnimatedButton
 
     local tabsIndex = 1
 
@@ -75,12 +81,23 @@ function SelectionPanel.new()
     -- Private Methods
     -------------------------------------------------------------------------------
 
+    -- Hoist
+    local function draw() end
+
+    local function getTabsPerView()
+        return TABS_PER_VIEW[alignment]
+    end
+
     local function getMaxTabsIndex()
-        return math.ceil(#tabs / TABS_PER_VIEW)
+        return math.ceil(#tabs / getTabsPerView())
     end
 
     local function updateTabIndex(increaseBy: number)
         tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
+
+        -- Select new tab + draw
+        local tabIndex = ((tabsIndex - 1) * getTabsPerView()) + 1
+        selectionPanel:OpenTab(tabs[tabIndex].Name)
     end
 
     local function getTab(tabName: string)
@@ -104,8 +121,8 @@ function SelectionPanel.new()
     local function getVisibleTabs()
         local visibleTabs: { Tab } = {}
 
-        local startIndex = (tabsIndex - 1) * TABS_PER_VIEW + 1
-        for i = startIndex, startIndex + (TABS_PER_VIEW - 1) do
+        local startIndex = (tabsIndex - 1) * getTabsPerView() + 1
+        for i = startIndex, startIndex + (getTabsPerView() - 1) do
             table.insert(visibleTabs, tabs[i])
         end
 
@@ -139,13 +156,13 @@ function SelectionPanel.new()
         -- Arrows
         tabsIndex = 1
 
-        backwardArrow = Button.new(backgroundFrame.Side.BackwardArrow.ImageButton)
+        backwardArrow = AnimatedButton.new(backgroundFrame.Side.BackwardArrow.ImageButton)
         backwardArrow.Pressed:Connect(function()
             updateTabIndex(-1)
         end)
         containerMaid:GiveTask(backwardArrow)
 
-        forwardArrow = Button.new(backgroundFrame.Side.ForwardArrow.ImageButton)
+        forwardArrow = AnimatedButton.new(backgroundFrame.Side.ForwardArrow.ImageButton)
         forwardArrow.Pressed:Connect(function()
             updateTabIndex(1)
         end)
@@ -159,11 +176,10 @@ function SelectionPanel.new()
 
         -- Widgets
         scrollingFrame = backgroundFrame.Back.ScrollingFrame
-
         scrollingFrame.Section.template.Visible = false
     end
 
-    local function draw(updatedAlignment: boolean?)
+    function draw(updatedAlignment: boolean?)
         local queueNext = Queue.yield(selectionPanel)
 
         if updatedAlignment then
@@ -172,6 +188,7 @@ function SelectionPanel.new()
         drawMaid:Cleanup()
 
         -- Tabs
+        local openTab: Tab
         do
             local visibleTabs = getVisibleTabs()
             if #visibleTabs == 0 or not openTabName then
@@ -204,25 +221,44 @@ function SelectionPanel.new()
 
                 -- Selected
                 if openTabName == visibleTab.Name then
+                    openTab = visibleTab
+
                     tabsFrame.Selected.Visible = true
                     tabsFrame.Selected.LayoutOrder = index
                     tabsFrame.Selected.Icon.Image = visibleTab.ImageId
                 end
             end
 
-            -- Cull old tab buttons + update cache to new ones
-            for _, tabButton in pairs(tabButtons) do
-                if not table.find(newTabButtons, tabButton) then
-                    tabButton:Destroy()
+            -- Cull old tab buttons + update caches
+            for _, tab in pairs(tabs) do
+                if tab.Button and not table.find(newTabButtons, tab.Button) then
+                    tab.Button:Destroy()
+                    tab.Button = nil
                 end
             end
-            tabButtons = newTabButtons
         end
 
         -- Arrows
         do
-            backwardArrow:GetButtonObject().Visible = not tabsIndex == 1
-            forwardArrow:GetButtonObject().Visible = not tabsIndex == getMaxTabsIndex()
+            backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
+            forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
+        end
+
+        -- Widgets
+        if openTab then
+            for i, widget in pairs(openTab.Widgets) do
+                local widgetFrame: Frame = scrollingFrame.Section.template:Clone() --todo temp
+                widgetFrame.Name = widget.Name
+                widgetFrame.LayoutOrder = i
+                widgetFrame.Background.Icon.Image = widget.ImageId or ""
+                widgetFrame.Background.Icon.ImageColor3 = widget.ImageColor
+                widgetFrame.Visible = true
+                widgetFrame.Parent = scrollingFrame.Section
+                drawMaid:GiveTask(widgetFrame)
+
+                local widgetButton = AnimatedButton.new(widgetFrame.Background)
+                drawMaid:GiveTask(widgetButton)
+            end
         end
 
         queueNext()
@@ -306,7 +342,7 @@ function SelectionPanel.new()
         selectionPanel:OpenTab()
     end
 
-    function selectionPanel:AddWidget(tabName: string, widgetName: string, imageId: string)
+    function selectionPanel:AddWidget(tabName: string, widgetName: string, imageId: string, imageColor: Color3?)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -323,6 +359,7 @@ function SelectionPanel.new()
         local widget: Widget = {
             Name = widgetName,
             ImageId = imageId,
+            ImageColor = imageColor or COLOR_WHITE,
         }
         table.insert(tab.Widgets, widget)
 
