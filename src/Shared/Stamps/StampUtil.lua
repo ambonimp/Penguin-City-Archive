@@ -260,22 +260,10 @@ end
 
 function StampUtil.getStampBookDataDefaults()
     return {
-        CoverColor = {
-            Unlocked = { "Brown" },
-            Selected = "Brown",
-        },
-        CoverPattern = {
-            Unlocked = { "Voldex" },
-            Selected = "Voldex",
-        },
-        TextColor = {
-            Unlocked = { "White" },
-            Selected = "White",
-        },
-        Seal = {
-            Unlocked = { "Gold" },
-            Selected = "Gold",
-        },
+        CoverColor = "Brown",
+        CoverPattern = "Voldex",
+        TextColor = "White",
+        Seal = "Gold",
         CoverStampIds = {},
     }
 end

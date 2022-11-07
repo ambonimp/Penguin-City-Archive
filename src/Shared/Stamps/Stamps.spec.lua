@@ -216,5 +216,25 @@ return function()
         end
     end
 
+    -- StampBook; validate data
+    local stampBookDataDefaults = StampUtil.getStampBookDataDefaults()
+    for stampBookCategoryName, propertyConstants in pairs(StampConstants.StampBook) do
+        local defaultValue = stampBookDataDefaults[stampBookCategoryName]
+        if defaultValue then
+            local isGood = false
+            for propertyName, _property in pairs(propertyConstants) do
+                if propertyName == defaultValue then
+                    isGood = true
+                end
+            end
+
+            if not isGood then
+                table.insert(issues, ("StampBook default value %s %q is bad"):format(stampBookCategoryName, tostring(defaultValue)))
+            end
+        else
+            table.insert(issues, ("StampBook default value %s is missing"):format(stampBookCategoryName))
+        end
+    end
+
     return issues
 end

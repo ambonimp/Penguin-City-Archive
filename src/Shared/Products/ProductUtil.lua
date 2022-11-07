@@ -156,6 +156,41 @@ function ProductUtil.isHouseObjectProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- StampBook
+-------------------------------------------------------------------------------
+
+-- Example: CoverColor, Red
+function ProductUtil.getStampBookProductId(categoryName: string, propertyKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(propertyKey))
+end
+
+function ProductUtil.getStampBookProduct(categoryName: string, propertyKey: string)
+    local product =
+        Products.Products[ProductConstants.ProductType.StampBook][ProductUtil.getHouseObjectProductId(categoryName, propertyKey)]
+    if not product then
+        error(("No House Object Product %s.%s"):format(categoryName, propertyKey))
+    end
+
+    return product
+end
+
+function ProductUtil.getStampBookProductData(product: Products.Product)
+    -- ERROR: Not a StampBook product
+    if not ProductUtil.isStampBookProduct(product) then
+        error("Passed a non-StampBook product")
+    end
+
+    return {
+        CategoryName = product.Metadata.CategoryName,
+        PropertyKey = product.Metadata.PropertyKey,
+    }
+end
+
+function ProductUtil.isStampBookProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.StampBook
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 
