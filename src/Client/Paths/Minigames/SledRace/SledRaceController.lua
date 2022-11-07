@@ -10,7 +10,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDriving)
 local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCollectables)
-local SledRaceScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
+local MinigameScreenUtil = require(Paths.Client.UI.Screens.Minigames.MinigameScreenUtil)
 
 local MINIGAME_NAME = "SledRace"
 
@@ -37,18 +37,21 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameMaid:GiveTask(RunService.RenderStepped:Connect(function()
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
+
+    MinigameScreenUtil.openMenu()
+    minigameMaid:GiveTask(function()
+        MinigameScreenUtil.closeMenu()
+    end)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
-    SledRaceScreen.closeStart()
-
     raceMaid:GiveTask(CollectableController.setup())
 
     --[[
         Client tells itself when to give player control of driving
         This way people with worser ping have less of a disadvantage on start
     ]]
-    MinigameController.startCountdownAsync(4, SledRaceScreen.countdown)
+    MinigameController.startCountdownAsync(4, MinigameScreenUtil.coreCountdown)
     raceMaid:GiveTask(DrivingController.setup())
 end)
 
