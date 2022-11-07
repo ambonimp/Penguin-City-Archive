@@ -110,7 +110,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             id,
             minigameName,
             { Name = stateMachine:GetState(), Data = stateMachine:GetData() },
-            getOtherParticipants(player),
+            minigameSession:GetParticipants(),
             isMultiplayer
         )
     end

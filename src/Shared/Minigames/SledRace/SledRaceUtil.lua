@@ -10,9 +10,11 @@ function SledRaceUtil.getMapOrigin(map: Model): CFrame
     local primaryPart: BasePart = map:WaitForChild("Root")
     return primaryPart.CFrame:ToWorldSpace(CFrame.new(Vector3.new(0, 0.5, -0.5) * primaryPart.Size))
 end
+
 function SledRaceUtil.getSlopeBoundingBox(map: Model): (Vector3, CFrame)
     local slope: Model = map.Slope
-    return ModelUtil.getGlobalExtentsSize(slope, SledRaceUtil.getMapOrigin(map)), slope:GetBoundingBox()
+    local direction: CFrame = SledRaceUtil.getMapOrigin(map).Rotation
+    return ModelUtil.getGlobalExtentsSize(slope, direction), CFrame.new(slope:GetBoundingBox().Position) * direction
 end
 
 function SledRaceUtil.collectableIsA(collectable, collectableType: string): boolean

@@ -165,6 +165,11 @@ function ModelUtil.getGlobalExtentsSize(model: Model, offset: CFrame?)
     return Vector3.new(extentSize.X, extentSize.Y, extentSize.Z)
 end
 
+function ModelUtil.getBoundingSize(model: Model): Vector3
+    local _, size: Vector3 = model:GetBoundingBox()
+    return size
+end
+
 function ModelUtil.getAssemblyMass(model: Model)
     local totalMass = 0
 

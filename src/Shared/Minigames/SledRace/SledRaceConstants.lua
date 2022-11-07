@@ -45,7 +45,7 @@ SledRaceConstants.MaxForce = 1000
 
 SledRaceConstants.CollectableEffectDuration = 3
 SledRaceConstants.BoostSpeedAdded = 25
-SledRaceConstants.ObstacleSpeedMinuend = 15
+SledRaceConstants.ObstacleSpeedMinuend = 10
 
 SledRaceConstants.CollectableGrid = { Z = 6, X = 4 }
 SledRaceConstants.Collectables = {
