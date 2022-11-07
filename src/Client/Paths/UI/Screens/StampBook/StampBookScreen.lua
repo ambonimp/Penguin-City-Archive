@@ -276,6 +276,7 @@ function StampBookScreen.openCover()
     cover.Visible = true
     inside.Visible = false
     viewMaid:Cleanup()
+    StampInfoScreen.close()
 
     -- Buttons
     do
@@ -474,7 +475,6 @@ function StampBookScreen.close()
     toggleEditMode(false)
     ScreenUtil.outUp(containerFrame)
     currentChapter = nil
-    StampInfoScreen.close()
 end
 
 -- Setup UI

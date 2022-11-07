@@ -58,7 +58,7 @@ function StampInfoScreen.open(stampId: string, progress: number?)
     end
     progress = StampUtil.calculateProgressNumber(stamp, progress)
 
-    local currentTier = StampUtil.getTierFromProgress(stamp, progress)
+    local currentTier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress)
     local useTier = stamp.IsTiered and currentTier or Stamps.StampTiers[1]
 
     -- Basics
@@ -102,5 +102,10 @@ do
         end
     end)
 end
+
+-- Auto-Close when UIState changes
+UIController.getStateMachine():RegisterGlobalCallback(function()
+    StampInfoScreen.close()
+end)
 
 return StampInfoScreen
