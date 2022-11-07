@@ -6,7 +6,7 @@ local SelectionPanel = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIElement = require(script.Parent.UIElement)
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local Maid = require(ReplicatedStorage.Packages.maid)
 local ExitButton = require(script.Parent.ExitButton)
 local Button = require(script.Parent.Button)
@@ -33,6 +33,7 @@ local TABS_PER_VIEW = {
     Bottom = 8,
 }
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local SECTION_WIDTH_OFFSET = 178
 
 SelectionPanel.Defaults = {
     Alignment = "Right",
@@ -53,6 +54,7 @@ function SelectionPanel.new()
 
     local tabs: { Tab } = {}
     local openTabName: string | nil
+    local sections: { Frame } = {}
 
     local containerMaid = Maid.new()
     local drawMaid = Maid.new()
@@ -67,6 +69,9 @@ function SelectionPanel.new()
     local closeButton: typeof(ExitButton.new())
     local backwardArrow: AnimatedButton.AnimatedButton
     local forwardArrow: AnimatedButton.AnimatedButton
+
+    local defaultBackgroundPosition: UDim2
+    local defaultScrollingFrameSize: UDim2
 
     local tabsIndex = 1
 
@@ -129,6 +134,25 @@ function SelectionPanel.new()
         return visibleTabs
     end
 
+    local function getSection(widgetIndex: number)
+        return sections[MathUtil.wrapAround(widgetIndex, size)]
+    end
+
+    local function resize()
+        if alignment == "Left" then
+            backgroundFrame.Position = defaultBackgroundPosition + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+        elseif alignment == "Right" then
+            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+        elseif alignment == "Bottom" then
+            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
+        else
+            error(("Missing edgecase for %q"):format(alignment))
+        end
+    end
+
     local function createContainer()
         containerMaid:Cleanup()
 
@@ -170,13 +194,20 @@ function SelectionPanel.new()
 
         -- Tabs
         tabsFrame = backgroundFrame.Side.Tabs
-
         tabsFrame.Selected.Visible = false
         tabsFrame.template.Visible = false
 
         -- Widgets
         scrollingFrame = backgroundFrame.Back.ScrollingFrame
-        scrollingFrame.Section.template.Visible = false
+        scrollingFrame.sectionTemplate.Visible = false
+        scrollingFrame.sectionTemplate.template.Visible = false
+
+        -- Misc
+        defaultBackgroundPosition = backgroundFrame.Position
+        defaultScrollingFrameSize = scrollingFrame.Size
+
+        -- Logic
+        resize()
     end
 
     function draw(updatedAlignment: boolean?)
@@ -247,13 +278,15 @@ function SelectionPanel.new()
         -- Widgets
         if openTab then
             for i, widget in pairs(openTab.Widgets) do
-                local widgetFrame: Frame = scrollingFrame.Section.template:Clone() --todo temp
+                local section = getSection(i)
+
+                local widgetFrame: Frame = section.template:Clone() --todo temp
                 widgetFrame.Name = widget.Name
                 widgetFrame.LayoutOrder = i
                 widgetFrame.Background.Icon.Image = widget.ImageId or ""
                 widgetFrame.Background.Icon.ImageColor3 = widget.ImageColor
                 widgetFrame.Visible = true
-                widgetFrame.Parent = scrollingFrame.Section
+                widgetFrame.Parent = section
                 drawMaid:GiveTask(widgetFrame)
 
                 local widgetButton = AnimatedButton.new(widgetFrame.Background)
@@ -301,6 +334,24 @@ function SelectionPanel.new()
     -- Sets the row/column count (depends on alignment)
     function selectionPanel:SetSize(newSize: number)
         size = newSize
+
+        -- Clear old Sections
+        for _, oldSection in pairs(sections) do
+            oldSection:Destroy()
+        end
+        sections = {}
+
+        -- Create New
+        for i = 1, newSize do
+            local section: Frame = scrollingFrame.sectionTemplate:Clone()
+            section.Name = ("Section %d"):format(i)
+            section.LayoutOrder = i
+            section.Visible = true
+            section.Parent = scrollingFrame
+            table.insert(sections, section)
+        end
+
+        resize()
         draw()
     end
 
@@ -396,6 +447,7 @@ function SelectionPanel.new()
     -------------------------------------------------------------------------------
 
     draw(true)
+    selectionPanel:SetSize(size)
 
     return selectionPanel
 end
