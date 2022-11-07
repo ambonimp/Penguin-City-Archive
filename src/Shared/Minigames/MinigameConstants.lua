@@ -18,6 +18,8 @@ export type SessionConfig = {
     -- Play types
     SinglePlayer: boolean,
     Multiplayer: boolean,
+    --
+    HigherScoreWins: boolean,
 }
 
 MinigameConstants.Minigames = {

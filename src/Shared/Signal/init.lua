@@ -27,7 +27,7 @@ function Signal.new()
         for _, connectionHandler in pairs(connections) do
             task.spawn(connectionHandler, ...) -- Use spawn rather than coroutine because debug trace is better
         end
-        resumeAllThreads(yields, ...)
+        resumeAllThreads(...)
     end
 
     --[[

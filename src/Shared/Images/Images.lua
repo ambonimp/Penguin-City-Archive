@@ -76,6 +76,13 @@ Images.Coins = {
     Coin = "rbxassetid://11152355612",
 }
 --#endregion
+--#region Minigame
+Images.Minigames = {
+    Medal1 = "rbxassetid://11494007933",
+    Medal2 = "rbxassetid://11494007344",
+    Medal3 = "rbxassetid://11494007246",
+}
+--#endregion
 --#region PizzaMinigame
 Images.PizzaMinigame = {
     Squid = "rbxassetid://11152398223",

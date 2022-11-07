@@ -9,7 +9,9 @@ local Binder = require(Paths.Shared.Binder)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraController = require(Paths.Client.CameraController)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
@@ -17,8 +19,15 @@ local COUNTDOWN_BIND_KEY = "CountingDown:D"
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
+local localPlayer = Players.LocalPlayer
+
+local templates = Paths.Templates.Minigames
+
 local screenGuis: Folder = Paths.UI.Minigames
 local camera: Camera = Workspace.CurrentCamera
+
+local standingsFrame: Frame = screenGuis.Shared.Standings
+local standingsClose = KeyboardButton.new()
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -80,6 +89,41 @@ function MinigameScreenUtil.closeMenu()
     end
 end
 
+function MinigameScreenUtil.openStandings(standings: { { Player: Player, Score: number? } }, scoreFormatter: (number) -> (string | number)?)
+    local myPlacement
+    local labels: { Frame } = {}
+
+    for placement, standing in pairs(standings) do
+        local player = standing.Player
+
+        local label: Frame = templates.PlayerScore:Clone()
+        label.PlayerName.Text = player.Name
+        label.Medal.Image = Images.Minigames["Medal" .. placement] or ""
+
+        local score = standing.Score
+        if score and scoreFormatter then
+            score = scoreFormatter(score)
+        end
+        label.Score.Text = score or ""
+
+        label.Parent = standingsFrame.List
+        table.insert(labels, label)
+
+        if player == localPlayer then
+            myPlacement = placement
+        end
+    end
+
+    standingsFrame.Logo.Image = Images[MinigameController.getMinigame()].Logo
+    -- standingsFrame.Placement.Text = "You placed " .. myPlacement
+
+    ScreenUtil.inUp(standingsFrame)
+    standingsClose.InternalRelease:Wait()
+    for _, label in pairs(labels) do
+        label:Destroy()
+    end
+end
+
 function MinigameScreenUtil.coreCountdown(timeLeft: number)
     local label: ImageLabel = getScreenGui().Countdown
     local initialLabelSize: UDim2 = Binder.bindFirst(label, "InitialSize", label.Size)
@@ -106,5 +150,17 @@ function MinigameScreenUtil.coreCountdown(timeLeft: number)
             )
         end)
 end
+
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
+-- Standings
+standingsClose:SetColor(UIConstants.Colors.Buttons.NextTeal, true)
+standingsClose:SetText("Next", true)
+standingsClose:Mount(standingsFrame.Next, true)
+standingsClose:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
+standingsClose.InternalRelease:Connect(function()
+    ScreenUtil.outDown(standingsFrame)
+end)
 
 return MinigameScreenUtil

@@ -1,8 +1,11 @@
 --[[
     Simple but powerful Finite State Machine implementation with state change callbacks and scheduling capabilities.
-]]
+    ]]
 local StateMachine = {}
 StateMachine.__index = StateMachine
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Signal = require(ReplicatedStorage.Shared.Signal)
 
 type Operation = string
 
@@ -45,7 +48,7 @@ function StateMachine.new(states: { string }, initialState: string)
         stateStack = { initialState },
         lastData = {},
         isDebugPrintingEnabled = false,
-        eventGlobal = Instance.new("BindableEvent"),
+        eventGlobal = Signal.new(),
     }
     setmetatable(self, StateMachine)
 
@@ -361,7 +364,7 @@ end
     Adds a callback function that's called every time this machine changes its state.
 ]]
 function StateMachine:RegisterGlobalCallback(callback: (fromState: string, toState: string, data: table?) -> ()): RBXScriptConnection
-    return self.eventGlobal.Event:Connect(callback)
+    return self.eventGlobal:Connect(callback)
 end
 
 --[[

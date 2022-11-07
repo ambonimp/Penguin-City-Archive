@@ -66,6 +66,8 @@ function SledRaceSession.new(id: string, participants: { Player })
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
+    minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.IntermissionLength)
+
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
         -- Make characters etherial
         local collisionId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.SledRaceCharacters)
@@ -153,7 +155,7 @@ function SledRaceSession.new(id: string, participants: { Player })
 
     stateMachine:RegisterStateCallbacks(MinigameConstants.States.Core, function()
         local startTime = os.clock()
-        local finishTimes: { [Player]: number } = {}
+        local finished: { Player } = {}
 
         for _, partipant in pairs(participants) do
             SledRaceUtil.unanchorSled(partipant)
@@ -201,22 +203,26 @@ function SledRaceSession.new(id: string, participants: { Player })
 
         stateMaid:GiveTask(map.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
-            if player and not finishTimes[player] then
-                print("FINISHED SERVER")
-                finishTimes[player] = os.clock()
+            if player and not table.find(finished, player) then
+                table.insert(finished, player)
+                minigameSession:IncrementScore(startTime - os.clock())
+
+                if #finished == #participants then
+                    task.wait(3)
+                    if stateMachine:GetState() == MinigameConstants.States.Core then
+                        stateMachine:Push(MinigameConstants.States.AwardShow)
+                    end
+                end
             end
         end))
     end, function()
-        stateMaid:Destroy()
+        stateMaid:Cleanup()
     end)
 
     stateMachine:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
-        -- TODO
         stateMaid:Cleanup()
-    end, function()
         participantData = {}
-        stateMaid:Cleanup()
-    end)
+    end, function() end)
 
     minigameSession:Start()
 

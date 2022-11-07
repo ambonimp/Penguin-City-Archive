@@ -12,6 +12,7 @@ local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCollectables)
 local ProgressLineController = require(Paths.Client.Minigames.SledRace.SledRaceProgressLine)
 local MinigameScreenUtil = require(Paths.Client.UI.Screens.Minigames.MinigameScreenUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
@@ -68,6 +69,13 @@ end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, nil, function()
     raceMaid:Cleanup()
+end)
+
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
+    MinigameScreenUtil.openStandings(data.Scores, function(score)
+        return MathUtil.round(score, 2) .. "s"
+    end)
+    MinigameScreenUtil.openMenu()
 end)
 
 return SledRaceController

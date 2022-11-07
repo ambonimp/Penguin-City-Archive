@@ -16,6 +16,8 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     -- Play types
     SinglePlayer = true,
     Multiplayer = true,
+    --
+    HigherScoreWins = true,
 }
 
 SledRaceConstants.SessionConfig = sessionConfig

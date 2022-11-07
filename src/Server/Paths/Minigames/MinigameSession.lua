@@ -9,6 +9,7 @@ local Maid = require(Paths.Packages.maid)
 local Signal = require(Paths.Shared.Signal)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
@@ -35,9 +36,12 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     maid:GiveTask(ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone()))
 
     local participants: Participants = {}
+    local scores: { [Player]: number }?
     local isMultiplayer: boolean = #startingParticipants > 1
 
     local config: MinigameConstants.SessionConfig = MinigameUtil.getSessionConfigs(minigameName)
+
+    local defaultScore: number?
 
     -------------------------------------------------------------------------------
     -- PUBLIC MEMBERS
@@ -138,7 +142,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
                 if state == STATES.Core or state == STATES.CoreCountdown then
-                    stateMachine:Push(STATES.Intermission) -- This will then go to WaitingForPlayers
+                    stateMachine:Replace(STATES.Intermission) -- This will then go to WaitingForPlayers
                 end
             end
 
@@ -168,7 +172,29 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         return length == 0
     end
 
+    function minigameSession:SetDefaultScore(score: number)
+        defaultScore = score
+    end
+
+    function minigameSession:IncrementScore(participant: Player, addend: number)
+        -- ERROR: State is invalid
+        if stateMachine:GetState() ~= STATES.Core then
+            error(("%s minigame attempting to set score outside of the core state : %s"):format(minigameName, debug.traceback()))
+        end
+
+        if scores[participant] then
+            scores[participant] += addend
+        else
+            scores[participant] = addend
+        end
+    end
+
     function minigameSession:Start() -- Ideally, all events have been connected and everything is ready to go when you run this
+        -- ERROR: No default score was set
+        if not defaultScore then
+            error(minigameName .. " minigame doesn't have a default default score set")
+        end
+
         for _, player in pairs(startingParticipants) do
             minigameSession:AddParticipant(player)
         end
@@ -184,13 +210,13 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         if isMultiplayer then
-            stateMachine:Push(STATES.Intermission)
+            stateMachine:Replace(STATES.Intermission)
         else
             maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
-                    stateMachine:Push(STATES.Intermission)
+                    stateMachine:Replace(STATES.Intermission)
                 end
             end))
         end
@@ -204,7 +230,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         stateMachine:RegisterStateCallbacks(STATES.WaitingForPlayers, function()
             minigameSession.WaitingForPlayers = minigameSession.ParticipantAdded:Connect(function()
                 if #participants >= config.MinParticipants then
-                    stateMachine:Push(STATES.Intermission)
+                    stateMachine:Replace(STATES.Intermission)
                 end
             end)
         end)
@@ -213,7 +239,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if isMultiplayer then
                 -- RETURN: Waiting for more players
                 if #participants < config.MinParticipants then
-                    stateMachine:Push(STATES.WaitingForPlayers)
+                    stateMachine:Replace(STATES.WaitingForPlayers)
                     return
                 end
 
@@ -224,28 +250,61 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             end
 
             if config.CoreCountdown then
-                stateMachine:Push(STATES.CoreCountdown)
+                stateMachine:Replace(STATES.CoreCountdown)
             else
-                stateMachine:Push(STATES.Core)
+                stateMachine:Replace(STATES.Core)
             end
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.CoreCountdown, function()
             if minigameSession:CountdownSync(4) then
-                stateMachine:Push(STATES.Core)
+                stateMachine:Replace(STATES.Core)
             end
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.Core, function()
+            scores = {}
+
             if minigameSession:CountdownSync(config.CoreLength) then
-                stateMachine:Push(STATES.AwardShow)
+                stateMachine:Replace(STATES.AwardShow)
             end
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.AwardShow, function()
+            for _, participant in pairs(participants) do
+                if not scores[participant] then
+                    scores[participant] = defaultScore
+                end
+            end
+
+            local sortedScores = {}
+            local unsorted = TableUtil.deepClone(scores)
+            for i = 1, #participants do
+                local minScore: number = math.huge
+                local minPlayer: Player?
+
+                for player, score in pairs(unsorted) do
+                    if score < minScore then
+                        minScore = score
+                        minPlayer = player
+                    end
+                end
+
+                table.insert(sortedScores, { Player = minPlayer, Score = minScore })
+                unsorted[minPlayer] = nil
+            end
+
+            if config.HigherScoreWins then
+                sortedScores = ArrayUtil.flip(sortedScores)
+            end
+
+            stateMachine:GetData().Scores = sortedScores
+
+            scores = nil
+
             if isMultiplayer then
                 minigameSession:CountdownSync(config.AwardShowLength)
-                stateMachine:Push(STATES.Intermission)
+                stateMachine:Replace(STATES.Intermission)
             end
         end)
     end
