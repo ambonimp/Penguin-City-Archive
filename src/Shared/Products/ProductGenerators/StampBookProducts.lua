@@ -24,10 +24,10 @@ local function getImageId(categoryName: string, property: any): string
     end
 
     if categoryName == "Seal" then
-        if property.Icon and property.Icon ~= "" then
-            return property.Icon
-        else
+        if property.Icon and property.Icon == "" then
             return Images.Icons.Seal
+        else
+            return property.Icon
         end
     end
 
@@ -48,7 +48,7 @@ local function getImageColor(categoryName: string, property: any): Color3
     end
 
     if categoryName == "Seal" then
-        if property.Icon and property.Icon ~= "" then
+        if property.Icon and property.Icon == "" then
             return property.Color
         else
             return COLOR_BLACK

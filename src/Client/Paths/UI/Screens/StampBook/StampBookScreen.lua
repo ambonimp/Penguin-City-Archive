@@ -99,6 +99,46 @@ local function toggleEditMode(forceEnabled: boolean?)
     end
 end
 
+-- Updates the cover based on our StampBook data
+local function readStampData()
+    -- Stamps
+    if not currentStampData.IsLoading then
+        for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
+            local stamp = StampUtil.getStampFromId(stampId)
+            if stamp then
+                local stampButton = StampButton.new(stamp)
+                stampButton:GetButtonObject().LayoutOrder = i
+                stampButton:Mount(cover.Stamps)
+
+                viewMaid:GiveTask(stampButton)
+            end
+        end
+    end
+
+    -- Seal
+    local seal = currentStampData.StampBook.Seal
+    cover.Seal.Button.ImageColor3 = StampConstants.StampBook.Seal[seal].Color
+    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seal[seal].Icon
+
+    -- Pattern
+    local pattern = currentStampData.StampBook.CoverPattern
+    cover.Pattern.Image = Images.StampBook.Patterns[pattern]
+
+    -- Cover
+    local coverColor = currentStampData.StampBook.CoverColor
+    cover.ImageColor3 = StampConstants.StampBook.CoverColor[coverColor]
+
+    -- Text
+    cover.PlayerName.Text = currentPlayer.DisplayName
+    cover.PlayerName.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
+
+    cover.TotalStamps.Text = ("TOTAL: %s/%s"):format(
+        currentStampData.IsLoading and "?" or tostring(#currentStampData.OwnedStamps),
+        StampUtil.getTotalStamps()
+    )
+    cover.TotalStamps.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
+end
+
 function StampBookScreen.Init()
     -- UI Setup
     do
@@ -148,19 +188,23 @@ function StampBookScreen.Init()
 
         -- Cover Color
         editPanel:AddTab(TABS.CoverColor, Images.Icons.PaintBucket)
-        for colorName, color in pairs(StampConstants.StampBook.CoverColor) do
+        for colorName, _color in pairs(StampConstants.StampBook.CoverColor) do
             local product = ProductUtil.getStampBookProduct("CoverColor", colorName)
             editPanel:AddProductWidget(TABS.CoverColor, product, function()
-                print(colorName, color)
+                currentStampData.StampBook.CoverColor = colorName
+                readStampData()
+                --todo inform server
             end)
         end
 
         -- Text Color
         editPanel:AddTab(TABS.TextColor, Images.Icons.Text)
-        for colorName, color in pairs(StampConstants.StampBook.TextColor) do
+        for colorName, _color in pairs(StampConstants.StampBook.TextColor) do
             local product = ProductUtil.getStampBookProduct("TextColor", colorName)
             editPanel:AddProductWidget(TABS.TextColor, product, function()
-                print(colorName, color)
+                currentStampData.StampBook.TextColor = colorName
+                readStampData()
+                --todo inform server
             end)
         end
 
@@ -172,19 +216,23 @@ function StampBookScreen.Init()
 
         -- Seal
         editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
-        for sealName, sealInfo in pairs(StampConstants.StampBook.Seal) do
+        for sealName, _sealInfo in pairs(StampConstants.StampBook.Seal) do
             local product = ProductUtil.getStampBookProduct("Seal", sealName)
             editPanel:AddProductWidget(TABS.Seal, product, function()
-                print(sealName, sealInfo)
+                currentStampData.StampBook.Seal = sealName
+                readStampData()
+                --todo inform server
             end)
         end
 
         -- Pattern
         editPanel:AddTab(TABS.Pattern, Images.Icons.Book)
-        for patternName, imageId in pairs(StampConstants.StampBook.CoverPattern) do
+        for patternName, _imageId in pairs(StampConstants.StampBook.CoverPattern) do
             local product = ProductUtil.getStampBookProduct("CoverPattern", patternName)
             editPanel:AddProductWidget(TABS.Pattern, product, function()
-                print(patternName, imageId)
+                currentStampData.StampBook.CoverPattern = patternName
+                readStampData()
+                --todo inform server
             end)
         end
 
@@ -256,38 +304,7 @@ function StampBookScreen.openCover()
     playerIcon:Mount(cover.Picture.IconHolder, true)
     viewMaid:GiveTask(playerIcon)
 
-    -- Stamps
-    if not currentStampData.IsLoading then
-        for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
-            local stamp = StampUtil.getStampFromId(stampId)
-            if stamp then
-                local stampButton = StampButton.new(stamp)
-                stampButton:GetButtonObject().LayoutOrder = i
-                stampButton:Mount(cover.Stamps)
-
-                viewMaid:GiveTask(stampButton)
-            end
-        end
-    end
-
-    -- Seal
-    local seal = currentStampData.StampBook.Seal
-    cover.Seal.Button.ImageColor3 = StampConstants.StampBook.Seal[seal].Color
-    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seal[seal].Icon
-
-    -- Pattern
-    local pattern = currentStampData.StampBook.CoverPattern
-    cover.Pattern.Image = Images.StampBook.Patterns[pattern]
-
-    -- Text
-    cover.PlayerName.Text = currentPlayer.DisplayName
-    cover.PlayerName.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
-
-    cover.TotalStamps.Text = ("TOTAL: %s/%s"):format(
-        currentStampData.IsLoading and "?" or tostring(#currentStampData.OwnedStamps),
-        StampUtil.getTotalStamps()
-    )
-    cover.TotalStamps.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
+    readStampData()
 end
 
 function StampBookScreen.openInside()
@@ -386,7 +403,8 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
     )
 
     -- Pattern
-    --todo
+    local pattern = currentStampData.StampBook.CoverPattern
+    inside.Chapter.Pattern.Image = Images.StampBook.Patterns[pattern]
 
     -- Stamps
     for i, stamp in pairs(chapterPage.Stamps) do
