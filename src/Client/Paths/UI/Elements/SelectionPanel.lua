@@ -18,6 +18,7 @@ type Widget = {
     Name: string,
     ImageId: string,
     ImageColor: Color3,
+    Callback: (() -> nil)?,
 }
 
 type Tab = {
@@ -293,6 +294,10 @@ function SelectionPanel.new()
                 widgetButton:SetHoverAnimation(AnimatedButton.Animations.Nod)
                 widgetButton:SetPressAnimation()
                 drawMaid:GiveTask(widgetButton)
+
+                if widget.Callback then
+                    widgetButton.Pressed:Connect(widget.Callback)
+                end
             end
         end
 
@@ -395,7 +400,7 @@ function SelectionPanel.new()
         selectionPanel:OpenTab()
     end
 
-    function selectionPanel:AddWidget(tabName: string, widgetName: string, imageId: string, imageColor: Color3?)
+    function selectionPanel:AddWidget(tabName: string, widgetName: string, imageId: string, imageColor: Color3?, callback: (() -> nil)?)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -413,6 +418,7 @@ function SelectionPanel.new()
             Name = widgetName,
             ImageId = imageId,
             ImageColor = imageColor or COLOR_WHITE,
+            Callback = callback,
         }
         table.insert(tab.Widgets, widget)
 

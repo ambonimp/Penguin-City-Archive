@@ -148,30 +148,40 @@ function StampBookScreen.Init()
         -- Cover Color
         editPanel:AddTab(TABS.CoverColor, Images.Icons.PaintBucket)
         for colorName, color in pairs(StampConstants.StampBook.CoverColors) do
-            editPanel:AddWidget(TABS.CoverColor, colorName, Images.Icons.Paint, color)
+            editPanel:AddWidget(TABS.CoverColor, colorName, Images.Icons.Paint, color, function()
+                print(colorName, color)
+            end)
         end
 
         -- Text Color
         editPanel:AddTab(TABS.TextColor, Images.Icons.Text)
         for colorName, color in pairs(StampConstants.StampBook.TextColors) do
-            editPanel:AddWidget(TABS.TextColor, colorName, Images.Icons.Paint, color)
+            editPanel:AddWidget(TABS.TextColor, colorName, Images.Icons.Paint, color, function()
+                print(colorName, color)
+            end)
         end
 
         -- Stamps
         editPanel:AddTab(TABS.Stamps, Images.Icons.Badge)
-        editPanel:AddWidget(TABS.Stamps, "Add", Images.Icons.Add, COLOR_BLACK)
+        editPanel:AddWidget(TABS.Stamps, "Add", Images.Icons.Add, COLOR_BLACK, function()
+            print("add stamp")
+        end)
 
         -- Seal
         editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
         for sealName, sealInfo in pairs(StampConstants.StampBook.Seals) do
             local icon = sealInfo.Icon ~= "" and sealInfo.Icon or Images.Icons.Seal
-            editPanel:AddWidget(TABS.Seal, sealName, icon, sealInfo.Icon == "" and sealInfo.Color or COLOR_BLACK)
+            editPanel:AddWidget(TABS.Seal, sealName, icon, sealInfo.Icon == "" and sealInfo.Color or COLOR_BLACK, function()
+                print(sealName, sealInfo)
+            end)
         end
 
         -- Pattern
         editPanel:AddTab(TABS.Pattern, Images.Icons.Book)
         for patternName, imageId in pairs(StampConstants.StampBook.CoverPattern) do
-            editPanel:AddWidget(TABS.Pattern, patternName, imageId, COLOR_BLACK)
+            editPanel:AddWidget(TABS.Pattern, patternName, imageId, COLOR_BLACK, function()
+                print(patternName, imageId)
+            end)
         end
 
         ScreenUtil.outLeft(editPanel:GetContainer())
