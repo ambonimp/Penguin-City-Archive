@@ -14,6 +14,17 @@ local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local RichTextUtil = require(Paths.Shared.Utils.RichTextUtil)
+
+local RICH_TEXT_BRONZE = RichTextUtil.addTag(RichTextUtil.addTag("Bronze", "b"), "font", {
+    RichTextUtil.getRGBTagContent(StampConstants.TierColors.Bronze),
+})
+local RICH_TEXT_SILVER = RichTextUtil.addTag(RichTextUtil.addTag("Silver", "b"), "font", {
+    RichTextUtil.getRGBTagContent(StampConstants.TierColors.Silver),
+})
+local RICH_TEXT_GOLD = RichTextUtil.addTag(RichTextUtil.addTag("Gold", "b"), "font", {
+    RichTextUtil.getRGBTagContent(StampConstants.TierColors.Gold),
+})
 
 local screenGui: ScreenGui = Ui.StampInfo
 local containerFrame: Frame = screenGui.Container
@@ -47,7 +58,8 @@ function StampInfoScreen.open(stampId: string, progress: number?)
     end
     progress = StampUtil.calculateProgressNumber(stamp, progress)
 
-    local useTier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress) or Stamps.StampTiers[1]
+    local currentTier = StampUtil.getTierFromProgress(stamp, progress)
+    local useTier = stamp.IsTiered and currentTier or Stamps.StampTiers[1]
 
     -- Basics
     titleLabel.Text = stamp.DisplayName
@@ -62,10 +74,15 @@ function StampInfoScreen.open(stampId: string, progress: number?)
     -- Tiers
     tiersFrame.Visible = stamp.IsTiered
     if stamp.IsTiered then
-        bronzeTierLabel.Text = ("<b>Bronze</b> | %d"):format(stamp.Tiers.Bronze)
-        silverTierLabel.Text = ("<b>Silver</b> | %d"):format(stamp.Tiers.Silver)
-        goldTierLabel.Text = ("<b>Gold</b> | %d"):format(stamp.Tiers.Gold)
-        currentTierLabel.Text = ("<b>%s</b> (%d)"):format(StampUtil.getTierFromProgress(stamp, progress) or "-", progress)
+        bronzeTierLabel.Text = ("%s | %d"):format(RICH_TEXT_BRONZE, stamp.Tiers.Bronze)
+        silverTierLabel.Text = ("%s | %d"):format(RICH_TEXT_SILVER, stamp.Tiers.Silver)
+        goldTierLabel.Text = ("%s | %d"):format(RICH_TEXT_GOLD, stamp.Tiers.Gold)
+
+        local currentText = currentTier == "Gold" and RICH_TEXT_GOLD
+            or currentTier == "Silver" and RICH_TEXT_SILVER
+            or currentTier == "Bronze" and RICH_TEXT_BRONZE
+            or "-"
+        currentTierLabel.Text = ("%s (%d)"):format(currentText, progress)
     end
 end
 
