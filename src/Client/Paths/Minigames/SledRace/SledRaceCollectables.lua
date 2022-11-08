@@ -153,6 +153,7 @@ function SledRaceCollectables.setup()
     end)
 
     return function()
+        hitbox:Destroy()
         colliding:Disconnect()
     end
 end

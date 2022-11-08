@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
+local Remotes = require(Paths.Shared.Remotes)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDriving)
@@ -75,7 +76,13 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     MinigameScreenUtil.openStandings(data.Scores, function(score)
         return MathUtil.round(score, 2) .. "s"
     end)
-    MinigameScreenUtil.openMenu()
+
+    if MinigameController.isMultiplayer() then
+        --
+    else
+        Remotes.fireServer("MinigameRestarted")
+        MinigameScreenUtil.openMenu()
+    end
 end)
 
 return SledRaceController

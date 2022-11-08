@@ -187,7 +187,6 @@ Remotes.bindEvents({
             setState(INITIALIZATION_STATE)
         end
         setState(state)
-        print(uiStateMachine:GetState())
         uiStateMachine:Push(UIConstants.States.Minigame)
     end,
     MinigameExited = function()

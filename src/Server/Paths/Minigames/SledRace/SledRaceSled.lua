@@ -3,7 +3,6 @@ local SledRaceSled = {}
 local PhysicsService = game:GetService("PhysicsService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
-local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
@@ -21,16 +20,18 @@ local sledTemplate = ServerStorage.Minigames.SledRace.Sled
 function SledRaceSled.spawnSled(player: Player, spawnPoint: BasePart)
     SledRaceSled.removeSled(player)
 
-    local character: Model = player.Character
-    local model: Model = sledTemplate:Clone()
-    model.Name = SledRaceConstants.SledName
-    model:PivotTo(spawnPoint.CFrame * CFrame.new(0, (-spawnPoint.Size + model:GetExtentsSize()).Y / 2, 0))
-    model.Parent = character
+    task.defer(function()
+        local character: Model = player.Character
+        local model: Model = sledTemplate:Clone()
+        model.Name = SledRaceConstants.SledName
+        model:PivotTo(spawnPoint.CFrame * CFrame.new(0, (-spawnPoint.Size + model:GetExtentsSize()).Y / 2, 0))
+        model.Parent = character
 
-    local seat: Seat = model.Seat
-    local seatWeld: Weld = BasePartUtil.weld(seat, character.HumanoidRootPart, seat, "Weld")
-    seatWeld.Name = "SeatWeld"
-    seatWeld.C0 = CFrame.new((seat.Size / 2 + character.Body.Main_Bone.Position) * Vector3.new(0, -1, 0))
+        local seat: Seat = model.Seat
+        local seatWeld: Weld = BasePartUtil.weld(seat, character.HumanoidRootPart, seat, "Weld")
+        seatWeld.Name = "SeatWeld"
+        seatWeld.C0 = CFrame.new((seat.Size / 2 + character.Body.Main_Bone.Position) * Vector3.new(0, -1, 0))
+    end)
 end
 
 function SledRaceSled.removeSled(player)
@@ -54,7 +55,7 @@ do
     physicsPart.CanCollide = true
     physicsPart.Anchored = true
     physicsPart.Color = Color3.fromRGB(255, 0, 0)
-    physicsPart.Transparency = 0
+    physicsPart.Transparency = 1
     PhysicsService:SetPartCollisionGroup(physicsPart, CollisionsConstants.Groups.SledRaceSleds)
     physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
 

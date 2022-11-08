@@ -95,12 +95,12 @@ function BasePartUtil.getRandomPointInPart(part: BasePart)
     )).Position
 end
 
-function BasePartUtil.weld(mainPart: BasePart, otherPart: BasePart, parent: BasePart?, constraintType: string?)
+function BasePartUtil.weld(part0: BasePart, part1: BasePart, parent: BasePart?, constraintType: string?)
     local constraint = Instance.new(constraintType or "WeldConstraint")
-    constraint.Name = otherPart:GetFullName()
-    constraint.Part0 = mainPart
-    constraint.Part1 = otherPart
-    constraint.Parent = parent or mainPart
+    constraint.Name = part1:GetFullName()
+    constraint.Part0 = part0
+    constraint.Part1 = part1
+    constraint.Parent = parent or part0
 
     return constraint
 end

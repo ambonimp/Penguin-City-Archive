@@ -13,7 +13,6 @@ local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConsta
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local SledRaceSled = require(Paths.Server.Minigames.SledRace.SledRaceSled)
 local SledRaceMap = require(Paths.Server.Minigames.SledRace.SledRaceMap)
-local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
 local XY = Vector3.new(1, 0, 1)
@@ -32,7 +31,6 @@ function SledRaceSession.new(id: string, participants: { Player })
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
     local mapDirection: CFrame = mapOrigin.Rotation
 
-    local stateMachine = minigameSession:GetStateMachine()
     local stateMaid = Maid.new()
 
     local maid = minigameSession:GetMaid()
@@ -85,14 +83,7 @@ function SledRaceSession.new(id: string, participants: { Player })
     -------------------------------------------------------------------------------
     -- States
     -------------------------------------------------------------------------------
-    stateMachine:RegisterStateCallbacks(MinigameConstants.States.Intermission, function()
-        -- Respawn at spawn points
-        for i, participant in pairs(participants) do
-            SledRaceSled.spawnSled(participant, spawnPoints[i])
-        end
-    end)
-
-    stateMachine:RegisterStateCallbacks(MinigameConstants.States.CoreCountdown, function()
+    minigameSession:RegisterStateCallbacks(MinigameConstants.States.CoreCountdown, function()
         participantData = {}
 
         for _, participant in pairs(minigameSession:GetParticipants()) do
@@ -109,20 +100,15 @@ function SledRaceSession.new(id: string, participants: { Player })
                 The client decides when to start moving given the information the server provides it
                 If the client exploits this, we catch it because we monitor velocity
             ]]
-            SledRaceUtil.unanchorSled(participant)
-            SledRaceUtil.getSled(participant).PrimaryPart:SetNetworkOwner(participant)
+            local sledPhysics = character:WaitForChild(SledRaceConstants.SledName):WaitForChild("Physics")
+            sledPhysics.Anchored = false
+            sledPhysics:SetNetworkOwner(participant)
         end
 
         -- Validate speeds
         stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
             for participant, data in pairs(participantData) do
                 local character = participant.Character
-
-                --[[                 -- RETURN: Player left the game
-                if not character then
-                    participantData[participant] = nil
-                    return
-                end *]]
 
                 local position: Vector3 = character.PrimaryPart.Position
                 local velocity: number = (mapDirection:PointToObjectSpace(position - data.Position) * XY).Magnitude / dt
@@ -138,7 +124,7 @@ function SledRaceSession.new(id: string, participants: { Player })
         stateMaid:GiveTask(collectables)
     end)
 
-    stateMachine:RegisterStateCallbacks(MinigameConstants.States.Core, function()
+    minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
         local startTime = os.clock()
         local finished: { Player } = {}
 
@@ -194,8 +180,8 @@ function SledRaceSession.new(id: string, participants: { Player })
 
                 if #finished == #participants then
                     task.wait(3)
-                    if stateMachine:GetState() == MinigameConstants.States.Core then
-                        stateMachine:Push(MinigameConstants.States.AwardShow)
+                    if minigameSession:GetState() == MinigameConstants.States.Core then
+                        minigameSession:ChangeState(MinigameConstants.States.AwardShow)
                     end
                 end
             end
@@ -204,10 +190,15 @@ function SledRaceSession.new(id: string, participants: { Player })
         stateMaid:Cleanup()
     end)
 
-    stateMachine:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
+    minigameSession:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
         stateMaid:Cleanup()
         participantData = {}
-    end, function() end)
+    end, function()
+        -- Respawn at spawn points
+        for i, participant in pairs(participants) do
+            SledRaceSled.spawnSled(participant, spawnPoints[i])
+        end
+    end)
 
     minigameSession:Start()
 

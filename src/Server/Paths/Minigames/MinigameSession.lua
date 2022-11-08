@@ -42,6 +42,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     local config: MinigameConstants.SessionConfig = MinigameUtil.getSessionConfigs(minigameName)
 
     local defaultScore: number?
+    local started: boolean = false
 
     -------------------------------------------------------------------------------
     -- PUBLIC MEMBERS
@@ -67,8 +68,29 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     -------------------------------------------------------------------------------
     -- PUBLIC METHODS
     -------------------------------------------------------------------------------
-    function minigameSession:GetStateMachine()
-        return stateMachine
+    function minigameSession:GetState(): string
+        return stateMachine:GetState()
+    end
+
+    function minigameSession:ChangeState(state: string)
+        if stateMachine:GetState() ~= STATES.Nothing then
+            stateMachine:Pop()
+        end
+
+        stateMachine:Push(state)
+    end
+
+    function minigameSession:RegisterStateCallbacks(state: string, onOpen: (table) -> ()?, onClose: (table) -> ()?)
+        if started then
+            warn(
+                ("%s mingiame attempting to register %s callback after the minigame was started. NOTE: State changes will be relayed to the client before these handlers are invoked."):format(
+                    minigameName,
+                    state
+                )
+            )
+        end
+
+        stateMachine:RegisterStateCallbacks(state, onOpen, onClose)
     end
 
     function minigameSession:GetMap(): Model
@@ -142,7 +164,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
                 if state == STATES.Core or state == STATES.CoreCountdown then
-                    stateMachine:Push(STATES.Intermission) -- This will then go to WaitingForPlayers
+                    minigameSession:ChangeState(STATES.Intermission) -- This will then go to WaitingForPlayers
                 end
             end
 
@@ -201,7 +223,12 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
         -- Called here so that any callbacks the actual minigame registers can get run before the client is notified
         stateMachine:RegisterGlobalCallback(function(_, toState)
-            warn("SERVER", toState)
+            -- RETURN: This isn't actually the new state
+            if toState == STATES.Nothing then
+                return
+            end
+
+            warn("SERVER:", toState)
 
             local data = stateMachine:GetData()
             data.StartTime = Workspace:GetServerTimeNow()
@@ -210,16 +237,22 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         if isMultiplayer then
-            stateMachine:Push(STATES.Intermission)
+            minigameSession:ChangeState(STATES.Intermission)
         else
             maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
-                    stateMachine:Push(STATES.Intermission)
+                    minigameSession:ChangeState(STATES.Intermission)
                 end
             end))
+
+            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function(player)
+                minigameSession:ChangeState(STATES.Nothing)
+            end))
         end
+
+        started = true
     end
 
     -------------------------------------------------------------------------------
@@ -230,7 +263,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         stateMachine:RegisterStateCallbacks(STATES.WaitingForPlayers, function()
             minigameSession.WaitingForPlayers = minigameSession.ParticipantAdded:Connect(function()
                 if #participants >= config.MinParticipants then
-                    stateMachine:Push(STATES.Intermission)
+                    minigameSession:ChangeState(STATES.Intermission)
                 end
             end)
         end)
@@ -239,7 +272,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if isMultiplayer then
                 -- RETURN: Waiting for more players
                 if #participants < config.MinParticipants then
-                    stateMachine:Push(STATES.WaitingForPlayers)
+                    minigameSession:ChangeState(STATES.WaitingForPlayers)
                     return
                 end
 
@@ -250,15 +283,15 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             end
 
             if config.CoreCountdown then
-                stateMachine:Push(STATES.CoreCountdown)
+                minigameSession:ChangeState(STATES.CoreCountdown)
             else
-                stateMachine:Push(STATES.Core)
+                minigameSession:ChangeState(STATES.Core)
             end
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.CoreCountdown, function()
             if minigameSession:CountdownSync(4) then
-                stateMachine:Push(STATES.Core)
+                minigameSession:ChangeState(STATES.Core)
             end
         end)
 
@@ -266,7 +299,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             scores = {}
 
             if minigameSession:CountdownSync(config.CoreLength) then
-                stateMachine:Push(STATES.AwardShow)
+                minigameSession:ChangeState(STATES.AwardShow)
             end
         end)
 
@@ -304,7 +337,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
             if isMultiplayer then
                 minigameSession:CountdownSync(config.AwardShowLength)
-                stateMachine:Push(STATES.Intermission)
+                minigameSession:ChangeState(STATES.Intermission)
             end
         end)
     end

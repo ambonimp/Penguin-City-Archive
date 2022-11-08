@@ -8,7 +8,6 @@ local function stringsGetter()
 end
 
 local function stringToObject(minigameString: string)
-    warn(minigameString)
     return minigameString
 end
 
