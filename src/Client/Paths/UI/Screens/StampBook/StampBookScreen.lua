@@ -185,7 +185,7 @@ function readStampData()
                     readStampDataMaid:GiveTask(holder)
 
                     -- Cover Button
-                    local stampButton = StampButton.new(stamp)
+                    local stampButton = StampButton.new(stamp, progress)
                     stampButton:Mount(holder)
                     stampButton.Pressed:Connect(function()
                         StampInfoScreen.open(stampId, progress)
