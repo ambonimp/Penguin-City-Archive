@@ -36,6 +36,8 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
     button.InternalLeave = Signal.new()
     button.InternalMount = Signal.new() -- `{parent: Instance, hideParent: boolean?}`
 
+    button.MountedTo = nil :: GuiObject
+
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
@@ -126,6 +128,8 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
     function button:Mount(parent: GuiObject, hideParent: boolean?)
         buttonObject.Parent = parent
         buttonObject.ZIndex = parent.ZIndex
+
+        button.MountedTo = parent
 
         if hideParent then
             parent.Transparency = 1

@@ -152,6 +152,11 @@ function KeyboardButton.new()
     end
 
     local function adjustIconAndText()
+        -- RETURN: Not mounted yet!
+        if not keyboardButton.MountedTo then
+            return
+        end
+
         -- RETURN: No icon
         if not icon then
             return
@@ -418,6 +423,8 @@ function KeyboardButton.new()
             textLabel.ZIndex = imageButton.ZIndex + 1
         end
         back.ZIndex = imageButton.ZIndex - 1
+
+        adjustIconAndText()
     end)
     keyboardButton.InternalPress:Connect(function()
         pressKeyboardButton()
