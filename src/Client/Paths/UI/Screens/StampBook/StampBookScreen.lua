@@ -30,6 +30,7 @@ local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local StampController = require(Paths.Client.StampController)
 local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local Remotes = require(Paths.Shared.Remotes)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -67,7 +68,7 @@ local currentStampData = {
 }
 local updatedStampBookData: { [string]: any } = {
     CoverStampIds = {},
-}
+} --!! Gets reset
 local loadedStampData = Promise.new(function() end) -- Intellisense hack
 local currentView: "Cover" | "Inside"
 local viewMaid = Maid.new()
@@ -108,12 +109,12 @@ end
 
 local function addCoverStamp(stamp: Stamps.Stamp)
     -- RETURN: Too many
-    if #currentStampData.StampBook.CoverStampIds >= StampConstants.MaxCoverStamps then
+    if #updatedStampBookData.CoverStampIds >= StampConstants.MaxCoverStamps then
         return false
     end
 
     -- RETURN: Already added
-    if table.find(currentStampData.StampBook.CoverStampIds, stamp.Id) then
+    if table.find(updatedStampBookData.CoverStampIds, stamp.Id) then
         return false
     end
 
@@ -130,8 +131,13 @@ local function addCoverStamp(stamp: Stamps.Stamp)
         end
     end
 
-    table.insert(currentStampData.StampBook.CoverStampIds, stamp.Id)
     table.insert(updatedStampBookData.CoverStampIds, stamp.Id)
+
+    local newData: { [string]: string } = {}
+    for i, stampId in pairs(updatedStampBookData.CoverStampIds) do
+        newData[tostring(i)] = stampId
+    end
+    currentStampData.StampBook.CoverStampIds = newData
 
     readStampData()
 
@@ -140,13 +146,18 @@ end
 
 local function removeCoverStamp(stamp: Stamps.Stamp)
     -- RETURN: Not added
-    local index = table.find(currentStampData.StampBook.CoverStampIds, stamp.Id)
+    local index = table.find(updatedStampBookData.CoverStampIds, stamp.Id)
     if not index then
         return false
     end
 
-    table.remove(currentStampData.StampBook.CoverStampIds, index)
     table.remove(updatedStampBookData.CoverStampIds, index)
+
+    local newData: { [string]: string } = {}
+    for i, stampId in pairs(updatedStampBookData.CoverStampIds) do
+        newData[tostring(i)] = stampId
+    end
+    currentStampData.StampBook.CoverStampIds = newData
 
     readStampData()
 
@@ -162,7 +173,7 @@ function readStampData()
         editPanel:RemoveWidgets(TABS.Stamps)
 
         if not currentStampData.IsLoading then
-            for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
+            for i, stampId in pairs(updatedStampBookData.CoverStampIds) do
                 local stamp = StampUtil.getStampFromId(stampId)
                 if stamp then
                     local progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps)
@@ -534,6 +545,9 @@ function StampBookScreen.open(player: Player)
         StampBook = StampUtil.getStampBookDataDefaults(),
         IsLoading = true,
     }
+    updatedStampBookData = {
+        CoverStampIds = {},
+    }
 
     -- Open Cover
     StampBookScreen.openCover()
@@ -542,11 +556,11 @@ function StampBookScreen.open(player: Player)
     for _, tabButton in pairs(tabButtonsByChapter) do
         deselectTabButton(tabButton:GetButtonObject())
     end
-
     -- Load State
     loadedStampData = Promise.new(function(resolve, _reject, _onCancel)
         local stampData = player == Players.LocalPlayer and DataController.get("Stamps") or DataController.getPlayer(player, "Stamps")
         currentStampData = stampData
+        updatedStampBookData.CoverStampIds = TableUtil.toArray(currentStampData.StampBook.CoverStampIds)
         resolve(currentStampData)
     end)
 
@@ -564,6 +578,10 @@ function StampBookScreen.open(player: Player)
 end
 
 function StampBookScreen.close()
+    -- Inform Server of any changes
+    Remotes.fireServer("StampBookData", updatedStampBookData)
+
+    -- Close Routine
     toggleEditMode(false)
     ScreenUtil.outUp(containerFrame)
     currentChapter = nil

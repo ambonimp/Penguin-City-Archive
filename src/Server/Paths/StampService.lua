@@ -5,6 +5,8 @@ local Paths = require(ServerScriptService.Paths)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local DataService = require(Paths.Server.Data.DataService)
+local Remotes = require(Paths.Shared.Remotes)
+local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 
 local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
@@ -93,6 +95,55 @@ function StampService.revokeStamp(player: Player, stampId: string)
         return true
     end
     return false
+end
+
+-- Communication
+do
+    Remotes.bindEvents({
+        StampBookData = function(player: Player, dirtyStampBookData: any)
+            -- RETURN: Needs a table
+            if not typeof(dirtyStampBookData) == "table" then
+                return
+            end
+
+            -- CoverColor
+            local coverColor = tostring(dirtyStampBookData.CoverColor)
+            if coverColor and StampConstants.StampBook.CoverColor[coverColor] then
+                DataService.set(player, "Stamps.StampBook.CoverColor", coverColor)
+            end
+
+            -- TextColor
+            local textColor = tostring(dirtyStampBookData.TextColor)
+            if textColor and StampConstants.StampBook.TextColor[textColor] then
+                DataService.set(player, "Stamps.StampBook.TextColor", textColor)
+            end
+
+            -- Seal
+            local seal = tostring(dirtyStampBookData.Seal)
+            if seal and StampConstants.StampBook.Seal[seal] then
+                DataService.set(player, "Stamps.StampBook.Seal", seal)
+            end
+
+            -- CoverPattern
+            local coverPattern = tostring(dirtyStampBookData.CoverPattern)
+            if coverPattern and StampConstants.StampBook.CoverPattern[coverPattern] then
+                DataService.set(player, "Stamps.StampBook.CoverPattern", coverPattern)
+            end
+
+            -- StampIds
+            local dirtyCoverStampIds = dirtyStampBookData.CoverStampIds
+            local coverStampIds: { [string]: string } = {}
+            if typeof(dirtyCoverStampIds) == "table" then
+                for i, entry in ipairs(dirtyCoverStampIds) do
+                    local stampId = tostring(entry)
+                    if StampUtil.getStampFromId(stampId) then
+                        coverStampIds[tostring(i)] = stampId
+                    end
+                end
+            end
+            DataService.set(player, "Stamps.StampBook.CoverStampIds", coverStampIds)
+        end,
+    })
 end
 
 return StampService
