@@ -14,10 +14,14 @@ local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDrivin
 local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCollectables)
 local ProgressLineController = require(Paths.Client.Minigames.SledRace.SledRaceProgressLine)
-local MinigameScreenUtil = require(Paths.Client.UI.Screens.Minigames.MinigameScreenUtil)
+local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
+local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
 
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
+
+local AWARD_SEQUENCE_DELAY = 0.5
+local RESTART_DELAY = 0.2
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
@@ -43,10 +47,19 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
 
-    MinigameScreenUtil.openMenu()
+    SharedMinigameScreen.openStartMenu()
     minigameMaid:GiveTask(function()
-        MinigameScreenUtil.closeMenu()
+        SharedMinigameScreen.closeStartMenu()
     end)
+end)
+
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
+    if MinigameController.isMultiplayer() then
+        SharedMinigameScreen.setStatusText("Intermission")
+        MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.IntermissionLength, SharedMinigameScreen.setStatusCounter)
+    end
+end, function()
+    SharedMinigameScreen.hideStatus()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
@@ -57,7 +70,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         Client tells itself when to give player control of driving
         This way people with worser ping have less of a disadvantage on start
     ]]
-    MinigameController.startCountdownAsync(4, MinigameScreenUtil.coreCountdown)
+    MinigameController.startCountdownAsync(4, SharedMinigameScreen.coreCountdown)
 
     local startingLine = MinigameController.getMap().StartingLine.PrimaryPart
     startingLine.Transparency = 1
@@ -69,22 +82,33 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     raceMaid:GiveTask(DrivingController.setup())
 end)
 
-MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, nil, function()
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
+    SharedMinigameScreen.setStatusText("Race to the bottom")
+    MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
+end, function()
+    SharedMinigameScreen.hideStatus()
     raceMaid:Cleanup()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()
-    MinigameScreenUtil.openStandings()
-    MinigameScreenUtil.openResults({
+    task.wait(AWARD_SEQUENCE_DELAY)
+
+    local isMultiplayer = MinigameController.isMultiplayer()
+
+    if isMultiplayer then
+        SharedMinigameScreen.openStandings()
+    end
+    SharedMinigameScreen.openResults({
         { Title = "Placement", Value = MinigameController.getOwnPlacement() },
         { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore()) },
         { Title = "Coins Collected", Value = 0 },
         { Title = "Total Coins", Icon = Images.Coins.Coin, Value = 45 },
     })
 
-    if not MinigameController.isMultiplayer() then
+    if not isMultiplayer then
+        task.wait(RESTART_DELAY)
         Remotes.fireServer("MinigameRestarted")
-        MinigameScreenUtil.openMenu()
+        SharedMinigameScreen.openStartMenu()
     end
 end)
 
