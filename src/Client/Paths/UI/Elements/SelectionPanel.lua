@@ -501,6 +501,22 @@ function SelectionPanel.new()
         end
     end
 
+    function selectionPanel:RemoveWidgets(tabName: string)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        tab.Widgets = {}
+
+        -- Draw if this would be visible right now
+        if openTabName == tabName then
+            draw()
+        end
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------

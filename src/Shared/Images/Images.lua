@@ -23,7 +23,8 @@ Images.ButtonIcons = {
 --#endregion
 --#region Icons
 Images.Icons = {
-    Add = "rbxassetid://11152372782",
+    AddFriend = "rbxassetid://11152372782",
+    Add = "rbxassetid://11501070397",
     Badge = "rbxassetid://11152372668",
     Bag = "rbxassetid://11152372582",
     Book = "rbxassetid://11152372490",

@@ -45,7 +45,7 @@ local TABS = {
     Seal = "Seal",
     Pattern = "Pattern",
 }
-local COLOR_BLACK = Color3.fromRGB(20, 20, 20)
+local COLOR_GREEN = Color3.fromRGB(45, 158, 0)
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container
@@ -65,6 +65,9 @@ local currentStampData = {
     StampBook = StampUtil.getStampBookDataDefaults(),
     IsLoading = true,
 }
+local updatedStampBookData: { [string]: any } = {
+    CoverStampIds = {},
+}
 local loadedStampData = Promise.new(function() end) -- Intellisense hack
 local currentView: "Cover" | "Inside"
 local viewMaid = Maid.new()
@@ -77,6 +80,10 @@ local deselectedTabColor: Color3
 local totalStampsPerPage: number
 local chapterMaid = Maid.new()
 local isEditing = false
+local readStampDataMaid = Maid.new()
+
+-- Hoist
+local function readStampData() end
 
 local function toggleEditMode(forceEnabled: boolean?)
     -- RETURN: No change
@@ -99,20 +106,90 @@ local function toggleEditMode(forceEnabled: boolean?)
     end
 end
 
--- Updates the cover based on our StampBook data
-local function readStampData()
-    -- Stamps
-    if not currentStampData.IsLoading then
-        for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
-            local stamp = StampUtil.getStampFromId(stampId)
-            if stamp then
-                local stampButton = StampButton.new(stamp)
-                stampButton:GetButtonObject().LayoutOrder = i
-                stampButton:Mount(cover.Stamps)
+local function addCoverStamp(stamp: Stamps.Stamp)
+    -- RETURN: Too many
+    if #currentStampData.StampBook.CoverStampIds >= StampConstants.MaxCoverStamps then
+        return false
+    end
 
-                viewMaid:GiveTask(stampButton)
+    -- RETURN: Already added
+    if table.find(currentStampData.StampBook.CoverStampIds, stamp.Id) then
+        return false
+    end
+
+    -- RETURN: Not owned
+    local progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps)
+    if stamp.IsTiered then
+        local tier = StampUtil.getTierFromProgress(stamp, progress)
+        if not tier then
+            return false
+        end
+    else
+        if progress == 0 then
+            return false
+        end
+    end
+
+    table.insert(currentStampData.StampBook.CoverStampIds, stamp.Id)
+    table.insert(updatedStampBookData.CoverStampIds, stamp.Id)
+
+    readStampData()
+
+    return true
+end
+
+local function removeCoverStamp(stamp: Stamps.Stamp)
+    -- RETURN: Not added
+    local index = table.find(currentStampData.StampBook.CoverStampIds, stamp.Id)
+    if not index then
+        return false
+    end
+
+    table.remove(currentStampData.StampBook.CoverStampIds, index)
+    table.remove(updatedStampBookData.CoverStampIds, index)
+
+    readStampData()
+
+    return true
+end
+
+-- Updates the cover based on our StampBook data
+function readStampData()
+    readStampDataMaid:Cleanup()
+
+    -- Stamps
+    do
+        editPanel:RemoveWidgets(TABS.Stamps)
+
+        if not currentStampData.IsLoading then
+            for i, stampId in pairs(currentStampData.StampBook.CoverStampIds) do
+                local stamp = StampUtil.getStampFromId(stampId)
+                if stamp then
+                    local progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps)
+
+                    -- Cover Button
+                    local stampButton = StampButton.new(stamp)
+                    stampButton:GetButtonObject().LayoutOrder = i
+                    stampButton:Mount(cover.Stamps)
+                    stampButton.Pressed:Connect(function()
+                        StampInfoScreen.open(stampId, progress)
+                    end)
+
+                    readStampDataMaid:GiveTask(stampButton)
+
+                    -- Widgets
+                    local tier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress) or "Bronze"
+                    local imageId = stamp.IsTiered and stamp.ImageId[tier] or stamp.ImageId
+                    editPanel:AddWidget(TABS.Stamps, stampId, imageId, nil, function()
+                        removeCoverStamp(stamp)
+                    end)
+                end
             end
         end
+
+        editPanel:AddWidget(TABS.Stamps, "Add", Images.Icons.Add, COLOR_GREEN, function()
+            StampBookScreen.openInside()
+        end)
     end
 
     -- Seal
@@ -192,8 +269,8 @@ function StampBookScreen.Init()
             local product = ProductUtil.getStampBookProduct("CoverColor", colorName)
             editPanel:AddProductWidget(TABS.CoverColor, product, function()
                 currentStampData.StampBook.CoverColor = colorName
+                updatedStampBookData.CoverColor = colorName
                 readStampData()
-                --todo inform server
             end)
         end
 
@@ -203,16 +280,13 @@ function StampBookScreen.Init()
             local product = ProductUtil.getStampBookProduct("TextColor", colorName)
             editPanel:AddProductWidget(TABS.TextColor, product, function()
                 currentStampData.StampBook.TextColor = colorName
+                updatedStampBookData.TextColor = colorName
                 readStampData()
-                --todo inform server
             end)
         end
 
         -- Stamps
         editPanel:AddTab(TABS.Stamps, Images.Icons.Badge)
-        editPanel:AddWidget(TABS.Stamps, "Add", Images.Icons.Add, COLOR_BLACK, function()
-            print("add stamp")
-        end)
 
         -- Seal
         editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
@@ -220,8 +294,8 @@ function StampBookScreen.Init()
             local product = ProductUtil.getStampBookProduct("Seal", sealName)
             editPanel:AddProductWidget(TABS.Seal, product, function()
                 currentStampData.StampBook.Seal = sealName
+                updatedStampBookData.Seal = sealName
                 readStampData()
-                --todo inform server
             end)
         end
 
@@ -231,8 +305,8 @@ function StampBookScreen.Init()
             local product = ProductUtil.getStampBookProduct("CoverPattern", patternName)
             editPanel:AddProductWidget(TABS.Pattern, product, function()
                 currentStampData.StampBook.CoverPattern = patternName
+                updatedStampBookData.CoverPattern = patternName
                 readStampData()
-                --todo inform server
             end)
         end
 
@@ -420,7 +494,14 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
         local stampButton = StampButton.new(stamp, state)
         stampButton:Mount(holder, true)
         stampButton.Pressed:Connect(function()
-            StampInfoScreen.open(stamp.Id, state.Progress)
+            if isEditing then
+                local didAdd = addCoverStamp(stamp)
+                if didAdd then
+                    Sound.play("Error")
+                end
+            else
+                StampInfoScreen.open(stamp.Id, state.Progress)
+            end
         end)
 
         chapterMaid:GiveTask(stampButton)

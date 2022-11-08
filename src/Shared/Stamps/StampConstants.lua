@@ -56,6 +56,8 @@ local stampBook: StampBook = {
 }
 StampConstants.StampBook = stampBook
 
+StampConstants.MaxCoverStamps = 6
+
 local chapters: { Chapter } = {
     --{ StampType = "Location", DisplayName = "Locations", Icon = Images.Icons.Place, LayoutByMetadataKey = "Location" }, --!! 0 Stamps at time of development
     { StampType = "Minigame", DisplayName = "Minigames", Icon = Images.Icons.Minigame, LayoutByMetadataKey = "Minigame" },
