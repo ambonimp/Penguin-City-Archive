@@ -13,13 +13,11 @@ local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConsta
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local SledRaceSled = require(Paths.Server.Minigames.SledRace.SledRaceSled)
 local SledRaceMap = require(Paths.Server.Minigames.SledRace.SledRaceMap)
-local PropertyStack = require(Paths.Shared.PropertyStack)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
-
-local PROPERTY_STACK_KEY_ETHEREAL = "SledRace.Etherial"
 
 function SledRaceSession.new(id: string, participants: { Player })
     local minigameSession = MinigameSession.new("SledRace", id, participants)
@@ -69,27 +67,14 @@ function SledRaceSession.new(id: string, participants: { Player })
     minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.IntermissionLength)
 
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
-        -- Make characters etherial
-        local collisionId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.SledRaceCharacters)
-        for _, basePart in pairs(participant.Character:GetDescendants()) do
-            if basePart:IsA("BasePart") then
-                PropertyStack.setProperty(basePart, "CollisionGroupId", collisionId, PROPERTY_STACK_KEY_ETHEREAL, math.huge)
-            end
-        end
-
+        CharacterUtil.setEthereal(participant, true, "SledRace")
         SledRaceSled.spawnSled(participant, spawnPoints[table.find(participants, participant)])
     end)
 
     minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
         if stillInGame then
             SledRaceSled.removeSled(participant)
-
-            -- Remove characters etherial
-            for _, basePart in ipairs(participant.Character:GetDescendants()) do
-                if basePart:IsA("BasePart") then
-                    PropertyStack.clearProperty(basePart, "CollisionGroupId", PROPERTY_STACK_KEY_ETHEREAL)
-                end
-            end
+            CharacterUtil.setEthereal(participant, false, "SledRace")
         end
 
         if participantData then

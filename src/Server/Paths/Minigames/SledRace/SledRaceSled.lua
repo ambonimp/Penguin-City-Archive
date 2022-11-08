@@ -53,7 +53,8 @@ do
     physicsPart.Size = size
     physicsPart.CanCollide = true
     physicsPart.Anchored = true
-    physicsPart.Transparency = 1
+    physicsPart.Color = Color3.fromRGB(255, 0, 0)
+    physicsPart.Transparency = 0
     PhysicsService:SetPartCollisionGroup(physicsPart, CollisionsConstants.Groups.SledRaceSleds)
     physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
 

@@ -59,6 +59,5 @@ setGroupCollideableWhitelist(groups.EtherealCharacters, { groups.Default })
 
 -- Sled race
 setGroupCollideableWhitelist(groups.SledRaceCollectables, { groups.Default })
-setGroupCollideableWhitelist(groups.SledRaceCharacters, {})
 
 return CollisionsService

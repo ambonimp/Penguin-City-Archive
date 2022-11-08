@@ -142,7 +142,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
                 if state == STATES.Core or state == STATES.CoreCountdown then
-                    stateMachine:Replace(STATES.Intermission) -- This will then go to WaitingForPlayers
+                    stateMachine:Push(STATES.Intermission) -- This will then go to WaitingForPlayers
                 end
             end
 
@@ -210,13 +210,13 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         if isMultiplayer then
-            stateMachine:Replace(STATES.Intermission)
+            stateMachine:Push(STATES.Intermission)
         else
             maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
-                    stateMachine:Replace(STATES.Intermission)
+                    stateMachine:Push(STATES.Intermission)
                 end
             end))
         end
@@ -230,7 +230,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         stateMachine:RegisterStateCallbacks(STATES.WaitingForPlayers, function()
             minigameSession.WaitingForPlayers = minigameSession.ParticipantAdded:Connect(function()
                 if #participants >= config.MinParticipants then
-                    stateMachine:Replace(STATES.Intermission)
+                    stateMachine:Push(STATES.Intermission)
                 end
             end)
         end)
@@ -239,7 +239,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             if isMultiplayer then
                 -- RETURN: Waiting for more players
                 if #participants < config.MinParticipants then
-                    stateMachine:Replace(STATES.WaitingForPlayers)
+                    stateMachine:Push(STATES.WaitingForPlayers)
                     return
                 end
 
@@ -250,15 +250,15 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             end
 
             if config.CoreCountdown then
-                stateMachine:Replace(STATES.CoreCountdown)
+                stateMachine:Push(STATES.CoreCountdown)
             else
-                stateMachine:Replace(STATES.Core)
+                stateMachine:Push(STATES.Core)
             end
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.CoreCountdown, function()
             if minigameSession:CountdownSync(4) then
-                stateMachine:Replace(STATES.Core)
+                stateMachine:Push(STATES.Core)
             end
         end)
 
@@ -266,7 +266,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             scores = {}
 
             if minigameSession:CountdownSync(config.CoreLength) then
-                stateMachine:Replace(STATES.AwardShow)
+                stateMachine:Push(STATES.AwardShow)
             end
         end)
 
@@ -304,7 +304,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
             if isMultiplayer then
                 minigameSession:CountdownSync(config.AwardShowLength)
-                stateMachine:Replace(STATES.Intermission)
+                stateMachine:Push(STATES.Intermission)
             end
         end)
     end

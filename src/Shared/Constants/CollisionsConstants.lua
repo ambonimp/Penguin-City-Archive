@@ -7,7 +7,6 @@ CollisionsConstants.Groups = {
     EtherealCharacters = "EtherealCharacters",
     SledRaceSleds = "SledRaceSleds",
     SledRaceCollectables = "SledRaceObstacles",
-    SledRaceCharacters = "SledRaceCharacters",
 }
 
 return CollisionsConstants

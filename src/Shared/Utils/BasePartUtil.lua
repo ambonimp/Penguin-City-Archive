@@ -1,7 +1,6 @@
 local BasePartUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local SignedDistanceUtil = require(ReplicatedStorage.Shared.Utils.SignedDistanceUtil)
 
 export type PsuedoBasePart = {
