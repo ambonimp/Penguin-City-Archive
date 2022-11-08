@@ -5,11 +5,11 @@ local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameCon
 
 local sessionConfig: MinigameConstants.SessionConfig = {
     -- Size
-    MinParticipants = 2,
+    MinParticipants = 1,
     MaxParticipants = 6,
     StrictlyEnforcePlayerCount = false,
     -- State lengths
-    IntermissionLength = 30,
+    IntermissionLength = 15,
     CoreLength = 70,
     AwardShowLength = 20,
     CoreCountdown = true,

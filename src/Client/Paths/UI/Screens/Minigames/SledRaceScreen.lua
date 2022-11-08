@@ -68,9 +68,7 @@ do
     local exitButton = ExitButton.new()
     exitButton.Pressed:Connect(function()
         ScreenUtil.outDown(instructionsFrame)
-        if not MinigameController.isMultiplayer() then
-            SharedMinigameScreen.openStartMenu()
-        end
+        SharedMinigameScreen.openStartMenu()
     end)
     exitButton:Mount(instructionsFrame.Exit, true)
 end

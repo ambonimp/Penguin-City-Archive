@@ -21,7 +21,7 @@ type Participants = { Player }
 
 local STATES = MinigameConstants.States
 
-function MinigameSession.new(minigameName: string, id: string, startingParticipants: Participants)
+function MinigameSession.new(minigameName: string, id: string, startingParticipants: Participants, isMultiplayer: boolean)
     local minigameSession = {}
 
     -------------------------------------------------------------------------------
@@ -37,7 +37,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     local participants: Participants = {}
     local scores: { [Player]: number }?
-    local isMultiplayer: boolean = #startingParticipants > 1
 
     local config: MinigameConstants.SessionConfig = MinigameUtil.getSessionConfigs(minigameName)
 
@@ -99,10 +98,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     function minigameSession:GetMaid()
         return maid
-    end
-
-    function minigameSession:isMultiplayer(): boolean
-        return isMultiplayer
     end
 
     function minigameSession:RelayToParticipants(eventName: string, ...: any)
@@ -180,7 +175,9 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     function minigameSession:IsAcceptingNewParticipants()
         local state = stateMachine:GetState()
-        return isMultiplayer and (state == STATES.Intermission or state == STATES.AwardShow) and #participants < config.MaxParticipants
+        return isMultiplayer
+            and (state == STATES.Intermission or state == STATES.AwardShow or state == STATES.WaitingForPlayers)
+            and #participants < config.MaxParticipants
     end
 
     function minigameSession:CountdownSync(length: number): boolean

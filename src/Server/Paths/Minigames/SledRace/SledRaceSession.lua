@@ -18,8 +18,8 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
 
-function SledRaceSession.new(id: string, participants: { Player })
-    local minigameSession = MinigameSession.new("SledRace", id, participants)
+function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
+    local minigameSession = MinigameSession.new("SledRace", id, participants, isMultiplayer)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS

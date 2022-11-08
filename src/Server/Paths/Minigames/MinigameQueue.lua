@@ -7,7 +7,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local Maid = require(Paths.Packages.maid)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 
-local WAIT_LENGTH = 30
+local WAIT_LENGTH = 15
 
 function MinigameQueue.new(minigameName: string)
     local queue = {}
@@ -36,6 +36,8 @@ function MinigameQueue.new(minigameName: string)
             task.cancel(minigameStartThread)
             minigameStartThread = nil
         end
+
+        Remotes.fireClient(player, "MinigameQueueExited")
     end
 
     -------------------------------------------------------------------------------
@@ -52,11 +54,15 @@ function MinigameQueue.new(minigameName: string)
             task.spawn(minigameStartThread)
         end
 
-        Remotes.fireClient(player, "JoinedMinigameQueue")
+        Remotes.fireClient(player, "MinigameQueueJoined", minigameName)
     end
 
     function queue:GetParticipants()
         return participants
+    end
+
+    function queue:IsParticipant(player: Player): boolean
+        return table.find(participants, player) ~= nil
     end
 
     function queue:GetMaid()
@@ -67,9 +73,17 @@ function MinigameQueue.new(minigameName: string)
     -- LOGIC
     -------------------------------------------------------------------------------
     maid:GiveTask(Players.PlayerRemoving:Connect(onParticipantRemoved))
-    maid:GiveTask(Remotes.bindEventTemp("LeftMinigameQueue", onParticipantRemoved))
+    maid:GiveTask(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
+    maid:GiveTask(function()
+        Remotes.fireClients(participants, "MinigameQueueExited")
+    end)
 
     return queue
+end
+
+do
+    Remotes.declareEvent("MinigameQueueJoined")
+    Remotes.declareEvent("MinigameQueueExited")
 end
 
 return MinigameQueue

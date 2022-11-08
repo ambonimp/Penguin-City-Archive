@@ -53,12 +53,23 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     end)
 end)
 
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.WaitingForPlayers, function()
+    if MinigameController.isMultiplayer() then
+        SharedMinigameScreen.setStatusText("Waiting for more players")
+    end
+end, function()
+    SharedMinigameScreen.hideStatus()
+end)
+
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
     if MinigameController.isMultiplayer() then
+        SharedMinigameScreen.openStartMenu()
+
         SharedMinigameScreen.setStatusText("Intermission")
         MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.IntermissionLength, SharedMinigameScreen.setStatusCounter)
     end
 end, function()
+    SharedMinigameScreen.closeStartMenu()
     SharedMinigameScreen.hideStatus()
 end)
 

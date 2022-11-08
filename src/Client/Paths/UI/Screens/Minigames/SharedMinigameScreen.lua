@@ -126,14 +126,14 @@ end
 
 function SharedMinigameScreen.openStartMenu()
     startMenus.Visible = true
-    startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
 
-    local menu: Frame
-
+    local actions: Frame
     if MinigameController.isMultiplayer() then
         multiplayerMenu.Visible = true
-        menu = multiplayerMenu
+        actions = multiplayerMenu
     else
+        startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
+
         local cameraGizmo = getCameraGizmo()
         if cameraGizmo then
             camera.CameraType = Enum.CameraType.Scriptable
@@ -143,22 +143,23 @@ function SharedMinigameScreen.openStartMenu()
         ScreenUtil.openBlur()
         singlePlayerMenu.Visible = true
 
-        menu = singlePlayerMenu
+        actions = singlePlayerMenu.Actions
     end
 
-    startInstructionButton:Mount(menu.Actions.Instructions, true)
-    startExitButton:Mount(menu.Actions.Exit, true)
+    startInstructionButton:Mount(actions.Instructions, true)
+    startExitButton:Mount(actions.Exit, true)
 end
 
 function SharedMinigameScreen.closeStartMenu(temporary: true?)
-    if not temporary then
-        startMenus.Visible = false
-        startMenus.BackgroundTransparency = 1
-    end
-
     if MinigameController.isMultiplayer() then
         multiplayerMenu.Visible = false
+        getScreenGui().Instructions.Visible = false
     else
+        if not temporary then
+            startMenus.Visible = false
+            startMenus.BackgroundTransparency = 1
+        end
+
         if getCameraGizmo() then
             CameraController.setPlayerControl()
             CameraController.alignCharacter()
