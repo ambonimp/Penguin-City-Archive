@@ -5,6 +5,7 @@ export type Session = {
     Id: number,
 }
 export type PlayRequest = { Session: Session | nil, Error: string | nil }
+export type SortedScores = { { Player: Player, Score: number } }
 export type SessionConfig = {
     -- Size
     MinParticipants: number,
@@ -20,6 +21,7 @@ export type SessionConfig = {
     Multiplayer: boolean,
     --
     HigherScoreWins: boolean,
+    ScoreFormatter: (number) -> (number | string)?,
 }
 
 MinigameConstants.Minigames = {

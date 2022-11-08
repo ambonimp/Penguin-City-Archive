@@ -18,6 +18,9 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     Multiplayer = true,
     --
     HigherScoreWins = true,
+    ScoreFormatter = function(score: number): string
+        return (score / 10 ^ 2) .. "s"
+    end,
 }
 
 SledRaceConstants.SessionConfig = sessionConfig

@@ -83,7 +83,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     function minigameSession:RegisterStateCallbacks(state: string, onOpen: (table) -> ()?, onClose: (table) -> ()?)
         if started then
             warn(
-                ("%s mingiame attempting to register %s callback after the minigame was started. NOTE: State changes will be relayed to the client before these handlers are invoked."):format(
+                ("%s minigame attempting to register %s callback after the minigame was started. NOTE: State changes will be relayed to the client before these handlers are invoked."):format(
                     minigameName,
                     state
                 )
@@ -228,7 +228,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 return
             end
 
-            warn("SERVER:", toState)
+            -- warn("SERVER:", toState)
 
             local data = stateMachine:GetData()
             data.StartTime = Workspace:GetServerTimeNow()

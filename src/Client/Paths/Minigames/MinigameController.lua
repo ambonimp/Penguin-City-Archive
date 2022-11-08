@@ -5,6 +5,7 @@ local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
@@ -22,6 +23,8 @@ local INITIALIZATION_STATE = { Name = MinigameConstants.States.Nothing }
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
+local player = Players.LocalPlayer
+
 local currentMinigame: string?
 local currentState: State?
 local currentZone: ZoneConstans.Zone?
@@ -52,7 +55,7 @@ local function setState(newState: State)
     local lastState = currentState
     currentState = newState
 
-    print("CLIENT:", newName)
+    --print("CLIENT:", newName)
 
     -- Close previously opened
     if lastState then
@@ -173,6 +176,27 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
     return length == 0
 end
 
+function MinigameController.getScores(): MinigameConstants.SortedScores
+    assertActiveMinigame()
+
+    -- RETURN: State is not award show
+    local state = currentState.Name
+
+    if state ~= MinigameConstants.States.AwardShow then
+        error(("Scores are only relayed to the client in the AwardShow state, state is current %s"):format(state))
+    end
+
+    return MinigameController.getData().Scores
+end
+
+function MinigameController.getOwnPlacement(): number
+    return TableUtil.findFromProperty(MinigameController.getScores(), "Player", player)
+end
+
+function MinigameController.getOwnScore(): number
+    return MinigameController.getScores()[MinigameController.getOwnPlacement()].Score
+end
+
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
@@ -189,6 +213,7 @@ Remotes.bindEvents({
         setState(state)
         uiStateMachine:Push(UIConstants.States.Minigame)
     end,
+
     MinigameExited = function()
         maid:Cleanup()
         currentMinigame = nil
@@ -197,14 +222,17 @@ Remotes.bindEvents({
         currentParticipants = nil
         currentIsMultiplayer = nil
     end,
-    MinigameParticipantAdded = function(player: Player)
-        table.insert(currentParticipants, player)
-        MinigameController.ParticipantAdded:Fire(player)
+
+    MinigameParticipantAdded = function(participant: Player)
+        table.insert(currentParticipants, participant)
+        MinigameController.ParticipantAdded:Fire(participant)
     end,
-    MinigameParticipantRemoved = function(player: Player)
-        table.remove(currentParticipants, table.find(currentParticipants, player))
-        MinigameController.ParticipantRemoved:Fire(player)
+
+    MinigameParticipantRemoved = function(participant: Player)
+        table.remove(currentParticipants, table.find(currentParticipants, participant))
+        MinigameController.ParticipantRemoved:Fire(participant)
     end,
+
     MinigameStateChanged = function(state: State)
         setState(state)
     end,

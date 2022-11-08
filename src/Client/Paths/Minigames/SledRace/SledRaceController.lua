@@ -6,14 +6,15 @@ local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
+local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDriving)
 local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCollectables)
 local ProgressLineController = require(Paths.Client.Minigames.SledRace.SledRaceProgressLine)
 local MinigameScreenUtil = require(Paths.Client.UI.Screens.Minigames.MinigameScreenUtil)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
@@ -72,14 +73,16 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     raceMaid:Cleanup()
 end)
 
-MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
-    MinigameScreenUtil.openStandings(data.Scores, function(score)
-        return MathUtil.round(score, 2) .. "s"
-    end)
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()
+    MinigameScreenUtil.openStandings()
+    MinigameScreenUtil.openResults({
+        { Title = "Placement", Value = MinigameController.getOwnPlacement() },
+        { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore()) },
+        { Title = "Coins Collected", Value = 0 },
+        { Title = "Total Coins", Icon = Images.Coins.Coin, Value = 45 },
+    })
 
-    if MinigameController.isMultiplayer() then
-        --
-    else
+    if not MinigameController.isMultiplayer() then
         Remotes.fireServer("MinigameRestarted")
         MinigameScreenUtil.openMenu()
     end

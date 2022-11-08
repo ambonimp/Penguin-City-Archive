@@ -62,7 +62,7 @@ function SledRaceSession.new(id: string, participants: { Player })
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
-    minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.IntermissionLength)
+    minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.CoreLength)
 
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
         CharacterUtil.setEthereal(participant, true, "SledRace")
@@ -174,12 +174,11 @@ function SledRaceSession.new(id: string, participants: { Player })
 
         stateMaid:GiveTask(map.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
-            if player and not table.find(finished, player) then
+            if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
                 table.insert(finished, player)
-                minigameSession:IncrementScore(startTime - os.clock())
+                minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
 
                 if #finished == #participants then
-                    task.wait(3)
                     if minigameSession:GetState() == MinigameConstants.States.Core then
                         minigameSession:ChangeState(MinigameConstants.States.AwardShow)
                     end
