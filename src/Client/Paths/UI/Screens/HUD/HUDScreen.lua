@@ -6,7 +6,6 @@ local Ui = Paths.UI
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
@@ -107,6 +106,13 @@ local function clothing(button: AnimatedButton.AnimatedButton)
     end)
 end
 
+local function inventory(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Inventory
+    button.Pressed:Connect(function()
+        uiStateMachine:Push(UIConstants.States.Inventory)
+    end)
+end
+
 local function createAnimatedButton(frame: Frame, _alignment: "Left" | "Right")
     local imageButton = Instance.new("ImageButton")
     imageButton.Size = BUTTON_PROPERTIES.Size
@@ -140,6 +146,7 @@ function HUDScreen.Init()
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["1"], "Right"))
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["2"], "Right"))
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["3"], "Right"))
+        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["4"], "Right"))
 
         -- Setup
         local mapButton = buttons.Left[3]
@@ -151,6 +158,7 @@ function HUDScreen.Init()
         igloo(iglooButton)
         stampBook(buttons.Right[2])
         clothing(buttons.Right[3])
+        inventory(buttons.Right[4])
 
         -- Igloo Button (toggle edit look)
         do

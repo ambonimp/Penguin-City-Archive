@@ -100,7 +100,7 @@ function SelectionPanel.new()
     end
 
     local function getMaxTabsIndex()
-        return math.ceil(#tabs / getTabsPerView())
+        return math.clamp(math.ceil(#tabs / getTabsPerView()), 1, math.huge)
     end
 
     local function updateTabIndex(increaseBy: number)
