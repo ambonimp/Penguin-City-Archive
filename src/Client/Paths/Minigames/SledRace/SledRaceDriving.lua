@@ -116,7 +116,7 @@ function SledRaceDriving.setup()
             local torque = proportionalOutput + derrivativeOutput
             steer.Torque = Vector3.new(0, math.sign(torque) * math.min(MAX_STEER_TORQUE, math.abs(torque)), 0) * mass
 
-            local lean = math.clamp(err * 2, -1, 1) * (forcedAcceleration or 1)
+            local lean = math.clamp(err * 2, -1, 1) * (if forcedSpeed then 0 else 1)
             tailbone.CFrame = tailbone.CFrame:Lerp(
                 seatingCFrame * CFrame.fromEulerAnglesYXZ(math.abs(math.sign(lean)) * math.rad(10), 0, lean * MAX_SEAT_LEAN_ANGLE),
                 dt * 2
@@ -184,9 +184,12 @@ function SledRaceDriving.setup()
 
     return function()
         driving:Disconnect()
+        tailbone.CFrame = seatingCFrame
+
         if complete then
             complete:Disconnect()
         end
+
         playerControls:Enable()
     end
 end

@@ -29,7 +29,7 @@ SledRaceConstants.SteeringControllerGains = {
 
 SledRaceConstants.SledName = "SledRaceSled"
 SledRaceConstants.SledPhysicalProperties = PhysicalProperties.new(
-    1, -- density
+    10, -- density
     0, -- friction
     0.1, -- elasticity
     200, -- frictionWeight
