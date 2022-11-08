@@ -83,6 +83,10 @@ end
 
 -- Funnels multiple data types for a stamps progress into a number
 function StampUtil.calculateProgressNumber(stamp: Stamps.Stamp, stampTierOrProgress: Stamps.StampTier | number | nil): number
+    if typeof(stampTierOrProgress) == "number" then
+        return stampTierOrProgress
+    end
+
     if stamp.IsTiered then
         stampTierOrProgress = stampTierOrProgress or Stamps.StampTiers[1]
 
