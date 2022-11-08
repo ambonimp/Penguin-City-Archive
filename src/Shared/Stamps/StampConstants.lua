@@ -5,7 +5,7 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 
 export type StampBook = {
-    CoverColor: { [string]: Color3 },
+    CoverColor: { [string]: { Primary: Color3, Secondary: Color3 } },
     CoverPattern: { [string]: string },
     TextColor: { [string]: Color3 },
     Seal: { [string]: {
@@ -32,8 +32,14 @@ StampConstants.TitleIconWidth = titleIconWidth
 
 local stampBook: StampBook = {
     CoverColor = {
-        Brown = Color3.fromRGB(161, 74, 53),
-        Red = Color3.fromRGB(255, 0, 0),
+        Brown = {
+            Primary = Color3.fromRGB(161, 74, 53),
+            Secondary = Color3.fromRGB(94, 26, 9),
+        },
+        Red = {
+            Primary = Color3.fromRGB(255, 0, 0),
+            Secondary = Color3.fromRGB(109, 0, 0),
+        },
     },
     CoverPattern = {
         Voldex = Images.StampBook.Patterns.Voldex,

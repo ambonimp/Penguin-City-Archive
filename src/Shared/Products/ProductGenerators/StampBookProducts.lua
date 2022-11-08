@@ -36,7 +36,7 @@ end
 
 local function getImageColor(categoryName: string, property: any): Color3
     if categoryName == "CoverColor" then
-        return property
+        return property.Primary
     end
 
     if categoryName == "CoverPattern" then

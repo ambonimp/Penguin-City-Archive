@@ -167,10 +167,17 @@ function readStampData()
                 if stamp then
                     local progress = StampController.getProgress(stamp.Id, currentStampData.OwnedStamps)
 
+                    -- Holder
+                    local holder: Frame = cover.Stamps.template:Clone()
+                    holder.Name = stampId
+                    holder.LayoutOrder = i
+                    holder.Visible = true
+                    holder.Parent = cover.Stamps
+                    readStampDataMaid:GiveTask(holder)
+
                     -- Cover Button
                     local stampButton = StampButton.new(stamp)
-                    stampButton:GetButtonObject().LayoutOrder = i
-                    stampButton:Mount(cover.Stamps)
+                    stampButton:Mount(holder)
                     stampButton.Pressed:Connect(function()
                         StampInfoScreen.open(stampId, progress)
                     end)
@@ -203,7 +210,11 @@ function readStampData()
 
     -- Cover
     local coverColor = currentStampData.StampBook.CoverColor
-    cover.ImageColor3 = StampConstants.StampBook.CoverColor[coverColor]
+    local coverColors = StampConstants.StampBook.CoverColor[coverColor]
+    cover.ImageColor3 = coverColors.Primary
+    cover.StampIcon.ImageColor3 = coverColors.Secondary
+    cover.StampIcon.StampCollection.TextColor3 = coverColors.Primary
+    cover.StampIcon.StampCollection.UIStroke.Color = coverColors.Secondary
 
     -- Text
     cover.PlayerName.Text = currentPlayer.DisplayName
