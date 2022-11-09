@@ -154,6 +154,9 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     local drawMaid = Maid.new()
     local pageNumber = 1
 
+    local leftArrow = AnimatedButton.new(leftArrowButton)
+    local rightArrow = AnimatedButton.new(rightArrowButton)
+
     topIcon.Image = icon
     topTitle.Text = title
 
@@ -167,6 +170,8 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
 
     local addCallback = data.AddCallback
 
+    local totalProductsPerPage = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
+
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
@@ -176,6 +181,10 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
+
+    local function getMaxPageNumber()
+        return math.clamp(math.ceil(#products / totalProductsPerPage), 1, math.huge)
+    end
 
     -- Sorts products based on ownership
     local function sortProducts()
@@ -203,10 +212,9 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
         drawMaid:Cleanup()
 
         -- Grab products to show on the current page
-        local totalProducts = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
-        local pageIndexContext = (pageNumber - 1) * totalProducts
+        local pageIndexContext = (pageNumber - 1) * totalProductsPerPage
         local visibleProducts: { Products.Product } = {}
-        for i = 1 + pageIndexContext, totalProducts + pageIndexContext do
+        for i = 1 + pageIndexContext, totalProductsPerPage + pageIndexContext do
             local product = products[i]
             if product then
                 table.insert(visibleProducts, product)
@@ -234,6 +242,10 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
             widget:Mount(holder)
             drawMaid:GiveTask(widget)
         end
+
+        -- Arrows
+        leftArrowButton.Visible = pageNumber > 1
+        rightArrowButton.Visible = pageNumber < getMaxPageNumber()
     end
 
     -------------------------------------------------------------------------------
@@ -251,6 +263,20 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    -- Navigation
+    leftArrow.Pressed:Connect(function()
+        if pageNumber > 1 then
+            pageNumber -= 1
+            draw()
+        end
+    end)
+    rightArrow.Pressed:Connect(function()
+        if pageNumber + 1 <= getMaxPageNumber() then
+            pageNumber += 1
+            draw()
+        end
+    end)
 
     -- Populate products as widgets
     sortProducts()

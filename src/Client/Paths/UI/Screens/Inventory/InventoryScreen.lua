@@ -49,6 +49,24 @@ function InventoryScreen.Init()
             }):GetWindowFrame()
         )
 
+        -- Clothing (--!! TEMP)
+        tabbedWindow:AddTab("Clothes", Images.Icons.Shirt)
+        tabbedWindow:SetWindow(
+            "Clothes",
+            InventoryWindow.new(Images.Icons.Shirt, "Clothes", {
+                ProductType = ProductConstants.ProductType.CharacterItem,
+            }):GetWindowFrame()
+        )
+
+        -- Housing (--!! TEMP)
+        tabbedWindow:AddTab("Housing", Images.Icons.Igloo)
+        tabbedWindow:SetWindow(
+            "Housing",
+            InventoryWindow.new(Images.Icons.Igloo, "Housing", {
+                ProductType = ProductConstants.ProductType.HouseObject,
+            }):GetWindowFrame()
+        )
+
         --TODO
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:AddTab("Food", Images.Icons.Food)
