@@ -114,12 +114,12 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
 
     widgets.Parent = bottom
 
-    local leftArrow = Instance.new("Frame")
-    leftArrow.Name = "leftArrow"
-    leftArrow.AnchorPoint = Vector2.new(0, 0.5)
-    leftArrow.BackgroundTransparency = 1
-    leftArrow.Position = UDim2.fromScale(0, 0.5)
-    leftArrow.Size = UDim2.fromOffset(60, 100)
+    local leftArrowFrame = Instance.new("Frame")
+    leftArrowFrame.Name = "leftArrowFrame"
+    leftArrowFrame.AnchorPoint = Vector2.new(0, 0.5)
+    leftArrowFrame.BackgroundTransparency = 1
+    leftArrowFrame.Position = UDim2.fromScale(0, 0.5)
+    leftArrowFrame.Size = UDim2.fromOffset(60, 100)
 
     local leftArrowButton = Instance.new("ImageButton")
     leftArrowButton.Name = "leftArrowButton"
@@ -127,16 +127,16 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     leftArrowButton.ScaleType = Enum.ScaleType.Fit
     leftArrowButton.BackgroundTransparency = 1
     leftArrowButton.Size = UDim2.fromScale(1, 1)
-    leftArrowButton.Parent = leftArrow
+    leftArrowButton.Parent = leftArrowFrame
 
-    leftArrow.Parent = bottom
+    leftArrowFrame.Parent = bottom
 
-    local rightArrow = Instance.new("Frame")
-    rightArrow.Name = "rightArrow"
-    rightArrow.AnchorPoint = Vector2.new(1, 0.5)
-    rightArrow.BackgroundTransparency = 1
-    rightArrow.Position = UDim2.fromScale(1, 0.5)
-    rightArrow.Size = UDim2.fromOffset(60, 100)
+    local rightArrowFrame = Instance.new("Frame")
+    rightArrowFrame.Name = "rightArrowFrame"
+    rightArrowFrame.AnchorPoint = Vector2.new(1, 0.5)
+    rightArrowFrame.BackgroundTransparency = 1
+    rightArrowFrame.Position = UDim2.fromScale(1, 0.5)
+    rightArrowFrame.Size = UDim2.fromOffset(60, 100)
 
     local rightArrowButton = Instance.new("ImageButton")
     rightArrowButton.Name = "rightArrowButton"
@@ -144,9 +144,9 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     rightArrowButton.ScaleType = Enum.ScaleType.Fit
     rightArrowButton.BackgroundTransparency = 1
     rightArrowButton.Size = UDim2.fromScale(1, 1)
-    rightArrowButton.Parent = rightArrow
+    rightArrowButton.Parent = rightArrowFrame
 
-    rightArrow.Parent = bottom
+    rightArrowFrame.Parent = bottom
 
     bottom.Parent = inventoryWindowFrame
     --#endregion
@@ -242,6 +242,9 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
             widget:Mount(holder)
             drawMaid:GiveTask(widget)
         end
+
+        -- Pages
+        topPage.Text = ("Page %d/%d"):format(pageNumber, getMaxPageNumber())
 
         -- Arrows
         leftArrowButton.Visible = pageNumber > 1
