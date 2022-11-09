@@ -41,9 +41,15 @@ function InventoryScreen.Init()
         tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
         tabbedWindow:SetWindow(
             "Vehicles",
-            InventoryWindow.new(ProductConstants.ProductType.Vehicle, Images.Icons.Hoverboard, "Vehicles"):GetWindowFrame()
+            InventoryWindow.new(Images.Icons.Hoverboard, "Vehicles", {
+                ProductType = ProductConstants.ProductType.Vehicle,
+                AddCallback = function()
+                    warn("TODO Teleport to hoverboard shop")
+                end,
+            }):GetWindowFrame()
         )
 
+        --TODO
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:AddTab("Food", Images.Icons.Food)
         tabbedWindow:AddTab("Toys", Images.Icons.Toy)

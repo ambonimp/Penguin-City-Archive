@@ -1,12 +1,20 @@
 local TableUtil = {}
 
-function TableUtil.deepClone(tbl)
+function TableUtil.deepClone(tbl: table)
     local clone = {}
 
-    for i, v in tbl do
+    for i, v in pairs(tbl) do
         clone[i] = typeof(v) == "table" and TableUtil.deepClone(v) or v
     end
 
+    return clone
+end
+
+function TableUtil.shallowClone(tbl: table)
+    local clone = {}
+    for k, v in pairs(tbl) do
+        clone[k] = v
+    end
     return clone
 end
 

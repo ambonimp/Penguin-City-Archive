@@ -6,6 +6,8 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Product)
 
+local COLOR_BLACK = Color3.fromRGB(0, 0, 0)
+
 local products: { [string]: Product } = {}
 
 for vehicleName, _vehicleConstants in pairs(VehicleConstants) do
@@ -16,6 +18,7 @@ for vehicleName, _vehicleConstants in pairs(VehicleConstants) do
         Type = ProductConstants.ProductType.Vehicle,
         DisplayName = StringUtil.getFriendlyString(vehicleName),
         ImageId = Images.Icons.Hoverboard,
+        ImageColor = COLOR_BLACK,
         CoinData = {
             Cost = 1,
         },

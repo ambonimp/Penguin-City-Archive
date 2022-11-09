@@ -10,14 +10,66 @@ local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Products = require(Paths.Shared.Products.Products)
+local ProductController = require(Paths.Client.ProductController)
+local Images = require(Paths.Shared.Images.Images)
+
+local FADE_TRANSPARENCY = 0.5
+local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
     TextStrokeColor = Color3.fromRGB(38, 71, 118),
+    ImageColor = Color3.fromRGB(255, 255, 255),
 }
 
+function Widget.addWidget()
+    local widget = Widget.diverseWidget()
+
+    widget:SetIcon(Images.Icons.Add, UIConstants.Colors.Buttons.AvailableGreen)
+    widget:SetText("Add")
+    widget:GetButtonObject().Size = ADD_BUTTON_SIZE
+
+    return widget
+end
+
+function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwnership: boolean?)
+    local widget = Widget.diverseWidget()
+
+    -- Populate Widget
+    widget:SetText(product.DisplayName)
+    widget:SetIcon(product.ImageId, product.ImageColor)
+
+    -- Handle widget being used for purchases + showing if owned
+    if verifyOwnership then
+        local isOwned = ProductController.hasProduct(product)
+        if not isOwned then
+            widget:SetFade(true)
+            widget:SetPrice(product.CoinData and product.CoinData.Cost)
+
+            local purchaseMaid = Maid.new()
+            widget:GetMaid():GiveTask(purchaseMaid)
+
+            purchaseMaid:GiveTask(widget.Pressed:Connect(function()
+                ProductController.prompt(product)
+            end))
+
+            purchaseMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, _amount: number)
+                if product == addedProduct then
+                    widget:SetFade(false)
+                    widget:SetPrice()
+                end
+            end))
+        end
+    end
+
+    return widget
+end
+
 function Widget.diverseWidget()
-    local widget: typeof(AnimatedButton.new(Instance.new("ImageButton")))
+    local widget = AnimatedButton.new(Instance.new("ImageButton"))
+    widget:SetHoverAnimation(AnimatedButton.Animations.Nod)
+    widget:SetPressAnimation(nil)
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -29,9 +81,7 @@ function Widget.diverseWidget()
     diverseWidget.BackgroundTransparency = 1
     diverseWidget.Size = UDim2.fromOffset(100, 100)
 
-    local imageButton = Instance.new("ImageButton")
-    widget = AnimatedButton.new(imageButton)
-
+    local imageButton = widget:GetButtonObject()
     imageButton.Name = "imageButton"
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
     imageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -53,7 +103,7 @@ function Widget.diverseWidget()
     local textLabel = Instance.new("TextLabel")
     textLabel.Name = "textLabel"
     textLabel.Font = UIConstants.Font
-    textLabel.Text = "Stamp Book"
+    textLabel.Text = ""
     textLabel.TextColor3 = Widget.Defaults.TextColor
     textLabel.TextSize = 35
     textLabel.AnchorPoint = Vector2.new(0.5, 1)
@@ -162,7 +212,7 @@ function Widget.diverseWidget()
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function widget:SetPriceFrame(price: number?)
+    function widget:SetPrice(price: number?)
         if price then
             priceFrame.Visible = true
             priceLabel.Text = ("$%s"):format(StringUtil.commaValue(price))
@@ -180,8 +230,9 @@ function Widget.diverseWidget()
         textLabelStroke.Color = strokeColor or Widget.Defaults.TextStrokeColor
     end
 
-    function widget:SetIcon(image: string?)
+    function widget:SetIcon(image: string?, imageColor: Color3?)
         iconImageLabel.Image = image or ""
+        iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
     end
 
     function widget:SetOutline(color: Color3?)
@@ -207,6 +258,19 @@ function Widget.diverseWidget()
                 callback()
             end)
         end
+    end
+
+    function widget:SetFade(doFade: boolean)
+        local transparency = doFade and FADE_TRANSPARENCY or 0
+
+        iconImageLabel.ImageTransparency = transparency
+        viewportFrame.ImageTransparency = transparency
+        imageButton.BackgroundTransparency = transparency
+        textLabel.TextTransparency = transparency
+        textLabelStroke.Transparency = transparency
+        priceFrame.BackgroundTransparency = transparency
+        priceLabel.TextStrokeTransparency = transparency
+        priceUIStroke.Transparency = transparency
     end
 
     -------------------------------------------------------------------------------

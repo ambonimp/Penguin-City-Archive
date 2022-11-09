@@ -11,8 +11,16 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ProductController = require(Paths.Client.ProductController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
-function InventoryWindow.new(productType: string, icon: string, title: string)
+local GRID_SIZE = Vector2.new(5, 3)
+
+--[[
+    data:
+    - ProductType: What products to display
+    - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
+]]
+function InventoryWindow.new(icon: string, title: string, data: { ProductType: string?, AddCallback: (() -> nil)? })
     local inventoryWindow = {}
 
     -------------------------------------------------------------------------------
@@ -100,7 +108,7 @@ function InventoryWindow.new(productType: string, icon: string, title: string)
     local widgetsGridLayout = Instance.new("UIGridLayout")
     widgetsGridLayout.Name = "widgetsGridLayout"
     widgetsGridLayout.CellPadding = UDim2.new()
-    widgetsGridLayout.CellSize = UDim2.new(0.2, -1, 0.333, -1)
+    widgetsGridLayout.CellSize = UDim2.new(1 / GRID_SIZE.X, -1, 1 / GRID_SIZE.Y, -1)
     widgetsGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
     widgetsGridLayout.Parent = widgets
 
@@ -143,10 +151,21 @@ function InventoryWindow.new(productType: string, icon: string, title: string)
     bottom.Parent = inventoryWindowFrame
     --#endregion
 
+    local drawMaid = Maid.new()
+    local pageNumber = 1
+
     topIcon.Image = icon
     topTitle.Text = title
 
-    local products = Products.Products[productType]
+    -- Read Data
+    local products: { Products.Product }
+    if data.ProductType then
+        products = TableUtil.toArray(Products.Products[data.ProductType])
+    else
+        error("Bad data")
+    end
+
+    local addCallback = data.AddCallback
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -158,7 +177,64 @@ function InventoryWindow.new(productType: string, icon: string, title: string)
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    --todo
+    -- Sorts products based on ownership
+    local function sortProducts()
+        table.sort(products, function(product0: Products.Product, product1: Products.Product)
+            local isOwned0 = ProductController.hasProduct(product0)
+            local isOwned1 = ProductController.hasProduct(product1)
+
+            if isOwned0 ~= isOwned1 then
+                return isOwned0
+            end
+
+            return product0.Id < product1.Id
+        end)
+    end
+
+    local function getHolderFrame(layoutOrder: number)
+        local holder = Instance.new("Frame")
+        holder.BackgroundTransparency = 1
+        holder.LayoutOrder = layoutOrder
+        holder.Parent = widgets
+        return holder
+    end
+
+    local function draw()
+        drawMaid:Cleanup()
+
+        -- Grab products to show on the current page
+        local totalProducts = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
+        local pageIndexContext = (pageNumber - 1) * totalProducts
+        local visibleProducts: { Products.Product } = {}
+        for i = 1 + pageIndexContext, totalProducts + pageIndexContext do
+            local product = products[i]
+            if product then
+                table.insert(visibleProducts, product)
+            else
+                break
+            end
+        end
+
+        -- Add Widget
+        if addCallback then
+            local holder = getHolderFrame(-1)
+            drawMaid:GiveTask(holder)
+
+            local addWidget = Widget.addWidget()
+            addWidget:Mount(holder)
+            drawMaid:GiveTask(addWidget)
+        end
+
+        -- Product Widgets
+        for i, product in pairs(visibleProducts) do
+            local holder = getHolderFrame(i)
+            drawMaid:GiveTask(holder)
+
+            local widget = Widget.diverseWidgetFromProduct(product, true)
+            widget:Mount(holder)
+            drawMaid:GiveTask(widget)
+        end
+    end
 
     -------------------------------------------------------------------------------
     -- Public Methods
@@ -176,7 +252,9 @@ function InventoryWindow.new(productType: string, icon: string, title: string)
     -- Logic
     -------------------------------------------------------------------------------
 
-    --todo
+    -- Populate products as widgets
+    sortProducts()
+    draw()
 
     return inventoryWindow
 end
