@@ -9,6 +9,7 @@ ProductConstants.ProductType = {
     CharacterItem = "CharacterItem",
     HouseObject = "HouseObject",
     StampBook = "StampBook",
+    Vehicle = "Vehicle",
 }
 
 return ProductConstants

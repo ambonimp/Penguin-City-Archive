@@ -190,6 +190,39 @@ function ProductUtil.isStampBookProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- Vehicles
+-------------------------------------------------------------------------------
+
+-- Example: CoverColor, Red
+function ProductUtil.getVehicleProductId(vehicleName: string)
+    return ("vehicle_%s"):format(StringUtil.toCamelCase(vehicleName))
+end
+
+function ProductUtil.getVehicleProduct(vehicleName: string)
+    local product = Products.Products[ProductConstants.ProductType.Vehicle][ProductUtil.getVehicleProductId(vehicleName)]
+    if not product then
+        error(("No Vehicle Product %s"):format(vehicleName))
+    end
+
+    return product
+end
+
+function ProductUtil.getVehicleProductData(product: Products.Product)
+    -- ERROR: Not a Vehicle product
+    if not ProductUtil.isVehicleProduct(product) then
+        error("Passed a non-Vehicle product")
+    end
+
+    return {
+        VehicleName = product.Metadata.VehicleName,
+    }
+end
+
+function ProductUtil.isVehicleProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.Vehicle
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 
