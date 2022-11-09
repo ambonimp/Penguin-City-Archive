@@ -230,6 +230,8 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
 
             local addWidget = Widget.addWidget()
             addWidget:Mount(holder)
+            addWidget.Pressed:Connect(addCallback)
+
             drawMaid:GiveTask(addWidget)
         end
 
