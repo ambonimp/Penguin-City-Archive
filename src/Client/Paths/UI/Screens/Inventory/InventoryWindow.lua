@@ -12,7 +12,7 @@ local ProductController = require(Paths.Client.ProductController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 
-function InventoryWindow.new(productType: string)
+function InventoryWindow.new(productType: string, icon: string, title: string)
     local inventoryWindow = {}
 
     -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ function InventoryWindow.new(productType: string)
     topIcon.BackgroundTransparency = 1
     topIcon.Position = UDim2.fromScale(0.05, 0.5)
     topIcon.Size = UDim2.fromOffset(130, 130)
+    topIcon.ScaleType = Enum.ScaleType.Fit
     topIcon.Parent = top
 
     local topTitle = Instance.new("TextLabel")
@@ -142,6 +143,11 @@ function InventoryWindow.new(productType: string)
     bottom.Parent = inventoryWindowFrame
     --#endregion
 
+    topIcon.Image = icon
+    topTitle.Text = title
+
+    local products = Products.Products[productType]
+
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
@@ -158,7 +164,13 @@ function InventoryWindow.new(productType: string)
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    --todo
+    function inventoryWindow:GetWindowFrame()
+        return inventoryWindowFrame
+    end
+
+    function inventoryWindow:Mount(parent: GuiObject)
+        inventoryWindowFrame.Parent = parent
+    end
 
     -------------------------------------------------------------------------------
     -- Logic

@@ -10,6 +10,8 @@ local Maid = require(Paths.Packages.maid)
 local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
+local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -28,14 +30,20 @@ function InventoryScreen.Init()
         tabbedWindow:Mount(screenGui)
 
         -- Close
-        local closeButton = ExitButton.new()
-        closeButton:Mount(tabbedWindow:GetContainer().Background.CloseButton)
-        closeButton.Pressed:Connect(function()
+        tabbedWindow.ClosePressed:Connect(function()
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.Inventory)
         end)
+    end
 
-        -- Tabs
-        tabbedWindow:AddTab("Hoverboards", Images.Icons.Hoverboard)
+    -- Tabs
+    do
+        -- Vehicles
+        tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
+        tabbedWindow:SetWindow(
+            "Vehicles",
+            InventoryWindow.new(ProductConstants.ProductType.Vehicle, Images.Icons.Hoverboard, "Vehicles"):GetWindowFrame()
+        )
+
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:AddTab("Food", Images.Icons.Food)
         tabbedWindow:AddTab("Toys", Images.Icons.Toy)

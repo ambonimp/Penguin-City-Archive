@@ -20,6 +20,7 @@ type Tab = {
     Name: string,
     ImageId: string,
     Button: Button.Button | nil,
+    WindowFrame: Frame?,
 }
 
 local TABS_PER_VIEW = 5
@@ -200,6 +201,15 @@ function TabbedWindow.new()
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
         end
 
+        -- Window
+        do
+            for _, tab in pairs(tabs) do
+                if tab.WindowFrame then
+                    tab.WindowFrame.Visible = openTabName == tab.Name
+                end
+            end
+        end
+
         queueNext()
     end
 
@@ -262,6 +272,50 @@ function TabbedWindow.new()
             end
         end
         tabbedWindow:OpenTab()
+    end
+
+    function tabbedWindow:SetWindow(tabName: string, windowFrame: Frame)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        -- WARN: Already exists
+        if tab.WindowFrame then
+            warn(("WindowFrame for %s already exists!"):format(tabName))
+            return
+        end
+
+        windowFrame.Parent = backgroundFrame.Back
+        tab.WindowFrame = windowFrame
+
+        if openTabName == tabName then
+            draw()
+        end
+    end
+
+    function tabbedWindow:ClearWindow(tabName: string)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        -- RETURN: No window frame
+        local windowFrame = tab.WindowFrame
+        if not windowFrame then
+            return
+        end
+
+        windowFrame.Parent = nil :: Instance
+        tab.WindowFrame = nil
+
+        if openTabName == tabName then
+            draw()
+        end
     end
 
     -------------------------------------------------------------------------------
