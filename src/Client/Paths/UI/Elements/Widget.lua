@@ -13,6 +13,8 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Products = require(Paths.Shared.Products.Products)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -38,7 +40,13 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwners
 
     -- Populate Widget
     widget:SetText(product.DisplayName)
-    widget:SetIcon(product.ImageId, product.ImageColor)
+
+    local model = ProductUtil.getModel(product)
+    if model then
+        widget:SetViewport(model)
+    else
+        widget:SetIcon(product.ImageId, product.ImageColor)
+    end
 
     -- Handle widget being used for purchases + showing if owned
     if verifyOwnership then
@@ -231,8 +239,18 @@ function Widget.diverseWidget()
     end
 
     function widget:SetIcon(image: string?, imageColor: Color3?)
+        iconImageLabel.Visible = true
+        viewportFrame.Visible = false
+
         iconImageLabel.Image = image or ""
         iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
+    end
+
+    function widget:SetViewport(model: Model)
+        iconImageLabel.Visible = false
+        viewportFrame.Visible = true
+
+        CameraUtil.lookAtModelInViewport(viewportFrame, model)
     end
 
     function widget:SetOutline(color: Color3?)

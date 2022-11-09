@@ -10,6 +10,7 @@ local IGNORE_ITEM_TYPE = {
 }
 
 local products: { [string]: Product } = {}
+local characterAssets: Folder = ReplicatedStorage.Assets.Character
 
 for categoryName, itemConstants in pairs(CharacterItems) do
     -- IGNORE: Continue
@@ -19,6 +20,8 @@ for categoryName, itemConstants in pairs(CharacterItems) do
 
     -- Create Products
     for itemKey, item in pairs(itemConstants.Items) do
+        local model: Model? = itemConstants.AssetsPath and characterAssets[itemConstants.AssetsPath][itemKey]
+
         local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(itemKey))
         local product: Product = {
             Id = productId,
@@ -31,6 +34,7 @@ for categoryName, itemConstants in pairs(CharacterItems) do
             Metadata = {
                 CategoryName = categoryName,
                 ItemKey = itemKey,
+                Model = model,
             },
         }
 

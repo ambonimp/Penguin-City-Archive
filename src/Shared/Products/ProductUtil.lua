@@ -29,6 +29,13 @@ function ProductUtil.getProduct(productType: string, productId: string): Product
     return product
 end
 
+--[[
+    Some Products have a model linked to them (e.g., House Furniture)
+]]
+function ProductUtil.getModel(product: Products.Product): Model | nil
+    return product.Metadata and product.Metadata.Model
+end
+
 function ProductUtil.getProductFromDeveloperProductId(developerProductId: number): Products.Product | nil
     for _productType, products in pairs(Products.Products) do
         for _productId, product in pairs(products) do
