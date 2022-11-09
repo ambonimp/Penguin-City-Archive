@@ -6,7 +6,6 @@ local Ui = Paths.UI
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
@@ -23,7 +22,7 @@ function InventoryScreen.Init()
         screenGui = Instance.new("ScreenGui")
         screenGui.Enabled = false
         screenGui.Name = "InventoryScreen"
-        screenGui.Parent = Players.LocalPlayer.PlayerGui
+        screenGui.Parent = Ui
 
         tabbedWindow = TabbedWindow.new()
         tabbedWindow:Mount(screenGui)
