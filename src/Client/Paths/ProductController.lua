@@ -15,7 +15,7 @@ local Signal = require(Paths.Shared.Signal)
 
 ProductController.ProductAdded = Signal.new() -- {product: Product, amount: number}
 
-function ProductController.getProductCount(product: Products.Product)
+function ProductController.getProductCount(product: Products.Product): number
     local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     return DataController.get(address) or 0
 end

@@ -190,11 +190,11 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     -- Sorts products based on ownership
     local function sortProducts()
         table.sort(products, function(product0: Products.Product, product1: Products.Product)
-            local isOwned0 = ProductController.hasProduct(product0)
-            local isOwned1 = ProductController.hasProduct(product1)
+            local count0 = ProductController.getProductCount(product0)
+            local count1 = ProductController.getProductCount(product1)
 
-            if isOwned0 ~= isOwned1 then
-                return isOwned0
+            if count0 ~= count1 then
+                return count0 > count1
             end
 
             return product0.Id < product1.Id
