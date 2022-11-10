@@ -20,7 +20,7 @@ for vehicleName, _vehicleConstants in pairs(VehicleConstants) do
         ImageId = Images.Icons.Hoverboard,
         ImageColor = COLOR_BLACK,
         CoinData = {
-            Cost = 1,
+            Cost = math.random(0, 2), --!! Temp
         },
         Metadata = {
             VehicleName = vehicleName,

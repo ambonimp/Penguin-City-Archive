@@ -85,7 +85,7 @@ for categoryName, propertyConstants in pairs(StampConstants.StampBook) do
             ImageId = getImageId(categoryName, property),
             ImageColor = getImageColor(categoryName, property),
             CoinData = {
-                Cost = 0,
+                Cost = math.random(0, 2), --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,
