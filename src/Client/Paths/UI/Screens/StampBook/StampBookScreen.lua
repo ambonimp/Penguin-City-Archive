@@ -228,7 +228,8 @@ function readStampData()
     -- Seal
     local seal = currentStampData.StampBook.Seal
     cover.Seal.Button.ImageColor3 = StampConstants.StampBook.Seal[seal].Color
-    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seal[seal].Icon
+    cover.Seal.Button.Icon.Image = StampConstants.StampBook.Seal[seal].Icon or ""
+    cover.Seal.Button.Icon.ImageColor3 = StampConstants.StampBook.Seal[seal].IconColor or StampConstants.StampBook.Seal[seal].Color
 
     -- Pattern
     local pattern = currentStampData.StampBook.CoverPattern
