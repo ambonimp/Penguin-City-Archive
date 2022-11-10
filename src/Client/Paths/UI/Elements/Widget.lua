@@ -18,6 +18,16 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
+local ICON_PROPERTIES = {
+    WITH_TEXT = {
+        Position = UDim2.fromScale(0.5, 0.4),
+        Size = UDim2.fromScale(0.75, 0.75),
+    },
+    SOLO = {
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromScale(0.9, 0.9),
+    },
+}
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
@@ -29,7 +39,6 @@ function Widget.addWidget()
     local widget = Widget.diverseWidget()
 
     widget:SetIcon(Images.Icons.Add, UIConstants.Colors.Buttons.AvailableGreen)
-    widget:SetText("Add")
     widget:GetButtonObject().Size = ADD_BUTTON_SIZE
 
     return widget
@@ -279,7 +288,15 @@ function Widget.diverseWidget()
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    --todo
+    local function adjustIconAndText()
+        if textLabel.Text == "" then
+            icon.Size = ICON_PROPERTIES.SOLO.Size
+            icon.Position = ICON_PROPERTIES.SOLO.Position
+        else
+            icon.Size = ICON_PROPERTIES.WITH_TEXT.Size
+            icon.Position = ICON_PROPERTIES.WITH_TEXT.Position
+        end
+    end
 
     -------------------------------------------------------------------------------
     -- Public Methods
@@ -296,6 +313,7 @@ function Widget.diverseWidget()
 
     function widget:SetText(text: string?)
         textLabel.Text = text or ""
+        adjustIconAndText()
     end
 
     function widget:SetTextColor(textColor: Color3?, strokeColor: Color3?)
@@ -373,7 +391,7 @@ function Widget.diverseWidget()
     -- Logic
     -------------------------------------------------------------------------------
 
-    --todo
+    adjustIconAndText()
 
     return widget
 end
