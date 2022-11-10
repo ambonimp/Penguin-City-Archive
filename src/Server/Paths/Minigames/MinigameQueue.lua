@@ -6,8 +6,9 @@ local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local Maid = require(Paths.Packages.maid)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
+local GameUtil = require(Paths.Shared.Utils.GameUtil)
 
-local WAIT_LENGTH = 15
+local WAIT_LENGTH = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 1 else 15
 
 function MinigameQueue.new(minigameName: string)
     local queue = {}

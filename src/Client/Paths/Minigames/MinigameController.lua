@@ -3,7 +3,7 @@ local MinigameController = {}
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
@@ -33,7 +33,7 @@ local currentIsMultiplayer: boolean?
 
 local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = { Template = {} }
 
-local maid = Maid.new()
+local janitor = Janitor.new()
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -118,8 +118,8 @@ function MinigameController.getMinigame(): string?
     return currentMinigame
 end
 
-function MinigameController.getMinigameMaid()
-    return maid
+function MinigameController.getMinigameJanitor()
+    return janitor
 end
 
 function MinigameController.isMultiplayer(): boolean
@@ -202,7 +202,8 @@ Remotes.bindEvents({
     end,
 
     MinigameExited = function()
-        maid:Cleanup()
+        janitor:Cleanup()
+
         currentMinigame = nil
         currentZone = nil :: ZoneConstans.Zone -- ahh
         currentState = nil

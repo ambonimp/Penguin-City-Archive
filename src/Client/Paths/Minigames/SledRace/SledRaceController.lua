@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -28,27 +28,27 @@ local RESTART_DELAY = 0.2
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local raceMaid = Maid.new()
-local minigameMaid = MinigameController.getMinigameMaid()
-minigameMaid:GiveTask(raceMaid)
+local raceJanitor = Janitor.new()
+local minigameJanitor = MinigameController.getMinigameJanitor()
+minigameJanitor:Add(raceJanitor, "Cleanup")
 
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
-    minigameMaid:GiveTask(CameraController.setup())
+    minigameJanitor:Add(CameraController.setup())
 
     -- Disable movement
     local humanoid: Humanoid = player.Character.Humanoid
-    minigameMaid:GiveTask(UserInputService.JumpRequest:Connect(function()
+    minigameJanitor:Add(UserInputService.JumpRequest:Connect(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
-    minigameMaid:GiveTask(RunService.RenderStepped:Connect(function()
+    minigameJanitor:Add(RunService.RenderStepped:Connect(function()
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
 
     SharedMinigameScreen.openStartMenu()
-    minigameMaid:GiveTask(function()
+    minigameJanitor:Add(function()
         SharedMinigameScreen.closeStartMenu()
     end)
 end)
@@ -74,8 +74,8 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
-    raceMaid:GiveTask(CollectableController.setup())
-    raceMaid:GiveTask(ProgressLineController.setup())
+    raceJanitor:Add(CollectableController.setup())
+    raceJanitor:Add(ProgressLineController.setup())
 
     --[[
         Client tells itself when to give player control of driving
@@ -85,12 +85,12 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
     local startingLine = MinigameController.getMap().StartingLine.PrimaryPart
     startingLine.Transparency = 1
-    raceMaid:GiveTask(function()
+    raceJanitor:Add(function()
         startingLine.Transparency = INACTIVE_STARTING_LINE_TRANSPARENCY
     end)
 
     -- Goo
-    raceMaid:GiveTask(DrivingController.setup())
+    raceJanitor:Add(DrivingController.setup())
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
@@ -98,7 +98,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
     SharedMinigameScreen.hideStatus()
-    raceMaid:Cleanup()
+    raceJanitor:Cleanup()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)

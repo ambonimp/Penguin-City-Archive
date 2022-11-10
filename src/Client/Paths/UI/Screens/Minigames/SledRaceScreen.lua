@@ -36,7 +36,7 @@ function SledRaceScreen.openProgressLine(indicatorHeight: number): ({ [Player]: 
         bar.Parent = progressLine
 
         local icon = Instance.new("ImageLabel")
-        icon.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        icon.Image = Players:GetUserThumbnailAsync(participant.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
         icon.BackgroundTransparency = 1
         icon.AnchorPoint = Vector2.new(1, 0.5)
         icon.Size = UDim2.fromOffset(80, 80)

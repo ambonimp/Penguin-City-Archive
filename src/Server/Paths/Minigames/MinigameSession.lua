@@ -30,6 +30,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     local maid = Maid.new()
     local stateMachine = StateMachine.new(TableUtil.getKeys(STATES), STATES.Nothing)
+    maid:GiveTask(stateMachine)
 
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, id)
     local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
@@ -142,8 +143,13 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             return
         end
 
-        -- Player didn't leave the game
         local stillInGame: boolean = player.Character ~= nil
+
+        table.remove(participants, table.find(participants, player))
+        minigameSession.ParticipantRemoved:Fire(player, stillInGame)
+        minigameSession:RelayToOtherParticipants(player, "MinigameParticipantRemoved", player, participants)
+
+        -- Player didn't leave the game
         if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
 
@@ -162,10 +168,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                     minigameSession:ChangeState(STATES.Intermission) -- This will then go to WaitingForPlayers
                 end
             end
-
-            table.remove(participants, table.find(participants, player))
-            minigameSession.ParticipantRemoved:Fire(player, stillInGame)
-            minigameSession:RelayToOtherParticipants(player, "MinigameParticipantRemoved", player, participants)
         end
     end
 
