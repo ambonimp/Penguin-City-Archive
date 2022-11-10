@@ -56,12 +56,12 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     topTitle.Font = UIConstants.Font
     topTitle.Text = "Hoverboards"
     topTitle.TextColor3 = Color3.fromRGB(38, 71, 118)
-    topTitle.TextScaled = true
+    topTitle.TextSize = 80
     topTitle.TextXAlignment = Enum.TextXAlignment.Left
     topTitle.AnchorPoint = Vector2.new(0, 0.5)
     topTitle.BackgroundTransparency = 1
     topTitle.Position = UDim2.new(0.05, 140, 0.5, 0)
-    topTitle.Size = UDim2.fromScale(0.4, 0.5)
+    topTitle.Size = UDim2.fromScale(0.4, 1)
     topTitle.Parent = top
 
     local topPage = Instance.new("TextLabel")

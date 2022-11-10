@@ -18,7 +18,7 @@ type InstanceValuePair = {
 }
 type UIScaleData = {
     Container: InstanceValuePair,
-    SpecialInstances: { InstanceValuePair },
+    SpecialInstances: { [Instance]: InstanceValuePair },
 }
 
 -------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ function UIScaleController.updateUIScale(uiScale: UIScale, toScale: number?)
     data.Container.Instance.Size = UDim2.new(initSize.X.Scale / toScale, initSize.X.Offset, initSize.Y.Scale / toScale, initSize.Y.Offset)
 
     -- Special Instances
-    for _, instanceValuePair in pairs(data.SpecialInstances) do
+    for _instance, instanceValuePair in pairs(data.SpecialInstances) do
         classnameToUpdater[instanceValuePair.Instance.ClassName](instanceValuePair.Instance, instanceValuePair.Value, toScale)
     end
 end
@@ -125,7 +125,7 @@ local classnameToCallback: { [string]: (instance: Instance) -> nil } = {
     TextBox = handleTextObject,
 }
 
-local classnameToPair: { [string]: (instance: Instance, initialScale: number) -> InstanceValuePair } = {
+local classnameToPairCreator: { [string]: (instance: Instance, initialScale: number) -> InstanceValuePair } = {
     UICorner = function(instance: UICorner, initialScale: number)
         return {
             Instance = instance,
@@ -141,14 +141,25 @@ local classnameToPair: { [string]: (instance: Instance, initialScale: number) ->
 }
 
 local function specialChecker(descendant: Instance)
-    return (classnameToPair[descendant.ClassName] or classnameToCallback[descendant.ClassName]) and true or false
+    return (classnameToPairCreator[descendant.ClassName] or classnameToCallback[descendant.ClassName]) and true or false
 end
 
 local function specialAdder(descendant: Instance, uiScale: UIScale, initialScale: number)
-    local pairCreator = classnameToPair[descendant.ClassName]
+    local pairCreator = classnameToPairCreator[descendant.ClassName]
     if pairCreator then
+        -- RETURN: Already added?
+        if uiScaleDatas[uiScale].SpecialInstances[descendant] then
+            return
+        end
+
         local instanceValuePair = pairCreator(descendant, initialScale)
-        table.insert(uiScaleDatas[uiScale].SpecialInstances, instanceValuePair)
+        uiScaleDatas[uiScale].SpecialInstances[descendant] = instanceValuePair
+
+        InstanceUtil.onDestroyed(descendant, function()
+            if uiScaleDatas[uiScale] and uiScaleDatas[uiScale].SpecialInstances then
+                uiScaleDatas[uiScale].SpecialInstances[descendant] = nil
+            end
+        end)
 
         local updater = classnameToUpdater[descendant.ClassName]
         updater(descendant, instanceValuePair.Value)

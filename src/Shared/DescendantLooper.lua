@@ -49,7 +49,10 @@ end
 --[[
     Adds a checker/callback pair for looping all passed instances.
 
-    Returns a maid that can be destroyed to stop this operation - this is null if `ignoreAdded=true` though
+    Returns a maid that can be destroyed to stop this operation - this is null if `ignoreAdded=true` though.
+
+    !! A known issue is `callback` can be called twice when a new Instance is introduced into a scope being tracked by this method.
+    !! as both `DescendantAdded` and `instance:GetDescendants()` will get the same instance
 ]]
 function DescendantLooper.add(
     checker: (descendant: Instance) -> boolean,
