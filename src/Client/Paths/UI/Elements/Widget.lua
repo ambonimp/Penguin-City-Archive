@@ -35,7 +35,7 @@ function Widget.addWidget()
     return widget
 end
 
-function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwnership: boolean?)
+function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwnership: boolean?, showTotals: boolean?)
     local widget = Widget.diverseWidget()
 
     -- Populate Widget
@@ -69,6 +69,28 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwners
                 end
             end))
         end
+    end
+
+    -- Show total owned
+    if showTotals then
+        local function updateNumberTag()
+            local productCount = ProductController.getProductCount(product)
+            if productCount > 0 then
+                widget:SetNumberTag(productCount)
+            else
+                widget:SetNumberTag(nil)
+            end
+        end
+
+        local numberTagMaid = Maid.new()
+        widget:GetMaid():GiveTask(numberTagMaid)
+
+        numberTagMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, _amount: number)
+            if product == addedProduct then
+                updateNumberTag()
+            end
+        end))
+        updateNumberTag()
     end
 
     return widget
@@ -113,7 +135,7 @@ function Widget.diverseWidget()
     textLabel.Font = UIConstants.Font
     textLabel.Text = ""
     textLabel.TextColor3 = Widget.Defaults.TextColor
-    textLabel.TextSize = 35
+    textLabel.TextScaled = true
     textLabel.AnchorPoint = Vector2.new(0.5, 1)
     textLabel.BackgroundTransparency = 1
     textLabel.Position = UDim2.fromScale(0.5, 1)
@@ -126,6 +148,49 @@ function Widget.diverseWidget()
     textLabelStroke.Parent = textLabel
 
     textLabel.Parent = imageButton
+
+    local numberTagFrame = Instance.new("Frame")
+    numberTagFrame.Name = "numberTagFrame"
+    numberTagFrame.AnchorPoint = Vector2.new(0.7, 0.3)
+    numberTagFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    numberTagFrame.Position = UDim2.fromScale(1, 0)
+    numberTagFrame.Size = UDim2.fromOffset(50, 50)
+    numberTagFrame.Visible = false
+
+    local numberTagUICorner = Instance.new("UICorner")
+    numberTagUICorner.Name = "numberTagUICorner"
+    numberTagUICorner.CornerRadius = UDim.new(0, 100)
+    numberTagUICorner.Parent = numberTagFrame
+
+    local numberTagUIStroke = Instance.new("UIStroke")
+    numberTagUIStroke.Name = "numberTagUIStroke"
+    numberTagUIStroke.Color = Color3.fromRGB(26, 49, 81)
+    numberTagUIStroke.Thickness = 4
+    numberTagUIStroke.Transparency = 0.5
+    numberTagUIStroke.Parent = numberTagFrame
+
+    local numberTagLabel = Instance.new("TextLabel")
+    numberTagLabel.Name = "numberTagLabel"
+    numberTagLabel.Font = UIConstants.Font
+    numberTagLabel.Text = "1"
+    numberTagLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    numberTagLabel.TextScaled = true
+    numberTagLabel.TextSize = 30
+    numberTagLabel.TextStrokeTransparency = 0.5
+    numberTagLabel.TextWrapped = true
+    numberTagLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    numberTagLabel.BackgroundTransparency = 1
+    numberTagLabel.Position = UDim2.fromScale(0.5, 0.5)
+    numberTagLabel.Size = UDim2.fromScale(0.8, 0.8)
+
+    local numberTagLabelUIStroke = Instance.new("UIStroke")
+    numberTagLabelUIStroke.Name = "numberTagLabelUIStroke"
+    numberTagLabelUIStroke.Color = Color3.fromRGB(38, 71, 118)
+    numberTagLabelUIStroke.Thickness = 2
+    numberTagLabelUIStroke.Parent = numberTagLabel
+
+    numberTagLabel.Parent = numberTagFrame
+    numberTagFrame.Parent = imageButton
 
     local closeButtonFrame = Instance.new("Frame")
     closeButtonFrame.Name = "closeButtonFrame"
@@ -289,6 +354,19 @@ function Widget.diverseWidget()
         priceFrame.BackgroundTransparency = transparency
         priceLabel.TextStrokeTransparency = transparency
         priceUIStroke.Transparency = transparency
+        numberTagFrame.BackgroundTransparency = transparency
+        numberTagUIStroke.Transparency = transparency
+        numberTagLabelUIStroke.Transparency = transparency
+        numberTagLabel.TextTransparency = transparency
+    end
+
+    function widget:SetNumberTag(number: number?)
+        if number then
+            numberTagFrame.Visible = true
+            numberTagLabel.Text = tostring(number)
+        else
+            numberTagFrame.Visible = false
+        end
     end
 
     -------------------------------------------------------------------------------

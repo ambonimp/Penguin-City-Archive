@@ -20,7 +20,7 @@ local GRID_SIZE = Vector2.new(5, 3)
     - ProductType: What products to display
     - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
 ]]
-function InventoryWindow.new(icon: string, title: string, data: { ProductType: string?, AddCallback: (() -> nil)? })
+function InventoryWindow.new(icon: string, title: string, data: { ProductType: string?, AddCallback: (() -> nil)?, ShowTotals: boolean? })
     local inventoryWindow = {}
 
     -------------------------------------------------------------------------------
@@ -169,6 +169,7 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     end
 
     local addCallback = data.AddCallback
+    local showTotals = data.ShowTotals
 
     local totalProductsPerPage = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
 
@@ -240,7 +241,7 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
             local holder = getHolderFrame(i)
             drawMaid:GiveTask(holder)
 
-            local widget = Widget.diverseWidgetFromProduct(product, true)
+            local widget = Widget.diverseWidgetFromProduct(product, true, showTotals)
             widget:Mount(holder)
             drawMaid:GiveTask(widget)
         end

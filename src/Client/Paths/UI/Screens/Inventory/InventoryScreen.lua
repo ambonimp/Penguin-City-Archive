@@ -64,6 +64,7 @@ function InventoryScreen.Init()
             "Housing",
             InventoryWindow.new(Images.Icons.Igloo, "Housing", {
                 ProductType = ProductConstants.ProductType.HouseObject,
+                ShowTotals = true,
             }):GetWindowFrame()
         )
 
