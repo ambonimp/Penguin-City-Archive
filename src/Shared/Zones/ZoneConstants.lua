@@ -32,6 +32,7 @@ ZoneConstants.ZoneId = {
         PizzaPlace = "PizzaPlace",
         CoffeeShop = "CoffeeShop",
         IceCreamShop = "IceCreamShop",
+        Boardwalk = "Boardwalk",
     },
     Minigame = {
         Pizza = "Pizza",

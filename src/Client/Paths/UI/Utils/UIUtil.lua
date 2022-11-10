@@ -3,7 +3,6 @@ local UIUtil = {}
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local StateMachine = require(Paths.Shared.StateMachine)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Promise = require(Paths.Packages.promise)
 
@@ -18,7 +17,10 @@ function UIUtil.offsetGuiInset(guiObject: GuiObject)
 end
 
 -- Returns true if `pseudoState` is enabled by the current stack of the stateMachine
-function UIUtil.getPseudoState(pseudoState: string, stateMachine: StateMachine.StateMachine)
+function UIUtil.getPseudoState(pseudoState: string)
+    -- Get StateMachine, skirting around circular dependencies
+    local stateMachine = require(Paths.Client.UI.UIController).getStateMachine()
+
     -- FALSE: Not in stack at all
     if not stateMachine:HasState(pseudoState) then
         return false

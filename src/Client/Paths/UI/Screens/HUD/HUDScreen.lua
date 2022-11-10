@@ -225,7 +225,7 @@ function HUDScreen.Init()
         end
 
         local function readState()
-            if UIUtil.getPseudoState(UIConstants.States.HUD, uiStateMachine) then
+            if UIUtil.getPseudoState(UIConstants.States.HUD) then
                 enter()
             else
                 exit()
