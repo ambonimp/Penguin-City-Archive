@@ -15,13 +15,27 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
 
 local GRID_SIZE = Vector2.new(5, 3)
+local EQUIPPED_COLOR = Color3.fromRGB(0, 165, 0)
 
 --[[
     data:
     - ProductType: What products to display
     - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
 ]]
-function InventoryWindow.new(icon: string, title: string, data: { ProductType: string?, AddCallback: (() -> nil)?, ShowTotals: boolean? })
+function InventoryWindow.new(
+    icon: string,
+    title: string,
+    data: {
+        ProductType: string?,
+        AddCallback: (() -> nil)?,
+        ShowTotals: boolean?,
+        Equipping: {
+            Equip: (product: Products.Product) -> nil,
+            Unequip: (product: Products.Product) -> nil,
+            StartEquipped: Products.Product?,
+        }?,
+    }
+)
     local inventoryWindow = UIElement.new()
     local maid = inventoryWindow:GetMaid()
 
@@ -158,10 +172,10 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     maid:GiveTask(drawMaid)
 
     local pageNumber = 1
+    local widgetsByProduct: { [Products.Product]: typeof(Widget.diverseWidget()) } = {}
 
     local leftArrow = AnimatedButton.new(leftArrowButton)
     maid:GiveTask(leftArrow)
-
     local rightArrow = AnimatedButton.new(rightArrowButton)
     maid:GiveTask(rightArrow)
 
@@ -178,14 +192,10 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
 
     local addCallback = data.AddCallback
     local showTotals = data.ShowTotals
+    local equipping = data.Equipping
 
     local totalProductsPerPage = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
-
-    -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
+    local equippedProduct: Products.Product | nil
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -193,6 +203,10 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
 
     local function getMaxPageNumber()
         return math.clamp(math.ceil(#products / totalProductsPerPage), 1, math.huge)
+    end
+
+    local function getWidgetFromProduct(product: Products.Product): typeof(Widget.diverseWidget()) | nil
+        return widgetsByProduct[product]
     end
 
     -- Sorts products based on ownership
@@ -245,12 +259,24 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
         end
 
         -- Product Widgets
+        widgetsByProduct = {}
         for i, product in pairs(visibleProducts) do
             local holder = getHolderFrame(i)
             drawMaid:GiveTask(holder)
 
             local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = showTotals })
             widget:Mount(holder)
+            widget.Pressed:Connect(function()
+                if equipping then
+                    if product == equippedProduct then
+                        inventoryWindow:Equip(nil)
+                    else
+                        inventoryWindow:Equip(product)
+                    end
+                end
+            end)
+
+            widgetsByProduct[product] = widget
             drawMaid:GiveTask(widget)
         end
 
@@ -265,6 +291,35 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
+
+    function inventoryWindow:Equip(product: Products.Product | nil)
+        -- ERROR: Not one of ours!
+        if product and not table.find(products, product) then
+            error(("Product %q is alien to us"):format(product.Id))
+        end
+
+        -- WARN: No equipping!
+        if not equipping then
+            warn("No equipping data")
+            return
+        end
+
+        -- Unequip
+        local equippedWidget = equippedProduct and getWidgetFromProduct(equippedProduct)
+        if equippedWidget then
+            equipping.Unequip(equippedProduct)
+            equippedWidget:SetOutline(nil)
+        end
+
+        -- Equip
+        local productWidget = product and getWidgetFromProduct(product)
+        if productWidget then
+            equipping.Equip(product)
+            productWidget:SetOutline(EQUIPPED_COLOR)
+        end
+
+        equippedProduct = product
+    end
 
     function inventoryWindow:GetWindowFrame()
         return inventoryWindowFrame
@@ -295,6 +350,11 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     -- Populate products as widgets
     sortProducts()
     draw()
+
+    -- Start Equipped
+    if equipping and equipping.StartEquipped then
+        inventoryWindow:Equip(equipping.StartEquipped)
+    end
 
     return inventoryWindow
 end

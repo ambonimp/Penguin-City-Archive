@@ -12,6 +12,9 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
 local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
+local Products = require(Paths.Shared.Products.Products)
+local VehicleController = require(Paths.Client.VehicleController)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -45,6 +48,17 @@ function InventoryScreen.Init()
                 AddCallback = function()
                     warn("TODO Teleport to hoverboard shop")
                 end,
+                Equipping = {
+                    Equip = function(product: Products.Product)
+                        local vehicleName = ProductUtil.getVehicleProductData(product).VehicleName
+                        VehicleController.mountRequest(vehicleName)
+                    end,
+                    Unequip = function(_product: Products.Product)
+                        VehicleController.dismountRequest()
+                    end,
+                    StartEquipped = VehicleController.getCurrentVehicleName()
+                        and ProductUtil.getVehicleProduct(VehicleController.getCurrentVehicleName()),
+                },
             })
 
             maid:GiveTask(inventoryWindow)

@@ -11,6 +11,7 @@ local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 local camera = workspace.CurrentCamera
 local player = Players.LocalPlayer
 local controls = require(player.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
+local currentVehicleName: string | nil
 
 -- Returns an angle within (0, math.pi * 2)
 local function normalizeAngle(theta: number): number
@@ -67,6 +68,20 @@ local function drive(model)
 end
 
 VehicleController.DrivingSession = Maid.new()
+
+function VehicleController.mountRequest(vehicleName: string)
+    Remotes.fireServer("MountVehicle", vehicleName)
+    currentVehicleName = vehicleName
+end
+
+function VehicleController.dismountRequest()
+    Remotes.fireServer("UnmountFromVehicle")
+    currentVehicleName = nil
+end
+
+function VehicleController.getCurrentVehicleName()
+    return currentVehicleName
+end
 
 Remotes.bindEvents({
     VehicleMounted = function(owner, vehicle)

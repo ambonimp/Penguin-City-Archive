@@ -2,7 +2,6 @@ local UIConstants = {}
 
 UIConstants.States = {
     Loading = "Loading",
-    Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
     House = "House",
@@ -24,7 +23,6 @@ UIConstants.States = {
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
 UIConstants.PseudoStates = {
     [UIConstants.States.HUD] = {
-        UIConstants.States.Vehicles,
         UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
@@ -49,7 +47,6 @@ UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
     UIConstants.States.HUD,
-    UIConstants.States.Vehicles,
 }
 
 UIConstants.Font = Enum.Font.GothamBold
