@@ -312,7 +312,8 @@ function InventoryWindow.new(
         end
 
         -- Equip
-        local productWidget = product and getWidgetFromProduct(product)
+        local ownsProduct = product and (ProductController.hasProduct(product) or ProductUtil.isFree(product))
+        local productWidget = ownsProduct and getWidgetFromProduct(product)
         if productWidget then
             equipping.Equip(product)
             productWidget:SetOutline(EQUIPPED_COLOR)
