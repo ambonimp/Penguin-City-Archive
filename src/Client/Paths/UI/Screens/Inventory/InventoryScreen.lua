@@ -75,7 +75,7 @@ function InventoryScreen.Init()
         end)
 
         -- StampBook (--!! TEMP)
-        tabbedWindow:AddTab("StampBook", Images.Icons.Igloo)
+        tabbedWindow:AddTab("StampBook", Images.Icons.Stamp)
         tabbedWindow:SetWindowConstructor("StampBook", function(parent, maid)
             local inventoryWindow = InventoryWindow.new(Images.Icons.Stamp, "Stamp Book", {
                 ProductType = ProductConstants.ProductType.StampBook,
