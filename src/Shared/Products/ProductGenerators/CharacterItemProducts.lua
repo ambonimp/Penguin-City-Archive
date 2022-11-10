@@ -12,6 +12,12 @@ local IGNORE_ITEM_TYPE = {
 local products: { [string]: Product } = {}
 local characterAssets: Folder = ReplicatedStorage.Assets.Character
 
+local function getImageColor(categoryName: string, item: any)
+    if categoryName == "FurColor" then
+        return item.Color
+    end
+end
+
 for categoryName, itemConstants in pairs(CharacterItems) do
     -- IGNORE: Continue
     if table.find(IGNORE_ITEM_TYPE, categoryName) then
@@ -28,6 +34,7 @@ for categoryName, itemConstants in pairs(CharacterItems) do
             Type = ProductConstants.ProductType.CharacterItem,
             DisplayName = StringUtil.getFriendlyString(item.Name),
             ImageId = item.Icon,
+            ImageColor = getImageColor(categoryName, item),
             CoinData = {
                 Cost = item.Price,
             },
