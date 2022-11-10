@@ -12,10 +12,18 @@ local IGNORE_ITEM_TYPE = {
 local products: { [string]: Product } = {}
 local characterAssets: Folder = ReplicatedStorage.Assets.Character
 
-local function getImageColor(categoryName: string, item: any)
+local function getImageColor(categoryName: string, item: any): Color3 | nil
     if categoryName == "FurColor" then
         return item.Color
     end
+end
+
+local function getDisplayName(categoryName: string, item: any): string | nil
+    if categoryName == "FurColor" then
+        return ("%s Fur"):format(StringUtil.getFriendlyString(item.Name))
+    end
+
+    return StringUtil.getFriendlyString(item.Name)
 end
 
 for categoryName, itemConstants in pairs(CharacterItems) do
@@ -32,7 +40,7 @@ for categoryName, itemConstants in pairs(CharacterItems) do
         local product: Product = {
             Id = productId,
             Type = ProductConstants.ProductType.CharacterItem,
-            DisplayName = StringUtil.getFriendlyString(item.Name),
+            DisplayName = getDisplayName(categoryName, item),
             ImageId = item.Icon,
             ImageColor = getImageColor(categoryName, item),
             CoinData = {

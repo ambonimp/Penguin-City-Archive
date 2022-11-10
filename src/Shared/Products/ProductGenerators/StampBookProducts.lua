@@ -58,6 +58,22 @@ local function getImageColor(categoryName: string, property: any): Color3
     error(("Missing edge case %q"):format(categoryName))
 end
 
+local function getDisplayName(categoryName: string, propertyKey: string): string
+    if categoryName == "TextColor" then
+        return ("%s Text"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    if categoryName == "CoverColor" then
+        return ("%s Cover"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    if categoryName == "Seal" then
+        return ("%s Seal"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    return StringUtil.getFriendlyString(propertyKey)
+end
+
 for categoryName, propertyConstants in pairs(StampConstants.StampBook) do
     -- Create Products
     for propertyKey, property in pairs(propertyConstants) do
@@ -65,7 +81,7 @@ for categoryName, propertyConstants in pairs(StampConstants.StampBook) do
         local product: Product = {
             Id = productId,
             Type = ProductConstants.ProductType.StampBook,
-            DisplayName = StringUtil.getFriendlyString(propertyKey),
+            DisplayName = getDisplayName(categoryName, propertyKey),
             ImageId = getImageId(categoryName, property),
             ImageColor = getImageColor(categoryName, property),
             CoinData = {
