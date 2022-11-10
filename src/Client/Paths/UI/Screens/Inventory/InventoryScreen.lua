@@ -39,34 +39,40 @@ function InventoryScreen.Init()
     do
         -- Vehicles
         tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
-        tabbedWindow:SetWindow(
-            "Vehicles",
-            InventoryWindow.new(Images.Icons.Hoverboard, "Vehicles", {
+        tabbedWindow:SetWindowConstructor("Vehicles", function(parent, maid)
+            local inventoryWindow = InventoryWindow.new(Images.Icons.Hoverboard, "Vehicles", {
                 ProductType = ProductConstants.ProductType.Vehicle,
                 AddCallback = function()
                     warn("TODO Teleport to hoverboard shop")
                 end,
-            }):GetWindowFrame()
-        )
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:GetWindowFrame().Parent = parent
+        end)
 
         -- Clothing (--!! TEMP)
         tabbedWindow:AddTab("Clothes", Images.Icons.Shirt)
-        tabbedWindow:SetWindow(
-            "Clothes",
-            InventoryWindow.new(Images.Icons.Shirt, "Clothes", {
+        tabbedWindow:SetWindowConstructor("Clothes", function(parent, maid)
+            local inventoryWindow = InventoryWindow.new(Images.Icons.Shirt, "Clothes", {
                 ProductType = ProductConstants.ProductType.CharacterItem,
-            }):GetWindowFrame()
-        )
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:GetWindowFrame().Parent = parent
+        end)
 
         -- Housing (--!! TEMP)
         tabbedWindow:AddTab("Housing", Images.Icons.Igloo)
-        tabbedWindow:SetWindow(
-            "Housing",
-            InventoryWindow.new(Images.Icons.Igloo, "Housing", {
+        tabbedWindow:SetWindowConstructor("Housing", function(parent, maid)
+            local inventoryWindow = InventoryWindow.new(Images.Icons.Igloo, "Housing", {
                 ProductType = ProductConstants.ProductType.HouseObject,
                 ShowTotals = true,
-            }):GetWindowFrame()
-        )
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:GetWindowFrame().Parent = parent
+        end)
 
         --TODO
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
@@ -91,6 +97,7 @@ end
 
 function InventoryScreen.open()
     openMaid:Cleanup()
+    tabbedWindow:OpenTab("Vehicles")
 
     ScreenUtil.inDown(tabbedWindow:GetContainer())
     screenGui.Enabled = true

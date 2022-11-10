@@ -340,6 +340,13 @@ function SelectionPanel.new()
     end
 
     function selectionPanel:OpenTab(tabName: string?)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if tabName and not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
         openTabName = tabName
         draw()
     end

@@ -21,6 +21,7 @@ type Tab = {
     ImageId: string,
     Button: Button.Button | nil,
     WindowFrame: Frame?,
+    WindowConstructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
 }
 
 local TABS_PER_VIEW = 5
@@ -203,10 +204,17 @@ function TabbedWindow.new()
 
         -- Window
         do
+            -- Show/Hide Window Frames
             for _, tab in pairs(tabs) do
                 if tab.WindowFrame then
                     tab.WindowFrame.Visible = openTabName == tab.Name
                 end
+            end
+
+            -- Run Window Callback
+            local openTab = getTab(openTabName)
+            if openTab and openTab.WindowConstructor then
+                openTab.WindowConstructor(backgroundFrame, drawMaid)
             end
         end
 
@@ -231,6 +239,13 @@ function TabbedWindow.new()
     end
 
     function tabbedWindow:OpenTab(tabName: string?)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if tabName and not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
         openTabName = tabName
         draw()
     end
@@ -274,7 +289,8 @@ function TabbedWindow.new()
         tabbedWindow:OpenTab()
     end
 
-    function tabbedWindow:SetWindow(tabName: string, windowFrame: Frame)
+    -- Sets a function that will create our window when we need it
+    function tabbedWindow:SetWindowConstructor(tabName: string, constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -282,10 +298,24 @@ function TabbedWindow.new()
             return
         end
 
-        -- WARN: Already exists
-        if tab.WindowFrame then
-            warn(("WindowFrame for %s already exists!"):format(tabName))
+        tab.WindowConstructor = constructor
+
+        if openTabName == tabName then
+            draw()
+        end
+    end
+
+    -- Sets a frame as a window for a tab
+    function tabbedWindow:MountWindow(tabName: string, windowFrame: Frame)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
             return
+        end
+
+        if tab.WindowFrame then
+            tabbedWindow:ClearWindow(tabName)
         end
 
         windowFrame.Parent = backgroundFrame.Back

@@ -12,6 +12,7 @@ local ProductController = require(Paths.Client.ProductController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local UIElement = require(Paths.Client.UI.Elements.UIElement)
 
 local GRID_SIZE = Vector2.new(5, 3)
 
@@ -21,7 +22,8 @@ local GRID_SIZE = Vector2.new(5, 3)
     - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
 ]]
 function InventoryWindow.new(icon: string, title: string, data: { ProductType: string?, AddCallback: (() -> nil)?, ShowTotals: boolean? })
-    local inventoryWindow = {}
+    local inventoryWindow = UIElement.new()
+    local maid = inventoryWindow:GetMaid()
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -32,6 +34,7 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     inventoryWindowFrame.Name = "inventoryWindowFrame"
     inventoryWindowFrame.BackgroundTransparency = 1
     inventoryWindowFrame.Size = UDim2.fromScale(1, 1)
+    maid:GiveTask(inventoryWindowFrame)
 
     local top = Instance.new("Frame")
     top.Name = "top"
@@ -53,12 +56,12 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     topTitle.Font = UIConstants.Font
     topTitle.Text = "Hoverboards"
     topTitle.TextColor3 = Color3.fromRGB(38, 71, 118)
-    topTitle.TextSize = 80
+    topTitle.TextScaled = true
     topTitle.TextXAlignment = Enum.TextXAlignment.Left
     topTitle.AnchorPoint = Vector2.new(0, 0.5)
     topTitle.BackgroundTransparency = 1
     topTitle.Position = UDim2.new(0.05, 140, 0.5, 0)
-    topTitle.Size = UDim2.fromScale(0.4, 1)
+    topTitle.Size = UDim2.fromScale(0.4, 0.5)
     topTitle.Parent = top
 
     local topPage = Instance.new("TextLabel")
@@ -152,10 +155,15 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
     --#endregion
 
     local drawMaid = Maid.new()
+    maid:GiveTask(drawMaid)
+
     local pageNumber = 1
 
     local leftArrow = AnimatedButton.new(leftArrowButton)
+    maid:GiveTask(leftArrow)
+
     local rightArrow = AnimatedButton.new(rightArrowButton)
+    maid:GiveTask(rightArrow)
 
     topIcon.Image = icon
     topTitle.Text = title
