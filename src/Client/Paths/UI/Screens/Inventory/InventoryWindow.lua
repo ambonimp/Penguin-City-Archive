@@ -249,7 +249,7 @@ function InventoryWindow.new(icon: string, title: string, data: { ProductType: s
             local holder = getHolderFrame(i)
             drawMaid:GiveTask(holder)
 
-            local widget = Widget.diverseWidgetFromProduct(product, true, showTotals)
+            local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = showTotals })
             widget:Mount(holder)
             drawMaid:GiveTask(widget)
         end

@@ -14,22 +14,12 @@ local Signal = require(Paths.Shared.Signal)
 local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local Products = require(Paths.Shared.Products.Products)
-local ProductController = require(Paths.Client.ProductController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-
-type Widget = {
-    Name: string,
-    ImageId: string,
-    ImageColor: Color3,
-    Callback: (() -> nil)?,
-    ProductType: string?,
-    ProductId: string?,
-}
+local Widget = require(Paths.Client.UI.Elements.Widget)
 
 type Tab = {
     Name: string,
     ImageId: string,
-    Widgets: { Widget },
+    WidgetConstructors: { { WidgetName: string, Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil } },
     Button: Button.Button | nil,
 }
 
@@ -38,7 +28,6 @@ local TABS_PER_VIEW = {
     Right = 5,
     Bottom = 8,
 }
-local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 local SECTION_WIDTH_OFFSET = 178
 
 SelectionPanel.Defaults = {
@@ -120,10 +109,10 @@ function SelectionPanel.new()
         return nil
     end
 
-    local function getWidget(tab: Tab, widgetName: string)
-        for _, widget in pairs(tab.Widgets) do
-            if widget.Name == widgetName then
-                return widget
+    local function getWidgetConstructor(tab: Tab, widgetName: string)
+        for _, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                return widgetInfo.Constructor
             end
         end
         return nil
@@ -283,39 +272,18 @@ function SelectionPanel.new()
 
         -- Widgets
         if openTab then
-            for i, widget in pairs(openTab.Widgets) do
+            for i, widgetInfo in pairs(openTab.WidgetConstructors) do
                 local section = getSection(i)
 
-                local product = widget.ProductId and ProductUtil.getProduct(widget.ProductType, widget.ProductId)
-                local ownsProduct = product and (ProductController.hasProduct(product) or ProductUtil.isFree(product))
-
                 local widgetFrame: Frame = section.template:Clone()
-                widgetFrame.Name = widget.Name
+                widgetFrame.Name = widgetInfo.WidgetName
                 widgetFrame.LayoutOrder = i
-                widgetFrame.Background.Icon.Image = widget.ImageId or ""
-                widgetFrame.Background.Icon.ImageColor3 = widget.ImageColor
                 widgetFrame.Visible = true
                 widgetFrame.Parent = section
                 drawMaid:GiveTask(widgetFrame)
 
-                -- Fade if its a product and not owned
-                if product and not ownsProduct then
-                    widgetFrame.Background.Transparency = 0.5
-                    widgetFrame.Background.Icon.ImageTransparency = 0.5
-                end
-
-                local widgetButton = AnimatedButton.new(widgetFrame.Background)
-                widgetButton:SetHoverAnimation(AnimatedButton.Animations.Nod)
-                widgetButton:SetPressAnimation()
-                drawMaid:GiveTask(widgetButton)
-
-                widgetButton.Pressed:Connect(function()
-                    if product and not ownsProduct then
-                        ProductController.prompt(product)
-                    elseif widget.Callback then
-                        widget.Callback()
-                    end
-                end)
+                widgetFrame.Background:Destroy()
+                widgetInfo.Constructor(widgetFrame, drawMaid)
             end
         end
 
@@ -395,7 +363,7 @@ function SelectionPanel.new()
         local tab: Tab = {
             Name = tabName,
             ImageId = imageId,
-            Widgets = {},
+            WidgetConstructors = {},
         }
         table.insert(tabs, tab)
 
@@ -425,7 +393,11 @@ function SelectionPanel.new()
         selectionPanel:OpenTab()
     end
 
-    function selectionPanel:AddWidget(tabName: string, widgetName: string, imageId: string, imageColor: Color3?, callback: (() -> nil)?)
+    function selectionPanel:AddWidgetConstructor(
+        tabName: string,
+        widgetName: string,
+        constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil
+    )
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -434,58 +406,35 @@ function SelectionPanel.new()
         end
 
         -- WARN: Already exists
-        if getWidget(tab, widgetName) then
+        if getWidgetConstructor(tab, widgetName) then
             warn(("Widget %s.%s already exists!"):format(tabName, widgetName))
             return
         end
 
-        local widget: Widget = {
-            Name = widgetName,
-            ImageId = imageId,
-            ImageColor = imageColor or COLOR_WHITE,
-            Callback = callback,
-        }
-        table.insert(tab.Widgets, widget)
+        table.insert(tab.WidgetConstructors, {
+            WidgetName = widgetName,
+            Constructor = constructor,
+        })
 
-        -- Draw if this would be visible right now
         if openTabName == tab.Name then
             draw()
         end
     end
 
-    -- Will only run `callback` if the product is owned
-    function selectionPanel:AddProductWidget(tabName: string, product: Products.Product, callback: (() -> nil)?)
-        local widgetName = product.Id
-        local imageId = product.ImageId
-        local imageColor = product.ImageColor
+    function selectionPanel:AddWidgetFromProduct(
+        tabName: string,
+        widgetName: string,
+        product: Products.Product,
+        state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?,
+        callback: (() -> nil)?
+    )
+        selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
+            local widget = Widget.diverseWidgetFromProduct(product, state)
+            widget:Mount(widgetParent)
+            widget.Pressed:Connect(callback)
 
-        -- WARN: Bad tab
-        local tab = getTab(tabName)
-        if not tab then
-            warn(("No tab %q exits"):format(tabName))
-            return
-        end
-
-        -- WARN: Already exists
-        if getWidget(tab, widgetName) then
-            warn(("Widget %s.%s already exists!"):format(tabName, widgetName))
-            return
-        end
-
-        local widget: Widget = {
-            Name = widgetName,
-            ImageId = imageId,
-            ImageColor = imageColor or COLOR_WHITE,
-            Callback = callback,
-            ProductType = product.Type,
-            ProductId = product.Id,
-        }
-        table.insert(tab.Widgets, widget)
-
-        -- Draw if this would be visible right now
-        if openTabName == tab.Name then
-            draw()
-        end
+            maid:GiveTask(widget)
+        end)
     end
 
     function selectionPanel:RemoveWidget(tabName: string, widgetName: string)
@@ -496,9 +445,9 @@ function SelectionPanel.new()
             return
         end
 
-        for index, widget in pairs(tab.Widgets) do
-            if widget.Name == widgetName then
-                table.remove(tab.Widgets, index)
+        for index, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                table.remove(tab.WidgetConstructors, index)
             end
         end
 
@@ -516,7 +465,7 @@ function SelectionPanel.new()
             return
         end
 
-        tab.Widgets = {}
+        tab.WidgetConstructors = {}
 
         -- Draw if this would be visible right now
         if openTabName == tabName then
@@ -531,19 +480,6 @@ function SelectionPanel.new()
     -- Setup
     draw(true)
     selectionPanel:SetSize(size)
-
-    -- Listen to ProductPurchases to update widgets
-    selectionPanel:GetMaid():GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
-        local openTab = openTabName and getTab(openTabName)
-        if openTab then
-            for _, widget in pairs(openTab.Widgets) do
-                if widget.ProductId == product.Id and widget.ProductType == product.Type then
-                    draw()
-                    return
-                end
-            end
-        end
-    end))
 
     return selectionPanel
 end

@@ -44,8 +44,9 @@ function Widget.addWidget()
     return widget
 end
 
-function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwnership: boolean?, showTotals: boolean?)
+function Widget.diverseWidgetFromProduct(product: Products.Product, state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?)
     local widget = Widget.diverseWidget()
+    state = state or {}
 
     -- Populate Widget
     widget:SetText(product.DisplayName)
@@ -58,8 +59,8 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwners
     end
 
     -- Handle widget being used for purchases + showing if owned
-    if verifyOwnership then
-        local isOwned = ProductController.hasProduct(product)
+    if state.VerifyOwnership then
+        local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
         if not isOwned then
             widget:SetFade(true)
             widget:SetPrice(product.CoinData and product.CoinData.Cost)
@@ -81,7 +82,7 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, verifyOwners
     end
 
     -- Show total owned
-    if showTotals then
+    if state.ShowTotals then
         local function updateNumberTag()
             local productCount = ProductController.getProductCount(product)
             if productCount > 0 then
@@ -118,7 +119,7 @@ function Widget.diverseWidget()
     local diverseWidget = Instance.new("Frame")
     diverseWidget.Name = "diverseWidget"
     diverseWidget.BackgroundTransparency = 1
-    diverseWidget.Size = UDim2.fromOffset(100, 100)
+    diverseWidget.Size = UDim2.fromScale(1, 1)
 
     local imageButton = widget:GetButtonObject()
     imageButton.Name = "imageButton"
@@ -277,12 +278,6 @@ function Widget.diverseWidget()
     --#endregion
 
     local closeCallbackMaid = Maid.new()
-
-    -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
 
     -------------------------------------------------------------------------------
     -- Private Methods
