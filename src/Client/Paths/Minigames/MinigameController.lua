@@ -114,7 +114,7 @@ function MinigameController.registerStateCallback(minigame: string, state: strin
     }
 end
 
-function MinigameController.getMinigame(): string
+function MinigameController.getMinigame(): string?
     return currentMinigame
 end
 
@@ -176,25 +176,12 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
     return length == 0
 end
 
-function MinigameController.getScores(): MinigameConstants.SortedScores
-    assertActiveMinigame()
-
-    -- RETURN: State is not award show
-    local state = currentState.Name
-
-    if state ~= MinigameConstants.States.AwardShow then
-        error(("Scores are only relayed to the client in the AwardShow state, state is current %s"):format(state))
-    end
-
-    return MinigameController.getData().Scores
+function MinigameController.getOwnPlacement(scores: MinigameConstants.SortedScores): number
+    return TableUtil.findFromProperty(scores, "Player", player)
 end
 
-function MinigameController.getOwnPlacement(): number
-    return TableUtil.findFromProperty(MinigameController.getScores(), "Player", player)
-end
-
-function MinigameController.getOwnScore(): number
-    return MinigameController.getScores()[MinigameController.getOwnPlacement()].Score
+function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores): number
+    return scores[MinigameController.getOwnPlacement(scores)].Score
 end
 
 -------------------------------------------------------------------------------

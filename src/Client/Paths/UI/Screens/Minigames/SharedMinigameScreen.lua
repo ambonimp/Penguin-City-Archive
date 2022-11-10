@@ -9,11 +9,12 @@ local Images = require(Paths.Shared.Images.Images)
 local Binder = require(Paths.Shared.Binder)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
-local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
@@ -170,10 +171,15 @@ function SharedMinigameScreen.closeStartMenu(temporary: true?)
     end
 end
 
-function SharedMinigameScreen.openStandings()
+function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)
+    -- RETURN: Player is no longer in a minigame
+    if not MinigameController.getMinigame() then
+        return
+    end
+
     local trash: { Frame } = {}
 
-    for placement, info in pairs(MinigameController.getScores()) do
+    for placement, info in pairs(scores) do
         local label: Frame = templates.PlayerScore:Clone()
         label.PlayerName.Text = info.Player.Name
         label.Medal.Image = Images.Minigames["Medal" .. placement] or ""
@@ -184,7 +190,7 @@ function SharedMinigameScreen.openStandings()
     end
 
     standingsFrame.Logo.Image = getLogo()
-    standingsFrame.Placement.Text = "You placed " .. MinigameController.getOwnPlacement()
+    standingsFrame.Placement.Text = "You placed " .. MinigameController.getOwnPlacement(scores)
 
     ScreenUtil.inUp(standingsFrame)
     standingsClose.InternalRelease:Wait()
@@ -196,6 +202,11 @@ function SharedMinigameScreen.openStandings()
 end
 
 function SharedMinigameScreen.openResults(values: { { Title: string, Icon: string?, Value: string | number } | string })
+    -- RETURN: Player is no longer in a minigame
+    if not MinigameController.getMinigame() then
+        return
+    end
+
     local trash: { Frame } = {}
 
     for _, info in pairs(values) do

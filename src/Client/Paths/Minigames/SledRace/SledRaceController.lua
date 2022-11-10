@@ -101,17 +101,19 @@ end, function()
     raceMaid:Cleanup()
 end)
 
-MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()
-    task.wait(AWARD_SEQUENCE_DELAY)
-
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
+    local scores: MinigameConstants.SortedScores = data.Scores
     local isMultiplayer = MinigameController.isMultiplayer()
 
+    task.wait(AWARD_SEQUENCE_DELAY)
+
     if isMultiplayer then
-        SharedMinigameScreen.openStandings()
+        SharedMinigameScreen.openStandings(scores)
     end
+
     SharedMinigameScreen.openResults({
-        { Title = "Placement", Value = MinigameController.getOwnPlacement() },
-        { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore()) },
+        { Title = "Placement", Value = MinigameController.getOwnPlacement(scores) },
+        { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore(scores)) },
         { Title = "Coins Collected", Value = 0 },
         { Title = "Total Coins", Icon = Images.Coins.Coin, Value = 45 },
     })
