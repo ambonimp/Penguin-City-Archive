@@ -74,6 +74,18 @@ function InventoryScreen.Init()
             inventoryWindow:GetWindowFrame().Parent = parent
         end)
 
+        -- StampBook (--!! TEMP)
+        tabbedWindow:AddTab("StampBook", Images.Icons.Igloo)
+        tabbedWindow:SetWindowConstructor("StampBook", function(parent, maid)
+            local inventoryWindow = InventoryWindow.new(Images.Icons.Stamp, "Stamp Book", {
+                ProductType = ProductConstants.ProductType.StampBook,
+                ShowTotals = true,
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:GetWindowFrame().Parent = parent
+        end)
+
         --TODO
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:AddTab("Food", Images.Icons.Food)
