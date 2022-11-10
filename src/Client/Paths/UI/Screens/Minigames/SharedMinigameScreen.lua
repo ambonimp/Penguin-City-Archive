@@ -14,10 +14,10 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local UIConstants = require(Paths.Client.UI.UIConstants)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
@@ -50,6 +50,8 @@ local resultsFrame: Frame = sharedScreens.Results
 local statusFrame: Frame = sharedScreens.Status
 local statusText: TextLabel = statusFrame.Text
 local statusCounter: TextLabel = statusFrame.Counter
+
+local playButton: TextButton = singlePlayerMenu.Play
 
 local startInstructionButton = KeyboardButton.new()
 local startExitButton = KeyboardButton.new()
@@ -257,7 +259,8 @@ end
 
 -- Start menus
 do
-    singlePlayerMenu.Play.MouseButton1Down:Connect(function()
+    playButton.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
+    playButton.MouseButton1Down:Connect(function()
         Transitions.blink(function()
             SharedMinigameScreen.closeStartMenu()
         end, { HalfTweenTime = 0.5 })

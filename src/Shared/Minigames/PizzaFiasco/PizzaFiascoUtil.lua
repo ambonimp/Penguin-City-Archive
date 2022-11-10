@@ -2,10 +2,10 @@
     Has a lot of "rollers"; gives us a random recipeType/sauce/etc.. dependent on our current progress in the game.
     Some convenient getters too.
 ]]
-local PizzaMinigameUtil = {}
+local PizzaFiascoUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local PizzaMinigameConstants = require(script.Parent.PizzaMinigameConstants)
+local PizzaFiascoConstants = require(script.Parent.PizzaFiascoConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Images = require(ReplicatedStorage.Shared.Images.Images)
@@ -16,29 +16,29 @@ export type Recipe = {
     Toppings: { [string]: number },
 }
 
-local TOTAL_TOPPINGS = TableUtil.length(PizzaMinigameConstants.Ingredients.Toppings)
+local TOTAL_TOPPINGS = TableUtil.length(PizzaFiascoConstants.Ingredients.Toppings)
 local NICE_NAMES = {
     HotSauce = "Hot Sauce",
     TomatoSauce = "Tomato Sauce",
 }
 
-function PizzaMinigameUtil.rollRecipeType(pizzaNumber: number)
-    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
+function PizzaFiascoUtil.rollRecipeType(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
-    for recipeLabel, weightEquation in pairs(PizzaMinigameConstants.RecipeTypeWeightEquations) do
+    for recipeLabel, weightEquation in pairs(PizzaFiascoConstants.RecipeTypeWeightEquations) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
         weightTable[recipeLabel] = weight
     end
 
     local selectedRecipeLabel: string = MathUtil.weightedChoice(weightTable)
-    local recipeType = PizzaMinigameConstants.RecipeTypes[selectedRecipeLabel]
+    local recipeType = PizzaFiascoConstants.RecipeTypes[selectedRecipeLabel]
 
     return selectedRecipeLabel, recipeType
 end
 
-function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: number)
-    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
+function PizzaFiascoUtil.rollToppings(pizzaNumber: number, toppingsNeeded: number)
+    local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
     -- ERROR: Too many toppings!
     if toppingsNeeded > TOTAL_TOPPINGS then
@@ -46,7 +46,7 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
     end
 
     local weightTable: { [string]: number } = {}
-    for topping, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Toppings) do
+    for topping, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Toppings) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
         weightTable[topping] = weight
     end
@@ -67,11 +67,11 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
     return toppings
 end
 
-function PizzaMinigameUtil.rollSauce(pizzaNumber: number)
-    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
+function PizzaFiascoUtil.rollSauce(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
-    for sauce, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Sauces) do
+    for sauce, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Sauces) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
         weightTable[sauce] = weight
     end
@@ -79,11 +79,11 @@ function PizzaMinigameUtil.rollSauce(pizzaNumber: number)
     return MathUtil.weightedChoice(weightTable) :: string
 end
 
-function PizzaMinigameUtil.rollBase(pizzaNumber: number)
-    local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
+function PizzaFiascoUtil.rollBase(pizzaNumber: number)
+    local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
     local weightTable: { [string]: number } = {}
-    for base, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Bases) do
+    for base, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Bases) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
         weightTable[base] = weight
     end
@@ -91,16 +91,16 @@ function PizzaMinigameUtil.rollBase(pizzaNumber: number)
     return MathUtil.weightedChoice(weightTable) :: string
 end
 
-function PizzaMinigameUtil.rollRecipe(pizzaNumber: number, recipeType: PizzaMinigameConstants.RecipeType?)
-    recipeType = recipeType or PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+function PizzaFiascoUtil.rollRecipe(pizzaNumber: number, recipeType: PizzaFiascoConstants.RecipeType?)
+    recipeType = recipeType or PizzaFiascoUtil.rollRecipeType(pizzaNumber)
 
     local recipe: Recipe = {
-        Base = PizzaMinigameUtil.rollBase(pizzaNumber),
-        Sauce = PizzaMinigameUtil.rollSauce(pizzaNumber),
+        Base = PizzaFiascoUtil.rollBase(pizzaNumber),
+        Sauce = PizzaFiascoUtil.rollSauce(pizzaNumber),
         Toppings = {},
     }
 
-    local toppings = PizzaMinigameUtil.rollToppings(pizzaNumber, #recipeType.Toppings)
+    local toppings = PizzaFiascoUtil.rollToppings(pizzaNumber, #recipeType.Toppings)
     for i, topping in pairs(toppings) do
         recipe.Toppings[topping] = recipeType.Toppings[i]
     end
@@ -109,13 +109,13 @@ function PizzaMinigameUtil.rollRecipe(pizzaNumber: number, recipeType: PizzaMini
 end
 
 -- Gives the reward for completing this specific pizza number
-function PizzaMinigameUtil.calculatePizzaReward(pizzaNumber: number)
-    local increaseCount = math.floor((pizzaNumber - 1) / PizzaMinigameConstants.Reward.IncreaseEvery)
-    return PizzaMinigameConstants.Reward.Base + increaseCount * PizzaMinigameConstants.Reward.IncreaseBy
+function PizzaFiascoUtil.calculatePizzaReward(pizzaNumber: number)
+    local increaseCount = math.floor((pizzaNumber - 1) / PizzaFiascoConstants.Reward.IncreaseEvery)
+    return PizzaFiascoConstants.Reward.Base + increaseCount * PizzaFiascoConstants.Reward.IncreaseBy
 end
 
-function PizzaMinigameUtil.getRecipeName(recipe: Recipe)
-    local ingredients = PizzaMinigameConstants.Ingredients
+function PizzaFiascoUtil.getRecipeName(recipe: Recipe)
+    local ingredients = PizzaFiascoConstants.Ingredients
     local totalToppings = TableUtil.length(recipe.Toppings)
 
     -- No Toppings
@@ -149,12 +149,12 @@ function PizzaMinigameUtil.getRecipeName(recipe: Recipe)
 end
 
 -- Useful to convert a "data-scoped" name to something appropriate to show to a user
-function PizzaMinigameUtil.getNiceName(someString: string)
+function PizzaFiascoUtil.getNiceName(someString: string)
     return NICE_NAMES[someString] or someString
 end
 
-function PizzaMinigameUtil.getIngredientIconId(ingredientName: string)
-    local imageId = Images.PizzaMinigame[ingredientName]
+function PizzaFiascoUtil.getIngredientIconId(ingredientName: string)
+    local imageId = Images.PizzaFiasco[ingredientName]
     if not imageId then
         warn(("Could not get ImageId for ingredient %q"):format(ingredientName))
         imageId = ""
@@ -163,4 +163,4 @@ function PizzaMinigameUtil.getIngredientIconId(ingredientName: string)
     return imageId
 end
 
-return PizzaMinigameUtil
+return PizzaFiascoUtil

@@ -1,3 +1,0 @@
-local MinigameTemplateController = {}
-
-return MinigameTemplateController

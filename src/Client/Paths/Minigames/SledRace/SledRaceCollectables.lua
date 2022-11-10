@@ -27,7 +27,7 @@ local random = Random.new()
 
 local player = Players.LocalPlayer
 
-local assets = ReplicatedStorage.Assets.SledRace
+local assets = ReplicatedStorage.Assets.Minigames.SledRace
 local particles = assets.Particles
 
 -------------------------------------------------------------------------------

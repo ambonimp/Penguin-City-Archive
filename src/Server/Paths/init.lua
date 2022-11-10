@@ -32,7 +32,6 @@ task.delay(0, function()
         require(server.Cmdr.CmdrService),
         require(server.Characters.CharacterItemService),
         require(server.PlayerService),
-        require(server.Minigames.SinglePlayerMinigameService),
         require(server.Products.ProductProcessReceipt),
         require(server.Zones.ZoneService),
         require(server.Housing.PlotService),

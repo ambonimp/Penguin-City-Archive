@@ -5,10 +5,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local Maid = require(Paths.Packages.maid)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
-local GameUtil = require(Paths.Shared.Utils.GameUtil)
-
-local WAIT_LENGTH = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 1 else 15
 
 function MinigameQueue.new(minigameName: string)
     local queue = {}
@@ -48,7 +46,7 @@ function MinigameQueue.new(minigameName: string)
         table.insert(participants, player)
 
         if #participants == sessionConfig.MinParticipants then
-            minigameStartThread = task.delay(WAIT_LENGTH, function()
+            minigameStartThread = task.delay(MinigameConstants.MaximumSufficientlyFilledQueueLength, function()
                 maid:Destroy()
             end)
         elseif #participants == sessionConfig.MaxParticipants then

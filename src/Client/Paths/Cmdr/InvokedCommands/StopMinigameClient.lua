@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local SinglePlayerMinigameController = require(Paths.Client.Minigames.SinglePlayerMinigameController)
+local Remotes = require(Paths.Shared.Remotes)
 
 return function()
-    SinglePlayerMinigameController.stopPlaying()
+    Remotes.fireServer("MinigameExited")
 end

@@ -4,7 +4,6 @@ UIConstants.States = {
     Loading = "Loading",
     Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
-    PizzaMinigame = "PizzaMinigame",
     Minigame = "Minigame",
     House = "House",
     HouseEditor = "HouseEditor",

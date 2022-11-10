@@ -1,7 +1,7 @@
 --[[
-    The brain of the pizza minigame. This can create multiple PizzaMinigameRunners
+    The brain of the pizza minigame. This can create multiple PizzaFiascoRunners
 ]]
-local PizzaMinigameController = {}
+local PizzaFiascoController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -9,45 +9,45 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Output = require(Paths.Shared.Output)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
-local PizzaMinigameScreen = require(Paths.Client.UI.Screens.Minigames.PizzaMinigame.PizzaMinigameScreen)
+local PizzaFiascoScreen = require(Paths.Client.UI.Screens.Minigames.PizzaFiascoScreen)
 local CameraController = require(Paths.Client.CameraController)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
-local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner)
+local PizzaFiascoRunner = require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoRunner)
 local Remotes = require(Paths.Shared.Remotes)
-local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
+local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
 local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
 local UIResults = require(Paths.Client.UI.UIResults)
 local Images = require(Paths.Shared.Images.Images)
 
 local FOV = 65
-local FILLER_RECIPE_ORDER = { PizzaMinigameConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
+local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 local minigameFolder: Folder?
 local isStarted = false
-local runner: typeof(PizzaMinigameRunner.new(Instance.new("Folder"), {}, function() end)) | nil
+local runner: typeof(PizzaFiascoRunner.new(Instance.new("Folder"), {}, function() end)) | nil
 local cachedStopMinigameCallback: () -> MinigameConstants.PlayRequest
 
 -------------------------------------------------------------------------------
 -- Start/Stop
 -------------------------------------------------------------------------------
 
-function PizzaMinigameController.startMinigame(minigamesDirectory: Folder, stopMinigameCallback: () -> MinigameConstants.PlayRequest)
+function PizzaFiascoController.startMinigame(minigamesDirectory: Folder, stopMinigameCallback: () -> MinigameConstants.PlayRequest)
     isStarted = true
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame")
 
     minigameFolder = minigamesDirectory:WaitForChild("Pizza")
-    PizzaMinigameController.setupView()
+    PizzaFiascoController.setupView()
     cachedStopMinigameCallback = stopMinigameCallback
 end
 
-function PizzaMinigameController.stopMinigame()
+function PizzaFiascoController.stopMinigame()
     isStarted = false
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame")
 
     if runner and runner:IsRunning() then
-        PizzaMinigameController.finish()
+        PizzaFiascoController.finish()
     end
-    PizzaMinigameController.clearView()
+    PizzaFiascoController.clearView()
 end
 
 -------------------------------------------------------------------------------
@@ -56,11 +56,11 @@ end
 
 local function transitionFinish()
     Transitions.blink(function()
-        PizzaMinigameController.finish()
+        PizzaFiascoController.finish()
     end)
 end
 
-function PizzaMinigameController.play()
+function PizzaFiascoController.play()
     Output.doDebug(MinigameConstants.DoDebug, "play!")
 
     -- WARN: Not started!
@@ -74,17 +74,17 @@ function PizzaMinigameController.play()
     end
 
     -- Inform server
-    Remotes.fireServer("PizzaMinigamePlay")
+    Remotes.fireServer("PizzaFiascoPlay")
 
     -- Transition into gameplay
-    runner = PizzaMinigameRunner.new(minigameFolder, FILLER_RECIPE_ORDER, transitionFinish)
+    runner = PizzaFiascoRunner.new(minigameFolder, FILLER_RECIPE_ORDER, transitionFinish)
     Transitions.blink(function()
-        PizzaMinigameController.viewGameplay()
+        PizzaFiascoController.viewGameplay()
         runner:Run()
     end)
 end
 
-function PizzaMinigameController.finish()
+function PizzaFiascoController.finish()
     Output.doDebug(MinigameConstants.DoDebug, "finish!")
 
     -- WARN: Not playing
@@ -93,19 +93,19 @@ function PizzaMinigameController.finish()
     end
 
     -- Inform server
-    Remotes.fireServer("PizzaMinigameFinsh")
+    Remotes.fireServer("PizzaFiascoFinsh")
 
     local stats = runner:GetStats()
     runner:Stop()
     runner = nil
 
-    PizzaMinigameController.viewMenu()
-    UIResults.display(Images.PizzaMinigame.Logo, {
+    PizzaFiascoController.viewMenu()
+    UIResults.display(Images.PizzaFiasco.Logo, {
         { Name = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
-        { Name = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaMinigame.PizzaBase },
+        { Name = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
         {
             Name = "Lives Left",
-            Value = ("%d/%d"):format((PizzaMinigameConstants.MaxMistakes - stats.TotalMistakes), PizzaMinigameConstants.MaxMistakes),
+            Value = ("%d/%d"):format((PizzaFiascoConstants.MaxMistakes - stats.TotalMistakes), PizzaFiascoConstants.MaxMistakes),
             Icon = Images.Icons.Heart,
         },
     }, nil)
@@ -115,29 +115,29 @@ end
 -- Views
 -------------------------------------------------------------------------------
 
-function PizzaMinigameController.setupView()
-    UIController.getStateMachine():PushIfMissing(UIConstants.States.PizzaMinigame)
+function PizzaFiascoController.setupView()
+    UIController.getStateMachine():PushIfMissing(UIConstants.States.PizzaFiasco)
     CameraController.setScriptable()
     CameraController.setFov(FOV, 0)
 
-    PizzaMinigameController.viewMenu()
+    PizzaFiascoController.viewMenu()
 end
 
-function PizzaMinigameController.clearView()
-    UIController.getStateMachine():Remove(UIConstants.States.PizzaMinigame)
+function PizzaFiascoController.clearView()
+    UIController.getStateMachine():Remove(UIConstants.States.PizzaFiasco)
     CameraController.setPlayerControl()
     CameraController.resetFov(0)
     LightingUtil.resetBlur(0)
 end
 
-function PizzaMinigameController.viewMenu()
-    PizzaMinigameScreen.viewMenu()
+function PizzaFiascoController.viewMenu()
+    PizzaFiascoScreen.viewMenu()
     CameraController.viewCameraModel(minigameFolder.Cameras.Menu)
     LightingUtil.setBlur(MinigameConstants.BlurSize, 0)
 end
 
-function PizzaMinigameController.viewGameplay()
-    PizzaMinigameScreen.viewGameplay()
+function PizzaFiascoController.viewGameplay()
+    PizzaFiascoScreen.viewGameplay()
     CameraController.viewCameraModel(minigameFolder.Cameras.Gameplay)
     LightingUtil.resetBlur(0)
 end
@@ -146,29 +146,10 @@ end
 -- Other
 -------------------------------------------------------------------------------
 
--- UI Hooks
-do
-    PizzaMinigameScreen.getPlayButton().Pressed:Connect(function()
-        PizzaMinigameController.play()
-    end)
-    PizzaMinigameScreen.getExitButton().Pressed:Connect(function()
-        cachedStopMinigameCallback()
-    end)
-    PizzaMinigameScreen.getExitGameplayButton().Pressed:Connect(function()
-        transitionFinish()
-    end)
-    PizzaMinigameScreen.getInstructionsButton().Pressed:Connect(function()
-        PizzaMinigameScreen.viewInstructions()
-    end)
-    PizzaMinigameScreen.getInstructionsCloseButton().Pressed:Connect(function()
-        PizzaMinigameScreen.viewMenu()
-    end)
-end
-
 -- Communication
 do
     Remotes.bindEvents({
-        PizzaMinigameRecipeTypeOrder = function(recipeOrder: { string })
+        PizzaFiascoRecipeTypeOrder = function(recipeOrder: { string })
             if runner then
                 Output.doDebug(MinigameConstants.DoDebug, "got recipeOrder", recipeOrder)
                 runner:SetRecipeTypeOrder(recipeOrder)
@@ -179,4 +160,4 @@ do
     })
 end
 
-return PizzaMinigameController
+return PizzaFiascoController

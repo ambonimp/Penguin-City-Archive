@@ -1,4 +1,7 @@
-local PizzaMinigameConstants = {}
+local PizzaFiascoConstants = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameConstants)
 
 export type RecipeType = {
     Toppings: { number } | nil, -- How many toppings are needed, and how many of each topping
@@ -6,29 +9,36 @@ export type RecipeType = {
 
 type WeightEquation = (alpha: number) -> number
 
-PizzaMinigameConstants.Reward = {
+local sessionConfig: MinigameConstants.SessionConfig = {
+    SinglePlayer = true,
+    Multiplayer = false,
+}
+
+PizzaFiascoConstants.SessionConfig = sessionConfig
+
+PizzaFiascoConstants.Reward = {
     Base = 5, -- Base coins to reward for 1 correct pizza
     IncreaseEvery = 5, -- Increase the coin reward every x pizzas
     IncreaseBy = 5, -- How much to increase the coin reward by
 }
 
-PizzaMinigameConstants.Conveyor = {
+PizzaFiascoConstants.Conveyor = {
     Time = 12, -- How many seconds the pizza takes to traverse the conveyor
     IncreaseFactor = 0.95, -- How much to decrease this time by each iteration
     MaxIncreases = 10,
 }
 
-PizzaMinigameConstants.MaxMistakes = 3
-PizzaMinigameConstants.MaxPizzas = 30
-PizzaMinigameConstants.MaxRecipeRepeats = 2
+PizzaFiascoConstants.MaxMistakes = 3
+PizzaFiascoConstants.MaxPizzas = 30
+PizzaFiascoConstants.MaxRecipeRepeats = 2
 
-PizzaMinigameConstants.IngredientTypes = {
+PizzaFiascoConstants.IngredientTypes = {
     Toppings = "Toppings",
     Sauces = "Sauces",
     Bases = "Bases",
 }
 
-PizzaMinigameConstants.Ingredients = {
+PizzaFiascoConstants.Ingredients = {
     Toppings = {
         Seaweed = "Seaweed",
         Squid = "Squid",
@@ -44,7 +54,7 @@ PizzaMinigameConstants.Ingredients = {
     },
 }
 
-PizzaMinigameConstants.IngredientWeightEquations = {
+PizzaFiascoConstants.IngredientWeightEquations = {
     Toppings = {
         --[[
             We graph toppings' weights over time. We want each topping to have its "reign", so you feel yourself progressing through
@@ -85,7 +95,7 @@ PizzaMinigameConstants.IngredientWeightEquations = {
 }
 
 -- Ranked in order of what the developer thinks is increasing difficulty
-PizzaMinigameConstants.RecipeTypes = {
+PizzaFiascoConstants.RecipeTypes = {
     A = { Toppings = {} },
     C = { Toppings = { 2 } },
     B = { Toppings = { 1, 1 } },
@@ -95,7 +105,7 @@ PizzaMinigameConstants.RecipeTypes = {
     G = { Toppings = { 2, 2, 1 } },
 } :: { [string]: RecipeType }
 
-PizzaMinigameConstants.RecipeTypeWeightEquations = {
+PizzaFiascoConstants.RecipeTypeWeightEquations = {
     --[[
         We graph a recipes weight over time. At any given time, some recipes will be more likely to be chosen than others.
         In first ~11% of the game (at time of writing), only equation A gives a value greater than 0 - so only recipe A will be
@@ -125,6 +135,6 @@ PizzaMinigameConstants.RecipeTypeWeightEquations = {
     end,
 } :: { [string]: WeightEquation }
 
-PizzaMinigameConstants.FirstRecipe = "A" -- Force first recipe
+PizzaFiascoConstants.FirstRecipe = "A" -- Force first recipe
 
-return PizzaMinigameConstants
+return PizzaFiascoConstants

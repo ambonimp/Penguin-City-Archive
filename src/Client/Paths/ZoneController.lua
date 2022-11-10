@@ -13,7 +13,6 @@ local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
-local SinglePlayerMinigameController: typeof(require(Paths.Client.Minigames.SinglePlayerMinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
@@ -31,10 +30,6 @@ local isPlayingTransition = false
 
 ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
-
-function ZoneController.Init()
-    SinglePlayerMinigameController = require(Paths.Client.Minigames.SinglePlayerMinigameController)
-end
 
 -------------------------------------------------------------------------------
 -- Getters
@@ -85,7 +80,7 @@ local function setupTeleporter(teleporter: BasePart, zoneType: string)
             if zone.ZoneType == ZoneConstants.ZoneType.Room then
                 ZoneController.teleportToRoomRequest(zone)
             elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-                SinglePlayerMinigameController.play(zone.ZoneId)
+                -- TODO: SinglePlayerMinigameController.play(zone.ZoneId)
             else
                 warn(("%s wat"):format(zone.ZoneType))
             end

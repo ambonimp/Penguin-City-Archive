@@ -2,10 +2,10 @@
     This is a class that represents one "playthrough" of the pizza minigame (i.e., when they hit play, it creates a runner. when the game stops, the runner is destroyed).
     This handles everything in-game.
 
-    We have a PizzaMinigameOrder, which has a 1-1 relationship with a PizzaMinigameRunner (handles the order board + tracks our ingredients on the current pizza)
-    We have a PizzaMinigameIngredient, which has a many-1 relationship with a PizzaMinigameRunner (PizzaMinigameIngredient is created each time we pick up an ingredient)
+    We have a PizzaFiascoOrder, which has a 1-1 relationship with a PizzaFiascoRunner (handles the order board + tracks our ingredients on the current pizza)
+    We have a PizzaFiascoIngredient, which has a many-1 relationship with a PizzaFiascoRunner (PizzaFiascoIngredient is created each time we pick up an ingredient)
 ]]
-local PizzaMinigameRunner = {}
+local PizzaFiascoRunner = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16,10 +16,10 @@ local CameraController = require(Paths.Client.CameraController)
 local InputController = require(Paths.Client.Input.InputController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
-local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
-local PizzaMinigameOrder = require(Paths.Client.Minigames.Pizza.PizzaMinigameOrder)
-local PizzaMinigameIngredient = require(Paths.Client.Minigames.Pizza.PizzaMinigameIngredient)
+local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
+local PizzaFiascoUtil = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoUtil)
+local PizzaFiascoOrder = require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoOrder)
+local PizzaFiascoIngredient = require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoIngredient)
 local Output = require(Paths.Shared.Output)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Remotes = require(Paths.Shared.Remotes)
@@ -46,7 +46,7 @@ local CONVEYOR_REVERSES = {
 local FADE_MUSIC_DURATION = 1
 local RUNNING_WATER_DURATION = 3
 
-function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
+function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
     Output.doDebug(MinigameConstants.DoDebug, "new")
 
@@ -61,9 +61,9 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     maid:GiveTask(cursorDownMaid)
 
     local gameplayFolder: Folder
-    local order: typeof(PizzaMinigameOrder.new(Instance.new("SurfaceGui")))
-    local ingredient: typeof(PizzaMinigameIngredient.new(runner, "", "", Instance.new("Part"))) | nil
-    local music = Sound.play("PizzaMinigame", true)
+    local order: typeof(PizzaFiascoOrder.new(Instance.new("SurfaceGui")))
+    local ingredient: typeof(PizzaFiascoIngredient.new(runner, "", "", Instance.new("Part"))) | nil
+    local music = Sound.play("PizzaFiasco", true)
 
     local currentHitbox = CoyoteTimeValue.new()
     local hitboxParts: { BasePart } = {}
@@ -82,7 +82,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     local hasSentHeartPizza = false
 
     -- These members dynamically change on each new sendPizza() call
-    local recipe: PizzaMinigameUtil.Recipe
+    local recipe: PizzaFiascoUtil.Recipe
     local pizzaModel: Model?
     local isHeartPizza = false
     local appliedSauceParts: { [BasePart]: boolean } = {}
@@ -127,7 +127,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         end
 
         if didComplete then
-            totalCoinsEarnt += PizzaMinigameUtil.calculatePizzaReward(totalPizzasMade)
+            totalCoinsEarnt += PizzaFiascoUtil.calculatePizzaReward(totalPizzasMade)
             totalCorrectPizzasInARow += 1
         else
             totalMistakes += 1
@@ -138,15 +138,15 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         local soundName = doSubtractMistake and "ExtraLife" or didComplete and "CorrectPizza" or "WrongPizza"
         Sound.play(soundName)
         if didComplete then
-            music.PlaybackSpeed = 1 + math.min(totalCorrectPizzasInARow, PizzaMinigameConstants.Conveyor.MaxIncreases) * SPEED_UP_MUSIC_BY
+            music.PlaybackSpeed = 1 + math.min(totalCorrectPizzasInARow, PizzaFiascoConstants.Conveyor.MaxIncreases) * SPEED_UP_MUSIC_BY
         else
             music.PlaybackSpeed = 1
         end
 
-        Remotes.fireServer("PizzaMinigameCompletedPizza", didComplete, doSubtractMistake)
+        Remotes.fireServer("PizzaFiascoCompletedPizza", didComplete, doSubtractMistake)
 
         -- GAME FINISHED
-        if totalPizzasMade == PizzaMinigameConstants.MaxPizzas or totalMistakes >= PizzaMinigameConstants.MaxMistakes then
+        if totalPizzasMade == PizzaFiascoConstants.MaxPizzas or totalMistakes >= PizzaFiascoConstants.MaxMistakes then
             finishCallback()
             return
         end
@@ -173,10 +173,10 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             end
 
             -- Pizza Model
-            local pizzaTime = PizzaMinigameConstants.Conveyor.Time
+            local pizzaTime = PizzaFiascoConstants.Conveyor.Time
                 * (
-                    PizzaMinigameConstants.Conveyor.IncreaseFactor
-                    ^ math.min(totalCorrectPizzasInARow, PizzaMinigameConstants.Conveyor.MaxIncreases)
+                    PizzaFiascoConstants.Conveyor.IncreaseFactor
+                    ^ math.min(totalCorrectPizzasInARow, PizzaFiascoConstants.Conveyor.MaxIncreases)
                 )
             do
                 -- Place Pizza Model
@@ -245,8 +245,8 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                     return
                 end
 
-                local recipeType = PizzaMinigameConstants.RecipeTypes[recipeTypeLabel]
-                recipe = PizzaMinigameUtil.rollRecipe(pizzaNumber, recipeType)
+                local recipeType = PizzaFiascoConstants.RecipeTypes[recipeTypeLabel]
+                recipe = PizzaFiascoUtil.rollRecipe(pizzaNumber, recipeType)
 
                 order:SetRecipe(recipe)
             end
@@ -349,13 +349,13 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
         if isIngredient then
             -- ERROR: Unknown ingredient type
             local ingredientType = hitbox.Parent.Name
-            if not PizzaMinigameConstants.IngredientTypes[ingredientType] then
+            if not PizzaFiascoConstants.IngredientTypes[ingredientType] then
                 error(("Unknown ingredient type %s (%s)"):format(ingredientType, hitbox:GetFullName()))
             end
 
             -- ERROR: Unknown ingredient name
             local ingredientName = hitbox.Name
-            if not PizzaMinigameConstants.Ingredients[ingredientType][ingredientName] then
+            if not PizzaFiascoConstants.Ingredients[ingredientType][ingredientName] then
                 error(("Unknown ingredient name %s (%s)"):format(ingredientName, hitbox:GetFullName()))
             end
 
@@ -365,7 +365,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
                 ingredient = nil
             end
 
-            ingredient = PizzaMinigameIngredient.new(runner, ingredientType, ingredientName, hitbox)
+            ingredient = PizzaFiascoIngredient.new(runner, ingredientType, ingredientName, hitbox)
             return
         end
 
@@ -445,7 +445,7 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
             gameplayFolder.Parent = minigameFolder
 
             -- OrderSign
-            order = PizzaMinigameOrder.new(minigameFolder.OrderSign:FindFirstChildWhichIsA("SurfaceGui", true))
+            order = PizzaFiascoOrder.new(minigameFolder.OrderSign:FindFirstChildWhichIsA("SurfaceGui", true))
 
             -- HitboxParts
             for _, descendant in pairs(minigameFolder.Hitboxes:GetDescendants()) do
@@ -595,4 +595,4 @@ function PizzaMinigameRunner.new(minigameFolder: Folder, recipeTypeOrder: { stri
     return runner
 end
 
-return PizzaMinigameRunner
+return PizzaFiascoRunner

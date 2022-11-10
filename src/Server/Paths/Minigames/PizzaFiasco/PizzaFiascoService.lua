@@ -1,16 +1,16 @@
 --[[
-    - Verifies that players playing PizzaMinigame aren't cheating
+    - Verifies that players playing PizzaFiasco aren't cheating
     - Rewards players after finishing the minigame
 ]]
-local PizzaMinigameService = {}
+local PizzaFiascoService = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
-local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
-local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
+local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
+local PizzaFiascoUtil = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoUtil)
 local Output = require(Paths.Shared.Output)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
@@ -52,33 +52,33 @@ local playerDatas: { [Player]: PlayerData } = {} -- Data of current gameplay ses
 -- Gameplay
 -------------------------------------------------------------------------------
 
-function PizzaMinigameService.isPlaying(player: Player)
+function PizzaFiascoService.isPlaying(player: Player)
     return playerDatas[player] and true or false
 end
 
-function PizzaMinigameService.playRequest(player: Player)
+function PizzaFiascoService.playRequest(player: Player)
     Output.doDebug(MinigameConstants.DoDebug, "playRequest", player)
 
     -- RETURN: Already playing
-    if PizzaMinigameService.isPlaying(player) then
+    if PizzaFiascoService.isPlaying(player) then
         Output.doDebug(MinigameConstants.DoDebug, player, "already playing")
         return
     end
 
     -- Init PlayerData
     local playerData: PlayerData = {
-        RecipeTypeOrder = { PizzaMinigameConstants.FirstRecipe },
+        RecipeTypeOrder = { PizzaFiascoConstants.FirstRecipe },
         RecipeRecords = {},
         PlayRequestTick = tick(),
     }
     playerDatas[player] = playerData
 
     -- Generate RecipeTypeOrder (ensure we don't have long repeats)
-    for pizzaNumber = 2, PizzaMinigameConstants.MaxPizzas do
+    for pizzaNumber = 2, PizzaFiascoConstants.MaxPizzas do
         local recipeLabel: string
         local totalRerolls = 0
         while totalRerolls < MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS do
-            local internalRecipeLabel, _recipe = PizzaMinigameUtil.rollRecipeType(pizzaNumber)
+            local internalRecipeLabel, _recipe = PizzaFiascoUtil.rollRecipeType(pizzaNumber)
             recipeLabel = internalRecipeLabel
 
             local repeatsBefore = 0
@@ -90,7 +90,7 @@ function PizzaMinigameService.playRequest(player: Player)
                 end
             end
 
-            if repeatsBefore < PizzaMinigameConstants.MaxRecipeRepeats then
+            if repeatsBefore < PizzaFiascoConstants.MaxRecipeRepeats then
                 break
             else
                 totalRerolls += 1
@@ -100,15 +100,15 @@ function PizzaMinigameService.playRequest(player: Player)
     end
 
     -- Inform client of their recipe order
-    Remotes.fireClient(player, "PizzaMinigameRecipeTypeOrder", playerData.RecipeTypeOrder)
+    Remotes.fireClient(player, "PizzaFiascoRecipeTypeOrder", playerData.RecipeTypeOrder)
 end
-Remotes.declareEvent("PizzaMinigameRecipeTypeOrder")
+Remotes.declareEvent("PizzaFiascoRecipeTypeOrder")
 
-function PizzaMinigameService.finishRequest(player: Player)
+function PizzaFiascoService.finishRequest(player: Player)
     Output.doDebug(MinigameConstants.DoDebug, "finishRequest", player)
 
     -- RETURN: Wasn't playing
-    if not PizzaMinigameService.isPlaying(player) then
+    if not PizzaFiascoService.isPlaying(player) then
         Output.doDebug(MinigameConstants.DoDebug, player, "wasn't playing")
         return
     end
@@ -144,7 +144,7 @@ function PizzaMinigameService.finishRequest(player: Player)
         local recipeMinTime = MIN_RECIPE_TIMES[recipe]
         minimumTime += recipeMinTime
     end
-    local firstPizzaTime = MIN_RECIPE_TIMES[PizzaMinigameConstants.FirstRecipe]
+    local firstPizzaTime = MIN_RECIPE_TIMES[PizzaFiascoConstants.FirstRecipe]
     local actualTime = totalPizzas > 0 and (playerData.RecipeRecords[totalPizzas].Tick - playerData.PlayRequestTick) + firstPizzaTime or 0
     local finishedTooQuickly = actualTime < minimumTime
 
@@ -152,12 +152,12 @@ function PizzaMinigameService.finishRequest(player: Player)
     local totalReward = 0
     for pizzaNumber, recipeRecord in pairs(playerRecipeRecords) do
         if recipeRecord.WasCorrect then
-            totalReward += PizzaMinigameUtil.calculatePizzaReward(pizzaNumber)
+            totalReward += PizzaFiascoUtil.calculatePizzaReward(pizzaNumber)
         end
     end
 
     -- Give reward
-    local doGiveReward = not finishedTooQuickly and (totalMistakes <= PizzaMinigameConstants.MaxMistakes) and (doSubtractMistakeCount <= 1)
+    local doGiveReward = not finishedTooQuickly and (totalMistakes <= PizzaFiascoConstants.MaxMistakes) and (doSubtractMistakeCount <= 1)
     if doGiveReward then
         CurrencyService.addCoins(player, totalReward, true)
     else
@@ -177,11 +177,11 @@ function PizzaMinigameService.finishRequest(player: Player)
     playerDatas[player] = nil
 end
 
-function PizzaMinigameService.completedPizza(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
+function PizzaFiascoService.completedPizza(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
     Output.doDebug(MinigameConstants.DoDebug, "completedPizza", player)
 
     -- RETURN: Not playing
-    if not PizzaMinigameService.isPlaying(player) then
+    if not PizzaFiascoService.isPlaying(player) then
         Output.doDebug(MinigameConstants.DoDebug, player, "wasn't playing")
         return
     end
@@ -204,29 +204,29 @@ end
 -- Internals
 -------------------------------------------------------------------------------
 
-function PizzaMinigameService.hasPlayerStarted(player: Player)
+function PizzaFiascoService.hasPlayerStarted(player: Player)
     return table.find(startedPlayers, player) and true or false
 end
 
-function PizzaMinigameService.startMinigame(player: Player)
+function PizzaFiascoService.startMinigame(player: Player)
     Output.doDebug(MinigameConstants.DoDebug, "startMinigame", player)
     table.insert(startedPlayers, player)
 end
 
-function PizzaMinigameService.stopMinigame(player: Player)
+function PizzaFiascoService.stopMinigame(player: Player)
     Output.doDebug(MinigameConstants.DoDebug, "stopMinigame", player)
     TableUtil.remove(startedPlayers, player)
 
     -- After a delay, clear the cache. It's possible this stopMinigame call was the first the client knew about the minigame stopping.
     -- They may still need to request the minigame to finish on their end!
     task.delay(CLEANUP_PLAYER_DATA_AFTER, function()
-        if not PizzaMinigameService.hasPlayerStarted(player) then
+        if not PizzaFiascoService.hasPlayerStarted(player) then
             playerDatas[player] = nil
         end
     end)
 end
 
-function PizzaMinigameService.developerToLive(minigamesDirectory: Folder)
+function PizzaFiascoService.developerToLive(minigamesDirectory: Folder)
     -- Hide Guides & Hitboxes
     local minigameFolder = minigamesDirectory:WaitForChild("Pizza")
     for _, directory: Instance in pairs({ minigameFolder.Guides, minigameFolder.Hitboxes }) do
@@ -251,10 +251,10 @@ end
 -- Setup Communication
 do
     Remotes.bindEvents({
-        PizzaMinigamePlay = PizzaMinigameService.playRequest,
-        PizzaMinigameFinsh = PizzaMinigameService.finishRequest,
-        PizzaMinigameCompletedPizza = PizzaMinigameService.completedPizza,
+        PizzaFiascoPlay = PizzaFiascoService.playRequest,
+        PizzaFiascoFinsh = PizzaFiascoService.finishRequest,
+        PizzaFiascoCompletedPizza = PizzaFiascoService.completedPizza,
     })
 end
 
-return PizzaMinigameService
+return PizzaFiascoService

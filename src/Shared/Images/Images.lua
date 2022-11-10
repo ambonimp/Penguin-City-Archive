@@ -83,8 +83,8 @@ Images.Minigames = {
     Medal3 = "rbxassetid://11494007246",
 }
 --#endregion
---#region PizzaMinigame
-Images.PizzaMinigame = {
+--#region PizzaFiasco
+Images.PizzaFiasco = {
     Squid = "rbxassetid://11152398223",
     TomatoSauce = "rbxassetid://11152398287",
     Shrimp = "rbxassetid://11154654667",

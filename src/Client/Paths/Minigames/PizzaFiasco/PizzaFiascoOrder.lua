@@ -1,12 +1,12 @@
 --[[
     This class acts both as storage for our current order, as well as the order sign UI
 ]]
-local PizzaMinigameOrder = {}
+local PizzaFiascoOrder = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
-local PizzaMinigameUtil = require(Paths.Shared.Minigames.Pizza.PizzaMinigameUtil)
+local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
+local PizzaFiascoUtil = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
 export type OrderEntry = { IngredientName: string, IngredientType: string, Current: number, Needed: number }
@@ -14,7 +14,7 @@ export type Order = { OrderEntry }
 
 local STRIKETHROUGH_ROTATION_RANGE = NumberRange.new(-3, 3)
 
-function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
+function PizzaFiascoOrder.new(surfaceGui: SurfaceGui)
     local orderObject = {}
 
     -------------------------------------------------------------------------------
@@ -44,12 +44,12 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     local function draw()
         -- Static
         elements.pizzaTitle.Text = pizzaTitle
-        elements.pizzas.Text = ("%d/%d"):format(pizzasMade, PizzaMinigameConstants.MaxPizzas)
+        elements.pizzas.Text = ("%d/%d"):format(pizzasMade, PizzaFiascoConstants.MaxPizzas)
         elements.coins.Text = ("%d"):format(coinsEarnt)
 
         -- Mistakes
         do
-            for i = 0, PizzaMinigameConstants.MaxMistakes do
+            for i = 0, PizzaFiascoConstants.MaxMistakes do
                 local hasLife = mistakes < i
                 elements.mistakes[i].Visible = hasLife
             end
@@ -76,7 +76,7 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
                     ingredientFrame.Name = ingredientName
                     ingredientFrame.Visible = true
                     ingredientFrame.LayoutOrder = i
-                    ingredientFrame.Icon.Image = PizzaMinigameUtil.getIngredientIconId(ingredientName)
+                    ingredientFrame.Icon.Image = PizzaFiascoUtil.getIngredientIconId(ingredientName)
                     ingredientFrame.Parent = elements.order
                 end
 
@@ -93,8 +93,8 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
             for _, ingredient in pairs(order) do
                 local ingredientFrame = ingredientElements[ingredient.IngredientName]
 
-                local text = PizzaMinigameUtil.getNiceName(ingredient.IngredientName)
-                if ingredient.IngredientType == PizzaMinigameConstants.IngredientTypes.Toppings then
+                local text = PizzaFiascoUtil.getNiceName(ingredient.IngredientName)
+                if ingredient.IngredientType == PizzaFiascoConstants.IngredientTypes.Toppings then
                     text = ("x%d %s"):format(ingredient.Needed, ingredient.IngredientName)
                 end
 
@@ -118,19 +118,19 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     --[[
         Sets a new recipe and clears the last order
     ]]
-    function orderObject:SetRecipe(recipe: PizzaMinigameUtil.Recipe)
+    function orderObject:SetRecipe(recipe: PizzaFiascoUtil.Recipe)
         -- Title
-        pizzaTitle = ("%s Pizza"):format(PizzaMinigameUtil.getRecipeName(recipe))
+        pizzaTitle = ("%s Pizza"):format(PizzaFiascoUtil.getRecipeName(recipe))
 
         -- Ingredients
         order = {
-            { IngredientName = recipe.Sauce, IngredientType = PizzaMinigameConstants.IngredientTypes.Sauces, Current = 0, Needed = 1 },
-            { IngredientName = recipe.Base, IngredientType = PizzaMinigameConstants.IngredientTypes.Bases, Current = 0, Needed = 1 },
+            { IngredientName = recipe.Sauce, IngredientType = PizzaFiascoConstants.IngredientTypes.Sauces, Current = 0, Needed = 1 },
+            { IngredientName = recipe.Base, IngredientType = PizzaFiascoConstants.IngredientTypes.Bases, Current = 0, Needed = 1 },
         }
         for toppingName, toppingAmount in pairs(recipe.Toppings) do
             table.insert(order, {
                 IngredientName = toppingName,
-                IngredientType = PizzaMinigameConstants.IngredientTypes.Toppings,
+                IngredientType = PizzaFiascoConstants.IngredientTypes.Toppings,
                 Current = 0,
                 Needed = toppingAmount,
             })
@@ -193,4 +193,4 @@ function PizzaMinigameOrder.new(surfaceGui: SurfaceGui)
     return orderObject
 end
 
-return PizzaMinigameOrder
+return PizzaFiascoOrder

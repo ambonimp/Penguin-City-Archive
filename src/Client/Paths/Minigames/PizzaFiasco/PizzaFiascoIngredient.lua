@@ -1,7 +1,7 @@
 --[[
     Class that represents an ingredient the client is currently holding. Can feedback to the runner.
 ]]
-local PizzaMinigameIngredient = {}
+local PizzaFiascoIngredient = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -9,7 +9,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
-local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
+local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
 local Output = require(Paths.Shared.Output)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
@@ -50,9 +50,13 @@ local THROW_EPSILON = 0.1
 local BASE_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local FADE_INGREDIENT_SOUND_DURATION = 0.1
 
-type PizzaMinigameRunner = typeof(require(Paths.Client.Minigames.Pizza.PizzaMinigameRunner).new(Instance.new("Folder"), {}, function() end))
+type PizzaFiascoRunner = typeof(require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoRunner).new(
+    Instance.new("Folder"),
+    {},
+    function() end
+))
 
-function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType: string, ingredientName: string, hitbox: BasePart)
+function PizzaFiascoIngredient.new(runner: PizzaFiascoRunner, ingredientType: string, ingredientName: string, hitbox: BasePart)
     local ingredient = {}
     Output.doDebug(MinigameConstants.DoDebug, "new")
 
@@ -69,7 +73,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     local goalPart = Instance.new("Part")
 
     local assetHeightOffset = Vector3.new(0, asset.PrimaryPart.Size.Y / 2, 0)
-    local isSauce = ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces
+    local isSauce = ingredientType == PizzaFiascoConstants.IngredientTypes.Sauces
 
     local isFirstRaycast = true
     local isPlaced = false
@@ -108,7 +112,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         alignOrientation.Parent = asset.PrimaryPart
 
         -- Sauces
-        if ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces then
+        if ingredientType == PizzaFiascoConstants.IngredientTypes.Sauces then
             -- Randomly Offset SauceParticles
             for _, descendant: ParticleEmitter in pairs(asset:GetDescendants()) do
                 if descendant:IsA("ParticleEmitter") then
@@ -196,7 +200,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     end
 
     function ingredient:CanPlace()
-        return not ingredient:IsPlaced() and not (ingredientType == PizzaMinigameConstants.IngredientTypes.Sauces)
+        return not ingredient:IsPlaced() and not (ingredientType == PizzaFiascoConstants.IngredientTypes.Sauces)
     end
 
     function ingredient:Place()
@@ -223,7 +227,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
         ModelUtil.anchor(asset)
         asset.Parent = pizzaModel.Ingredients
 
-        if ingredientType == PizzaMinigameConstants.IngredientTypes.Bases then
+        if ingredientType == PizzaFiascoConstants.IngredientTypes.Bases then
             -- WARN: Only supports single-part Bases at time of writing (sorry developer!)
             if #asset:GetChildren() > 1 then
                 warn("No current support for multi-part Bases")
@@ -239,7 +243,7 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
                 primaryPart.Size = startSize:Lerp(goalSize, alpha)
                 primaryPart.Position = primaryPart.Position:Lerp(pizzaBase.Position, alpha)
             end, BASE_TWEEN_INFO)
-        elseif ingredientType == PizzaMinigameConstants.IngredientTypes.Toppings then
+        elseif ingredientType == PizzaFiascoConstants.IngredientTypes.Toppings then
             -- Ensure topping is on the pizza (may get prematurely anchored if the player is very quick)
             asset:PivotTo(goalPart.CFrame)
         end
@@ -290,4 +294,4 @@ function PizzaMinigameIngredient.new(runner: PizzaMinigameRunner, ingredientType
     return ingredient
 end
 
-return PizzaMinigameIngredient
+return PizzaFiascoIngredient
