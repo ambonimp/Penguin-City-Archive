@@ -8,10 +8,12 @@ local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
+local ZoneController = require(Paths.Client.ZoneController)
 
 type StateData = { [string]: any }
 type State = { Name: string, Data: StateData? }
@@ -204,11 +206,20 @@ Remotes.bindEvents({
     MinigameExited = function()
         janitor:Cleanup()
 
-        currentMinigame = nil
-        currentZone = nil :: ZoneConstans.Zone -- ahh
-        currentState = nil
-        currentParticipants = nil
-        currentIsMultiplayer = nil
+        -- Revert
+        if ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Minigame then
+            ZoneController.ZoneChanged:Wait()
+        end
+
+        uiStateMachine:Pop()
+
+        task.defer(function()
+            currentMinigame = nil
+            currentZone = nil :: ZoneConstans.Zone -- ahh
+            currentState = nil
+            currentParticipants = nil
+            currentIsMultiplayer = nil
+        end)
     end,
 
     MinigameParticipantAdded = function(participant: Player)

@@ -16,6 +16,8 @@ local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController = require(Paths.Client.UI.UIController)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
@@ -54,6 +56,8 @@ local startExitButton = KeyboardButton.new()
 
 local standingsClose = KeyboardButton.new()
 local resultsClose = KeyboardButton.new()
+
+local uiStateMachine = UIController.getStateMachine()
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -269,7 +273,6 @@ do
     startExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     startExitButton.InternalRelease:Connect(function()
         Remotes.fireServer("MinigameExited")
-        SharedMinigameScreen.closeStartMenu()
     end)
 
     startInstructionButton = KeyboardButton.new()
@@ -280,6 +283,14 @@ do
     startInstructionButton.InternalRelease:Connect(function()
         SharedMinigameScreen.closeStartMenu(true)
         ScreenUtil.inUp(getScreenGui().Instructions)
+    end)
+end
+
+-- Register ui states
+do
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, nil, function()
+        SharedMinigameScreen.closeStartMenu()
+        SharedMinigameScreen.hideStatus()
     end)
 end
 

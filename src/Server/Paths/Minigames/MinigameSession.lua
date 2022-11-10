@@ -144,10 +144,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end
 
         local stillInGame: boolean = player.Character ~= nil
-
         table.remove(participants, table.find(participants, player))
-        minigameSession.ParticipantRemoved:Fire(player, stillInGame)
-        minigameSession:RelayToOtherParticipants(player, "MinigameParticipantRemoved", player, participants)
 
         -- Player didn't leave the game
         if stillInGame then
@@ -157,6 +154,9 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
             end
         end
+
+        minigameSession.ParticipantRemoved:Fire(player, stillInGame)
+        minigameSession:RelayToOtherParticipants(player, "MinigameParticipantRemoved", player, participants)
 
         local remainingParticipants = #participants
         if remainingParticipants == 0 then

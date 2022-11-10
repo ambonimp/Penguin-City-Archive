@@ -20,7 +20,6 @@ local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 type FurnitureMetadata = {
     Name: string,
     Position: Vector3,
@@ -302,7 +301,7 @@ Remotes.bindEvents({
         local exteriorPlot = getPlot(player, HousingConstants.InteriorType)
 
         -- Teleport player our of house interior if they're there
-        if TableUtil.shallowEquals(ZoneService.getPlayerZone(player), ZoneUtil.houseInteriorZone(player)) then
+        if ZoneUtil.zonesMatch(ZoneService.getPlayerZone(player), ZoneUtil.houseInteriorZone(player)) then
             -- RETURN: Teleport not a success
             if not ZoneService.teleportPlayerToZone(player, neighborhoodZone) then
                 return

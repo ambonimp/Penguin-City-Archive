@@ -48,9 +48,6 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     end))
 
     SharedMinigameScreen.openStartMenu()
-    minigameJanitor:Add(function()
-        SharedMinigameScreen.closeStartMenu()
-    end)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.WaitingForPlayers, function()
