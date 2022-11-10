@@ -10,6 +10,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local StateMachine = require(Paths.Shared.StateMachine)
 local CoreGui = require(Paths.Client.UI.CoreGui)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local SHOW_STATE_MACHINE_DEBUG = true
 
@@ -35,12 +36,15 @@ do
     end)
 
     -- Toggle CoreGui
-    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string)
-        if table.find(UIConstants.EnableCoreGuiInStates, toState) then
-            CoreGui.enable()
-        else
-            CoreGui.disable()
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string)
+        for _, enableState in pairs(UIConstants.EnableCoreGuiInStates) do
+            if UIUtil.getPseudoState(enableState) then
+                CoreGui.enable()
+                return
+            end
         end
+
+        CoreGui.disable()
     end)
 end
 
