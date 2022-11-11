@@ -163,4 +163,6 @@ objects["Table_Lamp_01"] = {
 }
 FurnitureConstants.Objects = objects
 
+FurnitureConstants.AssetsPath = "Furniture"
+
 return FurnitureConstants

@@ -12,8 +12,8 @@ local Products = require(Paths.Shared.Products.Products)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-
-local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local Widget = require(Paths.Client.UI.Elements.Widget)
+local Maid = require(Paths.Packages.maid)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -25,6 +25,7 @@ local titleLabel: TextLabel = contents.Text.Title
 local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
 local currentProduct: Products.Product
+local openMaid = Maid.new()
 
 function ProductPromptScreen.Init()
     local function leaveState()
@@ -85,18 +86,17 @@ function ProductPromptScreen.open(data: table)
     end
     currentProduct = product
 
+    openMaid:Cleanup()
+
     -- Text
     titleLabel.Text = currentProduct.DisplayName
     descriptionLabel.Text = currentProduct.Description or ""
 
-    -- Icon
-    if currentProduct.ImageId then
-        icon.Image = currentProduct.ImageId
-        icon.ImageColor3 = currentProduct.ImageColor or COLOR_WHITE
-        icon.Visible = true
-    else
-        icon.Visible = false
-    end
+    -- Widget
+    icon.Image = ""
+    local widget = Widget.diverseWidgetFromProduct(product)
+    widget:Mount(icon)
+    openMaid:GiveTask(widget)
 
     -- Robux Button
     robuxButton:GetButtonObject().Parent.Visible = currentProduct.RobuxData and true or false

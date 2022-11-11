@@ -29,6 +29,13 @@ function ProductUtil.getProduct(productType: string, productId: string): Product
     return product
 end
 
+--[[
+    Some Products have a model linked to them (e.g., House Furniture)
+]]
+function ProductUtil.getModel(product: Products.Product): Model | nil
+    return product.Metadata and product.Metadata.Model
+end
+
 function ProductUtil.getProductFromDeveloperProductId(developerProductId: number): Products.Product | nil
     for _productType, products in pairs(Products.Products) do
         for _productId, product in pairs(products) do
@@ -187,6 +194,39 @@ end
 
 function ProductUtil.isStampBookProduct(product: Products.Product)
     return product.Type == ProductConstants.ProductType.StampBook
+end
+
+-------------------------------------------------------------------------------
+-- Vehicles
+-------------------------------------------------------------------------------
+
+-- Example: CoverColor, Red
+function ProductUtil.getVehicleProductId(vehicleName: string)
+    return ("vehicle_%s"):format(StringUtil.toCamelCase(vehicleName))
+end
+
+function ProductUtil.getVehicleProduct(vehicleName: string)
+    local product = Products.Products[ProductConstants.ProductType.Vehicle][ProductUtil.getVehicleProductId(vehicleName)]
+    if not product then
+        error(("No Vehicle Product %s"):format(vehicleName))
+    end
+
+    return product
+end
+
+function ProductUtil.getVehicleProductData(product: Products.Product)
+    -- ERROR: Not a Vehicle product
+    if not ProductUtil.isVehicleProduct(product) then
+        error("Passed a non-Vehicle product")
+    end
+
+    return {
+        VehicleName = product.Metadata.VehicleName,
+    }
+end
+
+function ProductUtil.isVehicleProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.Vehicle
 end
 
 -------------------------------------------------------------------------------

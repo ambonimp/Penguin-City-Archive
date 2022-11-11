@@ -1,7 +1,9 @@
 --[[
-    Selection widget with different tabs with scrolling frames
+    A window that we can add tabs to, then mount custom pages inside it.
+
+    Derived from SelectionPanel - copy+pasted as they functionally different enough that a super class would take a significant time to design
 ]]
-local SelectionPanel = {}
+local TabbedWindow = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -13,60 +15,41 @@ local Button = require(Paths.Client.UI.Elements.Button)
 local Signal = require(Paths.Shared.Signal)
 local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
-local Products = require(Paths.Shared.Products.Products)
-local Widget = require(Paths.Client.UI.Elements.Widget)
 
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { { WidgetName: string, Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil } },
     Button: Button.Button | nil,
+    WindowFrame: Frame?,
+    WindowConstructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
 }
 
-local TABS_PER_VIEW = {
-    Left = 5,
-    Right = 5,
-    Bottom = 8,
-}
-local SECTION_WIDTH_OFFSET = 178
+local TABS_PER_VIEW = 5
 
-SelectionPanel.Defaults = {
-    Alignment = "Right",
-    Size = 1,
-}
+local tabbedWindowScreenGui: ScreenGui = game.StarterGui.TabbedWindow
 
-local selectionPanelScreenGui: ScreenGui = game.StarterGui.SelectionPanel
-
-function SelectionPanel.new()
-    local selectionPanel = UIElement.new()
+function TabbedWindow.new()
+    local tabbedWindow = UIElement.new()
 
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
 
-    local alignment: "Left" | "Right" | "Bottom" = SelectionPanel.Defaults.Alignment
-    local size = SelectionPanel.Defaults.Size
-
     local tabs: { Tab } = {}
     local openTabName: string | nil
-    local sections: { Frame } = {}
 
     local containerMaid = Maid.new()
     local drawMaid = Maid.new()
-    selectionPanel:GetMaid():GiveTask(containerMaid)
-    selectionPanel:GetMaid():GiveTask(drawMaid)
+    tabbedWindow:GetMaid():GiveTask(containerMaid)
+    tabbedWindow:GetMaid():GiveTask(drawMaid)
 
     local parent: GuiBase | GuiObject | nil
     local containerFrame: Frame
     local backgroundFrame: Frame
     local tabsFrame: Frame
-    local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
     local backwardArrow: AnimatedButton.AnimatedButton
     local forwardArrow: AnimatedButton.AnimatedButton
-
-    local defaultBackgroundPosition: UDim2
-    local defaultScrollingFrameSize: UDim2
 
     local tabsIndex = 1
 
@@ -74,8 +57,8 @@ function SelectionPanel.new()
     -- Public Members
     -------------------------------------------------------------------------------
 
-    selectionPanel.ClosePressed = Signal.new()
-    selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
+    tabbedWindow.ClosePressed = Signal.new()
+    tabbedWindow:GetMaid():GiveTask(tabbedWindow.ClosePressed)
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -84,20 +67,16 @@ function SelectionPanel.new()
     -- Hoist
     local function draw() end
 
-    local function getTabsPerView()
-        return TABS_PER_VIEW[alignment]
-    end
-
     local function getMaxTabsIndex()
-        return math.clamp(math.ceil(#tabs / getTabsPerView()), 1, math.huge)
+        return math.clamp(math.ceil(#tabs / TABS_PER_VIEW), 1, math.huge)
     end
 
     local function updateTabIndex(increaseBy: number)
         tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
 
         -- Select new tab + draw
-        local tabIndex = ((tabsIndex - 1) * getTabsPerView()) + 1
-        selectionPanel:OpenTab(tabs[tabIndex].Name)
+        local tabIndex = ((tabsIndex - 1) * TABS_PER_VIEW) + 1
+        tabbedWindow:OpenTab(tabs[tabIndex].Name)
     end
 
     local function getTab(tabName: string)
@@ -109,66 +88,34 @@ function SelectionPanel.new()
         return nil
     end
 
-    local function getWidgetConstructor(tab: Tab, widgetName: string)
-        for _, widgetInfo in pairs(tab.WidgetConstructors) do
-            if widgetInfo.WidgetName == widgetName then
-                return widgetInfo.Constructor
-            end
-        end
-        return nil
-    end
-
     local function getVisibleTabs()
         local visibleTabs: { Tab } = {}
 
-        local startIndex = (tabsIndex - 1) * getTabsPerView() + 1
-        for i = startIndex, startIndex + (getTabsPerView() - 1) do
+        local startIndex = (tabsIndex - 1) * TABS_PER_VIEW + 1
+        for i = startIndex, startIndex + (TABS_PER_VIEW - 1) do
             table.insert(visibleTabs, tabs[i])
         end
 
         return visibleTabs
     end
 
-    local function getSection(widgetIndex: number)
-        return sections[MathUtil.wrapAround(widgetIndex, size)]
-    end
-
-    local function resize()
-        if alignment == "Left" then
-            backgroundFrame.Position = defaultBackgroundPosition + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-        elseif alignment == "Right" then
-            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-        elseif alignment == "Bottom" then
-            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
-        else
-            error(("Missing edgecase for %q"):format(alignment))
-        end
-    end
-
     local function createContainer()
         containerMaid:Cleanup()
 
         -- Get "Background"
-        containerFrame = selectionPanelScreenGui:FindFirstChild(alignment)
-        if not containerFrame then
-            error(("Missing GuiObject for alignment %q"):format(alignment))
-        end
-        containerFrame = containerFrame:Clone()
+        containerFrame = tabbedWindowScreenGui.Container:Clone()
         backgroundFrame = containerFrame.Background
         containerMaid:GiveTask(containerFrame)
 
         if parent then
-            selectionPanel:Mount(parent)
+            tabbedWindow:Mount(parent)
         end
 
         -- Close
         closeButton = ExitButton.new()
-        closeButton:Mount(backgroundFrame.Side.CloseButton, true)
+        closeButton:Mount(backgroundFrame.CloseButton, true)
         closeButton.Pressed:Connect(function()
-            selectionPanel.ClosePressed:Fire()
+            tabbedWindow.ClosePressed:Fire()
         end)
         containerMaid:GiveTask(closeButton)
 
@@ -191,22 +138,10 @@ function SelectionPanel.new()
         tabsFrame = backgroundFrame.Side.Tabs
         tabsFrame.Selected.Visible = false
         tabsFrame.template.Visible = false
-
-        -- Widgets
-        scrollingFrame = backgroundFrame.Back.ScrollingFrame
-        scrollingFrame.sectionTemplate.Visible = false
-        scrollingFrame.sectionTemplate.template.Visible = false
-
-        -- Misc
-        defaultBackgroundPosition = backgroundFrame.Position
-        defaultScrollingFrameSize = scrollingFrame.Size
-
-        -- Logic
-        resize()
     end
 
     function draw(updatedAlignment: boolean?)
-        local queueNext = Queue.yield(selectionPanel)
+        local queueNext = Queue.yield(tabbedWindow)
 
         if updatedAlignment then
             createContainer()
@@ -214,7 +149,6 @@ function SelectionPanel.new()
         drawMaid:Cleanup()
 
         -- Tabs
-        local openTab: Tab
         do
             local visibleTabs = getVisibleTabs()
             if #visibleTabs == 0 or not openTabName then
@@ -235,7 +169,7 @@ function SelectionPanel.new()
 
                     button = Button.new(textButton)
                     button.Pressed:Connect(function()
-                        selectionPanel:OpenTab(visibleTab.Name)
+                        tabbedWindow:OpenTab(visibleTab.Name)
                     end)
                     visibleTab.Button = button
                 end
@@ -247,8 +181,6 @@ function SelectionPanel.new()
 
                 -- Selected
                 if openTabName == visibleTab.Name then
-                    openTab = visibleTab
-
                     tabsFrame.Selected.Visible = true
                     tabsFrame.Selected.LayoutOrder = index
                     tabsFrame.Selected.Icon.Image = visibleTab.ImageId
@@ -270,20 +202,19 @@ function SelectionPanel.new()
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
         end
 
-        -- Widgets
-        if openTab then
-            for i, widgetInfo in pairs(openTab.WidgetConstructors) do
-                local section = getSection(i)
+        -- Window
+        do
+            -- Show/Hide Window Frames
+            for _, tab in pairs(tabs) do
+                if tab.WindowFrame then
+                    tab.WindowFrame.Visible = openTabName == tab.Name
+                end
+            end
 
-                local widgetFrame: Frame = section.template:Clone()
-                widgetFrame.Name = widgetInfo.WidgetName
-                widgetFrame.LayoutOrder = i
-                widgetFrame.Visible = true
-                widgetFrame.Parent = section
-                drawMaid:GiveTask(widgetFrame)
-
-                widgetFrame.Background:Destroy()
-                widgetInfo.Constructor(widgetFrame, drawMaid)
+            -- Run Window Callback
+            local openTab = getTab(openTabName)
+            if openTab and openTab.WindowConstructor then
+                openTab.WindowConstructor(backgroundFrame, drawMaid)
             end
         end
 
@@ -294,7 +225,7 @@ function SelectionPanel.new()
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function selectionPanel:Mount(newParent: GuiBase | GuiObject, hideParent: boolean?)
+    function tabbedWindow:Mount(newParent: GuiBase | GuiObject, hideParent: boolean?)
         parent = newParent
         containerFrame.Parent = parent
 
@@ -303,11 +234,11 @@ function SelectionPanel.new()
         end
     end
 
-    function selectionPanel:GetContainer()
+    function tabbedWindow:GetContainer()
         return containerFrame
     end
 
-    function selectionPanel:OpenTab(tabName: string?)
+    function tabbedWindow:OpenTab(tabName: string?)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if tabName and not tab then
@@ -319,41 +250,7 @@ function SelectionPanel.new()
         draw()
     end
 
-    function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
-        -- RETURN: Not changed
-        if newAlignmnet == alignment then
-            return
-        end
-
-        alignment = newAlignmnet
-        draw(true)
-    end
-
-    -- Sets the row/column count (depends on alignment)
-    function selectionPanel:SetSize(newSize: number)
-        size = newSize
-
-        -- Clear old Sections
-        for _, oldSection in pairs(sections) do
-            oldSection:Destroy()
-        end
-        sections = {}
-
-        -- Create New
-        for i = 1, newSize do
-            local section: Frame = scrollingFrame.sectionTemplate:Clone()
-            section.Name = ("Section %d"):format(i)
-            section.LayoutOrder = i
-            section.Visible = true
-            section.Parent = scrollingFrame
-            table.insert(sections, section)
-        end
-
-        resize()
-        draw()
-    end
-
-    function selectionPanel:AddTab(tabName: string, imageId: string)
+    function tabbedWindow:AddTab(tabName: string, imageId: string)
         -- WARN: Already exists
         if getTab(tabName) then
             warn(("%q already exists!"):format(tabName))
@@ -363,20 +260,19 @@ function SelectionPanel.new()
         local tab: Tab = {
             Name = tabName,
             ImageId = imageId,
-            WidgetConstructors = {},
         }
         table.insert(tabs, tab)
 
         -- EDGE CASE: Select only tab
         if #tabs == 1 then
-            selectionPanel:OpenTab(tabName)
+            tabbedWindow:OpenTab(tabName)
             return
         end
 
         draw()
     end
 
-    function selectionPanel:RemoveTab(tabName: string)
+    function tabbedWindow:RemoveTab(tabName: string)
         for index, tab in pairs(tabs) do
             if tab.Name == tabName then
                 table.remove(tabs, index)
@@ -386,18 +282,15 @@ function SelectionPanel.new()
         -- Open a different tab if this was opened
         if openTabName == tabName then
             for _, someTab in pairs(tabs) do
-                selectionPanel:OpenTab(someTab.Name)
+                tabbedWindow:OpenTab(someTab.Name)
                 return
             end
         end
-        selectionPanel:OpenTab()
+        tabbedWindow:OpenTab()
     end
 
-    function selectionPanel:AddWidgetConstructor(
-        tabName: string,
-        widgetName: string,
-        constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil
-    )
+    -- Sets a function that will create our window when we need it
+    function tabbedWindow:SetWindowConstructor(tabName: string, constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -405,59 +298,15 @@ function SelectionPanel.new()
             return
         end
 
-        -- WARN: Already exists
-        if getWidgetConstructor(tab, widgetName) then
-            warn(("Widget %s.%s already exists!"):format(tabName, widgetName))
-            return
-        end
+        tab.WindowConstructor = constructor
 
-        table.insert(tab.WidgetConstructors, {
-            WidgetName = widgetName,
-            Constructor = constructor,
-        })
-
-        if openTabName == tab.Name then
-            draw()
-        end
-    end
-
-    function selectionPanel:AddWidgetFromProduct(
-        tabName: string,
-        widgetName: string,
-        product: Products.Product,
-        state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?,
-        callback: (() -> nil)?
-    )
-        selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
-            local widget = Widget.diverseWidgetFromProduct(product, state)
-            widget:Mount(widgetParent)
-            widget.Pressed:Connect(callback)
-
-            maid:GiveTask(widget)
-        end)
-    end
-
-    function selectionPanel:RemoveWidget(tabName: string, widgetName: string)
-        -- WARN: Bad tab
-        local tab = getTab(tabName)
-        if not tab then
-            warn(("No tab %q exits"):format(tabName))
-            return
-        end
-
-        for index, widgetInfo in pairs(tab.WidgetConstructors) do
-            if widgetInfo.WidgetName == widgetName then
-                table.remove(tab.WidgetConstructors, index)
-            end
-        end
-
-        -- Draw if this would be visible right now
         if openTabName == tabName then
             draw()
         end
     end
 
-    function selectionPanel:RemoveWidgets(tabName: string)
+    -- Sets a frame as a window for a tab
+    function tabbedWindow:MountWindow(tabName: string, windowFrame: Frame)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -465,9 +314,35 @@ function SelectionPanel.new()
             return
         end
 
-        tab.WidgetConstructors = {}
+        if tab.WindowFrame then
+            tabbedWindow:ClearWindow(tabName)
+        end
 
-        -- Draw if this would be visible right now
+        windowFrame.Parent = backgroundFrame.Back
+        tab.WindowFrame = windowFrame
+
+        if openTabName == tabName then
+            draw()
+        end
+    end
+
+    function tabbedWindow:ClearWindow(tabName: string)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        -- RETURN: No window frame
+        local windowFrame = tab.WindowFrame
+        if not windowFrame then
+            return
+        end
+
+        windowFrame.Parent = nil :: Instance
+        tab.WindowFrame = nil
+
         if openTabName == tabName then
             draw()
         end
@@ -479,9 +354,8 @@ function SelectionPanel.new()
 
     -- Setup
     draw(true)
-    selectionPanel:SetSize(size)
 
-    return selectionPanel
+    return tabbedWindow
 end
 
-return SelectionPanel
+return TabbedWindow

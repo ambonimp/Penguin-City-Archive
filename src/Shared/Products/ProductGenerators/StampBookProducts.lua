@@ -24,10 +24,10 @@ local function getImageId(categoryName: string, property: any): string
     end
 
     if categoryName == "Seal" then
-        if property.Icon and property.Icon == "" then
-            return Images.Icons.Seal
-        else
+        if property.Icon and property.Icon ~= "" then
             return property.Icon
+        else
+            return Images.Icons.Seal
         end
     end
 
@@ -48,14 +48,30 @@ local function getImageColor(categoryName: string, property: any): Color3
     end
 
     if categoryName == "Seal" then
-        if property.Icon and property.Icon == "" then
-            return property.Color
+        if property.Icon and property.Icon ~= "" then
+            return property.IconColor or property.Color
         else
-            return COLOR_BLACK
+            return property.Color
         end
     end
 
     error(("Missing edge case %q"):format(categoryName))
+end
+
+local function getDisplayName(categoryName: string, propertyKey: string): string
+    if categoryName == "TextColor" then
+        return ("%s Text"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    if categoryName == "CoverColor" then
+        return ("%s Cover"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    if categoryName == "Seal" then
+        return ("%s Seal"):format(StringUtil.getFriendlyString(propertyKey))
+    end
+
+    return StringUtil.getFriendlyString(propertyKey)
 end
 
 for categoryName, propertyConstants in pairs(StampConstants.StampBook) do
@@ -65,11 +81,11 @@ for categoryName, propertyConstants in pairs(StampConstants.StampBook) do
         local product: Product = {
             Id = productId,
             Type = ProductConstants.ProductType.StampBook,
-            DisplayName = StringUtil.getFriendlyString(propertyKey),
+            DisplayName = getDisplayName(categoryName, propertyKey),
             ImageId = getImageId(categoryName, property),
             ImageColor = getImageColor(categoryName, property),
             CoinData = {
-                Cost = 0,
+                Cost = math.random(0, 2), --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,

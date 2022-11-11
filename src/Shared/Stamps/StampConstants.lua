@@ -10,7 +10,8 @@ export type StampBook = {
     TextColor: { [string]: Color3 },
     Seal: { [string]: {
         Color: Color3,
-        Icon: string,
+        IconColor: Color3?,
+        Icon: string?,
     } },
 }
 
@@ -36,9 +37,37 @@ local stampBook: StampBook = {
             Primary = Color3.fromRGB(161, 74, 53),
             Secondary = Color3.fromRGB(94, 26, 9),
         },
-        Red = {
-            Primary = Color3.fromRGB(255, 0, 0),
-            Secondary = Color3.fromRGB(109, 0, 0),
+        Charcoal = {
+            Primary = Color3.fromRGB(79, 79, 79),
+            Secondary = Color3.fromRGB(27, 27, 27),
+        },
+        Pink = {
+            Primary = Color3.fromRGB(226, 0, 234),
+            Secondary = Color3.fromRGB(140, 0, 147),
+        },
+        Purple = {
+            Primary = Color3.fromRGB(141, 0, 241),
+            Secondary = Color3.fromRGB(84, 0, 144),
+        },
+        White = {
+            Primary = Color3.fromRGB(230, 230, 230),
+            Secondary = Color3.fromRGB(255, 255, 255),
+        },
+        Blue = {
+            Primary = Color3.fromRGB(0, 142, 230),
+            Secondary = Color3.fromRGB(0, 97, 153),
+        },
+        Green = {
+            Primary = Color3.fromRGB(22, 166, 0),
+            Secondary = Color3.fromRGB(29, 220, 0),
+        },
+        Black = {
+            Primary = Color3.fromRGB(35, 35, 35),
+            Secondary = Color3.fromRGB(0, 0, 0),
+        },
+        Gold = {
+            Primary = Color3.fromRGB(255, 217, 0),
+            Secondary = Color3.fromRGB(167, 142, 0),
         },
     },
     CoverPattern = {
@@ -46,17 +75,38 @@ local stampBook: StampBook = {
         Circles = Images.StampBook.Patterns.Circles,
     },
     TextColor = {
-        White = Color3.fromRGB(255, 255, 255),
-        Blue = Color3.fromRGB(0, 0, 255),
+        Brown = Color3.fromRGB(161, 74, 53),
+        Charcoal = Color3.fromRGB(79, 79, 79),
+        Pink = Color3.fromRGB(226, 0, 234),
+        Purple = Color3.fromRGB(141, 0, 241),
+        White = Color3.fromRGB(230, 230, 230),
+        Blue = Color3.fromRGB(0, 142, 230),
+        Green = Color3.fromRGB(22, 166, 0),
+        Black = Color3.fromRGB(35, 35, 35),
+        Gold = Color3.fromRGB(255, 217, 0),
     },
     Seal = {
         Gold = {
             Color = Color3.fromRGB(238, 179, 18),
-            Icon = "",
+        },
+        Charcoal = {
+            Color = Color3.fromRGB(79, 79, 79),
+        },
+        Purple = {
+            Color = Color3.fromRGB(141, 0, 241),
+        },
+        Blue = {
+            Color = Color3.fromRGB(0, 142, 230),
         },
         Igloo = {
             Color = Color3.fromRGB(240, 240, 240),
+            IconColor = Color3.fromRGB(30, 30, 30),
             Icon = Images.Icons.Igloo,
+        },
+        Pencil = {
+            Color = Color3.fromRGB(110, 110, 110),
+            IconColor = Color3.fromRGB(255, 255, 255),
+            Icon = Images.ButtonIcons.Pencil,
         },
     },
 }

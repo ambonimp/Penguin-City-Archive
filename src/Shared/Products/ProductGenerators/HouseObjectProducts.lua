@@ -6,10 +6,13 @@ local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConsta
 type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Product)
 
 local products: { [string]: Product } = {}
+local housingAssets: Folder = ReplicatedStorage.Assets.Housing
 
 for categoryName, objectConstants in pairs(HouseObjects) do
     -- Create Products
     for objectKey, object in pairs(objectConstants.Objects) do
+        local model: Model? = objectConstants.AssetsPath and housingAssets[objectConstants.AssetsPath][objectKey]
+
         local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(objectKey))
         local product: Product = {
             Id = productId,
@@ -17,11 +20,12 @@ for categoryName, objectConstants in pairs(HouseObjects) do
             DisplayName = StringUtil.getFriendlyString(object.Name),
             ImageId = object.Icon,
             CoinData = {
-                Cost = object.Price,
+                Cost = math.random(0, 2), --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,
                 ObjectKey = objectKey,
+                Model = model,
             },
         }
 

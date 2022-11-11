@@ -22,7 +22,7 @@ function TopBarScreen.displayCoinsDiff(addCoins: number)
     -- Get UI Elements + setup initial state
     local coinsLabel: TextLabel = coinImageButton.Coins:Clone()
     coinsLabel.ZIndex = coinsLabel.ZIndex - 1
-    coinsLabel.Text = ("+%s"):format(StringUtil.commaValue(addCoins))
+    coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "-", StringUtil.commaValue(addCoins))
     coinsLabel.Name = "CoinsDiff"
     local whiteLabel: TextLabel = coinImageButton.White:Clone()
     whiteLabel.ZIndex = whiteLabel.ZIndex - 1
@@ -69,7 +69,9 @@ do
 
     CurrencyController.CoinsUpdated:Connect(function(_coins: number, addCoins: number)
         updateCoins()
-        TopBarScreen.displayCoinsDiff(addCoins)
+        if math.abs(addCoins) > 0 then
+            TopBarScreen.displayCoinsDiff(addCoins)
+        end
     end)
     updateCoins()
 
