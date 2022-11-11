@@ -4,6 +4,9 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         PizzaPlace = {
             Music = "PizzaPlace",
         },
+        Boardwalk = {
+            Music = "Boardwalk",
+        },
     },
 
     -- Minigames
