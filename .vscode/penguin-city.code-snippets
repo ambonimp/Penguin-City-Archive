@@ -121,9 +121,11 @@
     ],
     "description": "Class Template (Closure)"
   },
-  "Module": {
-    "prefix": "module",
-    "body": ["local $TM_FILENAME_BASE = {}\n", "return $TM_FILENAME_BASE"],
-    "description": "Class Template (Closure)"
+  "KeyValuePair": {
+    "prefix": ["key-value-pair", "kvp"],
+    "body": [
+      "${1:key} = \"${1:value}\""
+    ],
+    "description": "Equal Key-Value Pair"
   }
 }
