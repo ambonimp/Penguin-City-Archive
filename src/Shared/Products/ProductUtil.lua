@@ -200,7 +200,6 @@ end
 -- Vehicles
 -------------------------------------------------------------------------------
 
--- Example: CoverColor, Red
 function ProductUtil.getVehicleProductId(vehicleName: string)
     return ("vehicle_%s"):format(StringUtil.toCamelCase(vehicleName))
 end
@@ -227,6 +226,38 @@ end
 
 function ProductUtil.isVehicleProduct(product: Products.Product)
     return product.Type == ProductConstants.ProductType.Vehicle
+end
+
+-------------------------------------------------------------------------------
+-- PetEggs
+-------------------------------------------------------------------------------
+
+function ProductUtil.getPetEggProductId(petEggName: string)
+    return ("pet_egg_%s"):format(StringUtil.toCamelCase(petEggName))
+end
+
+function ProductUtil.getPetEggProduct(petEggName: string)
+    local product = Products.Products[ProductConstants.ProductType.PetEgg][ProductUtil.getPetEggProductId(petEggName)]
+    if not product then
+        error(("No PetEgg Product %s"):format(petEggName))
+    end
+
+    return product
+end
+
+function ProductUtil.getPetEggProductData(product: Products.Product)
+    -- ERROR: Not a PetEgg product
+    if not ProductUtil.isPetEggProduct(product) then
+        error("Passed a non-PetEgg product")
+    end
+
+    return {
+        PetEggName = product.Metadata.PetEggName,
+    }
+end
+
+function ProductUtil.isPetEggProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.PetEgg
 end
 
 -------------------------------------------------------------------------------

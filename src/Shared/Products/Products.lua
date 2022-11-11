@@ -64,6 +64,7 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
+    --#region Test
     Test = {
         coin_login_reward = {
             Id = "coin_login_reward",
@@ -90,6 +91,23 @@ local products: { [string]: { [string]: Product } } = {
             },
         },
     },
+    --#endregion
+    --#region Pet Eggs
+    PetEgg = {
+        pet_egg_test = {
+            Id = "pet_egg_test",
+            DisplayName = "Test Egg",
+            Description = "Test Egg",
+            RobuxData = {
+                Cost = 99,
+                DeveloperProductId = 1335900877,
+            },
+            Metadata = {
+                PetEggName = "Test",
+            },
+        },
+    },
+    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {
