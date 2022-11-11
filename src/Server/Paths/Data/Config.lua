@@ -11,6 +11,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local GameUtil = require(Paths.Shared.Utils.GameUtil)
+local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
 DataConfig.DataKey = GameUtil.getDataKey()
 
@@ -46,6 +47,10 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
         ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
+        Stamps = {
+            OwnedStamps = {},
+            StampBook = StampUtil.getStampBookDataDefaults(),
+        },
         Coins = 0,
         Rewards = {
             DailyReward = {

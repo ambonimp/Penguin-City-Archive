@@ -5,6 +5,7 @@ local DescendantLooper = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+local Maid = require(ReplicatedStorage.Packages.maid)
 
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 
@@ -14,12 +15,15 @@ local instanceCheckerCallbackPairs: { [Instance]: { [(descendant: Instance) -> b
     Returns the dictionary for checker/callback pairings.
     Also sets up descendant added for first-time calls for individual instances
 ]]
-local function getInstanceCheckerCallbackPairs(instance: Instance)
+local function getInstanceCheckerCallbackPairs(instance: Instance, maid: typeof(Maid.new()))
     if not instanceCheckerCallbackPairs[instance] then
         instanceCheckerCallbackPairs[instance] = {}
+        maid:GiveTask(function()
+            instanceCheckerCallbackPairs[instance] = nil
+        end)
 
         local count = 0
-        instance.DescendantAdded:Connect(function(descendant)
+        maid:GiveTask(instance.DescendantAdded:Connect(function(descendant)
             -- Throttle
             if count % THROTTLE_EVERY == 0 then
                 task.wait()
@@ -31,7 +35,7 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
                     task.spawn(callback, descendant)
                 end
             end
-        end)
+        end))
 
         -- Cleanup cache
         InstanceUtil.onDestroyed(instance, function()
@@ -43,7 +47,9 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
 end
 
 --[[
-    Adds a checker/callback pair for looping all passed instances
+    Adds a checker/callback pair for looping all passed instances.
+
+    Returns a maid that can be destroyed to stop this operation - this is null if `ignoreAdded=true` though
 ]]
 function DescendantLooper.add(
     checker: (descendant: Instance) -> boolean,
@@ -53,10 +59,12 @@ function DescendantLooper.add(
 )
     ignoreAdded = ignoreAdded or false
 
+    local maid = Maid.new()
+
     -- Cache checker/callback for new added descendants
     local count = 0
     for _, instance in pairs(instances) do
-        local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance)
+        local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance, maid)
 
         if not ignoreAdded then
             checkerCallbackPairs[checker] = callback
@@ -75,6 +83,8 @@ function DescendantLooper.add(
             end
         end
     end
+
+    return maid
 end
 
 --[[
@@ -85,7 +95,7 @@ function DescendantLooper.workspace(
     callback: (descendant: Instance) -> nil,
     ignoreAdded: boolean?
 )
-    DescendantLooper.add(checker, callback, { game.Workspace }, ignoreAdded)
+    return DescendantLooper.add(checker, callback, { game.Workspace }, ignoreAdded)
 end
 
 return DescendantLooper

@@ -1,7 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 local ProductUtil = require(ReplicatedStorage.Shared.Products.ProductUtil)
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
 
 return function()

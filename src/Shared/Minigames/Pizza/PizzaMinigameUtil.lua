@@ -82,10 +82,13 @@ end
 function PizzaMinigameUtil.rollSauce(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for sauce, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Sauces) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[sauce] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = sauce,
+        })
     end
 
     return MathUtil.weightedChoice(weightTable) :: string
@@ -94,10 +97,13 @@ end
 function PizzaMinigameUtil.rollBase(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaMinigameConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for base, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Bases) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[base] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = base,
+        })
     end
 
     return MathUtil.weightedChoice(weightTable) :: string

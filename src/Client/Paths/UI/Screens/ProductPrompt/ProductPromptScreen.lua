@@ -13,6 +13,8 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
+local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
 local robuxButton = KeyboardButton.new()
@@ -90,6 +92,7 @@ function ProductPromptScreen.open(data: table)
     -- Icon
     if currentProduct.ImageId then
         icon.Image = currentProduct.ImageId
+        icon.ImageColor3 = currentProduct.ImageColor or COLOR_WHITE
         icon.Visible = true
     else
         icon.Visible = false

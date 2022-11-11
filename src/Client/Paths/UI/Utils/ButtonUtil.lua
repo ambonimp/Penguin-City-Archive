@@ -11,6 +11,11 @@ function ButtonUtil.paintIgloo(keyboardButton: typeof(KeyboardButton.new(Instanc
     keyboardButton:SetIcon(Images.Icons.Igloo)
 end
 
+function ButtonUtil.paintEdit(keyboardButton: typeof(KeyboardButton.new(Instance.new("ImageButton"))))
+    keyboardButton:SetColor(UIConstants.Colors.Buttons.EditOrange)
+    keyboardButton:SetIcon(Images.Icons.Wrench)
+end
+
 function ButtonUtil.paintStamps(keyboardButton: typeof(KeyboardButton.new(Instance.new("ImageButton"))))
     keyboardButton:SetColor(UIConstants.Colors.Buttons.StampBeige)
     keyboardButton:SetIcon(Images.ButtonIcons.StampBook)

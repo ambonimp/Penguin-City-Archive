@@ -100,15 +100,23 @@ function PizzaMinigameController.finish()
     runner = nil
 
     PizzaMinigameController.viewMenu()
-    UIResults.display(Images.PizzaMinigame.Logo, {
-        { Name = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
-        { Name = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaMinigame.PizzaBase },
+    UIResults.display(
+        Images.PizzaMinigame.Logo,
         {
-            Name = "Lives Left",
-            Value = ("%d/%d"):format((PizzaMinigameConstants.MaxMistakes - stats.TotalMistakes), PizzaMinigameConstants.MaxMistakes),
-            Icon = Images.Icons.Heart,
+            { Name = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
+            { Name = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaMinigame.PizzaBase },
+            {
+                Name = "Lives Left",
+                Value = ("%d/%d"):format((PizzaMinigameConstants.MaxMistakes - stats.TotalMistakes), PizzaMinigameConstants.MaxMistakes),
+                Icon = Images.Icons.Heart,
+            },
         },
-    }, nil)
+        nil,
+        {
+            minigame_pizza_play = 1,
+            minigame_pizza_lose = 1,
+        }
+    )
 end
 
 -------------------------------------------------------------------------------

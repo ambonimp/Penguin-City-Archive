@@ -81,8 +81,8 @@ function TableUtil.valuesToKeys(tbl: table, key: any)
     return returning
 end
 
--- table.find doesn't work for dictionaries
-function TableUtil.find(tbl: table, needle: any)
+-- table.find doesn't work for dictionaries. Returns the key
+function TableUtil.find(tbl: table, needle: any): any | nil
     for k, value in tbl do
         if needle == value then
             return k

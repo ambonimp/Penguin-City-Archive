@@ -122,19 +122,13 @@ function InstanceUtil.fadeIn(instanceOrInstances: Instance | { Instance }, tween
 
     local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
     for _, instance in pairs(instances) do
-        local found = false
         for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
             for _, classname in pairs(classNames) do
                 if instance:IsA(classname) then
                     table.insert(tweens, fade(instance, fadeProperty, true, tweenInfo))
-                    found = true
                     break
                 end
             end
-        end
-
-        if not found then
-            warn(("Missing edge case for %q"):format(instance.ClassName))
         end
     end
 
@@ -147,19 +141,13 @@ function InstanceUtil.fadeOut(instanceOrInstances: Instance | { Instance }, twee
 
     local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
     for _, instance in pairs(instances) do
-        local found = false
         for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
             for _, classname in pairs(classNames) do
                 if instance:IsA(classname) then
                     table.insert(tweens, fade(instance, fadeProperty, false, tweenInfo))
-                    found = true
                     break
                 end
             end
-        end
-
-        if not found then
-            warn(("Missing edge case for %q"):format(instance.ClassName))
         end
     end
 

@@ -17,7 +17,7 @@ local debounces: { [any]: { [any]: number | nil } | nil } = {}
 local indecisions: { [string]: Indecision } = {}
 
 -- Returns true if free
-function Limiter.debounce(scope, key, timeframe)
+function Limiter.debounce(scope: any, key: any, timeframe: number)
     -- TRUE: Negligible timeframe
     if timeframe <= 0 then
         return true

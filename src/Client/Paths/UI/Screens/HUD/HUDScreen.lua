@@ -93,14 +93,15 @@ end
 local function stampBook(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.StampBook
 
-    --!!temp
     button.Pressed:Connect(function()
-        Sound.play("OpenBook")
+        uiStateMachine:Push(UIConstants.States.StampBook, {
+            Player = Players.LocalPlayer,
+        })
     end)
 end
 
-local function inventory(button: AnimatedButton.AnimatedButton)
-    button:GetButtonObject().Image = Images.ButtonIcons.Inventory
+local function clothing(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Shirt
     button.Pressed:Connect(function()
         uiStateMachine:Push(UIConstants.States.CharacterEditor)
     end)
@@ -149,7 +150,7 @@ function HUDScreen.Init()
         map(mapButton)
         igloo(iglooButton)
         stampBook(buttons.Right[2])
-        inventory(buttons.Right[3])
+        clothing(buttons.Right[3])
 
         -- Igloo Button (toggle edit look)
         do

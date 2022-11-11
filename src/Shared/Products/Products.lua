@@ -31,6 +31,7 @@ export type Product = {
     RobuxData: ProductRobuxData?,
     Description: string?,
     ImageId: string?,
+    ImageColor: Color3?,
 }
 
 export type GenericProduct = {

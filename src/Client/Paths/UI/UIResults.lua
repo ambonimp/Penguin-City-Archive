@@ -9,14 +9,14 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 function UIResults.display(
     logoId: string,
     values: { { Name: string, Value: any, Icon: string? } },
-    stamps: nil?,
-    nextCallback: (() -> nil)?
+    nextCallback: (() -> nil)?,
+    stampData: { [string]: number }?
 )
     UIController.getStateMachine():Push(UIConstants.States.Results, {
         LogoId = logoId,
         Values = values,
-        Stamps = stamps,
         NextCallback = nextCallback,
+        StampData = stampData,
     })
 end
 
