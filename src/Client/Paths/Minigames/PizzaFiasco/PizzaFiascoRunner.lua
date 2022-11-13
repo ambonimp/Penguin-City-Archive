@@ -8,6 +8,7 @@
 local PizzaFiascoRunner = {}
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
@@ -40,20 +41,22 @@ local HITBOX_COYOTE_TIME = 0.1
 local CONVEYOR_TWEEN_INFOS = {
     TileV = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, math.huge),
 }
+
 local CONVEYOR_REVERSES = {
     TileV = true,
 }
 local FADE_MUSIC_DURATION = 1
 local RUNNING_WATER_DURATION = 3
 
-function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string }, finishCallback: () -> nil)
+local assets = ReplicatedStorage.Assets.Minigames.PizzaFiasco
+
+function PizzaFiascoRunner.new(map: Model, recipeTypeOrder: { string }, finishCallback: () -> nil)
     local runner = {}
     Output.doDebug(MinigameConstants.DoDebug, "new")
 
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
-
     local maid = Maid.new()
     local pizzaMaid = Maid.new()
     local cursorDownMaid = Maid.new()
@@ -69,7 +72,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
     local hitboxParts: { BasePart } = {}
     local isRunning = false
 
-    local pizzaLine: BasePart = minigameFolder.Guides.PizzaLine
+    local pizzaLine: BasePart = map.Guides.PizzaLine
     local pizzaStartCFrame = CFrame.new(pizzaLine.Position - (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
     local pizzaEndCFrame = CFrame.new(pizzaLine.Position + (pizzaLine.CFrame.LookVector * pizzaLine.Size.Z / 2))
 
@@ -143,7 +146,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
             music.PlaybackSpeed = 1
         end
 
-        Remotes.fireServer("PizzaFiascoCompletedPizza", didComplete, doSubtractMistake)
+        Remotes.fireServer("PizzaFiascoPizzaCompleted", didComplete, doSubtractMistake)
 
         -- GAME FINISHED
         if totalPizzasMade == PizzaFiascoConstants.MaxPizzas or totalMistakes >= PizzaFiascoConstants.MaxMistakes then
@@ -180,7 +183,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
                 )
             do
                 -- Place Pizza Model
-                local thisPizzaModel = minigameFolder.Assets.Pizza:Clone()
+                local thisPizzaModel = assets.Pizza:Clone()
                 thisPizzaModel:PivotTo(pizzaStartCFrame)
                 thisPizzaModel.Parent = gameplayFolder
                 pizzaModel = thisPizzaModel
@@ -318,7 +321,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
     end
 
     local function setSinkSecretEnabled(doEnable: boolean)
-        for _, particleEmitter: ParticleEmitter in pairs(minigameFolder.Secrets.SinkParticle:GetDescendants()) do
+        for _, particleEmitter: ParticleEmitter in pairs(map.Secrets.SinkParticle:GetDescendants()) do
             if particleEmitter:IsA("ParticleEmitter") then
                 particleEmitter.Enabled = doEnable
             end
@@ -343,8 +346,8 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
         Output.doDebug(MinigameConstants.DoDebug, "hitboxClick", currentHitbox)
 
         local hitbox: BasePart = currentHitbox:GetValue()
-        local isIngredient = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Ingredients)
-        local isSecret = hitbox:IsDescendantOf(minigameFolder.Hitboxes.Secrets)
+        local isIngredient = hitbox:IsDescendantOf(map.Hitboxes.Ingredients)
+        local isSecret = hitbox:IsDescendantOf(map.Hitboxes.Secrets)
 
         if isIngredient then
             -- ERROR: Unknown ingredient type
@@ -416,7 +419,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
     end
 
     local function setIngredientLabelVisibility(isVisible: boolean)
-        for _, surfaceGui: SurfaceGui in pairs(minigameFolder.Labels:GetDescendants()) do
+        for _, surfaceGui: SurfaceGui in pairs(map.Labels:GetDescendants()) do
             if surfaceGui:IsA("SurfaceGui") then
                 surfaceGui.Enabled = isVisible
             end
@@ -440,15 +443,15 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
         -- Init Members
         do
             -- Gameplay Folder
-            gameplayFolder = minigameFolder:FindFirstChild("Gameplay") or Instance.new("Folder")
+            gameplayFolder = map:FindFirstChild("Gameplay") or Instance.new("Folder")
             gameplayFolder.Name = "Gameplay"
-            gameplayFolder.Parent = minigameFolder
+            gameplayFolder.Parent = map
 
             -- OrderSign
-            order = PizzaFiascoOrder.new(minigameFolder.OrderSign:FindFirstChildWhichIsA("SurfaceGui", true))
+            order = PizzaFiascoOrder.new(map.OrderSign:FindFirstChildWhichIsA("SurfaceGui", true))
 
             -- HitboxParts
-            for _, descendant in pairs(minigameFolder.Hitboxes:GetDescendants()) do
+            for _, descendant in pairs(map.Hitboxes:GetDescendants()) do
                 if descendant:IsA("BasePart") then
                     table.insert(hitboxParts, descendant)
                 end
@@ -471,7 +474,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
         setIngredientLabelVisibility(true)
 
         -- Animate conveyor
-        maid:GiveTask(AnimationUtil.animateTexture(minigameFolder.ConveyorBelt.Top.Texture, CONVEYOR_TWEEN_INFOS, CONVEYOR_REVERSES))
+        maid:GiveTask(AnimationUtil.animateTexture(map.ConveyorBelt.Top.Texture, CONVEYOR_TWEEN_INFOS, CONVEYOR_REVERSES))
 
         -- Start the gameplay loop!
         sendPizza()
@@ -490,8 +493,8 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
         maid:Destroy()
     end
 
-    function runner:GetMinigameFolder()
-        return minigameFolder
+    function runner:Getmap()
+        return map
     end
 
     function runner:GetGameplayFolder()
@@ -532,7 +535,7 @@ function PizzaFiascoRunner.new(minigameFolder: Folder, recipeTypeOrder: { string
         appliedSauceParts[saucePart] = true
 
         -- ERROR: Could not find a sauce emitter
-        local sauceAsset = minigameFolder.Assets[sauceName]
+        local sauceAsset = assets[sauceName]
         local sauceEmitter = sauceAsset:FindFirstChildWhichIsA("ParticleEmitter", true)
         if not sauceEmitter then
             error(("Could not find ParticleEmitter for sauce %s asset (%s)"):format(sauceName, sauceEmitter:GetFullName()))

@@ -33,7 +33,7 @@ local minigameJanitor = MinigameController.getMinigameJanitor()
 minigameJanitor:Add(raceJanitor, "Cleanup")
 
 -------------------------------------------------------------------------------
--- LOGIC
+-- State handler
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
     minigameJanitor:Add(CameraController.setup())
