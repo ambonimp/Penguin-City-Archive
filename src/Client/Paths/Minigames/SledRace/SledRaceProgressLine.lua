@@ -8,7 +8,6 @@ local SignedDistanceUtil = require(Paths.Shared.Utils.SignedDistanceUtil)
 local SledRaceScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 
 local POSITION_INDICATOR_HEIGHT = 10 -- Pixels
 
@@ -17,7 +16,7 @@ function SledRaceProgressLine.setup()
 
     local finishingPoint: Vector3 = slopeCFrame:PointToWorldSpace(slopeBoundingSize * Vector3.new(0, -0.5, -0.5))
     local startingPoint: number = slopeCFrame:PointToWorldSpace(slopeBoundingSize * Vector3.new(0, 0.5, 0.5)).Y
-    local worldRangeEnd = slopeBoundingSize.Y - ModelUtil.getBoundingSize(MinigameController.getMap().Slope).Y
+    local worldRangeEnd = slopeBoundingSize.Y - MinigameController.getMap().Slope:GetExtentsSize().Y
 
     local positions, uiRangeEnd = SledRaceScreen.openProgressLine(POSITION_INDICATOR_HEIGHT)
     local sleds: { [Player]: BasePart } = {}
