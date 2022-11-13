@@ -143,8 +143,7 @@ function SharedMinigameScreen.openStartMenu()
 
         local cameraGizmo = getCameraGizmo()
         if cameraGizmo then
-            camera.CameraType = Enum.CameraType.Scriptable
-            camera.CFrame = cameraGizmo.WorldPivot
+            CameraController.viewCameraModel(cameraGizmo)
         end
 
         ScreenUtil.openBlur()
