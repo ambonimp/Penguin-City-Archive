@@ -21,6 +21,17 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     ScoreFormatter = function(score: number): string
         return (score / 10 ^ 2) .. "s"
     end,
+    Reward = function(placement): number
+        if placement == 1 then
+            return 35
+        elseif placement == 2 then
+            return 25
+        elseif placement == 3 then
+            return 15
+        else
+            return 10
+        end
+    end,
 }
 
 SledRaceConstants.SessionConfig = sessionConfig

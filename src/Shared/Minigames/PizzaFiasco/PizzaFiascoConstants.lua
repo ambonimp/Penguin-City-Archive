@@ -12,6 +12,16 @@ type WeightEquation = (alpha: number) -> number
 local sessionConfig: MinigameConstants.SessionConfig = {
     SinglePlayer = true,
     Multiplayer = false,
+    Reward = function(_, score: number): number
+        local totalReward = 0
+
+        for i = 1, score do
+            local increaseCount = math.floor((i - 1) / PizzaFiascoConstants.Reward.IncreaseEvery)
+            totalReward += PizzaFiascoConstants.Reward.Base + increaseCount * PizzaFiascoConstants.Reward.IncreaseBy
+        end
+
+        return totalReward
+    end,
 }
 
 PizzaFiascoConstants.SessionConfig = sessionConfig

@@ -16,6 +16,7 @@ local ZoneService = require(Paths.Server.Zones.ZoneService)
 local StateMachine = require(Paths.Shared.StateMachine)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 type Participants = { Player }
 
@@ -336,6 +337,9 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
                 table.insert(sortedScores, { Player = minPlayer, Score = minScore })
                 unsorted[minPlayer] = nil
+
+                -- Reward
+                CurrencyService.addCoins(minPlayer, config.Reward(i, minScore))
             end
 
             if config.HigherScoreWins then
