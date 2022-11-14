@@ -68,10 +68,10 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
-    SharedMinigameScreen.closeStartMenu()
-    CameraController.viewCameraModel(MinigameController.getMap().Cameras.Gameplay)
-
-    runner:Run()
+    SharedMinigameScreen.closeStartMenu(false, function()
+        CameraController.viewCameraModel(MinigameController.getMap().Cameras.Gameplay)
+        runner:Run()
+    end)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()

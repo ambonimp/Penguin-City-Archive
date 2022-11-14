@@ -2,7 +2,6 @@ local SharedMinigameScreen = {}
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local Images = require(Paths.Shared.Images.Images)
@@ -33,7 +32,6 @@ local PLAY_DELAY = 0.3
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
-local camera: Camera = Workspace.CurrentCamera
 
 local templates = Paths.Templates.Minigames
 
@@ -157,10 +155,12 @@ function SharedMinigameScreen.openStartMenu()
     startExitButton:Mount(actions.Exit, true)
 end
 
-function SharedMinigameScreen.closeStartMenu(temporary: true?)
+function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -> ()?)
+    local menu: Frame
+
     if MinigameController.isMultiplayer() then
-        multiplayerMenu.Visible = false
         getScreenGui().Instructions.Visible = false
+        menu = multiplayerMenu.Visible
     else
         if not temporary then
             startMenus.Visible = false
@@ -174,8 +174,15 @@ function SharedMinigameScreen.closeStartMenu(temporary: true?)
             ScreenUtil.closeBlur()
         end
 
-        singlePlayerMenu.Visible = false
+        menu = singlePlayerMenu
     end
+
+    if callback then
+        callback()
+    end
+
+    menu.Visible = false
+    Transitions.closeBlink()
 end
 
 function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)
@@ -262,9 +269,7 @@ end
 do
     playButton.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        Transitions.blink(function()
-            SharedMinigameScreen.closeStartMenu()
-        end, { HalfTweenTime = 0.5 })
+        Transitions.openBlink()
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")

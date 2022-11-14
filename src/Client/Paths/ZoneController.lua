@@ -110,7 +110,7 @@ function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBu
     ZoneController.transitionToZone(zone, function()
         -- Wait to be teleported
         task.wait(teleportBuffer - blinkDuration)
-    end, nil, { HalfTweenTime = blinkDuration })
+    end, nil, { TweenTime = blinkDuration })
 end
 
 --[[

@@ -11,8 +11,8 @@ function Signal.new()
     local yields: { thread } = {}
 
     local function resumeAllThreads(...)
-        for _, yieldingThreads in pairs(yields) do
-            local success, err = coroutine.resume(yieldingThreads)
+        for _, yieldingThread in pairs(yields) do
+            local success, err = coroutine.resume(yieldingThread)
             if not success then
                 warn(err)
             end
