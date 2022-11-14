@@ -88,20 +88,6 @@ return function()
         end
     end
 
-    local function testPetEggProduct(product: Products.Product)
-        local productName = ("%s.%s"):format("PetEgg", product.Id)
-        local function addIssue(issue: string)
-            table.insert(issues, ("[%s] %s"):format(productName, issue))
-        end
-
-        -- Product Id must match ProductUtil getter
-        local petEggData = ProductUtil.getPetEggProductData(product)
-        local petEggType = ProductUtil.getPetEggType(product)
-        if product.Id ~= ProductUtil.getPetEggProductId(petEggData.PetEggName, petEggType) then
-            addIssue("ProductId does not match return value for ProductUtil.getPetEggProductData")
-        end
-    end
-
     -- ProductType must have key == value
     for key, value in pairs(Products.ProductType) do
         if key ~= value then
@@ -137,10 +123,6 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.Vehicle then
                 testVehicleProduct(product)
-            end
-
-            if productTypeKey == ProductConstants.ProductType.PetEgg then
-                testPetEggProduct(product)
             end
         end
     end

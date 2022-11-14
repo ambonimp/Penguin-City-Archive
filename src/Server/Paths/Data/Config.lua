@@ -59,10 +59,6 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
                 Unclaimed = {},
             },
         },
-        Pets = {
-            Eggs = {},
-            Pets = {},
-        },
     } :: DataUtil.Store
 end
 

@@ -66,25 +66,6 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
-    --#region Pet Eggs
-    PetEgg = {
-        pet_egg_test = {
-            Id = "pet_egg_test",
-            DisplayName = "Test Egg",
-            Description = "Test Egg",
-            ImageId = Images.Pets.Eggs.Blue,
-            RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
-            },
-            Metadata = {
-                PetEggName = "Test",
-                IsIncubating = true,
-                Model = assets.Pets.Eggs.Blue,
-            },
-        },
-    },
-    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {
