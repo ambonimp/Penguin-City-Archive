@@ -9,6 +9,7 @@ local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local SessionService = require(Paths.Server.SessionService)
+local PetUtils = require(Paths.Shared.Pets.PetUtils)
 
 function PetService.Init()
     -- Dependencies
@@ -18,6 +19,10 @@ end
 -------------------------------------------------------------------------------
 -- Eggs
 -------------------------------------------------------------------------------
+
+local function getHatchTimeByEggsData(player: Player)
+    return DataService.get(player, "Pets.Eggs") :: { [string]: { [string]: number } }
+end
 
 --[[
     Will check that `player` has incubation data for all incubating pet egg products they own. If not, will instantiate it. Will also cull old hatch times.
@@ -32,7 +37,7 @@ function PetService.updateIncubation(player: Player)
     end
 
     -- Update Data
-    local hatchTimeByEggsData: { [string]: { [string]: number } } = DataService.get(player, "Pets.Eggs")
+    local hatchTimeByEggsData = getHatchTimeByEggsData(player)
     for petEggName, total in pairs(eggTotals) do
         local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName]) or {}
 
@@ -70,20 +75,8 @@ end
 ]]
 function PetService.getHatchTimes(player: Player)
     local playtime = SessionService.getSession(player):GetPlayTime()
-    local hatchTimeByEggsData: { [string]: { [string]: number } } = DataService.get(player, "Pets.Eggs")
-
-    local allHatchTimes: { [string]: { number } } = {}
-    for petEggName, _petEgg in pairs(PetConstants.PetEggs) do
-        local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName])
-        if hatchTimes then
-            hatchTimes = TableUtil.mapValues(hatchTimes, function(hatchTime: number)
-                return math.clamp(hatchTime - playtime, 0, math.huge)
-            end)
-            allHatchTimes[petEggName] = hatchTimes
-        end
-    end
-
-    return allHatchTimes
+    local hatchTimeByEggsData = getHatchTimeByEggsData(player)
+    return PetUtils.getHatchTimes(hatchTimeByEggsData, playtime)
 end
 
 --[[
@@ -92,7 +85,7 @@ end
     - `ageIndex`: `1`: Lowest hatch time, `n`: nth lowest hatch time, `math.huge`: guarenteed oldest egg
 ]]
 function PetService.nukeEgg(player: Player, petEggName: string, ageIndex: number)
-    local hatchTimeByEggsData: { [string]: { [string]: number } } = DataService.get(player, "Pets.Eggs")
+    local hatchTimeByEggsData = getHatchTimeByEggsData(player)
     local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName])
     if hatchTimes then
         table.sort(hatchTimes)

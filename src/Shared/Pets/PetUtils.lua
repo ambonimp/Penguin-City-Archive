@@ -2,10 +2,39 @@ local PetUtils = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 local directory: Folder = ReplicatedStorage.Assets.Pets
 local typesFolder: Folder = directory.Types
 local eggsFolder: Folder = directory.Eggs
+
+-------------------------------------------------------------------------------
+-- Eggs
+-------------------------------------------------------------------------------
+
+--[[
+    Returns `{ [petEggName]: { hatchTime } }`
+]]
+function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: number } }, playtime: number?)
+    playtime = playtime or 0
+
+    local allHatchTimes: { [string]: { number } } = {}
+    for petEggName, _petEgg in pairs(PetConstants.PetEggs) do
+        local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName])
+        if hatchTimes then
+            hatchTimes = TableUtil.mapValues(hatchTimes, function(hatchTime: number)
+                return math.clamp(hatchTime - playtime, 0, math.huge)
+            end)
+            allHatchTimes[petEggName] = hatchTimes
+        end
+    end
+
+    return allHatchTimes
+end
+
+-------------------------------------------------------------------------------
+-- Pets
+-------------------------------------------------------------------------------
 
 -- Will throw an error is the passed petType / petType&petVariant is bad
 function PetUtils.verifyPetTypeVariant(petType: string, petVariant: string?)
