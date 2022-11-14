@@ -2,7 +2,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local PetService = require(Paths.Server.Pets.PetService)
+local PetsService = require(Paths.Server.Pets.PetsService)
 
 local petEggProducts = Products.Products.PetEgg
 local consumersById: { [string]: (player: Player) -> nil } = {}
@@ -17,9 +17,27 @@ for productId, product in pairs(petEggProducts) do
         consumersById[productId] = function(player: Player)
             -- Circular Dependency
             local ProductService = require(Paths.Server.Products.ProductService)
+            local DataService = require(Paths.Server.Data.DataService)
 
+            -- Listen to PetEgg being added to data (to get its index), then nuke it
+            local connection: typeof(DataService.Updated:Connect(function() end))
+            connection = DataService.Updated:Connect(function(
+                event: string,
+                somePlayer: Player,
+                _newValue: any,
+                eventMeta: {
+                    IsNewEgg: boolean?,
+                    PetEggIndex: string,
+                }?
+            )
+                if event == "PetEggUpdated" and somePlayer == player and eventMeta and eventMeta.IsNewEgg then
+                    connection:Disconnect()
+                    PetsService.nukeEgg(player, productData.PetEggName, eventMeta.PetEggIndex)
+                end
+            end)
+
+            -- Add
             ProductService.addProduct(player, readyProduct)
-            PetService.nukeEgg(player, productData.PetEggName, math.huge)
         end
     end
 end

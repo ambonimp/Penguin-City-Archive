@@ -109,7 +109,7 @@ end
 function ProductService.clearProduct(player: Player, product: Products.Product, kickPlayer: boolean?)
     -- Detract
     local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
-    DataService.set(player, address, 0)
+    DataService.set(player, address, nil)
 
     -- Read
     ProductService.readProducts(player)

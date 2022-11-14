@@ -1,4 +1,4 @@
-local PetController = {}
+local PetsController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -18,14 +18,19 @@ local function getHatchTimeByEggsData()
 end
 
 --[[
-    Returns the current hatch times for our eggs at this exact point in time.
+    Returns the current hatch times for our eggs at this exact point in time (where hatchTimes are sorted smallest to largest)
 
-    `{ [petEggName]: { hatchTime } }`
+    `{ [petEggName]: { [petEggIndex]: hatchTime } }`
 ]]
-function PetController.getHatchTimes()
-    local playtime = SessionController.getSession():GetPlayTime()
+function PetsController.getHatchTimes(ignorePlaytime: boolean?)
+    local playtime = ignorePlaytime and 0 or SessionController.getSession():GetPlayTime()
     local hatchTimeByEggsData = getHatchTimeByEggsData()
     return PetUtils.getHatchTimes(hatchTimeByEggsData, playtime)
 end
 
-return PetController
+function PetsController.getHatchTime(petEggName: string, petEggIndex: string, ignorePlaytime: boolean?)
+    local hatchTimes = PetsController.getHatchTimes(ignorePlaytime)
+    return hatchTimes[petEggName] and hatchTimes[petEggName][petEggIndex] or -1
+end
+
+return PetsController

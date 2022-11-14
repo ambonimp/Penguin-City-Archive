@@ -9,7 +9,7 @@ return function(_context, players: { Player }, productType: string, productId: s
         local product = ProductUtil.getProduct(productType, productId)
         ProductService.clearProduct(player, product, kickPlayer)
 
-        output ..= (" > %s had all their %d cleared\n"):format(player.Name, product.DisplayName)
+        output ..= (" > %s had all their %s cleared\n"):format(player.Name, product.DisplayName)
     end
 
     return output

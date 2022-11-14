@@ -2,16 +2,10 @@ local InventoryWindow = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Products = require(Paths.Shared.Products.Products)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local ProductController = require(Paths.Client.ProductController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
 
 local GRID_SIZE = Vector2.new(5, 3)
@@ -256,7 +250,13 @@ function InventoryWindow.new(
                 end
             end)
 
-            widgetsByEquipValue[entry.EquipValue] = widget
+            if entry.EquipValue ~= nil then
+                if entry.EquipValue == equippedValue then
+                    widget:SetOutline(EQUIPPED_COLOR)
+                end
+
+                widgetsByEquipValue[entry.EquipValue] = widget
+            end
             drawMaid:GiveTask(widget)
         end
 

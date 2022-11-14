@@ -36,7 +36,7 @@ task.delay(0, function()
         require(server.Products.ProductProcessReceipt),
         require(server.Zones.ZoneService),
         require(server.Housing.PlotService),
-        require(server.Pets.PetService),
+        require(server.Pets.PetsService),
 
         -- UnitTest
         require(server.UnitTestingService),

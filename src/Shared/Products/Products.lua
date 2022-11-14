@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 -------------------------------------------------------------------------------
 -- Types
@@ -43,6 +44,7 @@ export type GenericProduct = {
 -- Products
 -------------------------------------------------------------------------------
 
+local assets: Folder = ReplicatedStorage.Assets
 local productType: { [string]: string } = ProductConstants.ProductType
 
 local products: { [string]: { [string]: Product } } = {
@@ -70,6 +72,7 @@ local products: { [string]: { [string]: Product } } = {
             Id = "pet_egg_test",
             DisplayName = "Test Egg",
             Description = "Test Egg",
+            ImageId = Images.Pets.Eggs.Blue,
             RobuxData = {
                 Cost = 99,
                 DeveloperProductId = 1335900877,
@@ -77,6 +80,7 @@ local products: { [string]: { [string]: Product } } = {
             Metadata = {
                 PetEggName = "Test",
                 IsIncubating = true,
+                Model = assets.Pets.Eggs.Blue,
             },
         },
     },

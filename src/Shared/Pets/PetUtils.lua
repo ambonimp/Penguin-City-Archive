@@ -12,24 +12,25 @@ local eggsFolder: Folder = directory.Eggs
 -- Eggs
 -------------------------------------------------------------------------------
 
+function PetUtils.getPetEggDataAddress(petEggName: string)
+    return ("Pets.Eggs.%s"):format(petEggName)
+end
+
 --[[
-    Returns `{ [petEggName]: { hatchTime } }`
+    Returns `{ [petEggName]: { [petEggIndex]: hatchTime } }` - but taking `playtime` into account!
 ]]
 function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: number } }, playtime: number?)
     playtime = playtime or 0
 
-    local allHatchTimes: { [string]: { number } } = {}
-    for petEggName, _petEgg in pairs(PetConstants.PetEggs) do
-        local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName])
-        if hatchTimes then
-            hatchTimes = TableUtil.mapValues(hatchTimes, function(hatchTime: number)
-                return math.clamp(hatchTime - playtime, 0, math.huge)
-            end)
-            allHatchTimes[petEggName] = hatchTimes
+    local cascadedHatchTimes: { [string]: { [string]: number } } = {}
+    for petEggName, hatchTimes in pairs(hatchTimeByEggsData) do
+        cascadedHatchTimes[petEggName] = {}
+        for petEggIndex, hatchTime in pairs(hatchTimes) do
+            cascadedHatchTimes[petEggName][petEggIndex] = math.clamp(hatchTime - playtime, 0, math.huge)
         end
     end
 
-    return allHatchTimes
+    return cascadedHatchTimes
 end
 
 -------------------------------------------------------------------------------

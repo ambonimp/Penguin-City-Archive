@@ -3,20 +3,10 @@ local InventoryProductWindow = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Products = require(Paths.Shared.Products.Products)
-local UIConstants = require(Paths.Client.UI.UIConstants)
-local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
-local Maid = require(Paths.Packages.maid)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ProductController = require(Paths.Client.ProductController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local UIElement = require(Paths.Client.UI.Elements.UIElement)
 local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
-
-local GRID_SIZE = Vector2.new(5, 3)
-local EQUIPPED_COLOR = Color3.fromRGB(0, 165, 0)
 
 --[[
     data:
