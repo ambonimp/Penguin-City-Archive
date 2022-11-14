@@ -50,7 +50,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
     if multiplayer then
         -- RETURN: No multiplayer support
         if not sessionConfigs.Multiplayer then
-            warn(("% minigame doesn't support multiplayer play"):format(minigame))
+            warn(("%s minigame doesn't support multiplayer play"):format(minigame))
             return
         end
 
@@ -86,7 +86,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
     else
         -- RETURN: No single player support
         if not sessionConfigs.SinglePlayer then
-            warn(("% minigame doesn't support single player play"):format(minigame))
+            warn(("%s minigame doesn't support single player play"):format(minigame))
             return
         end
 

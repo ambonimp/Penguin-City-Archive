@@ -107,11 +107,7 @@ function CameraController.viewCameraModel(cameraModel: Model)
         error(("Passed model %s is a bad camera model"):format(cameraModel:GetFullName()))
     end
 
-    -- ERROR: Not scriptable!
-    if not CameraController.isCameraScriptable() then
-        error("CameraController is not set to scriptable! Use CameraController.setScriptable()")
-    end
-
+    CameraController:setScriptable()
     camera.CFrame = CFrame.new(lens.Position, lens.Position + lens.CFrame.LookVector)
 end
 
