@@ -17,6 +17,7 @@ local StateMachine = require(Paths.Shared.StateMachine)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
+local Output = require(Paths.Shared.Output)
 
 type Participants = { Player }
 
@@ -237,7 +238,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 return
             end
 
-            -- warn("SERVER:", toState)
+            Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed", toState)
 
             local data = stateMachine:GetData()
             data.StartTime = Workspace:GetServerTimeNow()

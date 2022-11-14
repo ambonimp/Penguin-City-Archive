@@ -9,8 +9,10 @@ local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local Remotes = require(Paths.Shared.Remotes)
 
-local queues: { [string]: typeof(MinigameQueue.new("")) } = {}
-local sessions: { [string]: { [string]: typeof(MinigameSession.new("", "", {}, true)) } } = {}
+local sessionClasses = {}
+
+local activeQueues: { [string]: typeof(MinigameQueue.new("")) } = {}
+local activeSessions: { [string]: { [string]: typeof(MinigameSession.new("", "", {}, true)) } } = {}
 local sessionIdCounter = 0
 
 -------------------------------------------------------------------------------
@@ -20,10 +22,10 @@ local function createSession(minigame: string, participants: { Player }, isMulti
     local id = tostring(sessionIdCounter)
     sessionIdCounter += 1
 
-    local session = require(Paths.Server.Minigames[minigame][minigame .. "Session"]).new(id, participants, isMultiplayer)
-    sessions[minigame][id] = session
+    local session = sessionClasses[minigame].new(id, participants, isMultiplayer)
+    activeSessions[minigame][id] = session
     session:GetMaid():GiveTask(function()
-        sessions[minigame][id] = nil
+        activeSessions[minigame][id] = nil
     end)
 end
 
@@ -38,7 +40,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
 
     -- RETURN: Player is already in a queue
     if multiplayer then
-        for _, queue in pairs(queues) do
+        for _, queue in pairs(activeQueues) do
             if queue:IsParticipant(player) then
                 return
             end
@@ -55,32 +57,32 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         end
 
         -- Search for existing session
-        local potentialSessions = {}
-        for _, sessionList in pairs(sessions) do
-            for _, session in pairs(sessionList) do
+        local potentialactiveSessions = {}
+        for _, sessions in pairs(activeSessions) do
+            for _, session in pairs(sessions) do
                 if session:IsAcceptingNewParticipants() then
-                    table.insert(potentialSessions, session)
+                    table.insert(potentialactiveSessions, session)
                 end
             end
         end
 
-        if #potentialSessions == 0 then
-            local queue = queues[minigame]
+        if #potentialactiveSessions == 0 then
+            local queue = activeQueues[minigame]
             if queue then
                 queue:AddParticipant(player)
             else
                 queue = MinigameQueue.new(minigame)
                 queue:GetMaid():GiveTask(function()
-                    queues[minigame] = nil
+                    activeQueues[minigame] = nil
                     createSession(minigame, queue:GetParticipants(), true)
                 end)
 
-                queues[minigame] = queue
+                activeQueues[minigame] = queue
                 queue:AddParticipant(player)
             end
         else
             -- TODO: Prioritize minigames the player has friends in
-            local session = potentialSessions[1]
+            local session = potentialactiveSessions[1]
             session:AddParticipant(player)
         end
     else
@@ -98,7 +100,8 @@ end
 -- LOGIC
 -------------------------------------------------------------------------------
 for minigame in pairs(MinigameConstants.Minigames) do
-    sessions[minigame] = {}
+    activeSessions[minigame] = {}
+    sessionClasses[minigame] = require(Paths.Server.Minigames[minigame][minigame .. "Session"])
 end
 
 do

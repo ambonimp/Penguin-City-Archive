@@ -140,6 +140,7 @@ function SharedMinigameScreen.openStartMenu()
         actions = multiplayerMenu
     else
         startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
+        singlePlayerMenu.Logo.Image = getLogo()
 
         local cameraGizmo = getCameraGizmo()
         if cameraGizmo then
@@ -164,15 +165,16 @@ function SharedMinigameScreen.closeStartMenu(temporary: true?)
         if not temporary then
             startMenus.Visible = false
             startMenus.BackgroundTransparency = 1
-        end
 
-        if getCameraGizmo() then
-            CameraController.setPlayerControl()
-            CameraController.alignCharacter()
+            if getCameraGizmo() then
+                CameraController.setPlayerControl()
+                CameraController.alignCharacter()
+            end
+
+            ScreenUtil.closeBlur()
         end
 
         singlePlayerMenu.Visible = false
-        ScreenUtil.closeBlur()
     end
 end
 
@@ -197,7 +199,7 @@ function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScor
     standingsFrame.Logo.Image = getLogo()
     standingsFrame.Placement.Text = "You placed " .. MinigameController.getOwnPlacement(scores)
 
-    ScreenUtil.inUp(standingsFrame)
+    ScreenUtil.inUp(standingsFrame, true)
     standingsClose.InternalRelease:Wait()
 
     -- Clean up
@@ -226,7 +228,7 @@ function SharedMinigameScreen.openResults(values: { { Title: string, Icon: strin
 
     resultsFrame.Logo.Image = getLogo()
 
-    ScreenUtil.inUp(resultsFrame)
+    ScreenUtil.inUp(resultsFrame, true)
     resultsClose.InternalRelease:Wait()
 
     -- Clean up
@@ -243,7 +245,7 @@ do
     standingsClose = nextButton(standingsClose)
     standingsClose:Mount(standingsFrame.Next, true)
     standingsClose.Pressed:Connect(function()
-        ScreenUtil.outDown(standingsFrame)
+        ScreenUtil.outDown(standingsFrame, true)
     end)
 end
 
@@ -252,7 +254,7 @@ do
     resultsClose = nextButton(resultsClose)
     resultsClose:Mount(resultsFrame.Next, true)
     resultsClose.Pressed:Connect(function()
-        ScreenUtil.outDown(resultsFrame)
+        ScreenUtil.outDown(resultsFrame, true)
     end)
 end
 

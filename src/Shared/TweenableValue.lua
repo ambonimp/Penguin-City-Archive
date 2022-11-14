@@ -109,7 +109,7 @@ function TweenableValue.new<T>(
     end
 
     function tweenableValue:HasteReset(length: number)
-        TweenableValue:Haste(initialValue, length)
+        tweenableValue:Haste(initialValue, length)
     end
 
     function tweenableValue:IsPlaying(): boolean

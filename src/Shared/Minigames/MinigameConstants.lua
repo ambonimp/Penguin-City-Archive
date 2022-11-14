@@ -18,7 +18,7 @@ export type SessionConfig = {
     IntermissionLength: number?,
     CoreLength: number?,
     AwardShowLength: number?,
-    CoreCountdown: boolean?,
+    CoreCountdown: boolean,
     -- Play types
     SinglePlayer: boolean,
     Multiplayer: boolean,

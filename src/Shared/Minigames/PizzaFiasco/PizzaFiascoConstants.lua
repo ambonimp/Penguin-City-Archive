@@ -10,8 +10,11 @@ export type RecipeType = {
 type WeightEquation = (alpha: number) -> number
 
 local sessionConfig: MinigameConstants.SessionConfig = {
+    CoreCountdown = false,
+
     SinglePlayer = true,
     Multiplayer = false,
+
     Reward = function(_, score: number): number
         local totalReward = 0
 

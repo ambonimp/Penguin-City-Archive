@@ -62,7 +62,7 @@ end
 
 local function outt(directionOut: UDim2, frame: GuiObject, cosmetics)
     if cosmetics then
-        cosmeticsEnabled:Set(true, frame)
+        cosmeticsEnabled:Set(false, frame)
     end
 
     local initialPosition = Binder.bindFirst(frame, "InitialPosition", frame.Position)

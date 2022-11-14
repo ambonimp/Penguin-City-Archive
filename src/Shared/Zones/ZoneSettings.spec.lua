@@ -15,14 +15,14 @@ return function()
         return
     end
 
-    -- Have good ZoneIds
+    --[[     -- Have good ZoneIds
     for zoneType, _ in pairs(ZoneConstants.ZoneType) do
         for zoneId, _ in pairs(ZoneSettings[zoneType]) do
             if not ZoneConstants.ZoneId[zoneType][zoneId] then
                 table.insert(issues, ("ZoneSettings.%s.%s %q is a bad ZoneId"):format(zoneType, zoneId, zoneId))
             end
         end
-    end
+    end *]]
 
     return issues
 end

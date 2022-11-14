@@ -102,7 +102,7 @@ end
 
 function CameraController.viewCameraModel(cameraModel: Model)
     -- ERROR: No lens!
-    local lens: Part = cameraModel.Lens
+    local lens: Part = cameraModel:WaitForChild("Lens")
     if not (lens and lens:IsA("BasePart")) then
         error(("Passed model %s is a bad camera model"):format(cameraModel:GetFullName()))
     end

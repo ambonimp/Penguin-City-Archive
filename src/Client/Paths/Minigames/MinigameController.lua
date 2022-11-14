@@ -14,6 +14,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.ZoneController)
+local Output = require(Paths.Shared.Output)
 
 type StateData = { [string]: any }
 type State = { Name: string, Data: StateData? }
@@ -57,7 +58,7 @@ local function setState(newState: State)
     local lastState = currentState
     currentState = newState
 
-    --print("CLIENT:", newName)
+    Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
 
     -- Close previously opened
     if lastState then

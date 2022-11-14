@@ -1,5 +1,6 @@
 local PizzaFiascoSession = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
@@ -40,7 +41,6 @@ local MIN_RECIPE_TIMES = {
         return 0
     end,
 }
-local CLEANUP_PLAYER_DATA_AFTER = 5
 local MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS = 5
 
 function PizzaFiascoSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
@@ -49,9 +49,9 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local stateMaid = Maid.new()
+    local coreJanitor = Maid.new()
     local maid = minigameSession:GetMaid()
-    maid:GiveTask(stateMaid)
+    maid:GiveTask(coreJanitor)
 
     local participantData: {
         RecipeTypeOrder: { string },
@@ -64,7 +64,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
     -------------------------------------------------------------------------------
     -- State handlers
     -------------------------------------------------------------------------------
-    minigameSession:RegisterStateCallbacks(MinigameConstants.States.CoreCountdown, function()
+    minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
         participantData = {
             RecipeTypeOrder = { PizzaFiascoConstants.FirstRecipe },
             RecipeRecords = {},
@@ -100,10 +100,10 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         -- Inform client of their recipe order
         minigameSession:RelayToParticipants("PizzaFiascoRecipeTypeOrder", participantData.RecipeTypeOrder)
 
-        stateMaid:GiveTask(
+        coreJanitor:GiveTask(
             Remotes.bindEventTemp("PizzaFiascoPizzaCompleted", function(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
                 -- RETURN: Wrong session
-                if minigameSession:IsPlayerParticipant(player) then
+                if not minigameSession:IsPlayerParticipant(player) then
                     return
                 end
 
@@ -124,9 +124,9 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
             end)
         )
 
-        stateMaid:GiveTask(Remotes.bindEventTemp("PizzaFiascoFinished", function(player: Player)
+        coreJanitor:GiveTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
             -- RETURN: Wrong session
-            if minigameSession:IsPlayerParticipant(player) then
+            if not minigameSession:IsPlayerParticipant(player) then
                 return
             end
 
@@ -183,10 +183,11 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
                 )
             end
 
-            -- Cleanup
-            participantData = nil
             minigameSession:ChangeState(MinigameConstants.States.AwardShow)
         end))
+    end, function()
+        participantData = nil
+        coreJanitor:Cleanup()
     end)
 
     minigameSession:Start()
@@ -198,7 +199,7 @@ end
 -------------------------------------------------------------------------------
 do
     -- Hide Guides & Hitboxes
-    local mapTemplate = ServerStorage.Minigames.Maps[MINGIAME_NAME]
+    local mapTemplate = ServerStorage.Minigames[MINGIAME_NAME].Map
     for _, directory: Instance in pairs({ mapTemplate.Guides, mapTemplate.Hitboxes }) do
         for _, descendant: BasePart in pairs(directory:GetDescendants()) do
             if descendant:IsA("BasePart") then
@@ -215,7 +216,14 @@ do
     end
 
     -- Hide Heart
-    mapTemplate.Assets.Pizza.Heart.Decal.Transparency = 1
+    ReplicatedStorage.Assets.Minigames.PizzaFiasco.Pizza.Heart.Decal.Transparency = 1
+end
+
+-- Communication
+do
+    Remotes.declareEvent("PizzaFiascoRecipeTypeOrder")
+    Remotes.declareEvent("PizzaFiascoPizzaCompleted")
+    Remotes.declareEvent("PizzaMinigameRoundFinished")
 end
 
 return PizzaFiascoSession

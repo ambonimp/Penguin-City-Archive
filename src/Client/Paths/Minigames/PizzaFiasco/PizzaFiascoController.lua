@@ -13,67 +13,86 @@ local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMin
 local CameraController = require(Paths.Client.CameraController)
 local PizzaFiascoRunner = require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoRunner)
 local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
+local ZoneController = require(Paths.Client.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local Output = require(Paths.Shared.Output)
 
-local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
-
-local RUNNER_JANITOR_INDEX = "PizzaFiascoRunner"
-
 local MINIGAME_NAME = "PizzaFiasco"
+local RUNNER_JANITOR_INDEX = "Runner"
+local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
+local player = Players.LocalPlayer
+
 local minigameJanitor = MinigameController.getMinigameJanitor()
 local runner: typeof(PizzaFiascoRunner.new(Instance.new("Model"), {}, function() end)) | nil
+
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function stopRunner()
+    runner:Stop()
+    runner = nil
+end
 
 -------------------------------------------------------------------------------
 -- State handlers
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
     SharedMinigameScreen.openStartMenu()
+
+    -- Disable movement
+    if ZoneController.getCurrentZone().ZoneType ~= ZoneConstants.ZoneType.Minigame then
+        ZoneController.ZoneChanged:Wait()
+    end
+
+    CharacterUtil.anchor(player.Character)
+
+    -- Revert changes
+    minigameJanitor:Add(function()
+        CameraController.resetFov()
+        CameraController.setPlayerControl()
+
+        CharacterUtil.unanchorCharacter(player.Character)
+    end)
+end)
+
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
+    runner = PizzaFiascoRunner.new(MinigameController.getMap(), FILLER_RECIPE_ORDER, function()
+        Remotes.fireServer("PizzaMinigameRoundFinished")
+    end)
+    minigameJanitor:Add(stopRunner, nil, RUNNER_JANITOR_INDEX)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
-    local map = MinigameController.getMap()
-
     SharedMinigameScreen.closeStartMenu()
-    CameraController.viewCameraModel(map.Cameras.Gameplay)
+    CameraController.viewCameraModel(MinigameController.getMap().Cameras.Gameplay)
 
-    minigameJanitor:Add(
-        PizzaFiascoRunner.new(map, FILLER_RECIPE_ORDER, function()
-            Remotes.fireServer("PizzaFiascoPizzaCompleted")
-        end),
-        "Stop",
-        RUNNER_JANITOR_INDEX
-    )
+    runner:Run()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()
     local stats = runner:GetStats()
-    runner:Stop()
     minigameJanitor:Remove(RUNNER_JANITOR_INDEX)
-    runner = nil
 
-    task.wait(1)
     SharedMinigameScreen.openResults({
+        { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
+        { Title = "Pizzas Completed", Value = stats.TotalPizzas - stats.TotalMistakes, Icon = Images.PizzaFiasco.PizzaBase },
         { Title = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
-        { Title = "Pizzas Made", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
-        {
+        --[[ {
             Title = "Lives Left",
             Value = ("%d/%d"):format((PizzaFiascoConstants.MaxMistakes - stats.TotalMistakes), PizzaFiascoConstants.MaxMistakes),
             Icon = Images.Icons.Heart,
-        },
+        }, *]]
     })
 
     Remotes.fireServer("MinigameRestarted")
     SharedMinigameScreen.openStartMenu()
 end)
 
--------------------------------------------------------------------------------
--- Other
--------------------------------------------------------------------------------
--- Communication
 Remotes.bindEvents({
     PizzaFiascoRecipeTypeOrder = function(recipeOrder: { string })
         if runner then
@@ -84,11 +103,5 @@ Remotes.bindEvents({
         end
     end,
 })
-
--- Reset any camera changes
-minigameJanitor:Add(function()
-    CameraController.resetFov()
-    CameraController.setPlayerControl()
-end)
 
 return PizzaFiascoController

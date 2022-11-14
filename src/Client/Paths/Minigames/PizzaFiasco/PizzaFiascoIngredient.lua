@@ -4,6 +4,7 @@
 local PizzaFiascoIngredient = {}
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Packages.maid)
@@ -17,6 +18,7 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Sound = require(Paths.Shared.Sound)
+type PizzaFiascoRunner = typeof(require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoRunner).new(Instance.new("Model"), {}, function() end))
 
 local RAYCAST_LENGTH = 100
 local INGREDIENT_OFFSET = Vector3.new(0, 2, 0)
@@ -50,11 +52,7 @@ local THROW_EPSILON = 0.1
 local BASE_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local FADE_INGREDIENT_SOUND_DURATION = 0.1
 
-type PizzaFiascoRunner = typeof(require(Paths.Client.Minigames.PizzaFiasco.PizzaFiascoRunner).new(
-    Instance.new("Folder"),
-    {},
-    function() end
-))
+local assets = Paths.Assets.Minigames.PizzaFiasco
 
 function PizzaFiascoIngredient.new(runner: PizzaFiascoRunner, ingredientType: string, ingredientName: string, hitbox: BasePart)
     local ingredient = {}
@@ -65,7 +63,7 @@ function PizzaFiascoIngredient.new(runner: PizzaFiascoRunner, ingredientType: st
     -------------------------------------------------------------------------------
 
     local maid = Maid.new()
-    local asset: Model = runner:GetMinigameFolder().Assets[ingredientName]:Clone()
+    local asset: Model = assets[ingredientName]:Clone()
     local assetAttachment = Instance.new("Attachment")
     local alignPosition = Instance.new("AlignPosition")
     local alignOrientation = Instance.new("AlignOrientation")
