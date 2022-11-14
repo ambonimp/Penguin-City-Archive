@@ -266,7 +266,9 @@ function ProductUtil.getPetEggType(product: Products.Product): "Incubating" | "R
     end
 
     local data = ProductUtil.getPetEggProductData(product)
-    return data.IsIncubating and "Incubating" or data.IsReady and "Ready" or error("Got an egg that is neither incubating or ready?!")
+    return data.IsIncubating and "Incubating"
+        or data.IsReady and "Ready"
+        or error(("Got an egg that is neither incubating or ready?! (%q)"):format(product.Id))
 end
 
 function ProductUtil.isPetEggProduct(product: Products.Product, eggType: "Incubating" | "Ready" | nil)

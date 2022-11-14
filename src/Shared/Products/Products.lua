@@ -104,6 +104,7 @@ local products: { [string]: { [string]: Product } } = {
             },
             Metadata = {
                 PetEggName = "Test",
+                IsIncubating = true,
             },
         },
     },
