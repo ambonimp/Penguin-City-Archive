@@ -96,7 +96,8 @@ return function()
 
         -- Product Id must match ProductUtil getter
         local petEggData = ProductUtil.getPetEggProductData(product)
-        if product.Id ~= ProductUtil.getVehicleProductId(petEggData.PetEggName) then
+        local petEggType = ProductUtil.getPetEggType(product)
+        if product.Id ~= ProductUtil.getPetEggProductId(petEggData.PetEggName, petEggType) then
             addIssue("ProductId does not match return value for ProductUtil.getPetEggProductData")
         end
     end

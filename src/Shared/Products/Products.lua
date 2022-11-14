@@ -123,7 +123,10 @@ for _, generatorScript: ModuleScript in pairs(productGenerators:GetChildren()) d
     local generatorProductType = StringUtil.chopEnd(generatorScript.Name, "Products")
     local generatorProducts = require(generatorScript)
 
-    products[generatorProductType] = generatorProducts
+    products[generatorProductType] = products[generatorProductType] or {}
+    for generatedId, generatedProduct in pairs(generatorProducts) do
+        products[generatorProductType][generatedId] = generatedProduct
+    end
 end
 
 -------------------------------------------------------------------------------

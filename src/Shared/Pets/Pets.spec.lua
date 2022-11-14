@@ -32,11 +32,11 @@ return function()
         -- Models
         for _, petVariant in pairs(petVariants) do
             -- Must have a model
-            local success, _result = pcall(function()
+            local success, result = pcall(function()
                 return PetUtils.getModel(petType, petVariant)
             end)
             if not success then
-                table.insert(issues, ("Missing model for %q %q"):format(petType, petVariant))
+                table.insert(issues, ("Missing model for %q %q (%s)"):format(petType, petVariant, tostring(result)))
             end
         end
 
@@ -66,10 +66,12 @@ return function()
 
     -- Pet Eggs
     for petEggName, petEgg in pairs(PetConstants.PetEggs) do
-        -- Verify Product
+        -- Verify Products
         do
             local success, result = pcall(function()
-                return ProductUtil.getPetEggProduct(petEggName)
+                return ProductUtil.getPetEggProduct(petEggName, "Purchase")
+                    and ProductUtil.getPetEggProduct(petEggName, "Incubating")
+                    and ProductUtil.getPetEggProduct(petEggName, "Ready")
             end)
             if not success then
                 table.insert(issues, ("PetEgg %q has no matching Product (%s)"):format(petEggName, tostring(result)))

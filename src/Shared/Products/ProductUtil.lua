@@ -119,8 +119,8 @@ function ProductUtil.getCharacterItemProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ItemKey = product.Metadata.ItemKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ItemKey = product.Metadata.ItemKey :: string,
     }
 end
 
@@ -153,8 +153,8 @@ function ProductUtil.getHouseObjectProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ObjectKey = product.Metadata.ObjectKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ObjectKey = product.Metadata.ObjectKey :: string,
     }
 end
 
@@ -187,8 +187,8 @@ function ProductUtil.getStampBookProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        PropertyKey = product.Metadata.PropertyKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        PropertyKey = product.Metadata.PropertyKey :: string,
     }
 end
 
@@ -220,7 +220,7 @@ function ProductUtil.getVehicleProductData(product: Products.Product)
     end
 
     return {
-        VehicleName = product.Metadata.VehicleName,
+        VehicleName = product.Metadata.VehicleName :: string,
     }
 end
 
@@ -232,14 +232,15 @@ end
 -- PetEggs
 -------------------------------------------------------------------------------
 
-function ProductUtil.getPetEggProductId(petEggName: string)
-    return ("pet_egg_%s"):format(StringUtil.toCamelCase(petEggName))
+function ProductUtil.getPetEggProductId(petEggName: string, eggType: "Purchase" | "Incubating" | "Ready")
+    local suffix = eggType == "Incubating" and "_incubating" or eggType == "Ready" and "_ready" or ""
+    return ("pet_egg_%s%s"):format(StringUtil.toCamelCase(petEggName), suffix)
 end
 
-function ProductUtil.getPetEggProduct(petEggName: string)
-    local product = Products.Products[ProductConstants.ProductType.PetEgg][ProductUtil.getPetEggProductId(petEggName)]
+function ProductUtil.getPetEggProduct(petEggName: string, eggType: "Purchase" | "Incubating" | "Ready")
+    local product = Products.Products[ProductConstants.ProductType.PetEgg][ProductUtil.getPetEggProductId(petEggName, eggType)]
     if not product then
-        error(("No PetEgg Product %s"):format(petEggName))
+        error(("No PetEgg %s Product %s"):format(eggType, petEggName))
     end
 
     return product
@@ -252,12 +253,39 @@ function ProductUtil.getPetEggProductData(product: Products.Product)
     end
 
     return {
-        PetEggName = product.Metadata.PetEggName,
+        PetEggName = product.Metadata.PetEggName :: string,
+        IsIncubating = product.Metadata.IsIncubating and true or false,
+        IsReady = product.Metadata.IsReady and true or false,
     }
 end
 
-function ProductUtil.isPetEggProduct(product: Products.Product)
-    return product.Type == ProductConstants.ProductType.PetEgg
+function ProductUtil.getPetEggType(product: Products.Product): "Incubating" | "Ready" | "Purchase"
+    -- ERROR: Not a PetEgg product
+    if not ProductUtil.isPetEggProduct(product) then
+        error("Passed a non-PetEgg product")
+    end
+
+    local data = ProductUtil.getPetEggProductData(product)
+    return data.IsIncubating and "Incubating" or data.IsReady and "Ready" or "Purchase"
+end
+
+function ProductUtil.isPetEggProduct(product: Products.Product, eggType: "Purchase" | "Incubating" | "Ready" | nil)
+    if product.Type ~= ProductConstants.ProductType.PetEgg then
+        return false
+    end
+
+    if eggType then
+        local data = ProductUtil.getPetEggProductData(product)
+        if eggType == "Purchase" then
+            return data.IsIncubating == false and data.IsReady == false
+        elseif eggType == "Incubating" then
+            return data.IsIncubating == true and data.IsReady == false
+        elseif eggType == "Ready" then
+            return data.IsIncubating == false and data.IsReady == true
+        end
+    end
+
+    return true
 end
 
 -------------------------------------------------------------------------------
