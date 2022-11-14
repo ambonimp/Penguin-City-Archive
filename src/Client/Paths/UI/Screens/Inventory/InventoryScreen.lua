@@ -10,7 +10,7 @@ local Maid = require(Paths.Packages.maid)
 local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
-local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
+local InventoryProductWindow = require(Paths.Client.UI.Screens.Inventory.InventoryProductWindow)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Products = require(Paths.Shared.Products.Products)
 local VehicleController = require(Paths.Client.VehicleController)
@@ -43,7 +43,7 @@ function InventoryScreen.Init()
         -- Vehicles
         tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
         tabbedWindow:SetWindowConstructor("Vehicles", function(parent, maid)
-            local inventoryWindow = InventoryWindow.new(Images.Icons.Hoverboard, "Vehicles", {
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Hoverboard, "Vehicles", {
                 ProductType = ProductConstants.ProductType.Vehicle,
                 AddCallback = function()
                     warn("TODO Teleport to hoverboard shop")
@@ -68,7 +68,7 @@ function InventoryScreen.Init()
         -- Clothing (--!! TEMP)
         tabbedWindow:AddTab("Clothes", Images.Icons.Shirt)
         tabbedWindow:SetWindowConstructor("Clothes", function(parent, maid)
-            local inventoryWindow = InventoryWindow.new(Images.Icons.Shirt, "Clothes", {
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Shirt, "Clothes", {
                 ProductType = ProductConstants.ProductType.CharacterItem,
             })
 
@@ -79,7 +79,7 @@ function InventoryScreen.Init()
         -- Housing (--!! TEMP)
         tabbedWindow:AddTab("Housing", Images.Icons.Igloo)
         tabbedWindow:SetWindowConstructor("Housing", function(parent, maid)
-            local inventoryWindow = InventoryWindow.new(Images.Icons.Igloo, "Housing", {
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Igloo, "Housing", {
                 ProductType = ProductConstants.ProductType.HouseObject,
                 ShowTotals = true,
             })
@@ -91,7 +91,7 @@ function InventoryScreen.Init()
         -- StampBook (--!! TEMP)
         tabbedWindow:AddTab("StampBook", Images.Icons.Stamp)
         tabbedWindow:SetWindowConstructor("StampBook", function(parent, maid)
-            local inventoryWindow = InventoryWindow.new(Images.Icons.Stamp, "Stamp Book", {
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Stamp, "Stamp Book", {
                 ProductType = ProductConstants.ProductType.StampBook,
                 ShowTotals = true,
             })
