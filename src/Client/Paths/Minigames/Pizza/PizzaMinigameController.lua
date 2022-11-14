@@ -16,7 +16,7 @@ local PizzaMinigameRunner = require(Paths.Client.Minigames.Pizza.PizzaMinigameRu
 local Remotes = require(Paths.Shared.Remotes)
 local PizzaMinigameConstants = require(Paths.Shared.Minigames.Pizza.PizzaMinigameConstants)
 local LightingUtil = require(Paths.Shared.Utils.LightingUtil)
-local UIResults = require(Paths.Client.UI.UIResults)
+local UIActions = require(Paths.Client.UI.UIActions)
 local Images = require(Paths.Shared.Images.Images)
 
 local FOV = 65
@@ -100,7 +100,7 @@ function PizzaMinigameController.finish()
     runner = nil
 
     PizzaMinigameController.viewMenu()
-    UIResults.display(
+    UIActions.displayResults(
         Images.PizzaMinigame.Logo,
         {
             { Name = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },

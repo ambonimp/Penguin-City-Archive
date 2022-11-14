@@ -18,6 +18,7 @@ UIConstants.States = {
     GiftPopup = "GiftPopup",
     Paycheck = "Paycheck",
     Inventory = "Inventory",
+    GenericPrompt = "GenericPrompt",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
