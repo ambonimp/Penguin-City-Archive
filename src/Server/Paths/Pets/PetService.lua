@@ -15,6 +15,10 @@ function PetService.Init()
     ProductService = require(Paths.Server.Products.ProductService)
 end
 
+-------------------------------------------------------------------------------
+-- Eggs
+-------------------------------------------------------------------------------
+
 --[[
     Will check that `player` has incubation data for all incubating pet egg products they own. If not, will instantiate it. Will also cull old hatch times.
 ]]
@@ -82,6 +86,30 @@ function PetService.getHatchTimes(player: Player)
     return allHatchTimes
 end
 
+--[[
+    Will set the hatch time for a pet egg to 0 (aka instantly hatch).
+
+    - `ageIndex`: `1`: Lowest hatch time, `n`: nth lowest hatch time, `math.huge`: guarenteed oldest egg
+]]
+function PetService.nukeEgg(player: Player, petEggName: string, ageIndex: number)
+    local hatchTimeByEggsData: { [string]: { [string]: number } } = DataService.get(player, "Pets.Eggs")
+    local hatchTimes: { number } = hatchTimeByEggsData[petEggName] and TableUtil.toArray(hatchTimeByEggsData[petEggName])
+    if hatchTimes then
+        table.sort(hatchTimes)
+        ageIndex = math.clamp(ageIndex, 1, #hatchTimes)
+        hatchTimes[ageIndex] = 0
+
+        hatchTimeByEggsData[petEggName] = TableUtil.toDictionary(hatchTimes)
+        DataService.set(player, "Pets.Eggs", hatchTimeByEggsData)
+    else
+        warn(("%s has no %s eggs"):format(player.Name, petEggName))
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Players
+-------------------------------------------------------------------------------
+
 function PetService.loadPlayer(player: Player)
     PetService.updateIncubation(player)
 end
@@ -97,5 +125,13 @@ function PetService.unloadPlayer(player: Player)
     end
     DataService.set(player, "Pets.Eggs", hatchTimeByEggsData)
 end
+
+task.spawn(function()
+    while task.wait(5) do
+        for _, player in pairs(Players:GetPlayers()) do
+            print(player, PetService.getHatchTimes(player))
+        end
+    end
+end)
 
 return PetService

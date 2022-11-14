@@ -64,34 +64,6 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
-    --#region Test
-    Test = {
-        coin_login_reward = {
-            Id = "coin_login_reward",
-            DisplayName = "+5 Coin Login Reward",
-            Description = "Gives you +5 coins each time you log in!",
-            RobuxData = {
-                Cost = 123456789,
-                GamepassId = 91726149,
-            },
-            Metadata = {
-                AddCoins = 5,
-            },
-        },
-        print_name = {
-            Id = "print_name",
-            DisplayName = "Print Name",
-            Description = "Prints your name when consumed",
-            IsConsumable = true,
-            RobuxData = {
-                Cost = 99,
-            },
-            CoinData = {
-                Cost = 5,
-            },
-        },
-    },
-    --#endregion
     --#region Pet Eggs
     PetEgg = {
         pet_egg_test = {

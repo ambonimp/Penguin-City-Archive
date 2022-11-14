@@ -14,6 +14,8 @@ for petEggName, _petEgg in pairs(PetConstants.PetEggs) do
         Id = readyProductId,
         Type = ProductConstants.ProductType.PetEgg,
         DisplayName = ("%s Egg (Ready)"):format(StringUtil.getFriendlyString(petEggName)),
+        IsConsumable = true,
+        ConsumeImmediately = true,
         Metadata = {
             PetEggName = petEggName,
             IsReady = true,

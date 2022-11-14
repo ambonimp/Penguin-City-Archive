@@ -308,13 +308,13 @@ function ProductService.consumeProduct(player: Player, product: Products.Product
         return false
     end
 
-    -- Consume
-    local consumer = getConsumer(product.Type, product.Id)
-    consumer(player)
-
     -- Detract
     local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, -1)
+
+    -- Consume
+    local consumer = getConsumer(product.Type, product.Id)
+    consumer(player)
 
     -- Read + update data
     ProductService.readProducts(player)
