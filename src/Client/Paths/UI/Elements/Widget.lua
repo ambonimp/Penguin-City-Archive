@@ -15,7 +15,6 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
-local PetsController = require(Paths.Client.Pets.PetsController)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 
 local FADE_TRANSPARENCY = 0.5
@@ -30,9 +29,6 @@ local ICON_PROPERTIES = {
         Size = UDim2.fromScale(0.9, 0.9),
     },
 }
-local INCUBATING_COLOR = Color3.fromRGB(255, 144, 17)
-local HATCH_TEXT_COLOR = Color3.fromRGB(35, 122, 0)
-local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
 Widget.Defaults = {
@@ -108,47 +104,6 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
         end))
         updateNumberTag()
     end
-
-    return widget
-end
-
---[[
-    `hatchTime` must be straight from data
-]]
-function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string, hatchTime: number)
-    local widget = Widget.diverseWidget()
-    local product = ProductUtil.getPetEggProduct(petEggName, "Incubating")
-
-    -- Egg
-    if product.ImageId then
-        widget:SetIcon(product.ImageId, product.ImageColor)
-    else
-        local model = ProductUtil.getModel(product)
-        if model then
-            widget:SetViewport(model)
-        end
-    end
-
-    -- Timer
-    local doLoop = true
-    task.spawn(function()
-        while doLoop do
-            local hatchesIn = PetsController.getHatchTime(petEggName, petEggIndex)
-            if hatchesIn > 0 then
-                widget:SetText(TimeUtil.formatRelativeTime(hatchesIn))
-                widget:SetTextColor(nil, INCUBATING_COLOR)
-                widget:SetBackgroundColor(nil)
-            else
-                widget:SetText("HATCH!")
-                widget:SetTextColor(nil, HATCH_TEXT_COLOR)
-                widget:SetBackgroundColor(HATCH_BACKGROUND_COLOR)
-            end
-            task.wait(1)
-        end
-    end)
-    widget:GetMaid():GiveTask(function()
-        doLoop = false
-    end)
 
     return widget
 end
