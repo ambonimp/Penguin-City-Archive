@@ -8,19 +8,6 @@ type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Produc
 local products: { [string]: Product } = {}
 
 for petEggName, _petEgg in pairs(PetConstants.PetEggs) do
-    -- Incubating
-    local incubatingProductId = ("pet_egg_%s_incubating"):format(StringUtil.toCamelCase(petEggName))
-    local incubatingProduct: Product = {
-        Id = incubatingProductId,
-        Type = ProductConstants.ProductType.PetEgg,
-        DisplayName = ("%s Egg (Incubating)"):format(StringUtil.getFriendlyString(petEggName)),
-        Metadata = {
-            PetEggName = petEggName,
-            IsIncubating = true,
-        },
-    }
-    products[incubatingProductId] = incubatingProduct
-
     -- Ready
     local readyProductId = ("pet_egg_%s_ready"):format(StringUtil.toCamelCase(petEggName))
     local readyProduct: Product = {

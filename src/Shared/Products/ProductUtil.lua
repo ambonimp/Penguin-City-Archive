@@ -232,12 +232,12 @@ end
 -- PetEggs
 -------------------------------------------------------------------------------
 
-function ProductUtil.getPetEggProductId(petEggName: string, eggType: "Purchase" | "Incubating" | "Ready")
-    local suffix = eggType == "Incubating" and "_incubating" or eggType == "Ready" and "_ready" or ""
+function ProductUtil.getPetEggProductId(petEggName: string, eggType: "Incubating" | "Ready")
+    local suffix = eggType == "Incubating" and "" or eggType == "Ready" and "_ready" or error(("Bad eggType %q"):format(tostring(eggType)))
     return ("pet_egg_%s%s"):format(StringUtil.toCamelCase(petEggName), suffix)
 end
 
-function ProductUtil.getPetEggProduct(petEggName: string, eggType: "Purchase" | "Incubating" | "Ready")
+function ProductUtil.getPetEggProduct(petEggName: string, eggType: "Incubating" | "Ready")
     local product = Products.Products[ProductConstants.ProductType.PetEgg][ProductUtil.getPetEggProductId(petEggName, eggType)]
     if not product then
         error(("No PetEgg %s Product %s"):format(eggType, petEggName))
@@ -259,29 +259,29 @@ function ProductUtil.getPetEggProductData(product: Products.Product)
     }
 end
 
-function ProductUtil.getPetEggType(product: Products.Product): "Incubating" | "Ready" | "Purchase"
+function ProductUtil.getPetEggType(product: Products.Product): "Incubating" | "Ready"
     -- ERROR: Not a PetEgg product
     if not ProductUtil.isPetEggProduct(product) then
         error("Passed a non-PetEgg product")
     end
 
     local data = ProductUtil.getPetEggProductData(product)
-    return data.IsIncubating and "Incubating" or data.IsReady and "Ready" or "Purchase"
+    return data.IsIncubating and "Incubating" or data.IsReady and "Ready" or error("Got an egg that is neither incubating or ready?!")
 end
 
-function ProductUtil.isPetEggProduct(product: Products.Product, eggType: "Purchase" | "Incubating" | "Ready" | nil)
+function ProductUtil.isPetEggProduct(product: Products.Product, eggType: "Incubating" | "Ready" | nil)
     if product.Type ~= ProductConstants.ProductType.PetEgg then
         return false
     end
 
     if eggType then
         local data = ProductUtil.getPetEggProductData(product)
-        if eggType == "Purchase" then
-            return data.IsIncubating == false and data.IsReady == false
-        elseif eggType == "Incubating" then
+        if eggType == "Incubating" then
             return data.IsIncubating == true and data.IsReady == false
         elseif eggType == "Ready" then
             return data.IsIncubating == false and data.IsReady == true
+        else
+            error(("Bad eggType %q"):format(eggType))
         end
     end
 
