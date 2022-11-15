@@ -80,7 +80,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     ]]
     MinigameController.startCountdownAsync(4, SharedMinigameScreen.coreCountdown)
 
-    local startingLine = MinigameController.getMap().StartingLine.PrimaryPart
+    local startingLine = MinigameController.getMap().Course.Start.StartingLine.PrimaryPart
     startingLine.Transparency = 1
     raceJanitor:Add(function()
         startingLine.Transparency = INACTIVE_STARTING_LINE_TRANSPARENCY

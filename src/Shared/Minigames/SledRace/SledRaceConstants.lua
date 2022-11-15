@@ -53,9 +53,9 @@ SledRaceConstants.SledPhysicalProperties = PhysicalProperties.new(
 SledRaceConstants.AngularAcceleration = math.rad(35)
 SledRaceConstants.MaxSteerAngle = math.rad(60)
 
-SledRaceConstants.MinSpeed = 30
-SledRaceConstants.DefaultSpeed = 60
-SledRaceConstants.MaxSpeed = 100
+SledRaceConstants.MinSpeed = 60
+SledRaceConstants.DefaultSpeed = 80
+SledRaceConstants.MaxSpeed = 120
 SledRaceConstants.Acceleration = 20
 SledRaceConstants.MaxForce = 1000
 
@@ -63,7 +63,7 @@ SledRaceConstants.CollectableEffectDuration = 3
 SledRaceConstants.BoostSpeedAdded = 25
 SledRaceConstants.ObstacleSpeedMinuend = 10
 
-SledRaceConstants.CollectableGrid = { Z = 6, X = 4 }
+SledRaceConstants.CollectableGrid = { Z = 14, X = 4 }
 SledRaceConstants.Collectables = {
     Obstacle = { Tag = "SledRaceObstacle", Occupancy = 0.3 },
     Boost = { Tag = "SledRaceBoost", Occupancy = 0.15 },

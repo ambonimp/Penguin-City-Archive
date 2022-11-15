@@ -12,7 +12,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local COLLECTABLE_GRID = SledRaceConstants.CollectableGrid
 local COLLECTABLE_TYPES = SledRaceConstants.Collectables
-local COLLECTABLES_MARGINS = { Z = 90, X = 50 }
+local COLLECTABLES_MARGINS = { Z = 90, X = 250 }
 local MAX_COLLECTABLE_COUNT = COLLECTABLE_GRID.Z * COLLECTABLE_GRID.X
 local COINS_IN_COLLECTABLE = SledRaceConstants.CoinsPerCollectable
 
@@ -65,7 +65,7 @@ function SledRaceMap.loadCollectables(map: Model)
             end
         else
             local collectable = template:Clone()
-            collectable:PivotTo(base * CFrame.new(Vector3.new(0, 0, -(deph / 2) - ((maxZOffset / 3) * random:NextInteger(0, 3)))))
+            collectable:PivotTo(base * CFrame.new(Vector3.new(0, 0, -(deph / 2) - ((maxZOffset / 6) * random:NextInteger(0, 3)))))
             collectable.Parent = collectables
         end
     end

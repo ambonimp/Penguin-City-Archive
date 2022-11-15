@@ -172,7 +172,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
             end
         end))
 
-        stateMaid:GiveTask(map.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+        stateMaid:GiveTask(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
             if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
                 table.insert(finished, player)

@@ -7,7 +7,7 @@ local SledRaceConstants = require(ReplicatedStorage.Shared.Minigames.SledRace.Sl
 local COLLECTABLE_TYPES = SledRaceConstants.Collectables
 
 function SledRaceUtil.getMapOrigin(map: Model): CFrame
-    local primaryPart: BasePart = map:WaitForChild("Root")
+    local primaryPart: BasePart = map:WaitForChild("Origin")
     return primaryPart.CFrame:ToWorldSpace(CFrame.new(Vector3.new(0, 0.5, -0.5) * primaryPart.Size))
 end
 

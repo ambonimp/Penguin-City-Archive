@@ -50,6 +50,8 @@ local statusText: TextLabel = statusFrame.Text
 local statusCounter: TextLabel = statusFrame.Counter
 
 local playButton: TextButton = singlePlayerMenu.Play
+local playButtonText: TextLabel = playButton.TextLabel
+local playTween: Tween?
 
 local startInstructionButton = KeyboardButton.new()
 local startExitButton = KeyboardButton.new()
@@ -149,6 +151,17 @@ function SharedMinigameScreen.openStartMenu()
         singlePlayerMenu.Visible = true
 
         actions = singlePlayerMenu.Actions
+
+        playTween = TweenService:Create(
+            playButtonText,
+            TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.In, -1, true, 0.4),
+            { Size = UDim2.fromScale(1, 1.2) }
+        )
+        playTween.Completed:Connect(function()
+            playButtonText.Size = UDim2.fromScale(1, 1)
+            playTween = nil
+        end)
+        playTween:Play()
     end
 
     startInstructionButton:Mount(actions.Instructions, true)
@@ -171,6 +184,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
                 CameraController.alignCharacter()
             end
 
+            playTween:Cancel()
             ScreenUtil.closeBlur()
         end
 
@@ -267,7 +281,7 @@ end
 
 -- Start menus
 do
-    playButton.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
+    playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
         Transitions.openBlink()
 

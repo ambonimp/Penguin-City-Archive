@@ -1,17 +1,11 @@
 local SledRaceScreen = {}
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
-local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
-
-local COIN_POP_BINDING = "Bop"
-local COIN_POP_TWEEN = TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-local COIN_POP_SIZE_ADDEND = 40
 
 local PROGRESS_LINE_STROKE_COLOR = Color3.fromRGB(26, 26, 26)
 

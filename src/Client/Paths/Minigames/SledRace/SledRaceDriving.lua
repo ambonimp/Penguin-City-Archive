@@ -160,7 +160,7 @@ function SledRaceDriving.setup()
     end)
 
     local complete: RBXScriptConnection?
-    complete = map.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+    complete = map.Course.Finish.FinishLine.Detection.Touched:Connect(function(hit)
         if hit:IsDescendantOf(character) then
             complete:Disconnect()
             complete = nil
