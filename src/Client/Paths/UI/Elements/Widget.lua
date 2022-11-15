@@ -132,7 +132,7 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string
     local PetsController = require(Paths.Client.Pets.PetsController)
 
     local widget = Widget.diverseWidget()
-    local product = ProductUtil.getPetEggProduct(petEggName, "Incubating")
+    local product = ProductUtil.getPetEggProduct(petEggName)
 
     -- Egg
     if product.ImageId then

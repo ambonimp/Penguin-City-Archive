@@ -66,10 +66,14 @@ end
 ]]
 --
 function DataService.getAppendageKey(player: Player, address: string)
+    local iterate = DataService.get(player, address)
+    if typeof(iterate) ~= "table" then
+        return "1"
+    end
+
     local length = 0
-    for i in DataService.get(player, address) do
-        local index = tonumber(i)
-        length = math.max(index, length)
+    for index, _ in ipairs(iterate) do
+        length = math.max(tonumber(index), length)
     end
 
     return tostring(length + 1)

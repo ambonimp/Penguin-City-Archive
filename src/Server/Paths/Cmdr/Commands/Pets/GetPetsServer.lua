@@ -10,7 +10,7 @@ return function(_context, players: { Player })
 
         local petDatas = PetsService.getPets(player)
         for _, petData in pairs(petDatas) do
-            output ..= ("    %s %s (%s)"):format(petData.PetTuple.PetVariant, petData.PetTuple.PetType, petData.PetTuple.PetRarity)
+            output ..= ("    %s %s (%s)\n"):format(petData.PetTuple.PetVariant, petData.PetTuple.PetType, petData.PetTuple.PetRarity)
         end
     end
 

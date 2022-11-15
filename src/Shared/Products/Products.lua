@@ -73,13 +73,14 @@ local products: { [string]: { [string]: Product } } = {
             DisplayName = "Test Egg",
             Description = "Test Egg",
             ImageId = Images.Pets.Eggs.Blue,
+            IsConsumable = true,
+            ConsumeImmediately = true,
             RobuxData = {
                 Cost = 99,
                 DeveloperProductId = 1335900877,
             },
             Metadata = {
                 PetEggName = "Test",
-                IsIncubating = true,
                 Model = assets.Pets.Eggs.Blue,
             },
         },

@@ -96,9 +96,13 @@ return function()
 
         -- Product Id must match ProductUtil getter
         local petEggData = ProductUtil.getPetEggProductData(product)
-        local petEggType = ProductUtil.getPetEggType(product)
-        if product.Id ~= ProductUtil.getPetEggProductId(petEggData.PetEggName, petEggType) then
+        if product.Id ~= ProductUtil.getPetEggProductId(petEggData.PetEggName) then
             addIssue("ProductId does not match return value for ProductUtil.getPetEggProductData")
+        end
+
+        -- Must consume immediately!
+        if not (product.IsConsumable and product.ConsumeImmediately) then
+            addIssue("Must consume immediately!")
         end
     end
 

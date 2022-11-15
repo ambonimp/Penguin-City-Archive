@@ -75,7 +75,7 @@ return function()
         -- Verify Products
         do
             local success, result = pcall(function()
-                return ProductUtil.getPetEggProduct(petEggName, "Incubating") and ProductUtil.getPetEggProduct(petEggName, "Ready")
+                return ProductUtil.getPetEggProduct(petEggName)
             end)
             if not success then
                 table.insert(issues, ("PetEgg %q has no matching Product (%s)"):format(petEggName, tostring(result)))
