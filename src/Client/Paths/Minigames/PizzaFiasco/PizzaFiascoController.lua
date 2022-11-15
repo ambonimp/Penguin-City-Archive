@@ -56,7 +56,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         CameraController.resetFov()
         CameraController.setPlayerControl()
 
-        CharacterUtil.unanchorCharacter(player.Character)
+        CharacterUtil.unanchor(player.Character)
     end)
 end)
 

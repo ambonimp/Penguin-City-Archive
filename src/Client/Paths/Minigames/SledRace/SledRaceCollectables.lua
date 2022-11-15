@@ -15,6 +15,7 @@ local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDriving)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
+local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
 
 local MAX_OBSTACLE_MASS = 2800
 local FLING_FORCE = { Min = 125, Max = 200 }
@@ -59,6 +60,8 @@ function SledRaceCollectables.setup()
     hitbox.CanCollide = false
     hitbox.Parent = character
     BasePartUtil.weld(hitbox, physicsPart)
+
+    local coinsCollected: number = 0
 
     local colliding: RBXScriptConnection = hitbox.Touched:Connect(function(hit: BasePart)
         -- RETURN: Hit is not a part of a collideable
@@ -147,12 +150,19 @@ function SledRaceCollectables.setup()
                 emitter:Emit(random:NextNumber(4, 6))
             end
 
+            coinsCollected += SledRaceConstants.CoinValue
+            SharedMinigameScreen.setCoins(coinsCollected)
+
             task.wait(2)
             particlePackage:Destroy()
         end
     end)
 
+    SharedMinigameScreen.setCoins(0)
+
     return function()
+        SharedMinigameScreen.closeCoins()
+
         hitbox:Destroy()
         colliding:Disconnect()
     end

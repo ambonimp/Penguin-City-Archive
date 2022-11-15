@@ -9,7 +9,7 @@ local SledRaceScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
-local POSITION_INDICATOR_HEIGHT = 10 -- Pixels
+local POSITION_INDICATOR_HEIGHT = 5 -- Pixels
 
 function SledRaceProgressLine.setup()
     local slopeBoundingSize: Vector3, slopeCFrame: CFrame = SledRaceUtil.getSlopeBoundingBox(MinigameController.getMap())
