@@ -5,6 +5,8 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Promise = require(Paths.Packages.promise)
+local DescendantLooper = require(Paths.Shared.DescendantLooper)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 --[[
     If we design a button to be at the top of the screen, it will still be so when we load in (even with the "roblox top bar")
@@ -70,14 +72,20 @@ end
 
     Useful for pushing a whole UI Screen up to the front
 ]]
-function UIUtil.offsetZIndex(ancestor: Instance, offset: number)
-    local instances = ancestor:GetDescendants()
-    table.insert(instances, ancestor)
-    for _, guiObject: GuiObject in pairs(instances) do
-        if guiObject:IsA("GuiObject") then
-            guiObject.ZIndex = guiObject.ZIndex + offset
-        end
-    end
+function UIUtil.offsetZIndex(ancestor: Instance, offset: number, offsetFutureInstances: boolean?)
+    offsetFutureInstances = offsetFutureInstances and true or false
+
+    -- Loop ancestor, offsetting the ZIndex of all present and future GuiObjects
+    local maid = DescendantLooper.add(function(instance)
+        return instance:IsA("GuiObject")
+    end, function(guiObject: GuiObject)
+        guiObject.ZIndex = guiObject.ZIndex + offset
+    end, { ancestor }, not offsetFutureInstances)
+
+    -- Manage Cleanup
+    InstanceUtil.onDestroyed(ancestor, function()
+        maid:Destroy()
+    end)
 end
 
 return UIUtil

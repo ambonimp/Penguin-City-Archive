@@ -6,6 +6,7 @@ local Sound = require(Shared.Sound)
 local Signal = require(Shared.Signal)
 local Limiter = require(Shared.Limiter)
 local UIElement = require(script.Parent.UIElement)
+local UIUtil = require(script.Parent.Parent.Utils.UIUtil)
 
 export type Button = typeof(Button.new(Instance.new("ImageButton")))
 
@@ -129,7 +130,7 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
 
     function button:Mount(parent: GuiObject, hideParent: boolean?)
         buttonObject.Parent = parent
-        buttonObject.ZIndex = parent.ZIndex
+        UIUtil.offsetZIndex(buttonObject, parent.ZIndex)
 
         button.MountedTo = parent
 

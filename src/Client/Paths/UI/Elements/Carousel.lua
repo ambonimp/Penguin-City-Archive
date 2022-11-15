@@ -13,6 +13,7 @@ local Elements = script.Parent
 local Element = require(Elements.UIElement)
 local KeyboardButton = require(Elements.KeyboardButton)
 local UIScaleController: typeof(require(script.Parent.Parent.Scaling.UIScaleController))
+local UIUtil = require(script.Parent.Parent.Utils.UIUtil)
 
 type KeyboardButton = typeof(KeyboardButton.new())
 
@@ -173,16 +174,15 @@ function Carousel.new(direction: "X" | "Y")
             parent.Transparency = 1
         end
 
-        local zIndex = parent.ZIndex
-        list.ZIndex = zIndex
-        list.Parent = parent
+        UIUtil.offsetZIndex(list, parent.ZIndex)
+        list.Parent = nextNavigatorContainer
 
         prevNavigatorContainer.Parent = parent
-        prevNavigatorContainer.ZIndex = zIndex + 1
+        UIUtil.offsetZIndex(prevNavigatorContainer, parent.ZIndex + 1)
         prevNavigator:Mount(prevNavigatorContainer, true)
 
         nextNavigatorContainer.Parent = parent
-        nextNavigatorContainer.ZIndex = zIndex + 1
+        UIUtil.offsetZIndex(list, parent.ZIndex + 1)
         nextNavigator:Mount(nextNavigatorContainer, true)
 
         local canvasSize = if isVertical

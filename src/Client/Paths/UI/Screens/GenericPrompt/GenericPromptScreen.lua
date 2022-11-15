@@ -70,7 +70,7 @@ function GenericPromptScreen.Init()
     end
 
     -- Push Forward
-    UIUtil.offsetZIndex(screenGui, BUMP_ZINDEX_BY)
+    UIUtil.offsetZIndex(screenGui, BUMP_ZINDEX_BY, true)
 end
 
 function GenericPromptScreen.open(

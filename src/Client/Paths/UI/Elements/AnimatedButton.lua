@@ -8,6 +8,7 @@ local TweenUtil = require(Shared.Utils.TweenUtil)
 local Elements = script.Parent
 local Binder = require(Shared.Binder)
 local Button = require(Elements.Button)
+local UIUtil = require(script.Parent.Parent.Utils.UIUtil)
 
 type ButtonObject = ImageButton | TextButton
 type ButtonAnimation = {
@@ -126,7 +127,7 @@ function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("Image
         container.SizeConstraint = buttonObject.SizeConstraint
         container.Position = buttonObject.Position
         container.AnchorPoint = buttonObject.AnchorPoint
-        container.ZIndex = buttonObject.ZIndex
+        UIUtil.offsetZIndex(container, buttonObject.ZIndex)
         container.LayoutOrder = buttonObject.LayoutOrder
         container.Parent = parent
 

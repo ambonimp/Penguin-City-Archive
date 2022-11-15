@@ -67,9 +67,8 @@ function DescendantLooper.add(
     -- Cache checker/callback for new added descendants
     local count = 0
     for _, instance in pairs(instances) do
-        local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance, maid)
-
         if not ignoreAdded then
+            local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance, maid)
             checkerCallbackPairs[checker] = callback
         end
 
