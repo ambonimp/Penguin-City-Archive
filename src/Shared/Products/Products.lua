@@ -85,6 +85,19 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
+    --#region Misc
+    Misc = {
+        quick_hatch = {
+            Id = "quick_hatch",
+            DisplayName = "Quick Hatch",
+            Description = "Instantly hatches an egg",
+            RobuxData = {
+                Cost = 49,
+                DeveloperProductId = 1337359490,
+            },
+        },
+    },
+    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {

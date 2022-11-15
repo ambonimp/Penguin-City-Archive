@@ -8,6 +8,15 @@ local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
+local ProductController = require(Paths.Client.ProductController)
+local Products = require(Paths.Shared.Products.Products)
+local Maid = require(Paths.Packages.maid)
+local Remotes = require(Paths.Shared.Remotes)
+local UIActions = require(Paths.Client.UI.UIActions)
+local Images = require(Paths.Shared.Images.Images)
+local Widget = require(Paths.Client.UI.Elements.Widget)
+
+local hatchRequestMaid = Maid.new()
 
 -------------------------------------------------------------------------------
 -- Eggs
@@ -32,5 +41,41 @@ function PetsController.getHatchTime(petEggName: string, petEggDataIndex: string
     local hatchTimes = PetsController.getHatchTimes(ignorePlaytime)
     return hatchTimes[petEggName] and hatchTimes[petEggName][petEggDataIndex] or -1
 end
+
+function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string, isPremature: boolean?)
+    hatchRequestMaid:Cleanup()
+
+    local function requestServer()
+        Remotes.invokeServer("PetEggHatchRequest", petEggName, petEggDataIndex) -- todo use an Assume here
+    end
+
+    -- Premature.. wrap inside needing a quickHatch product
+    if isPremature and ProductController.getProductCount(Products.Products.Misc.quick_hatch) == 0 then
+        ProductController.prompt(Products.Products.Misc.quick_hatch)
+        hatchRequestMaid:GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
+            if product == Products.Products.Misc.quick_hatch then
+                requestServer()
+            end
+        end))
+        return
+    end
+
+    requestServer()
+end
+
+-------------------------------------------------------------------------------
+-- Communication
+-------------------------------------------------------------------------------
+
+Remotes.bindEvents({
+    PetEggHatched = function(petData: PetConstants.PetData)
+        print("hatched", petData)
+        UIActions.prompt("CONGRATULATIONS", "You just hatched a new pet!", function(parent, maid)
+            local petWidget = Widget.diverseWidgetFromPetData(petData)
+            petWidget:Mount(parent, true)
+            maid:GiveTask(petWidget)
+        end, { Text = "Continue" }, { Text = "View Pet" }, { Image = Images.Pets.Lightburst })
+    end,
+})
 
 return PetsController

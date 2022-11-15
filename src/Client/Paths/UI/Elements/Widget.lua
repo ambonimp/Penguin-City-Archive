@@ -15,7 +15,6 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
-local PetsController = require(Paths.Client.Pets.PetsController)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
@@ -129,6 +128,9 @@ end
     `hatchTime` must be straight from data
 ]]
 function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string)
+    -- Circular Dependencies
+    local PetsController = require(Paths.Client.Pets.PetsController)
+
     local widget = Widget.diverseWidget()
     local product = ProductUtil.getPetEggProduct(petEggName, "Incubating")
 
@@ -182,6 +184,14 @@ function Widget.diverseWidgetFromPetTuple(petTuple: PetConstants.PetTuple)
 
     widget:SetText(("%s %s"):format(StringUtil.getFriendlyString(petTuple.PetVariant), StringUtil.getFriendlyString(petTuple.PetType)))
     widget:SetViewport(model)
+
+    return widget
+end
+
+function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
+    local widget = Widget.diverseWidgetFromPetTuple(petData.PetTuple)
+
+    widget:SetText(petData.Name)
 
     return widget
 end

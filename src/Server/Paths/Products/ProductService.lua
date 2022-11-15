@@ -171,12 +171,6 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
         return false
     end
 
-    -- WARN: Will not prompt user to purchase; no handler or consumer!
-    if not (getHandler(product.Type, product.Id) or getConsumer(product.Type, product.Id)) then
-        warn(("Will not prompt %s to purchase %s; it has no handler and no consumer!"):format(player.Name, product.DisplayName))
-        return false
-    end
-
     lastPromptedProductByPlayer[player] = product
 
     -- Prompt on client

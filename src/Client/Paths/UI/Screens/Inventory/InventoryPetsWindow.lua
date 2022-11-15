@@ -47,9 +47,9 @@ function InventoryPetsWindow.new(
                     widget.Pressed:Connect(function()
                         local currentHatchTime = PetsController.getHatchTime(petEggName, petEggDataIndex)
                         if currentHatchTime > 0 then
-                            warn("todo premature hatch")
+                            PetsController.hatchRequest(petEggName, petEggDataIndex, true)
                         elseif currentHatchTime == 0 then
-                            warn("todo hatch")
+                            PetsController.hatchRequest(petEggName, petEggDataIndex)
                         end
                     end)
 
