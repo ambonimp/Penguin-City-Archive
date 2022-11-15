@@ -7,7 +7,6 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 

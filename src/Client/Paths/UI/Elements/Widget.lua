@@ -17,6 +17,9 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local PetsController = require(Paths.Client.Pets.PetsController)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local PetUtils = require(Paths.Shared.Pets.PetUtils)
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -30,8 +33,18 @@ local ICON_PROPERTIES = {
         Size = UDim2.fromScale(0.9, 0.9),
     },
 }
-local INCUBATING_COLOR = Color3.fromRGB(255, 144, 17)
-local HATCH_TEXT_COLOR = Color3.fromRGB(35, 122, 0)
+local PET_EGG_HSV_RANGE = {
+    INCUBATING = {
+        H = 15,
+        S = 255,
+        V = 195,
+    },
+    READY = {
+        H = 80,
+        S = 255,
+        V = 195,
+    },
+}
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
@@ -115,7 +128,7 @@ end
 --[[
     `hatchTime` must be straight from data
 ]]
-function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string, hatchTime: number)
+function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string)
     local widget = Widget.diverseWidget()
     local product = ProductUtil.getPetEggProduct(petEggName, "Incubating")
 
@@ -134,21 +147,41 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string, ha
     task.spawn(function()
         while doLoop do
             local hatchesIn = PetsController.getHatchTime(petEggName, petEggIndex)
+
+            -- Update Text
             if hatchesIn > 0 then
                 widget:SetText(TimeUtil.formatRelativeTime(hatchesIn))
-                widget:SetTextColor(nil, INCUBATING_COLOR)
                 widget:SetBackgroundColor(nil)
             else
                 widget:SetText("HATCH!")
-                widget:SetTextColor(nil, HATCH_TEXT_COLOR)
                 widget:SetBackgroundColor(HATCH_BACKGROUND_COLOR)
             end
+
+            -- Update color based on progress (red to green)
+            local hatchProgress = math.clamp(hatchesIn / PetConstants.PetEggs[petEggName].HatchTime, 0, 1)
+            local strokeColor = Color3.fromHSV(
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.H, PET_EGG_HSV_RANGE.READY.H, hatchProgress),
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.S, PET_EGG_HSV_RANGE.READY.S, hatchProgress),
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.V, PET_EGG_HSV_RANGE.READY.V, hatchProgress)
+            )
+            widget:SetTextColor(nil, strokeColor)
+
             task.wait(1)
         end
     end)
     widget:GetMaid():GiveTask(function()
         doLoop = false
     end)
+
+    return widget
+end
+
+function Widget.diverseWidgetFromPetPair(petPair: PetConstants.PetPair)
+    local widget = Widget.diverseWidget()
+    local model = PetUtils.getModel(petPair.PetType, petPair.PetVariant)
+
+    widget:SetText(("%s %s"):format(StringUtil.getFriendlyString(petPair.PetVariant), StringUtil.getFriendlyString(petPair.PetType)))
+    widget:SetViewport(model)
 
     return widget
 end

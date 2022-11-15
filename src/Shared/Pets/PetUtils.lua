@@ -2,7 +2,7 @@ local PetUtils = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 
 local directory: Folder = ReplicatedStorage.Assets.Pets
 local typesFolder: Folder = directory.Types
@@ -18,6 +18,8 @@ end
 
 --[[
     Returns `{ [petEggName]: { [petEggIndex]: hatchTime } }` - but taking `playtime` into account!
+
+    - `petEggIndex` is what we get from DataUtil.append
 ]]
 function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: number } }, playtime: number?)
     playtime = playtime or 0
@@ -33,9 +35,24 @@ function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: num
     return cascadedHatchTimes
 end
 
+function PetUtils.rollEggForPetPair(petEggName: string, seed: number?): PetConstants.PetPair
+    local weightTable = PetConstants.PetEggs[petEggName].WeightTable
+    return MathUtil.weightedChoice(weightTable, seed and Random.new(seed))
+end
+
 -------------------------------------------------------------------------------
 -- Pets
 -------------------------------------------------------------------------------
+
+function PetUtils.petPair(petType: string, petVariant: string)
+    PetUtils.verifyPetTypeVariant(petType, petVariant)
+
+    local petPair: PetConstants.PetPair = {
+        PetType = petType,
+        PetVariant = petVariant,
+    }
+    return petPair
+end
 
 -- Will throw an error is the passed petType / petType&petVariant is bad
 function PetUtils.verifyPetTypeVariant(petType: string, petVariant: string?)

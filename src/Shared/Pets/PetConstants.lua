@@ -4,11 +4,13 @@ export type PetEgg = {
     HatchTime: number,
     WeightTable: { {
         Weight: number,
-        Value: {
-            PetType: string,
-            PetVariant: string,
-        },
+        Value: PetPair,
     } },
+}
+
+export type PetPair = {
+    PetType: string,
+    PetVariant: string,
 }
 
 local petTypes: { [string]: string } = {
