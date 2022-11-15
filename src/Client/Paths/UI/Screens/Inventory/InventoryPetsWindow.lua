@@ -43,7 +43,17 @@ function InventoryPetsWindow.new(
             -- Create Entry
             local entry = {
                 WidgetConstructor = function()
-                    return Widget.diverseWidgetFromEgg(petEggName, petEggIndex, hatchTime)
+                    local widget = Widget.diverseWidgetFromEgg(petEggName, petEggIndex)
+                    widget.Pressed:Connect(function()
+                        local currentHatchTime = PetsController.getHatchTime(petEggName, petEggIndex)
+                        if currentHatchTime > 0 then
+                            warn("todo premature hatch")
+                        elseif currentHatchTime == 0 then
+                            warn("todo hatch")
+                        end
+                    end)
+
+                    return widget
                 end,
                 _HatchTime = hatchTime,
             }

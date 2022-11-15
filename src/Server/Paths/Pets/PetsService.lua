@@ -42,10 +42,14 @@ function PetsService.updateIncubation(player: Player)
         local totalStoredTimes = hatchTimeByEggsData[petEggName] and TableUtil.length(hatchTimeByEggsData[petEggName]) or 0
 
         if total > totalStoredTimes then -- Add Eggs
-            for _ = 1, (total - totalStoredTimes) do
+            for i = 1, (total - totalStoredTimes) do
                 local hatchTime = PetConstants.PetEggs[petEggName].HatchTime + playtime -- Offset with `playtime` as `PetsService.getHatchTimes` deducts current playtime
 
                 local address = PetUtils.getPetEggDataAddress(petEggName)
+                if totalStoredTimes == 0 and i == 1 then
+                    DataService.set(player, address, {})
+                end
+
                 local appendKey = DataService.getAppendageKey(player, address)
                 DataService.append(player, address, hatchTime, "PetEggUpdated", {
                     PetEggIndex = appendKey,
@@ -54,7 +58,7 @@ function PetsService.updateIncubation(player: Player)
             end
         elseif hatchTimeByEggsData[petEggName] and total < totalStoredTimes then -- Remove Eggs
             -- Remove some hatch times
-            for _ = 1, (totalStoredTimes - totalStoredTimes) do
+            for _ = 1, (totalStoredTimes - total) do
                 for key, _ in pairs(hatchTimeByEggsData[petEggName]) do
                     local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), key)
                     DataService.set(player, address, nil, "PetEggUpdated", {

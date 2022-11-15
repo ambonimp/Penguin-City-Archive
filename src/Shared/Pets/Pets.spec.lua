@@ -58,10 +58,16 @@ return function()
         end
     end
 
+    -- Rarities
+    do
+        -- Enum
+        TestUtil.enum(PetConstants.PetRarities, issues)
+    end
+
     -- Animations
     do
         -- Enum
-        TestUtil.enum(PetConstants.AnimationNames)
+        TestUtil.enum(PetConstants.AnimationNames, issues)
     end
 
     -- Pet Eggs
@@ -79,7 +85,11 @@ return function()
         -- Verify Pets
         for i, weightEntry in pairs(petEgg.WeightTable) do
             local success, result = pcall(function()
-                PetUtils.verifyPetTypeVariant(weightEntry.Value.PetType, weightEntry.Value.PetVariant)
+                PetUtils.verifyPetTuple(
+                    weightEntry.Value.PetType or "missing",
+                    weightEntry.Value.PetVariant or "missing",
+                    weightEntry.Value.PetRarity or "missing"
+                )
             end)
             if not success then
                 table.insert(issues, ("PetEgg %q has bad weight table entry %d: %s"):format(petEggName, i, tostring(result)))

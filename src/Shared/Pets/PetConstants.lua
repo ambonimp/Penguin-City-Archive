@@ -4,13 +4,14 @@ export type PetEgg = {
     HatchTime: number,
     WeightTable: { {
         Weight: number,
-        Value: PetPair,
+        Value: PetTuple,
     } },
 }
 
-export type PetPair = {
+export type PetTuple = {
     PetType: string,
     PetVariant: string,
+    PetRarity: string,
 }
 
 local petTypes: { [string]: string } = {
@@ -27,6 +28,13 @@ local petVariants: { [string]: { [string]: string } } = {
 }
 PetConstants.PetVariants = petVariants
 
+local petRarities: { [string]: string } = {
+    Common = "Common",
+    Rare = "Rare",
+    Legendary = "Legendary",
+}
+PetConstants.PetRarities = petRarities
+
 PetConstants.DefaultHatchTime = 20 * 60
 
 local petEggs: { [string]: PetEgg } = {
@@ -38,6 +46,7 @@ local petEggs: { [string]: PetEgg } = {
                 Value = {
                     PetType = "Dinosaur",
                     PetVariant = "Green",
+                    PetRarity = "Common",
                 },
             },
             {
@@ -45,6 +54,7 @@ local petEggs: { [string]: PetEgg } = {
                 Value = {
                     PetType = "Dinosaur",
                     PetVariant = "Orange",
+                    PetRarity = "Common",
                 },
             },
             {
@@ -52,6 +62,7 @@ local petEggs: { [string]: PetEgg } = {
                 Value = {
                     PetType = "Dinosaur",
                     PetVariant = "Pink",
+                    PetRarity = "Common",
                 },
             },
         },

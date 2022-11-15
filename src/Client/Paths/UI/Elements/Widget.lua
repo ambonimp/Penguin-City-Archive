@@ -37,12 +37,12 @@ local PET_EGG_HSV_RANGE = {
     INCUBATING = {
         H = 15,
         S = 255,
-        V = 195,
+        V = 240,
     },
     READY = {
         H = 80,
         S = 255,
-        V = 195,
+        V = 210,
     },
 }
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
@@ -158,11 +158,11 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string)
             end
 
             -- Update color based on progress (red to green)
-            local hatchProgress = math.clamp(hatchesIn / PetConstants.PetEggs[petEggName].HatchTime, 0, 1)
+            local hatchProgress = 1 - math.clamp(hatchesIn / PetConstants.PetEggs[petEggName].HatchTime, 0, 1)
             local strokeColor = Color3.fromHSV(
-                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.H, PET_EGG_HSV_RANGE.READY.H, hatchProgress),
-                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.S, PET_EGG_HSV_RANGE.READY.S, hatchProgress),
-                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.V, PET_EGG_HSV_RANGE.READY.V, hatchProgress)
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.H / 255, PET_EGG_HSV_RANGE.READY.H / 255, hatchProgress),
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.S / 255, PET_EGG_HSV_RANGE.READY.S / 255, hatchProgress),
+                MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.V / 255, PET_EGG_HSV_RANGE.READY.V / 255, hatchProgress)
             )
             widget:SetTextColor(nil, strokeColor)
 
@@ -176,11 +176,11 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string)
     return widget
 end
 
-function Widget.diverseWidgetFromPetPair(petPair: PetConstants.PetPair)
+function Widget.diverseWidgetFromPetTuple(petTuple: PetConstants.PetTuple)
     local widget = Widget.diverseWidget()
-    local model = PetUtils.getModel(petPair.PetType, petPair.PetVariant)
+    local model = PetUtils.getModel(petTuple.PetType, petTuple.PetVariant)
 
-    widget:SetText(("%s %s"):format(StringUtil.getFriendlyString(petPair.PetVariant), StringUtil.getFriendlyString(petPair.PetType)))
+    widget:SetText(("%s %s"):format(StringUtil.getFriendlyString(petTuple.PetVariant), StringUtil.getFriendlyString(petTuple.PetType)))
     widget:SetViewport(model)
 
     return widget
