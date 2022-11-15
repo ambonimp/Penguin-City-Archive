@@ -73,6 +73,19 @@ function InventoryPetsWindow.new(
         end
     end
 
+    -- Pets
+    local petDatas = PetsController.getPets()
+    for _, petData in pairs(petDatas) do
+        -- Create Entry
+        local entry = {
+            WidgetConstructor = function()
+                local widget = Widget.diverseWidgetFromPetData(petData)
+                return widget
+            end,
+        }
+        table.insert(populateData, entry)
+    end
+
     inventoryPetsWindow:Populate(populateData)
 
     return inventoryPetsWindow

@@ -19,6 +19,14 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 local hatchRequestMaid = Maid.new()
 
 -------------------------------------------------------------------------------
+-- Pets
+-------------------------------------------------------------------------------
+
+function PetsController.getPets(): { PetConstants.PetData }
+    return TableUtil.toArray(DataController.get("Pets.Pets"))
+end
+
+-------------------------------------------------------------------------------
 -- Eggs
 -------------------------------------------------------------------------------
 
