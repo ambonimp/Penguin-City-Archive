@@ -20,7 +20,7 @@ end
 --[[
     Returns the current hatch times for our eggs at this exact point in time (where hatchTimes are sorted smallest to largest)
 
-    `{ [petEggName]: { [petEggIndex]: hatchTime } }`
+    `{ [petEggName]: { [petEggDataIndex]: hatchTime } }`
 ]]
 function PetsController.getHatchTimes(ignorePlaytime: boolean?)
     local playtime = ignorePlaytime and 0 or SessionController.getSession():GetPlayTime()
@@ -28,9 +28,9 @@ function PetsController.getHatchTimes(ignorePlaytime: boolean?)
     return PetUtils.getHatchTimes(hatchTimeByEggsData, playtime)
 end
 
-function PetsController.getHatchTime(petEggName: string, petEggIndex: string, ignorePlaytime: boolean?)
+function PetsController.getHatchTime(petEggName: string, petEggDataIndex: string, ignorePlaytime: boolean?)
     local hatchTimes = PetsController.getHatchTimes(ignorePlaytime)
-    return hatchTimes[petEggName] and hatchTimes[petEggName][petEggIndex] or -1
+    return hatchTimes[petEggName] and hatchTimes[petEggName][petEggDataIndex] or -1
 end
 
 return PetsController

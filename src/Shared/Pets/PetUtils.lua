@@ -3,6 +3,7 @@ local PetUtils = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 local directory: Folder = ReplicatedStorage.Assets.Pets
 local typesFolder: Folder = directory.Types
@@ -17,9 +18,9 @@ function PetUtils.getPetEggDataAddress(petEggName: string)
 end
 
 --[[
-    Returns `{ [petEggName]: { [petEggIndex]: hatchTime } }` - but taking `playtime` into account!
+    Returns `{ [petEggName]: { [petEggDataIndex]: hatchTime } }` - but taking `playtime` into account!
 
-    - `petEggIndex` is what we get from DataUtil.append
+    - `petEggDataIndex` is what we get from DataUtil.append
 ]]
 function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: number } }, playtime: number?)
     playtime = playtime or 0
@@ -27,8 +28,8 @@ function PetUtils.getHatchTimes(hatchTimeByEggsData: { [string]: { [string]: num
     local cascadedHatchTimes: { [string]: { [string]: number } } = {}
     for petEggName, hatchTimes in pairs(hatchTimeByEggsData) do
         cascadedHatchTimes[petEggName] = {}
-        for petEggIndex, hatchTime in pairs(hatchTimes) do
-            cascadedHatchTimes[petEggName][petEggIndex] = math.clamp(hatchTime - playtime, 0, math.huge)
+        for petEggDataIndex, hatchTime in pairs(hatchTimes) do
+            cascadedHatchTimes[petEggName][petEggDataIndex] = math.clamp(hatchTime - playtime, 0, math.huge)
         end
     end
 
@@ -87,6 +88,23 @@ function PetUtils.getAnimations(petType: string)
     end
 
     return animations
+end
+
+-------------------------------------------------------------------------------
+-- Cmdr
+-------------------------------------------------------------------------------
+
+function PetUtils.getPetVariantCmdrArgument(petTypeArgument)
+    local petType = petTypeArgument:GetValue()
+    return {
+        Type = PetUtils.getPetVariantCmdrTypeName(petType),
+        Name = "petVariant",
+        Description = ("petVariant (%s)"):format(petType),
+    }
+end
+
+function PetUtils.getPetVariantCmdrTypeName(petType: string)
+    return StringUtil.toCamelCase(("%sPetVariant"):format(petType))
 end
 
 return PetUtils

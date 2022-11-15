@@ -14,6 +14,12 @@ export type PetTuple = {
     PetRarity: string,
 }
 
+export type PetData = {
+    PetTuple: PetTuple,
+    Name: string,
+    BirthServerTime: number,
+}
+
 local petTypes: { [string]: string } = {
     Dinosaur = "Dinosaur",
 }

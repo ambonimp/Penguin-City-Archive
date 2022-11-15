@@ -2,18 +2,48 @@ local PetsService = {}
 
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
 local ProductService: typeof(require(Paths.Server.Products.ProductService))
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local SessionService = require(Paths.Server.SessionService)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 
 function PetsService.Init()
     -- Dependencies
     ProductService = require(Paths.Server.Products.ProductService)
+end
+
+-------------------------------------------------------------------------------
+-- Pets
+-------------------------------------------------------------------------------
+
+-- Returns the PetDataIndex
+function PetsService.addPet(player: Player, petData: PetConstants.PetData)
+    petData.Name = petData.Name ~= "" and petData.Name
+        or ("%s %s"):format(StringUtil.possessiveName(player.Name), StringUtil.getFriendlyString(petData.PetTuple.PetType))
+    petData.BirthServerTime = petData.BirthServerTime or Workspace:GetServerTimeNow()
+
+    local appendKey = DataService.getAppendageKey(player, "Pets.Pets")
+    DataService.append(player, "Pets.Pets", TableUtil.deepClone(petData), "PetUpdated", {
+        PetDataIndex = appendKey,
+    })
+    return appendKey
+end
+
+function PetsService.removePet(player: Player, petDataIndex: string)
+    local address = ("Pets.Pets.%s"):format(petDataIndex)
+    DataService.set(player, address, nil, "PetUpdated", {
+        PetDataIndex = petDataIndex,
+    })
+end
+
+function PetsService.getPets(player: Player): { PetConstants.PetData }
+    return TableUtil.toArray(DataService.get(player, "Pets.Pets"))
 end
 
 -------------------------------------------------------------------------------
@@ -52,7 +82,7 @@ function PetsService.updateIncubation(player: Player)
 
                 local appendKey = DataService.getAppendageKey(player, address)
                 DataService.append(player, address, hatchTime, "PetEggUpdated", {
-                    PetEggIndex = appendKey,
+                    PetEggDataIndex = appendKey,
                     IsNewEgg = true,
                 })
             end
@@ -62,7 +92,7 @@ function PetsService.updateIncubation(player: Player)
                 for key, _ in pairs(hatchTimeByEggsData[petEggName]) do
                     local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), key)
                     DataService.set(player, address, nil, "PetEggUpdated", {
-                        PetEggIndex = key,
+                        PetEggDataIndex = key,
                     })
                     break
                 end
@@ -76,7 +106,7 @@ end
 --[[
     Returns the current hatch times for a players' eggs at this exact point in time (taking into account players playtime)
 
-    `{ [petEggName]: { [petEggIndex]: hatchTime } }`
+    `{ [petEggName]: { [petEggDataIndex]: hatchTime } }`
 ]]
 function PetsService.getHatchTimes(player: Player)
     local playtime = SessionService.getSession(player):GetPlayTime()
@@ -89,15 +119,15 @@ end
 
     - `ageIndex`: `1`: Lowest hatch time, `n`: nth lowest hatch time, `math.huge`: guarenteed oldest egg
 ]]
-function PetsService.nukeEgg(player: Player, petEggName: string, petEggIndex: string)
-    -- ERROR: Bad PetEggIndex
-    local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), petEggIndex)
+function PetsService.nukeEgg(player: Player, petEggName: string, petEggDataIndex: string)
+    -- ERROR: Bad PetEggDataIndex
+    local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), petEggDataIndex)
     if not DataService.get(player, address) then
-        error(("Bad PetEggIndex %s %q"):format(petEggName, petEggIndex))
+        error(("Bad PetEggDataIndex %s %q"):format(petEggName, petEggDataIndex))
     end
 
     DataService.set(player, address, 0, "PetEggUpdated", {
-        PetEggIndex = petEggIndex,
+        PetEggDataIndex = petEggDataIndex,
     })
 end
 

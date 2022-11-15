@@ -19,6 +19,16 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
 
+local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
+    for k, v in pairs(default) do
+        if not tonumber(k) and data[k] == nil then
+            data[k] = v
+        elseif not tonumber(k) and typeof(v) == "table" then
+            reconcile(data[k], v)
+        end
+    end
+end
+
 -- Gets
 function DataService.get(player: Player, address: string): DataUtil.Data
     local profile = DataService.Profiles[player]
@@ -37,6 +47,7 @@ function DataService.set(player: Player, address: string, newValue: any, event: 
 
     if profile then
         DataUtil.setFromAddress(profile.Data, address, newValue)
+        reconcile(profile.Data, Config.getDefaults(player)) -- Incase set removed anything default; just a safety precaution
         Remotes.fireClient(player, "DataUpdated", address, newValue, event, eventMeta)
 
         if event then
@@ -94,16 +105,6 @@ function DataService.multiply(player: Player, address: string, scalar: number, e
     end
 
     return DataService.set(player, address, currentValue * scalar, event, eventMeta)
-end
-
-local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
-    for k, v in pairs(default) do
-        if not tonumber(k) and data[k] == nil then
-            data[k] = v
-        elseif not tonumber(k) and typeof(v) == "table" then
-            reconcile(data[k], v)
-        end
-    end
 end
 
 function DataService.wipe(player: Player)

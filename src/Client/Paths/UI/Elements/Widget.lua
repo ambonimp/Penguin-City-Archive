@@ -128,7 +128,7 @@ end
 --[[
     `hatchTime` must be straight from data
 ]]
-function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string)
+function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string)
     local widget = Widget.diverseWidget()
     local product = ProductUtil.getPetEggProduct(petEggName, "Incubating")
 
@@ -146,7 +146,7 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggIndex: string)
     local doLoop = true
     task.spawn(function()
         while doLoop do
-            local hatchesIn = PetsController.getHatchTime(petEggName, petEggIndex)
+            local hatchesIn = PetsController.getHatchTime(petEggName, petEggDataIndex)
 
             -- Update Text
             if hatchesIn > 0 then

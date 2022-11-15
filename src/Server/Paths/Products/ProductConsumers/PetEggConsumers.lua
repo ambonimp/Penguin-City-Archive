@@ -27,12 +27,12 @@ for productId, product in pairs(petEggProducts) do
                 _newValue: any,
                 eventMeta: {
                     IsNewEgg: boolean?,
-                    PetEggIndex: string,
+                    PetEggDataIndex: string,
                 }?
             )
                 if event == "PetEggUpdated" and somePlayer == player and eventMeta and eventMeta.IsNewEgg then
                     connection:Disconnect()
-                    PetsService.nukeEgg(player, productData.PetEggName, eventMeta.PetEggIndex)
+                    PetsService.nukeEgg(player, productData.PetEggName, eventMeta.PetEggDataIndex)
                 end
             end)
 

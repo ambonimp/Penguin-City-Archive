@@ -39,13 +39,13 @@ function InventoryPetsWindow.new(
 
     -- Eggs
     for petEggName, hatchTimes in pairs(PetsController.getHatchTimes(true)) do
-        for petEggIndex, hatchTime in pairs(hatchTimes) do
+        for petEggDataIndex, hatchTime in pairs(hatchTimes) do
             -- Create Entry
             local entry = {
                 WidgetConstructor = function()
-                    local widget = Widget.diverseWidgetFromEgg(petEggName, petEggIndex)
+                    local widget = Widget.diverseWidgetFromEgg(petEggName, petEggDataIndex)
                     widget.Pressed:Connect(function()
-                        local currentHatchTime = PetsController.getHatchTime(petEggName, petEggIndex)
+                        local currentHatchTime = PetsController.getHatchTime(petEggName, petEggDataIndex)
                         if currentHatchTime > 0 then
                             warn("todo premature hatch")
                         elseif currentHatchTime == 0 then
