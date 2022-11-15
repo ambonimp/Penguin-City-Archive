@@ -140,14 +140,6 @@ function PetsService.unloadPlayer(player: Player)
     DataService.set(player, "Pets.Eggs", PetsService.getHatchTimes(player))
 end
 
-task.spawn(function()
-    while task.wait(5) do
-        for _, player in pairs(Players:GetPlayers()) do
-            print(player, PetsService.getHatchTimes(player))
-        end
-    end
-end)
-
 -------------------------------------------------------------------------------
 -- Communication
 -------------------------------------------------------------------------------

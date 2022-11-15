@@ -72,7 +72,7 @@ function DataService.getAppendageKey(player: Player, address: string)
     end
 
     local length = 0
-    for index, _ in ipairs(iterate) do
+    for index, _ in pairs(iterate) do
         length = math.max(tonumber(index), length)
     end
 
