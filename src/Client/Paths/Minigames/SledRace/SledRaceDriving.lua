@@ -2,7 +2,6 @@ local SledRaceDriving = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
@@ -13,6 +12,7 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Toggle = require(Paths.Shared.Toggle)
 local Lerpable = require(Paths.Shared.Lerpable)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
+local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
 local MIN_SPEED = SledRaceConstants.MinSpeed
 local DEFAULT_SPEED = SledRaceConstants.DefaultSpeed
@@ -28,7 +28,7 @@ local MAX_STEER_ANGLE = SledRaceConstants.MaxSteerAngle
 local MAX_SEAT_LEAN_ANGLE = math.rad(75)
 
 local MAX_FORCE = 1000
-local MAX_ANGULAR_ALIGNMENT_TORQUE = 9000
+local MAX_ANGULAR_ALIGNMENT_TORQUE = 90000
 local MAX_STEER_TORQUE = 400
 
 local BASE_FOV = 70
@@ -176,6 +176,8 @@ function SledRaceDriving.setup()
 
             forcedAcceleration = 1
             forcedSpeed = 0
+
+            Confetti.play()
         end
     end)
 

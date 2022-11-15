@@ -31,6 +31,8 @@ local player = Players.LocalPlayer
 local assets = ReplicatedStorage.Assets.Minigames.SledRace
 local particles = assets.Particles
 
+local coinsCollected: number
+
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
@@ -61,7 +63,7 @@ function SledRaceCollectables.setup()
     hitbox.Parent = character
     BasePartUtil.weld(hitbox, physicsPart)
 
-    local coinsCollected: number = 0
+    coinsCollected = 0
 
     local colliding: RBXScriptConnection = hitbox.Touched:Connect(function(hit: BasePart)
         -- RETURN: Hit is not a part of a collideable
@@ -166,6 +168,10 @@ function SledRaceCollectables.setup()
         hitbox:Destroy()
         colliding:Disconnect()
     end
+end
+
+function SledRaceCollectables.getCoinsCollected()
+    return coinsCollected
 end
 
 return SledRaceCollectables

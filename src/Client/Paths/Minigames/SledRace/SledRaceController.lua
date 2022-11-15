@@ -20,7 +20,7 @@ local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConsta
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
 
-local AWARD_SEQUENCE_DELAY = 0.5
+local AWARD_SEQUENCE_DELAY = 1
 local RESTART_DELAY = 0.2
 
 -------------------------------------------------------------------------------
@@ -108,11 +108,14 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         SharedMinigameScreen.openStandings(scores)
     end
 
+    local placement = MinigameController.getOwnPlacement(scores)
+    local coinsCollected = CollectableController.getCoinsCollected()
+
     SharedMinigameScreen.openResults({
-        { Title = "Placement", Value = MinigameController.getOwnPlacement(scores) },
+        { Title = "Placement", Value = placement },
         { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore(scores)) },
-        { Title = "Coins Collected", Value = 0 },
-        { Title = "Total Coins", Icon = Images.Coins.Coin, Value = 45 },
+        { Title = "Coins Collected", Value = coinsCollected },
+        { Title = "Total Coins", Icon = Images.Coins.Coin, Value = SledRaceConstants.SessionConfig.Reward(placement) + coinsCollected },
     })
 
     if not isMultiplayer then
