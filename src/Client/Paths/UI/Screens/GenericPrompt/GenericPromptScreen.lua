@@ -9,6 +9,9 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+
+local BUMP_ZINDEX_BY = 100
 
 local screenGui: ScreenGui = Ui.GenericPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -18,6 +21,7 @@ local leftButtonFrame: Frame = contents.Buttons.Left
 local rightButtonFrame: Frame = contents.Buttons.Right
 local middleFrame: Frame = contents.Middle
 local closeButtonFrame: Frame = screenGui.Back.CloseButton
+local backgroundFrame: ImageLabel = screenGui.Background
 
 local leftButton = KeyboardButton.new()
 local rightButton = KeyboardButton.new()
@@ -56,7 +60,7 @@ function GenericPromptScreen.Init()
     -- Register UIState
     do
         local function enter(data: table)
-            GenericPromptScreen.open(data.Title, data.Description, data.MiddleMounter, data.LeftButton, data.RightButton)
+            GenericPromptScreen.open(data.Title, data.Description, data.MiddleMounter, data.LeftButton, data.RightButton, data.Background)
         end
 
         local function exit()
@@ -65,6 +69,9 @@ function GenericPromptScreen.Init()
 
         UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.GenericPrompt, enter, exit)
     end
+
+    -- Push Forward
+    UIUtil.offsetZIndex(screenGui, BUMP_ZINDEX_BY)
 end
 
 function GenericPromptScreen.open(
@@ -72,7 +79,8 @@ function GenericPromptScreen.open(
     description: string?,
     middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
     leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
-    rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?
+    rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
+    background: { Blur: boolean?, Image: string? }?
 )
     openMaid:Cleanup()
 
@@ -97,6 +105,14 @@ function GenericPromptScreen.open(
     rightButton:SetColor(rightButtonData.Color or GenericPromptScreen.Defaults.LeftButton.Color)
     if rightButtonData.Callback then
         openMaid:GiveTask(rightButton.Pressed:Connect(rightButtonData.Callback))
+    end
+
+    if background then
+        backgroundFrame.Visible = true
+        backgroundFrame.BackgroundTransparency = background.Blur and 0.5 or 1
+        backgroundFrame.Image = background.Image or ""
+    else
+        backgroundFrame.Visible = false
     end
 
     screenGui.Enabled = true

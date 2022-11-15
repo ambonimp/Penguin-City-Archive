@@ -65,4 +65,19 @@ function UIUtil.waitForHudAndRoomZone()
     end)
 end
 
+--[[
+    Will add `offset` to the ZIndex of any `GuiObject` under `ancestor` (including itself).
+
+    Useful for pushing a whole UI Screen up to the front
+]]
+function UIUtil.offsetZIndex(ancestor: Instance, offset: number)
+    local instances = ancestor:GetDescendants()
+    table.insert(instances, ancestor)
+    for _, guiObject: GuiObject in pairs(instances) do
+        if guiObject:IsA("GuiObject") then
+            guiObject.ZIndex = guiObject.ZIndex + offset
+        end
+    end
+end
+
 return UIUtil

@@ -27,7 +27,8 @@ function UIActions.prompt(
     description: string?,
     middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
     leftButton: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
-    rightButton: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?
+    rightButton: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
+    background: { Blur: boolean?, Image: string? }?
 )
     Queue.addTask(UIActions, function()
         UIController.getStateMachine():Push(UIConstants.States.GenericPrompt, {
@@ -36,6 +37,7 @@ function UIActions.prompt(
             MiddleMounter = middleMounter,
             LeftButton = leftButton,
             RightButton = rightButton,
+            Background = background,
         })
 
         while UIController.getStateMachine():HasState(UIConstants.States.GenericPrompt) do
