@@ -212,15 +212,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end
     end
 
-    function MinigameSession:OverwriteScore(participant: Player, newScore: number)
-        -- ERROR: State is invalid
-        if stateMachine:GetState() ~= STATES.Core then
-            error(("%s minigame attempting to set score outside of the core state : %s"):format(minigameName, debug.traceback()))
-        end
-
-        scores[participant] = newScore
-    end
-
     function minigameSession:Start() -- Ideally, all events have been connected and everything is ready to go when you run this
         -- ERROR: No default score was set
         if not defaultScore then

@@ -11,7 +11,6 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
 local PizzaFiascoUtil = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoUtil)
 local Output = require(Paths.Shared.Output)
-local CurrencyService = require(Paths.Server.CurrencyService)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
 type RecipeRecord = {
@@ -49,9 +48,9 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local coreJanitor = Maid.new()
+    local coreMaid = Maid.new()
     local maid = minigameSession:GetMaid()
-    maid:GiveTask(coreJanitor)
+    maid:GiveTask(coreMaid)
 
     local participantData: {
         RecipeTypeOrder: { string },
@@ -100,7 +99,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         -- Inform client of their recipe order
         minigameSession:RelayToParticipants("PizzaFiascoRecipeTypeOrder", participantData.RecipeTypeOrder)
 
-        coreJanitor:GiveTask(
+        coreMaid:GiveTask(
             Remotes.bindEventTemp("PizzaFiascoPizzaCompleted", function(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
                 -- RETURN: Wrong session
                 if not minigameSession:IsPlayerParticipant(player) then
@@ -124,7 +123,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
             end)
         )
 
-        coreJanitor:GiveTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
+        coreMaid:GiveTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
             -- RETURN: Wrong session
             if not minigameSession:IsPlayerParticipant(player) then
                 return
@@ -169,7 +168,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
                 and (totalMistakes <= PizzaFiascoConstants.MaxMistakes)
                 and (doSubtractMistakeCount <= 1)
             if doGiveReward then
-                CurrencyService.addCoins(player, totalCorrectPizzas, true)
+                minigameSession:IncrementScore(player, totalCorrectPizzas)
             else
                 warn(
                     ("%s had an issue. FinishedTooQuickly: %s (Min Time: %.2f, Actual Time: %.2f). Total Mistakes: %d. DoSubtractMistakeCount: %d"):format(
@@ -187,7 +186,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         end))
     end, function()
         participantData = nil
-        coreJanitor:Cleanup()
+        coreMaid:Cleanup()
     end)
 
     minigameSession:Start()
