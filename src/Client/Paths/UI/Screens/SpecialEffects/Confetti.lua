@@ -1,4 +1,4 @@
-local Particles = {}
+local Confetti = {}
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -57,7 +57,7 @@ local origin: CFrame = viewportCamera.CFrame
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
-function Particles.play(count: number?, lengthRange: Range?, layers: number, colors: { Color3 }?, sizes: { Vector2 }?)
+function Confetti.play(count: number?, lengthRange: Range?, layers: number?, colors: { Color3 }?, sizes: { Vector2 }?)
     colors = colors or DEFAULT_COLORS
     sizes = sizes or DEFAULT_SIZES
     count = count or random:NextInteger(35, 45)
@@ -119,4 +119,4 @@ function Particles.play(count: number?, lengthRange: Range?, layers: number, col
     end
 end
 
-return Particles
+return Confetti
