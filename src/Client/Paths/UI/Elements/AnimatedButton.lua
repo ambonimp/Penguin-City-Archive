@@ -127,7 +127,7 @@ function AnimatedButton.fromButton(button: typeof(Button.new(Instance.new("Image
         container.SizeConstraint = buttonObject.SizeConstraint
         container.Position = buttonObject.Position
         container.AnchorPoint = buttonObject.AnchorPoint
-        UIUtil.offsetZIndex(container, buttonObject.ZIndex)
+        container.ZIndex = buttonObject.ZIndex
         container.LayoutOrder = buttonObject.LayoutOrder
         container.Parent = parent
 

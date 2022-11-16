@@ -10,6 +10,21 @@ local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindo
 local PetsController = require(Paths.Client.Pets.PetsController)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local Maid = require(Paths.Packages.maid)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Products = require(Paths.Shared.Products.Products)
+local ProductController = require(Paths.Client.ProductController)
+local Images = require(Paths.Shared.Images.Images)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local PetUtils = require(Paths.Shared.Pets.PetUtils)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local Button = require(Paths.Client.UI.Elements.Button)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 
 --[[
     data:
@@ -81,12 +96,21 @@ function InventoryPetsWindow.new(
         -- Create Entry
         local entry = {
             WidgetConstructor = function()
-                local widget = Widget.diverseWidgetFromPetData(petData, function()
+                -- Edit Button
+                local button = AnimatedButton.fromButton(Button.fromImage(Images.ButtonIcons.Pencil))
+                button:SetPressAnimation()
+                button:SetHoverAnimation(AnimatedButton.Animations.Nod)
+                button.Pressed:Connect(function()
                     UIController.getStateMachine():Push(UIConstants.States.PetEditor, {
                         PetData = petData,
                         PetDataIndex = petDataIndex,
                     })
                 end)
+
+                -- Widget
+                local widget = Widget.diverseWidgetFromPetData(petData)
+                widget:SetCornerButton(button)
+
                 return widget
             end,
         }

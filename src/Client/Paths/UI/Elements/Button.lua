@@ -139,7 +139,7 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
 
     function button:Mount(parent: GuiObject, hideParent: boolean?)
         buttonObject.Parent = parent
-        UIUtil.offsetZIndex(buttonObject, parent.ZIndex)
+        buttonObject.ZIndex = parent.ZIndex
 
         button.MountedTo = parent
 

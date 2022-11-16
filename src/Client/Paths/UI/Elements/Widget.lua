@@ -190,18 +190,10 @@ function Widget.diverseWidgetFromPetTuple(petTuple: PetConstants.PetTuple)
     return widget
 end
 
--- If `editCallback` is passed, widget will have an edit button in the corner that will invoke `editCallback`
-function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData, editCallback: (() -> nil)?)
+function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
     local widget = Widget.diverseWidgetFromPetTuple(petData.PetTuple)
 
     widget:SetText(petData.Name)
-
-    if editCallback then
-        local button = AnimatedButton.fromButton(Button.fromImage(Images.ButtonIcons.Pencil))
-        button.Pressed:Connect(editCallback)
-
-        widget:SetCornerButton(button)
-    end
 
     return widget
 end

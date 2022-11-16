@@ -39,7 +39,7 @@ function PetEditorScreen.Init()
             return
         end
 
-        UIController.getStateMachine():Remove(UIConstants.States.GenericPrompt)
+        UIController.getStateMachine():Remove(UIConstants.States.PetEditor)
     end
 
     -- Buttons

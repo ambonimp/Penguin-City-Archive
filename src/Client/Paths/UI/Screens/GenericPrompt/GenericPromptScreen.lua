@@ -10,8 +10,6 @@ local UIController = require(Paths.Client.UI.UIController)
 local Maid = require(Paths.Packages.maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
-local BUMP_ZINDEX_BY = 100
-
 local screenGui: ScreenGui = Ui.GenericPrompt
 local contents: Frame = screenGui.Back.Contents
 local titleLabel: TextLabel = contents.Text.Title
@@ -68,9 +66,6 @@ function GenericPromptScreen.Init()
 
         UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.GenericPrompt, enter, exit)
     end
-
-    -- Push Forward
-    UIUtil.offsetZIndex(screenGui, BUMP_ZINDEX_BY, true)
 end
 
 function GenericPromptScreen.open(
