@@ -1,3 +1,9 @@
+--[[
+    Pets!
+
+    PetEggs all have a hatch time associated to them - the value stored on our data profile is how long until that egg catches from the *start* of a
+    players play session (see `unloadPlayer`)
+]]
 local PetsService = {}
 
 local Players = game:GetService("Players")

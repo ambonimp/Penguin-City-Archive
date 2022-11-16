@@ -8,6 +8,8 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
 local PetsController = require(Paths.Client.Pets.PetsController)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 --[[
     data:
@@ -75,11 +77,16 @@ function InventoryPetsWindow.new(
 
     -- Pets
     local petDatas = PetsController.getPets()
-    for _, petData in pairs(petDatas) do
+    for petDataIndex, petData in pairs(petDatas) do
         -- Create Entry
         local entry = {
             WidgetConstructor = function()
-                local widget = Widget.diverseWidgetFromPetData(petData)
+                local widget = Widget.diverseWidgetFromPetData(petData, function()
+                    UIController.getStateMachine():Push(UIConstants.States.PetEditor, {
+                        PetData = petData,
+                        PetDataIndex = petDataIndex,
+                    })
+                end)
                 return widget
             end,
         }

@@ -360,7 +360,8 @@ end
 do
     -- Handlers
     do
-        for _, handlerModule in pairs(Paths.Server.Products.ProductHandlers:GetChildren()) do
+        local productHandlers: Folder = Paths.Server.Products:FindFirstChild("ProductHandlers")
+        for _, handlerModule in pairs(productHandlers and productHandlers:GetChildren() or {}) do
             -- ERROR: Could not match productType
             local productType = StringUtil.chopEnd(handlerModule.Name, HANDLER_MODULE_NAME_SUFFIX)
             if not Products.ProductType[productType] then

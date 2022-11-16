@@ -22,8 +22,15 @@ local hatchRequestMaid = Maid.new()
 -- Pets
 -------------------------------------------------------------------------------
 
-function PetsController.getPets(): { PetConstants.PetData }
-    return TableUtil.toArray(DataController.get("Pets.Pets"))
+-- Keys are petDataIndex
+function PetsController.getPets()
+    local data = DataController.get("Pets.Pets")
+    return TableUtil.deepClone(data) :: { [string]: PetConstants.PetData }
+end
+
+-- Assumes `petName` has been filtered
+function PetsController.setPetName(petName: string, petDataIndex: string)
+    print("todo", petName, petDataIndex)
 end
 
 -------------------------------------------------------------------------------
