@@ -142,10 +142,6 @@ return function()
             if productTypeKey == ProductConstants.ProductType.Vehicle then
                 testVehicleProduct(product)
             end
-
-            if productTypeKey == ProductConstants.ProductType.PetEgg then
-                testPetEggProduct(product)
-            end
         end
     end
 

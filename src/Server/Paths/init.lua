@@ -36,7 +36,6 @@ task.delay(0, function()
         require(server.Products.ProductProcessReceipt),
         require(server.Zones.ZoneService),
         require(server.Housing.PlotService),
-        require(server.Pets.PetsService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),
