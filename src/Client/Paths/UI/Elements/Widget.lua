@@ -154,7 +154,7 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string
 
             -- Update Text
             if hatchesIn > 0 then
-                widget:SetText(TimeUtil.formatRelativeTime(hatchesIn))
+                widget:SetText(TimeUtil.formatRelativeTime(math.ceil(hatchesIn)))
                 widget:SetBackgroundColor(nil)
             else
                 widget:SetText("HATCH!")

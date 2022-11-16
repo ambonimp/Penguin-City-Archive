@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PetUtils = require(ReplicatedStorage.Shared.Pets.PetUtils)
+local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 
 return {
     Name = "addPetEgg",
@@ -16,6 +17,12 @@ return {
             Type = "petEgg",
             Name = "petEgg",
             Description = "petEgg",
+        },
+        {
+            Type = "number",
+            Name = "hatchTime",
+            Description = "How long it takes to hatch",
+            Default = PetConstants.DefaultHatchTime,
         },
         {
             Type = "number",

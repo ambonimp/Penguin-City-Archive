@@ -17,10 +17,64 @@ local Images = require(Paths.Shared.Images.Images)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local Signal = require(Paths.Shared.Signal)
 local Assume = require(Paths.Shared.Assume)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+
+local CHECK_HATCHABLE_EGGS_EVERY = 3
 
 local hatchRequestMaid = Maid.new()
 
 PetsController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
+
+function PetsController.Start()
+    -- Routine for informing of eggs ready to hatch
+    do
+        -- Circular Dependencies
+        local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
+
+        local informed: { [string]: { [string]: boolean } } = {} -- Keys are PetEggName, Values are arrays of petEggDataIndex
+        UIUtil.waitForHudAndRoomZone():andThen(function()
+            while true do
+                -- Inform New
+                local allHatchTimes = PetsController.getHatchTimes()
+                for petEggName, hatchTimes in pairs(allHatchTimes) do
+                    for petEggDataIndex, hatchTime in pairs(hatchTimes) do
+                        local doInform = hatchTime == 0 and not (informed[petEggName] and informed[petEggName][petEggDataIndex])
+                        if doInform then
+                            informed[petEggName] = informed[petEggName] or {}
+                            informed[petEggName][petEggDataIndex] = true
+
+                            local product = ProductUtil.getPetEggProduct(petEggName)
+                            UIActions.sendRobloxNotification({
+                                Title = "Pet Egg",
+                                Text = "You have a new Pet Egg you can hatch!",
+                                Icon = product.ImageId or Images.Pets.Eggs.Standard,
+                            })
+
+                            local notificationIcon = UIActions.addNotificationIcon(HUDScreen.getInventoryButton():GetButtonObject())
+                            notificationIcon:IncrementNumber(1)
+                        end
+                    end
+                end
+
+                -- Clear old informed
+                for petEggName, petEggDataIndexes in pairs(informed) do
+                    for petEggDataIndex, _ in pairs(petEggDataIndexes) do
+                        if not (allHatchTimes[petEggName] and allHatchTimes[petEggName][petEggDataIndex]) then
+                            informed[petEggName][petEggDataIndex] = nil
+
+                            local notificationIcon = UIActions.getNotificationIcon(HUDScreen.getInventoryButton():GetButtonObject())
+                            if notificationIcon then
+                                notificationIcon:IncrementNumber(-1)
+                            end
+                        end
+                    end
+                end
+
+                task.wait(CHECK_HATCHABLE_EGGS_EVERY)
+            end
+        end)
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Pets
@@ -105,13 +159,25 @@ function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string
     requestServer()
 end
 
+function PetsController.getTotalHatchableEggs()
+    local total = 0
+    for _, hatchTimes in pairs(PetsController.getHatchTimes()) do
+        for _, hatchTime in pairs(hatchTimes) do
+            if hatchTime == 0 then
+                total += 1
+            end
+        end
+    end
+
+    return total
+end
+
 -------------------------------------------------------------------------------
 -- Communication
 -------------------------------------------------------------------------------
 
 Remotes.bindEvents({
     PetEggHatched = function(petData: PetConstants.PetData)
-        print("hatched", petData)
         UIActions.prompt("CONGRATULATIONS", "You just hatched a new pet!", function(parent, maid)
             local petWidget = Widget.diverseWidgetFromPetData(petData)
             petWidget:Mount(parent, true)

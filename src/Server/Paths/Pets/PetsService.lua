@@ -27,7 +27,6 @@ function PetsService.Init()
     -- Dependencies
     ProductService = require(Paths.Server.Products.ProductService)
 end
-
 -------------------------------------------------------------------------------
 -- Pets
 -------------------------------------------------------------------------------
