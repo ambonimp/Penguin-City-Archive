@@ -173,18 +173,20 @@ do
 
         local function applyColor()
             for _, part: BasePart in (model:GetDescendants()) do
-                if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "CanColor" then
+                if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "Color1" then
                     part.Color = color
                 end
             end
         end
-
         -- Initialize info
         do
             if isNewObject then
                 rotationY = 0
                 name = model.Name
-                color = FurnitureConstants.Objects[model.Name].DefaultColor
+                --color = FurnitureConstants.Objects[model.Name].DefaultColor
+                print(model.Color1:GetChildren())
+                local part = model.Color1:FindFirstChildOfClass("BasePart") or model.Color1:FindFirstChildOfClass("MeshPart")
+                color = part.Color
                 position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0) + heightOffset
 
                 model:PivotTo(CFrame.new(position))
@@ -382,7 +384,7 @@ do
             local target = result.Instance
 
             if target and target:IsDescendantOf(plot.Furniture) then
-                if target.Parent.Name == "CanColor" then
+                if target.Parent.Name == "Color1" then
                     target = target.Parent
                 end
 

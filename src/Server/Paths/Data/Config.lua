@@ -14,7 +14,7 @@ local GameUtil = require(Paths.Shared.Utils.GameUtil)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
 DataConfig.DataKey = GameUtil.getDataKey()
-
+print(DataConfig.DataKey)
 --#region Default constants
 local defaultHouse = {
     Blueprint = "Default",
