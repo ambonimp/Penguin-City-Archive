@@ -142,6 +142,16 @@ function TableUtil.toArray(tbl: table)
     return returning
 end
 
+function TableUtil.toDictionary(tbl: table)
+    local returning = {}
+
+    for k, v in tbl do
+        returning[tostring(k)] = v
+    end
+
+    return returning
+end
+
 function TableUtil.isEmpty(tbl: table)
     for _, _ in tbl do
         return false
@@ -217,10 +227,19 @@ function TableUtil.remove(tbl: table, value: any, maxOccurences: number?)
     end
 end
 
-function TableUtil.mapKeys(tbl: table, map: (key: any) -> (any))
+function TableUtil.mapKeys(tbl: table, map: (key: any) -> any)
     local mappedTbl = {}
     for key, value in pairs(tbl) do
         mappedTbl[map(key)] = value
+    end
+
+    return mappedTbl
+end
+
+function TableUtil.mapValues(tbl: table, map: (value: any) -> any)
+    local mappedTbl = {}
+    for key, value in pairs(tbl) do
+        mappedTbl[key] = map(value)
     end
 
     return mappedTbl

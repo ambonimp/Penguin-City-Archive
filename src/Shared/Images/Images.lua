@@ -32,6 +32,7 @@ Images.Icons = {
     Checkmark = "rbxassetid://11374895711",
     Close = "rbxassetid://11152372397",
     CoinWhite = "rbxassetid://11374896378",
+    Egg = "rbxassetid://11563573619",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
@@ -273,6 +274,19 @@ Images.Stamps = {
 }
 --#endregion
 
+--#endregion
+--#region Pets
+Images.Pets = {
+    Eggs = {
+        Standard = "rbxassetid://11563572752",
+        Red = "rbxassetid://11563572937",
+        Gold = "rbxassetid://11563573078",
+        Green = "rbxassetid://11563573533",
+        Purple = "rbxassetid://11563573803",
+        Blue = "rbxassetid://11563573939",
+    },
+    Lightburst = "rbxassetid://11563573407",
+}
 --#endregion
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 

@@ -84,7 +84,7 @@ return function()
         -- Product Id must match ProductUtil getter
         local vehicleData = ProductUtil.getVehicleProductData(product)
         if product.Id ~= ProductUtil.getVehicleProductId(vehicleData.VehicleName) then
-            addIssue("ProductId does not match return value for ProductUtil.getHouseObjectProductData")
+            addIssue("ProductId does not match return value for ProductUtil.getVehicleProductData")
         end
     end
 

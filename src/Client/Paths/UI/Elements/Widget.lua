@@ -15,6 +15,7 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -28,6 +29,7 @@ local ICON_PROPERTIES = {
         Size = UDim2.fromScale(0.9, 0.9),
     },
 }
+local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
@@ -329,6 +331,10 @@ function Widget.diverseWidget()
         viewportFrame.Visible = true
 
         CameraUtil.lookAtModelInViewport(viewportFrame, model)
+    end
+
+    function widget:SetBackgroundColor(color: Color3?)
+        imageButton.BackgroundColor3 = color or COLOR_WHITE
     end
 
     function widget:SetOutline(color: Color3?)
