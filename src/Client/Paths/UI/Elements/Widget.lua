@@ -198,6 +198,22 @@ function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
     return widget
 end
 
+function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
+    -- Circular Dependencies
+    local PetsController = require(Paths.Client.Pets.PetsController)
+
+    local petData = PetsController.getPet(petDataIndex)
+    local widget = Widget.diverseWidgetFromPetData(petData)
+
+    widget:GetMaid():GiveTask(PetsController.PetNameChanged:Connect(function(petName: string, somePetDataIndex: string)
+        if somePetDataIndex == petDataIndex then
+            widget:SetText(petName)
+        end
+    end))
+
+    return widget
+end
+
 function Widget.diverseWidget()
     local widget = AnimatedButton.new(Instance.new("ImageButton"))
     widget:SetHoverAnimation(nil)

@@ -8,7 +8,7 @@ local PetUtils = require(Paths.Shared.Pets.PetUtils)
 return function(_context, players: { Player }, petType: string, petVariant: string, petRarity: string, amount: number)
     local petData: PetConstants.PetData = {
         PetTuple = PetUtils.petTuple(petType, petVariant, petRarity),
-        Name = "",
+        Name = "Added Pet",
         BirthServerTime = Workspace:GetServerTimeNow(),
     }
 

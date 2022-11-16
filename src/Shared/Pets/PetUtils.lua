@@ -45,6 +45,10 @@ end
 -- Pets
 -------------------------------------------------------------------------------
 
+function PetUtils.getPetDataAddress(petDataIndex: string)
+    return ("Pets.Pets.%s"):format(petDataIndex)
+end
+
 function PetUtils.petTuple(petType: string, petVariant: string, petRarity: string)
     PetUtils.verifyPetTuple(petType, petVariant, petRarity)
 

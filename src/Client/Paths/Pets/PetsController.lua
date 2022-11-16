@@ -15,8 +15,12 @@ local Remotes = require(Paths.Shared.Remotes)
 local UIActions = require(Paths.Client.UI.UIActions)
 local Images = require(Paths.Shared.Images.Images)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local Signal = require(Paths.Shared.Signal)
+local Assume = require(Paths.Shared.Assume)
 
 local hatchRequestMaid = Maid.new()
+
+PetsController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
 
 -------------------------------------------------------------------------------
 -- Pets
@@ -24,13 +28,36 @@ local hatchRequestMaid = Maid.new()
 
 -- Keys are petDataIndex
 function PetsController.getPets()
-    local data = DataController.get("Pets.Pets")
-    return TableUtil.deepClone(data) :: { [string]: PetConstants.PetData }
+    return DataController.get("Pets.Pets") :: { [string]: PetConstants.PetData }
+end
+
+function PetsController.getPet(petDataIndex: string)
+    local petData = PetsController.getPets()[petDataIndex]
+    if not petData then
+        error(("No pet under index %q"):format(petDataIndex))
+    end
+
+    return petData
 end
 
 -- Assumes `petName` has been filtered
 function PetsController.setPetName(petName: string, petDataIndex: string)
-    print("todo", petName, petDataIndex)
+    local oldName = PetsController.getPet(petDataIndex)
+
+    local assume = Assume.new(function()
+        return Remotes.invokeServer("ChangePetName", petName, petDataIndex)
+    end)
+    assume:Check(function(response)
+        return response == true
+    end)
+    assume:Run(function()
+        PetsController.PetNameChanged:Fire(petName, petDataIndex)
+    end)
+    assume:Else(function()
+        PetsController.PetNameChanged:Fire(oldName, petDataIndex)
+    end)
+
+    return assume
 end
 
 -------------------------------------------------------------------------------

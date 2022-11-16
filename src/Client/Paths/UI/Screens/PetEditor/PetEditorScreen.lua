@@ -48,23 +48,23 @@ function PetEditorScreen.Init()
         leftButton:SetColor(Color3.fromRGB(229, 142, 237))
         leftButton:Mount(leftButtonFrame, true)
         leftButton.Pressed:Connect(function()
-            exitState()
-
             if newName and currentPetDataIndex then
                 PetsController.setPetName(newName, currentPetDataIndex)
             end
             warn("todo equip")
+
+            exitState()
         end)
 
         rightButton:SetText("Save")
         rightButton:SetColor(Color3.fromRGB(50, 195, 185))
         rightButton:Mount(rightButtonFrame, true)
         rightButton.Pressed:Connect(function()
-            exitState()
-
             if newName and currentPetDataIndex then
                 PetsController.setPetName(newName, currentPetDataIndex)
             end
+
+            exitState()
         end)
 
         closeButton:Mount(closeButtonFrame, true)
@@ -100,22 +100,31 @@ function PetEditorScreen.open(petData: PetConstants.PetData, petDataIndex: strin
 
     -- Handle name editing
     openMaid:GiveTask(textBox.FocusLost:Connect(function()
+        -- RETURN: Currently filtering
+        if isFiltering then
+            return
+        end
+
         local newDirtyName = textBox.Text
 
         isFiltering = true
-        local filterResult = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
-        local filteredName = filterResult and filterResult:GetNonChatStringForBroadcastAsync()
+        local filteredName = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
         local wasFiltered = (filteredName == nil) or TextFilterUtil.wasFiltered(newDirtyName, filteredName)
         isFiltering = false
 
-        if wasFiltered then
-            textBox.Text = currentName
-        else
+        textBox.Text = filteredName
+        if not wasFiltered then
             currentName = filteredName
 
             newName = currentName
-            textBox.Text = currentName
             widget:SetText(currentName)
+        end
+    end))
+
+    openMaid:GiveTask(textBox.Focused:Connect(function()
+        -- Don't allow new entry if currently filtering
+        if isFiltering then
+            textBox:ReleaseFocus()
         end
     end))
 

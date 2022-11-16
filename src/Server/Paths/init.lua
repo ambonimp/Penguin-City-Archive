@@ -38,6 +38,9 @@ task.delay(0, function()
         require(server.Housing.PlotService),
         require(server.Pets.PetsService),
 
+        -- Client/Server Utils
+        require(shared.Utils.TextFilterUtil),
+
         -- UnitTest
         require(server.UnitTestingService),
     }

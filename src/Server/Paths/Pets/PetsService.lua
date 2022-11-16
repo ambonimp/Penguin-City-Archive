@@ -20,6 +20,8 @@ local SessionService = require(Paths.Server.SessionService)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local Remotes = require(Paths.Shared.Remotes)
 local Products = require(Paths.Shared.Products.Products)
+local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 
 function PetsService.Init()
     -- Dependencies
@@ -46,8 +48,44 @@ function PetsService.removePet(player: Player, petDataIndex: string)
     })
 end
 
-function PetsService.getPets(player: Player): { PetConstants.PetData }
-    return TableUtil.toArray(DataService.get(player, "Pets.Pets"))
+-- Keys are petDataIndex
+function PetsService.getPets(player: Player)
+    return DataService.get(player, "Pets.Pets") :: { [string]: PetConstants.PetData }
+end
+
+function PetsService.getPet(player: Player, petDataIndex: string)
+    local petData = PetsService.getPets(player)[petDataIndex]
+    if not petData then
+        error(("No pet under index %q"):format(petDataIndex))
+    end
+
+    return petData
+end
+
+-- Returns true if successful.
+function PetsService.changePetName(player: Player, petDataIndex: string, petName: string, doFilter: boolean?)
+    -- (Filter) FALSE: Was filtered
+    if doFilter then
+        local filteredPetName = TextFilterUtil.filter(petName, player.UserId)
+        local wasFiltered = not (filteredPetName and TextFilterUtil.wasFiltered(petName, filteredPetName) == false)
+        if wasFiltered then
+            return false
+        else
+            petName = filteredPetName
+        end
+    end
+
+    -- ERROR: Bad pet data index
+    local petData = PetsService.getPet(player, petDataIndex)
+    if not petData then
+        warn(("Bad PetDataIndex %q"):format(petDataIndex))
+        return false
+    end
+
+    petData.Name = petName
+    DataService.set(player, PetUtils.getPetDataAddress(petDataIndex), petData, "PetDataUpdated")
+
+    return true
 end
 
 -------------------------------------------------------------------------------
@@ -170,6 +208,22 @@ Remotes.bindFunctions({
         end
 
         return false
+    end,
+    ChangePetName = function(player: Player, dirtyPetName: any, dirtyPetDataIndex: any)
+        -- Clean Data
+        local petName = TypeUtil.toString(dirtyPetName)
+        local petDataIndex = TypeUtil.toString(dirtyPetDataIndex)
+        if not (petName and petDataIndex) then
+            return false
+        end
+
+        -- FALSE: Bad petDataIndex
+        local petData = PetsService.getPets(player)[petDataIndex]
+        if not petData then
+            return false
+        end
+
+        return PetsService.changePetName(player, petDataIndex, petName, true)
     end,
 })
 
