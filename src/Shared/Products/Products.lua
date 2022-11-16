@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 -------------------------------------------------------------------------------
 -- Types
@@ -43,6 +44,7 @@ export type GenericProduct = {
 -- Products
 -------------------------------------------------------------------------------
 
+local assets: Folder = ReplicatedStorage.Assets
 local productType: { [string]: string } = ProductConstants.ProductType
 
 local products: { [string]: { [string]: Product } } = {
@@ -64,32 +66,6 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
-    Test = {
-        coin_login_reward = {
-            Id = "coin_login_reward",
-            DisplayName = "+5 Coin Login Reward",
-            Description = "Gives you +5 coins each time you log in!",
-            RobuxData = {
-                Cost = 123456789,
-                GamepassId = 91726149,
-            },
-            Metadata = {
-                AddCoins = 5,
-            },
-        },
-        print_name = {
-            Id = "print_name",
-            DisplayName = "Print Name",
-            Description = "Prints your name when consumed",
-            IsConsumable = true,
-            RobuxData = {
-                Cost = 99,
-            },
-            CoinData = {
-                Cost = 5,
-            },
-        },
-    },
 }
 
 local genericProducts: { GenericProduct } = {
@@ -105,7 +81,10 @@ for _, generatorScript: ModuleScript in pairs(productGenerators:GetChildren()) d
     local generatorProductType = StringUtil.chopEnd(generatorScript.Name, "Products")
     local generatorProducts = require(generatorScript)
 
-    products[generatorProductType] = generatorProducts
+    products[generatorProductType] = products[generatorProductType] or {}
+    for generatedId, generatedProduct in pairs(generatorProducts) do
+        products[generatorProductType][generatedId] = generatedProduct
+    end
 end
 
 -------------------------------------------------------------------------------

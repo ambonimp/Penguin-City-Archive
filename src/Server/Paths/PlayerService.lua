@@ -21,6 +21,7 @@ function PlayerService.Start()
     local ZoneService = require(Paths.Server.Zones.ZoneService)
     local PlotService = require(Paths.Server.Housing.PlotService)
     local RewardsService = require(Paths.Server.RewardsService)
+    local SessionService = require(Paths.Server.SessionService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -35,6 +36,7 @@ function PlayerService.Start()
         DataService.loadPlayer(player)
 
         -- Load routines
+        SessionService.loadPlayer(player)
         CharacterService.loadPlayer(player)
         ProductService.loadPlayer(player)
         PlotService.loadPlayer(player)

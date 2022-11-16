@@ -119,8 +119,8 @@ function ProductUtil.getCharacterItemProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ItemKey = product.Metadata.ItemKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ItemKey = product.Metadata.ItemKey :: string,
     }
 end
 
@@ -153,8 +153,8 @@ function ProductUtil.getHouseObjectProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ObjectKey = product.Metadata.ObjectKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ObjectKey = product.Metadata.ObjectKey :: string,
     }
 end
 
@@ -187,8 +187,8 @@ function ProductUtil.getStampBookProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        PropertyKey = product.Metadata.PropertyKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        PropertyKey = product.Metadata.PropertyKey :: string,
     }
 end
 
@@ -200,7 +200,6 @@ end
 -- Vehicles
 -------------------------------------------------------------------------------
 
--- Example: CoverColor, Red
 function ProductUtil.getVehicleProductId(vehicleName: string)
     return ("vehicle_%s"):format(StringUtil.toCamelCase(vehicleName))
 end
@@ -221,7 +220,7 @@ function ProductUtil.getVehicleProductData(product: Products.Product)
     end
 
     return {
-        VehicleName = product.Metadata.VehicleName,
+        VehicleName = product.Metadata.VehicleName :: string,
     }
 end
 
