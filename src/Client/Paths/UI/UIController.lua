@@ -15,6 +15,21 @@ local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local SHOW_STATE_MACHINE_DEBUG = true
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.HUD)
+local stateScreenData: {
+    [string]: {
+        Callbacks: {
+            Boot: (data: table?) -> nil,
+            Shutdown: () -> nil,
+            Maximize: () -> nil,
+            Minimize: () -> nil,
+        },
+        Meta: {
+            IsBooted: boolean,
+            IsMaximized: boolean,
+        },
+    },
+} =
+    {}
 
 -- Init
 do
@@ -46,10 +61,99 @@ do
 
         CoreGui.disable()
     end)
+
+    -- Manage State Callbacks
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string, data: table?, oldStack: { string })
+        -- Iterate each callback
+        for someState, screenData in pairs(stateScreenData) do
+            -- Check if we are on top or not
+            local isInvisible = table.find(UIConstants.InvisibleStates, someState) and true or false
+            local isOnTop = not isInvisible and (toState == someState or UIUtil.getPseudoState(someState))
+
+            if not isOnTop then
+                -- Check if states above us are "invisible"
+                local statesAbove = stateMachine:GetStatesAbove(someState)
+                if statesAbove then
+                    local allInvisible = true
+                    for _, aboveState in pairs(statesAbove) do
+                        if not table.find(UIConstants.InvisibleStates, aboveState) then
+                            allInvisible = false
+                            break
+                        end
+                    end
+                    isOnTop = allInvisible
+                end
+            end
+
+            -- Shutdown and Minimize
+            if not isOnTop then
+                if screenData.Meta.IsMaximized then
+                    screenData.Meta.IsMaximized = false
+                    screenData.Callbacks.Minimize()
+                end
+
+                if screenData.Meta.IsBooted then
+                    local isRemoved = stateMachine:HasState(someState) == false
+                    if isRemoved then
+                        screenData.Meta.IsBooted = false
+                        screenData.Callbacks.Shutdown()
+                    end
+                end
+            end
+
+            -- Boot and maximize
+            if isOnTop then
+                if not screenData.Meta.IsBooted then
+                    screenData.Meta.IsBooted = true
+                    screenData.Callbacks.Boot(data)
+                end
+
+                if not screenData.Meta.IsMaximized then
+                    screenData.Meta.IsMaximized = true
+                    screenData.Callbacks.Maximize()
+                end
+            end
+        end
+    end)
 end
 
 function UIController.getStateMachine()
     return stateMachine
+end
+
+--[[
+    A powerful method for interfacing with the UI State machine, which considers custom behaviour defined in our UIConstants
+
+    - `Boot`: Called when the state first enters the stack
+    - `Shutdown`: Called when the state is removed from the stack
+    - `Maximize`: Called when the state is on the top of the stack
+    - `Minimize`: Called when the state is no longer on top of the stack
+
+    `Boot` and `Shutdown` are for initializing a UI screen, or cleaning it up. `Maximize` and `Minimize` are for visually showing/hiding the screen
+    - Example: The InventoryScreen opens up a product prompt by pushing a state to the stack. When we return to the inventory to the top, it reopens it
+    while still retaining it's current tab etc..
+]]
+function UIController.registerStateScreenCallbacks(
+    state: string,
+    callbacks: {
+        Boot: (data: table?) -> nil,
+        Shutdown: () -> nil,
+        Maximize: () -> nil,
+        Minimize: () -> nil,
+    }
+)
+    -- ERROR: Already registered
+    if stateScreenData[state] then
+        error(("Already registered %q"):format(state))
+    end
+
+    stateScreenData[state] = {
+        Callbacks = callbacks,
+        Meta = {
+            IsBooted = false,
+            IsMaximized = false,
+        },
+    }
 end
 
 function UIController.Start()

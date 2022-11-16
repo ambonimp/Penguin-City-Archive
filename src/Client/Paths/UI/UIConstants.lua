@@ -31,6 +31,11 @@ UIConstants.PseudoStates = {
     },
 }
 
+-- If any states in here are on the top of the stack, the state below will *also* be treated as being on top of the stack
+UIConstants.InvisibleStates = {
+    UIConstants.States.GenericPrompt,
+}
+
 UIConstants.Keybinds = {
     PopStateMachine = {
         Enum.KeyCode.ButtonB,
