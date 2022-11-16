@@ -22,6 +22,7 @@ function PlayerService.Start()
     local PlotService = require(Paths.Server.Housing.PlotService)
     local RewardsService = require(Paths.Server.RewardsService)
     local SessionService = require(Paths.Server.SessionService)
+    local PetsService = require(Paths.Server.Pets.PetsService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -48,6 +49,7 @@ function PlayerService.Start()
         -- Unload routines
         PlotService.unloadPlayer(player)
         RewardsService.unloadPlayer(player)
+        PetsService.unloadPlayer(player)
 
         -- Destroy Maid
         maidByPlayer[player]:Destroy()
