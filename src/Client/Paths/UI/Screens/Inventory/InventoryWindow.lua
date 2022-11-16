@@ -287,16 +287,17 @@ function InventoryWindow.new(
             end
         end
 
+        -- Init data + page
         currentPopulateData = populateData
         pageNumber = 1
 
-        -- Draw
-        draw()
-
         -- Start Equipped
         if equipping and equipping.StartEquipped then
-            inventoryWindow:Equip(equipping.StartEquipped)
+            equippedValue = equipping.StartEquipped
         end
+
+        -- Draw
+        draw()
     end
 
     function inventoryWindow:Equip(newEquipValue: any | nil)

@@ -68,7 +68,7 @@ function CameraController.lookAt(subject: BasePart | Model | {}, offset: Vector3
     return CameraUtil.lookAt(
         camera,
         cframe,
-        CFrame.new(0, 0, CameraUtil.getFitDeph(camera.ViewportSize, fov, size)) + offset,
+        CFrame.new(0, 0, CameraUtil.getFitDepth(camera.ViewportSize, fov, size)) + offset,
         TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     )
 end
