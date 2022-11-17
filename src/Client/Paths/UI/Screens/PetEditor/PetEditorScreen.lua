@@ -13,6 +13,7 @@ local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local PetsController = require(Paths.Client.Pets.PetsController)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local screenGui: ScreenGui = Ui.PetEditor
 local contents: Frame = screenGui.Back.Contents
@@ -128,6 +129,7 @@ function PetEditorScreen.open(petData: PetConstants.PetData, petDataIndex: strin
         end
     end))
 
+    ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
@@ -136,7 +138,7 @@ function PetEditorScreen.close()
     isFiltering = false
     currentPetDataIndex = nil
 
-    screenGui.Enabled = false
+    ScreenUtil.outUp(screenGui.Back)
 end
 
 return PetEditorScreen

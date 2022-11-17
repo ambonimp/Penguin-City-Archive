@@ -44,6 +44,7 @@ local openMaid = Maid.new()
 local openScope = Scope.new()
 
 local petData: PetConstants.PetData | nil
+local petDataIndex: string | nil
 
 function PetEggHatchingScreen.Init()
     -- Register UIState
@@ -111,7 +112,10 @@ function PetEggHatchingScreen.open(petEggName: string)
         while not petData do
             task.wait()
         end
+
+        -- Cache as exiting state will clear these values
         local cachedPetData = petData
+        local cachedPetDataIndex = petDataIndex
 
         -- EXIT: Closed
         if not openScope:Matches(scopeId) then
@@ -122,7 +126,15 @@ function PetEggHatchingScreen.open(petEggName: string)
             local petWidget = Widget.diverseWidgetFromPetData(cachedPetData)
             petWidget:Mount(parent, true)
             maid:GiveTask(petWidget)
-        end, { Text = "Continue" }, { Text = "View Pet" }, { Image = Images.Pets.Lightburst, DoRotate = true })
+        end, { Text = "Continue" }, {
+            Text = "View Pet",
+            Callback = function()
+                UIController.getStateMachine():Push(UIConstants.States.PetEditor, {
+                    PetData = cachedPetData,
+                    PetDataIndex = cachedPetDataIndex,
+                })
+            end,
+        }, { Image = Images.Pets.Lightburst, DoRotate = true })
 
         UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
     end)
@@ -133,6 +145,7 @@ end
 
 function PetEggHatchingScreen.close()
     petData = nil
+    petDataIndex = nil
     openScope:NewScope()
 
     InstanceUtil.fadeOut(viewportFrame, TweenInfo.new(TWEEN_TIME))
@@ -141,8 +154,9 @@ function PetEggHatchingScreen.close()
     end)
 end
 
-function PetEggHatchingScreen:SetHatchedPetData(newPetData: PetConstants.PetData)
+function PetEggHatchingScreen:SetHatchedPetData(newPetData: PetConstants.PetData, newPetDataIndex: string)
     petData = newPetData
+    petDataIndex = newPetDataIndex
 end
 
 return PetEggHatchingScreen

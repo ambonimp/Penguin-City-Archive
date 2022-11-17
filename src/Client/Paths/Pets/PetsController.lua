@@ -189,11 +189,11 @@ end
 -------------------------------------------------------------------------------
 
 Remotes.bindEvents({
-    PetEggHatched = function(petData: PetConstants.PetData)
+    PetEggHatched = function(petData: PetConstants.PetData, petDataIndex: string)
         -- Circular Dependency
         local PetEggHatchingScreen = require(Paths.Client.UI.Screens.PetEggHatching.PetEggHatchingScreen)
 
-        PetEggHatchingScreen:SetHatchedPetData(petData)
+        PetEggHatchingScreen:SetHatchedPetData(petData, petDataIndex)
     end,
 })
 

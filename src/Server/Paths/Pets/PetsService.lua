@@ -151,10 +151,10 @@ function PetsService.hatchEgg(player: Player, petEggName: string, petEggDataInde
         Name = ("%s %s"):format(StringUtil.possessiveName(player.Name), StringUtil.getFriendlyString(petTuple.PetType)),
         BirthServerTime = Workspace:GetServerTimeNow(),
     }
-    PetsService.addPet(player, petData)
+    local petDataIndex = PetsService.addPet(player, petData)
 
     -- Inform Client
-    Remotes.fireClient(player, "PetEggHatched", petData)
+    Remotes.fireClient(player, "PetEggHatched", petData, petDataIndex)
 end
 Remotes.declareEvent("PetEggHatched")
 
