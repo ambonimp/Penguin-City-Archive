@@ -9,6 +9,7 @@ local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 
 local COLLECTABLE_GRID = SledRaceConstants.CollectableGrid
 local COLLECTABLE_TYPES = SledRaceConstants.Collectables
@@ -49,12 +50,10 @@ function SledRaceMap.loadCollectables(map: Model)
         table.remove(unusedSpawnPoints, spawnIndex)
 
         local template = templates[random:NextInteger(1, #templates)]
-        local cframe: CFrame, size: Vector3 = template:GetBoundingBox()
-        local deph: number = size.Z
+        local deph: number = template:GetExtentsSize().Z
         local maxZOffset: number = (rowPadding - deph) * (3 / 4)
 
-        local base: CFrame = mapOrigin:ToWorldSpace(spawnPoint)
-            * CFrame.new(cframe:PointToObjectSpace(template.WorldPivot.Position) + Vector3.new(0, size.Y / 2, 0))
+        local base: CFrame = ModelUtil.getWorldPivotToCenter(template, mapOrigin:ToWorldSpace(spawnPoint), Vector3.new(0, 0.5, 0))
         if SledRaceUtil.collectableIsA(template, "Coin") then
             local padding = maxZOffset / (COINS_IN_COLLECTABLE - 1)
 

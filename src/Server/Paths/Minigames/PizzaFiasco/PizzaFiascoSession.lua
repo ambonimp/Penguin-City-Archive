@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -48,9 +48,8 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local coreMaid = Maid.new()
-    local maid = minigameSession:GetMaid()
-    maid:GiveTask(coreMaid)
+    local coreJanitor = Janitor.new()
+    minigameSession:GetJanitor():AddTask(coreJanitor)
 
     local participantData: {
         RecipeTypeOrder: { string },
@@ -97,7 +96,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         -- Inform client of their recipe order
         minigameSession:RelayToParticipants("PizzaFiascoRecipeTypeOrder", participantData.RecipeTypeOrder)
 
-        coreMaid:GiveTask(
+        coreJanitor:AddTask(
             Remotes.bindEventTemp("PizzaFiascoPizzaCompleted", function(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
                 -- RETURN: Wrong session
                 if not minigameSession:IsPlayerParticipant(player) then
@@ -121,7 +120,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
             end)
         )
 
-        coreMaid:GiveTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
+        coreJanitor:AddTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
             -- RETURN: Wrong session
             if not minigameSession:IsPlayerParticipant(player) then
                 return
@@ -184,7 +183,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         end))
     end, function()
         participantData = nil
-        coreMaid:Cleanup()
+        coreJanitor:Cleanup()
     end)
 
     minigameSession:SetDefaultScore(0)

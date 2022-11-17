@@ -38,6 +38,13 @@ function ModelUtil.anchor(model: Model)
     end
 end
 
+function ModelUtil.getWorldPivotToCenter(model: Model, center: CFrame, sizeOffset: Vector3?)
+    sizeOffset = sizeOffset or Vector3.new()
+
+    local cframe: CFrame, size: Vector3 = model:GetBoundingBox()
+    return center * CFrame.new(cframe:PointToObjectSpace(model.WorldPivot.Position) + size * sizeOffset)
+end
+
 function ModelUtil.hide(model: Model, tweenInfo: TweenInfo?)
     for _, descendant: BasePart in pairs(model:GetDescendants()) do
         if descendant:IsA("BasePart") then

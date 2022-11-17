@@ -1,7 +1,10 @@
 --[[
     This file makes it nice and easy to run checks on all current and future descendants of an instance(s)
-]]
+    ]]
 local DescendantLooper = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Janitor = require(ReplicatedStorage.Packages.janitor)
 
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 
@@ -47,7 +50,7 @@ function DescendantLooper.add(
     callback: (descendant: Instance) -> nil,
     instances: { Instance },
     ignoreAdded: boolean?
-)
+): () -> ({ Instance })
     ignoreAdded = ignoreAdded or false
 
     -- Cache checker/callback for new added descendants
@@ -70,6 +73,22 @@ function DescendantLooper.add(
             if checker(descendant) then
                 task.spawn(callback, descendant)
             end
+        end
+    end
+
+    if not ignoreAdded then
+        return function()
+            local remainingInstances: { Instance } = {}
+
+            for _, instance in pairs(instances) do
+                local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance)
+                if instanceCheckerCallbackPairs then
+                    checkerCallbackPairs[checker] = nil
+                    table.insert(remainingInstances)
+                end
+            end
+
+            return remainingInstances
         end
     end
 end

@@ -5,7 +5,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local Signal = require(Paths.Shared.Signal)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -30,16 +30,17 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
 
-    local maid = Maid.new()
+    local janitor = Janitor.new()
     local stateMachine = StateMachine.new(TableUtil.getKeys(STATES), STATES.Nothing)
-    maid:GiveTask(stateMachine)
+    janitor:Add(stateMachine)
 
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, id)
     local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
-    maid:GiveTask(ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone()))
+    janitor:Add(ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone()))
 
     local participants: Participants = {}
     local scores: { [Player]: number }?
+    local scoreRange = { Min = 0, Max = math.huge }
 
     local config: MinigameConstants.SessionConfig = MinigameUtil.getSessionConfigs(minigameName)
 
@@ -99,8 +100,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         return map
     end
 
-    function minigameSession:GetMaid()
-        return maid
+    function minigameSession:GetJanitor()
+        return janitor
     end
 
     function minigameSession:RelayToParticipants(eventName: string, ...: any)
@@ -162,7 +163,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
         local remainingParticipants = #participants
         if remainingParticipants == 0 then
-            maid:Destroy()
+            janitor:Destroy()
         else
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
@@ -199,17 +200,49 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         defaultScore = score
     end
 
-    function minigameSession:IncrementScore(participant: Player, addend: number)
+    function minigameSession:SetScoreRange(min: number, max: number)
+        assert(min < max, ("%s score range is invalid bc min is not less than max"):format(minigameName))
+        scoreRange = { Min = min, Max = max }
+    end
+
+    function minigameSession:IncrementScore(participant: Player, addend: number): (number, number)
         -- ERROR: State is invalid
         if stateMachine:GetState() ~= STATES.Core then
             error(("%s minigame attempting to set score outside of the core state : %s"):format(minigameName, debug.traceback()))
         end
 
-        if scores[participant] then
-            scores[participant] += addend
-        else
-            scores[participant] = addend
+        local oldScore = scores[participant] or 0
+        local newScore = math.clamp(oldScore + addend, scoreRange.Min, scoreRange.Max)
+        scores[participant] = newScore
+        minigameSession:RelayToParticipants("MinigameScoreChanged", minigameSession:SortScores())
+
+        return newScore, oldScore
+    end
+
+    function minigameSession:SortScores(): MinigameConstants.SortedScores
+        local sortedScores = {}
+        local unsorted = TableUtil.deepClone(scores)
+
+        for _ = 1, #participants do
+            local minScore: number = math.huge
+            local minPlayer: Player?
+
+            for player, score in pairs(unsorted) do
+                if score < minScore then
+                    minScore = score
+                    minPlayer = player
+                end
+            end
+
+            table.insert(sortedScores, { Player = minPlayer, Score = minScore })
+            unsorted[minPlayer] = nil
         end
+
+        if config.HigherScoreWins then
+            sortedScores = ArrayUtil.flip(sortedScores)
+        end
+
+        return sortedScores
     end
 
     function minigameSession:Start() -- Ideally, all events have been connected and everything is ready to go when you run this
@@ -240,7 +273,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         if isMultiplayer then
             minigameSession:ChangeState(STATES.Intermission)
         else
-            maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
+            janitor:Add(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
@@ -248,7 +281,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 end
             end))
 
-            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function(player)
+            janitor:Add(Remotes.bindEventTemp("MinigameRestarted", function(player)
                 minigameSession:ChangeState(STATES.Nothing)
             end))
         end
@@ -314,32 +347,15 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 end
             end
 
-            local sortedScores = {}
-            local unsorted = TableUtil.deepClone(scores)
-            for i = 1, #participants do
-                local minScore: number = math.huge
-                local minPlayer: Player?
-
-                for player, score in pairs(unsorted) do
-                    if score < minScore then
-                        minScore = score
-                        minPlayer = player
-                    end
-                end
-
-                table.insert(sortedScores, { Player = minPlayer, Score = minScore })
-                unsorted[minPlayer] = nil
-
-                -- Reward
-                CurrencyService.addCoins(minPlayer, config.Reward(i, minScore))
-            end
-
-            if config.HigherScoreWins then
-                sortedScores = ArrayUtil.flip(sortedScores)
-            end
-
+            local sortedScores = minigameSession:SortScores()
             stateMachine:GetData().Scores = sortedScores
 
+            -- Reward
+            for placement, scoreInfo in pairs(sortedScores) do
+                CurrencyService.addCoins(scoreInfo.Player, config.Reward(placement, scoreInfo.Score))
+            end
+
+            -- Cleanup
             scores = nil
 
             if isMultiplayer then
@@ -351,15 +367,15 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     -- Leaving
     do
-        maid:GiveTask(Remotes.bindEventTemp("MinigameExited", function(player)
+        janitor:Add(Remotes.bindEventTemp("MinigameExited", function(player)
             minigameSession:RemoveParticipant(player)
         end))
 
-        maid:GiveTask(ZoneService.ZoneChanged:Connect(function(player)
+        janitor:Add(ZoneService.ZoneChanged:Connect(function(player)
             minigameSession:RemoveParticipant(player)
         end))
 
-        maid:GiveTask(Players.PlayerRemoving:Connect(function(player)
+        janitor:Add(Players.PlayerRemoving:Connect(function(player)
             minigameSession:RemoveParticipant(player)
         end))
     end

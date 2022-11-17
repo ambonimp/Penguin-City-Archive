@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
@@ -31,10 +31,8 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
     local mapDirection: CFrame = mapOrigin.Rotation
 
-    local stateMaid = Maid.new()
-
-    local maid = minigameSession:GetMaid()
-    maid:GiveTask(stateMaid)
+    local stateJanitor = Janitor.new()
+    minigameSession:GetJanitor():Add(stateJanitor)
 
     local participantData: {
         [Player]: {
@@ -62,8 +60,6 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
-    minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.CoreLength)
-
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
         CharacterUtil.setEthereal(participant, true, "SledRace")
         SledRaceSled.spawnSled(participant, spawnPoints[table.find(participants, participant)])
@@ -106,7 +102,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
         end
 
         -- Validate speeds
-        stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
+        stateJanitor:Add(RunService.Heartbeat:Connect(function(dt)
             for participant, data in pairs(participantData) do
                 local character = participant.Character
 
@@ -116,12 +112,12 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
                 data.Position = position
                 data.Velocity = velocity
 
-                -- TODO: Anti cheats
+                -- TODO: Anti cheats class
             end
         end))
 
         collectables = SledRaceMap.loadCollectables(map)
-        stateMaid:GiveTask(collectables)
+        stateJanitor:Add(collectables)
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
@@ -132,7 +128,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
             SledRaceUtil.unanchorSled(partipant)
         end
 
-        stateMaid:GiveTask(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
+        stateJanitor:Add(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
             -- RETURN: Collectable has already been collected or doesn't exist anymore
             if collectable.Parent ~= collectables then
                 return
@@ -154,7 +150,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
                 - math.max(characterSize.X, characterSize.Z)
                 - data.Velocity * player:GetNetworkPing()
 
-            -- RETURN: Obstacle wasn't actually touched
+            -- RETURN: Collectable wasn't actually touched
             if clientStudDiscrepancy > CLIENT_STUD_DISCREPANCY_ALLOWANCE then
                 return
             end
@@ -172,7 +168,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
             end
         end))
 
-        stateMaid:GiveTask(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+        stateJanitor:Add(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
             if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
                 table.insert(finished, player)
@@ -186,11 +182,11 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
             end
         end))
     end, function()
-        stateMaid:Cleanup()
+        stateJanitor:Cleanup()
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
-        stateMaid:Cleanup()
+        stateJanitor:Cleanup()
         participantData = {}
     end, function()
         -- Respawn at spawn points
@@ -199,6 +195,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
         end
     end)
 
+    minigameSession:SetDefaultScore(SledRaceConstants.SessionConfig.CoreLength)
     minigameSession:Start()
 
     return minigameSession

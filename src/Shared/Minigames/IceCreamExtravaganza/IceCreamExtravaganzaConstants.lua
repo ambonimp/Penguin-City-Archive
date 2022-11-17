@@ -36,8 +36,15 @@ local sessionConfig: MinigameConstants.SessionConfig = {
 
 IceCreamExtravaganzaConstants.WalkSpeed = 60
 IceCreamExtravaganzaConstants.DropVelocity = 12
-IceCreamExtravaganzaConstants.DropRate = 0.4
+IceCreamExtravaganzaConstants.CollectableDropRate = 0.4
 IceCreamExtravaganzaConstants.InvicibilityLength = 5
+
+IceCreamExtravaganzaConstants.CollectableDropProbability = {
+    Invicible = 5,
+    Double = 10,
+    Obstacle = 28,
+    Regular = 57,
+}
 
 IceCreamExtravaganzaConstants.SessionConfig = sessionConfig
 

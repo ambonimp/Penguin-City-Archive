@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
-local Maid = require(Paths.Packages.maid)
+local Janitor = require(Paths.Packages.janitor)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 
@@ -14,7 +14,7 @@ function MinigameQueue.new(minigameName: string)
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local maid = Maid.new()
+    local janitor = Janitor.new()
 
     local sessionConfig = MinigameUtil.getSessionConfigs(minigameName)
 
@@ -47,7 +47,7 @@ function MinigameQueue.new(minigameName: string)
 
         if #participants == sessionConfig.MinParticipants then
             minigameStartThread = task.delay(MinigameConstants.MaximumSufficientlyFilledQueueLength, function()
-                maid:Destroy()
+                janitor:Destroy()
             end)
         elseif #participants == sessionConfig.MaxParticipants then
             task.spawn(minigameStartThread)
@@ -64,16 +64,16 @@ function MinigameQueue.new(minigameName: string)
         return table.find(participants, player) ~= nil
     end
 
-    function queue:GetMaid()
-        return maid
+    function queue:Janitor()
+        return janitor
     end
 
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
-    maid:GiveTask(Players.PlayerRemoving:Connect(onParticipantRemoved))
-    maid:GiveTask(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
-    maid:GiveTask(function()
+    janitor:Add(Players.PlayerRemoving:Connect(onParticipantRemoved))
+    janitor:Add(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
+    janitor:Add(function()
         Remotes.fireClients(participants, "MinigameQueueExited")
     end)
 
