@@ -25,7 +25,7 @@ type participantData = {
     PlayRequestTick: number,
 }
 
-local MINGIAME_NAME = "PizzaFiasco"
+local MINIGAME_NAME = "PizzaFiasco"
 local MIN_RECIPE_TIMES = {
     A = 0.5,
     B = 1,
@@ -43,7 +43,7 @@ local MIN_RECIPE_TIMES = {
 local MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS = 5
 
 function PizzaFiascoSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
-    local minigameSession = MinigameSession.new(MINGIAME_NAME, id, participants, isMultiplayer)
+    local minigameSession = MinigameSession.new(MINIGAME_NAME, id, participants, isMultiplayer)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
@@ -57,8 +57,6 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         RecipeRecords: { RecipeRecord },
         PlayRequestTick: number,
     }?
-
-    minigameSession:SetDefaultScore(0)
 
     -------------------------------------------------------------------------------
     -- State handlers
@@ -189,7 +187,9 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         coreMaid:Cleanup()
     end)
 
+    minigameSession:SetDefaultScore(0)
     minigameSession:Start()
+
     return minigameSession
 end
 
@@ -198,7 +198,7 @@ end
 -------------------------------------------------------------------------------
 do
     -- Hide Guides & Hitboxes
-    local mapTemplate = ServerStorage.Minigames[MINGIAME_NAME].Map
+    local mapTemplate = ServerStorage.Minigames[MINIGAME_NAME].Map
     for _, directory: Instance in pairs({ mapTemplate.Guides, mapTemplate.Hitboxes }) do
         for _, descendant: BasePart in pairs(directory:GetDescendants()) do
             if descendant:IsA("BasePart") then

@@ -38,6 +38,8 @@ local templates = Paths.Templates.Minigames
 local screens: Folder = Paths.UI.Minigames
 local sharedScreens = screens.Shared
 
+local coreCountdownLabel: ImageLabel = sharedScreens.CoreCountdown
+
 local startMenus: Frame = sharedScreens.StartMenus
 local singlePlayerMenu = startMenus.SinglePlayer
 local multiplayerMenu = startMenus.Multiplayer
@@ -90,15 +92,18 @@ end
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
 function SharedMinigameScreen.coreCountdown(timeLeft: number)
-    local label: ImageLabel = getScreenGui().Countdown
-    local initialLabelSize: UDim2 = Binder.bindFirst(label, "InitialSize", label.Size)
-    label.Visible = false
-    label.Image = Images[MinigameController.getMinigame()]["Countdown" .. (timeLeft - 1)] :: string
-    label.Rotation = 90
-    label.Size = UDim2.new()
+    local initialLabelSize: UDim2 = Binder.bindFirst(coreCountdownLabel, "InitialSize", coreCountdownLabel.Size)
+    coreCountdownLabel.Visible = false
+    coreCountdownLabel.Image = Images[MinigameController.getMinigame()]["Countdown" .. (timeLeft - 1)] :: string
+    coreCountdownLabel.Rotation = 90
+    coreCountdownLabel.Size = UDim2.new()
 
-    label.Visible = true
-    TweenUtil.bind(label, COUNTDOWN_BIND_KEY, TweenService:Create(label, COUNTDOWN_TWEEN_INFO, { Rotation = 0, Size = initialLabelSize })).Completed
+    coreCountdownLabel.Visible = true
+    TweenUtil.bind(
+        coreCountdownLabel,
+        COUNTDOWN_BIND_KEY,
+        TweenService:Create(coreCountdownLabel, COUNTDOWN_TWEEN_INFO, { Rotation = 0, Size = initialLabelSize })
+    ).Completed
         :Connect(function(playbackState)
             -- RETURN: Previous tween was cancelled
             if playbackState ~= Enum.PlaybackState.Completed then
@@ -106,9 +111,9 @@ function SharedMinigameScreen.coreCountdown(timeLeft: number)
             end
 
             TweenUtil.bind(
-                label,
+                coreCountdownLabel,
                 COUNTDOWN_BIND_KEY,
-                TweenService:Create(label, COUNTDOWN_TWEEN_INFO, {
+                TweenService:Create(coreCountdownLabel, COUNTDOWN_TWEEN_INFO, {
                     Rotation = 90,
                     Size = UDim2.new(),
                 })

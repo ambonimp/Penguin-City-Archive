@@ -33,6 +33,7 @@ MinigameConstants.MaximumSufficientlyFilledQueueLength = if GameUtil.isDevGame()
 MinigameConstants.Minigames = {
     PizzaFiasco = "PizzaFiasco",
     SledRace = "SledRace",
+    IceCreamExtravaganza = "IceCreamExtravaganza",
 }
 
 MinigameConstants.States = {

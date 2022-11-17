@@ -110,6 +110,15 @@ Images.SledRace = {
     Countdown0 = "rbxassetid://11468633672",
 }
 --#endregion
+--#region IceCreamExtravaganza
+Images.IceCreamExtravaganza = {
+    Logo = "rbxassetid://11583529373",
+    Countdown3 = "rbxassetid://11468633791",
+    Countdown2 = "rbxassetid://11468634030",
+    Countdown1 = "rbxassetid://11468634160",
+    Countdown0 = "rbxassetid://11468633672",
+}
+--#endregion
 --#region CharacterEditor
 Images.CharacterEditor = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",

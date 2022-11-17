@@ -25,7 +25,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
     local map = minigameSession:GetMap()
-    local spawnPoints = map.SpawnPoints:GetChildren()
+    local spawnPoints = map.PlayerSpawns:GetChildren()
     local collectables: Folder?
 
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
