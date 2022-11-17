@@ -20,6 +20,7 @@ UIConstants.States = {
     Inventory = "Inventory",
     GenericPrompt = "GenericPrompt",
     PetEditor = "PetEditor",
+    PetEggHatching = "PetEggHatching",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)

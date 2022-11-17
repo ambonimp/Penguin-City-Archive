@@ -18,10 +18,15 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 local Signal = require(Paths.Shared.Signal)
 local Assume = require(Paths.Shared.Assume)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local Scope = require(Paths.Shared.Scope)
+local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 
 local CHECK_HATCHABLE_EGGS_EVERY = 3
 
 local hatchRequestMaid = Maid.new()
+local hatchRequestScope = Scope.new()
 
 PetsController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
 
@@ -141,8 +146,15 @@ end
 function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string, isPremature: boolean?)
     hatchRequestMaid:Cleanup()
 
-    local function requestServer()
-        Remotes.invokeServer("PetEggHatchRequest", petEggName, petEggDataIndex) -- todo use an Assume here
+    local function request()
+        UIController.getStateMachine():Push(UIConstants.States.PetEggHatching, {
+            PetEggName = petEggName,
+        })
+
+        local didHatch = Remotes.invokeServer("PetEggHatchRequest", petEggName, petEggDataIndex)
+        if not didHatch then
+            UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
+        end
     end
 
     -- Premature.. wrap inside needing a quickHatch product
@@ -150,13 +162,13 @@ function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string
         ProductController.prompt(Products.Products.Misc.quick_hatch)
         hatchRequestMaid:GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
             if product == Products.Products.Misc.quick_hatch then
-                requestServer()
+                request()
             end
         end))
         return
     end
 
-    requestServer()
+    request()
 end
 
 function PetsController.getTotalHatchableEggs()
@@ -178,11 +190,10 @@ end
 
 Remotes.bindEvents({
     PetEggHatched = function(petData: PetConstants.PetData)
-        UIActions.prompt("CONGRATULATIONS", "You just hatched a new pet!", function(parent, maid)
-            local petWidget = Widget.diverseWidgetFromPetData(petData)
-            petWidget:Mount(parent, true)
-            maid:GiveTask(petWidget)
-        end, { Text = "Continue" }, { Text = "View Pet" }, { Image = Images.Pets.Lightburst })
+        -- Circular Dependency
+        local PetEggHatchingScreen = require(Paths.Client.UI.Screens.PetEggHatching.PetEggHatchingScreen)
+
+        PetEggHatchingScreen:SetHatchedPetData(petData)
     end,
 })
 

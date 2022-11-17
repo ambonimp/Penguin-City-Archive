@@ -9,6 +9,10 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local Maid = require(Paths.Packages.maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+
+local BACKGROUND_ROTATE_TWEEN_INFO = TweenInfo.new(8, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, math.huge)
 
 local screenGui: ScreenGui = Ui.GenericPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -32,7 +36,7 @@ GenericPromptScreen.Defaults = {
         Color = Color3.fromRGB(250, 178, 92),
     },
     RightButton = {
-        Text = "Accept",
+        Text = "Continue",
         Color = Color3.fromRGB(50, 195, 127),
     },
 }
@@ -74,12 +78,12 @@ function GenericPromptScreen.open(
     middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
     leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
     rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
-    background: { Blur: boolean?, Image: string? }?
+    background: { Blur: boolean?, Image: string?, DoRotate: boolean? }?
 )
     openMaid:Cleanup()
 
-    titleLabel.Text = title
-    descriptionLabel.Text = description
+    titleLabel.Text = title or "Title"
+    descriptionLabel.Text = description or "Description"
 
     if middleMounter then
         middleMounter(middleFrame, openMaid)
@@ -94,9 +98,9 @@ function GenericPromptScreen.open(
     end
 
     rightButtonData = rightButtonData or {}
-    rightButton:SetText(rightButtonData.Text or GenericPromptScreen.Defaults.LeftButton.Text)
+    rightButton:SetText(rightButtonData.Text or GenericPromptScreen.Defaults.RightButton.Text)
     rightButton:SetIcon(rightButtonData.Icon or "")
-    rightButton:SetColor(rightButtonData.Color or GenericPromptScreen.Defaults.LeftButton.Color)
+    rightButton:SetColor(rightButtonData.Color or GenericPromptScreen.Defaults.RightButton.Color)
     if rightButtonData.Callback then
         openMaid:GiveTask(rightButton.Pressed:Connect(rightButtonData.Callback))
     end
@@ -105,14 +109,27 @@ function GenericPromptScreen.open(
         backgroundFrame.Visible = true
         backgroundFrame.BackgroundTransparency = background.Blur and 0.5 or 1
         backgroundFrame.Image = background.Image or ""
+        backgroundFrame.Rotation = 0
+
+        if background.DoRotate then
+            local tween = TweenUtil.tween(backgroundFrame, BACKGROUND_ROTATE_TWEEN_INFO, {
+                Rotation = 360,
+            })
+            openMaid:GiveTask(function()
+                tween:Cancel()
+                tween:Destroy()
+            end)
+        end
     else
         backgroundFrame.Visible = false
     end
 
+    ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
 function GenericPromptScreen.close()
+    ScreenUtil.outUp(screenGui.Back)
     screenGui.Enabled = false
 end
 

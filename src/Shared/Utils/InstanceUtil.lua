@@ -8,7 +8,7 @@ local FADE_CLASSNAME_BY_PROPERTY = {
     BackgroundTransparency = { "GuiObject" },
     TextTransparency = { "TextLabel", "TextButton" },
     TextStrokeTransparency = { "TextLabel", "TextButton" },
-    ImageTransparency = { "ImageLabel", "ImageButton" },
+    ImageTransparency = { "ImageLabel", "ImageButton", "ViewportFrame" },
 }
 local FADE_TWEEN_INFO = TweenInfo.new(0.5)
 local ATTRIBUTE_FADE_FORMAT = "_InstanceUtilFade_%s"

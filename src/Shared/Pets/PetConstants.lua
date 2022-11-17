@@ -85,4 +85,6 @@ local animationNames: { [string]: string } = {
 }
 PetConstants.AnimationNames = animationNames
 
+PetConstants.PetEggHatchingDuration = 2
+
 return PetConstants

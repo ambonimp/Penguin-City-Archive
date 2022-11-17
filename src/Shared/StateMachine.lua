@@ -15,6 +15,7 @@ local OPERATION_POP_TO: Operation = "PopTo"
 local OPERATION_POP_TO_AND_PUSH: Operation = "PopToAndPush"
 local OPERATION_CLEAR_AND_PUSH: Operation = "ClearAndPush"
 local OPERATION_REMOVE: Operation = "Remove"
+
 local SHOW_TRACEBACK_IN_DEBUG = false
 local SHOW_DEBUG = false
 
@@ -224,7 +225,8 @@ function StateMachine:_RunOperation(operation, state, data)
     end
 
     -- Fire global callback
-    if self.eventGlobal then
+    if self.eventGlobal and hasStateChanged then
+        prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
         self.eventGlobal:Fire(oldState, currentState, data)
     end
 end
