@@ -16,6 +16,7 @@ local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
@@ -147,6 +148,7 @@ do
 
         local name: string
         local position: Vector3
+        local normal: Vector3 = Vector3.new(0, 1, 0)
         local rotationY: number
         local color: Color3
 
@@ -159,9 +161,14 @@ do
         placementSession:GiveTask(selectionBox)
 
         -- Modifiers
+        local function calculateCf(oldCf, surfacePos)
+            return HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
+        end
+
         local function applyCFrame()
+            local cf = calculateCf(CFrame.new(position) * CFrame.Angles(0, rotationY, 0), position)
             TweenUtil.tween(model.PrimaryPart, CFRAME_TWEEN_INFO, {
-                CFrame = CFrame.new(position) * CFrame.Angles(0, rotationY, 0),
+                CFrame = cf,
             })
 
             if isModelColliding(model) then
@@ -201,6 +208,7 @@ do
                 color = DataUtil.deserializeValue(store.Color, Color3)
                 rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
                 position = model.PrimaryPart.Position
+                normal = DataUtil.deserializeValue(store.Normal, Vector3).Y
             end
         end
 
@@ -290,6 +298,7 @@ do
                     local target, newPosition = result.Instance, result.Position
                     if target and target:IsDescendantOf(plot) and newPosition then
                         position = newPosition + heightOffset + offset
+                        normal = result.Normal
                         applyCFrame()
                     end
                 end)
@@ -313,6 +322,7 @@ do
                     Position = plotCFrame:PointToObjectSpace(position),
                     Rotation = Vector3.new(0, rotationY, 0),
                     Color = color,
+                    Normal = normal,
                 }
 
                 if isNewObject then

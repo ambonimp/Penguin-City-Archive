@@ -164,6 +164,7 @@ function DataUtil.deserializeValue<T>(serializedValue: string, valueType: T): T
     if valueType == Color3 then
         return Color3.new(table.unpack(string.split(serializedValue, ", ")))
     elseif valueType == Vector3 then
+        print(serializedValue)
         return Vector3.new(table.unpack(string.split(serializedValue, ", ")))
     end
 end

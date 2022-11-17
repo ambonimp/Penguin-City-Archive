@@ -27,6 +27,7 @@ type FurnitureMetadata = {
     Position: Vector3,
     Rotation: Vector3,
     Color: Color3,
+    Normal: Vector3,
 }
 
 type WallpaperMetadata = {
@@ -78,21 +79,28 @@ end
 -------------------------------------------------------------------------------
 -- INTERIOR OBJECTS METHODS
 -------------------------------------------------------------------------------
+local function calculateCf(oldCf, surfacePos, normal)
+    return HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
+end
+
 local function placeFurniture(player, object: Model, metadata: FurnitureMetadata): boolean
     local plot = getPlot(player, HousingConstants.InteriorType)
 
     local houseCFrame = CFrame.new(plot.Origin.Position)
-
+    print("HOUSE CF:", houseCFrame)
     local position = metadata.Position -- Local, relative to house cframe
     local rotation = metadata.Rotation
     local color = metadata.Color
-
+    local normal = metadata.Normal
+    print(metadata)
     if position.Magnitude < 150 then -- TODO: swap to InBounds method
-        object:PivotTo(houseCFrame * CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0))
+        local cf = houseCFrame * calculateCf(CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0), position, normal)
+        print("object cf", cf)
+        object:PivotTo(cf)
         object.Parent = plot.Furniture
 
         for _, part: BasePart in pairs(object:GetDescendants()) do
-            if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
+            if part:IsA("BasePart") and part.Parent.Name == "Color1" then
                 part.Color = color
             end
         end
@@ -110,6 +118,7 @@ local function updateFurniture(player, object: Model, metadata: FurnitureMetadat
             Position = DataUtil.serializeValue(metadata.Position),
             Rotation = DataUtil.serializeValue(metadata.Rotation),
             Color = DataUtil.serializeValue(metadata.Color),
+            Normal = DataUtil.serializeValue(metadata.Normal),
         }
     end
 end
@@ -140,12 +149,14 @@ local function loadHouse(player: Player, plot: Model, type: string)
             if objectTemplate then
                 local object = objectTemplate:Clone()
                 object.Name = id
-
+                local normal = string.split(store.Normal, ",")
+                normal = Vector3.new(tonumber(normal[1]), tonumber(normal[2]), tonumber(normal[3]))
                 placeFurniture(player, object, {
                     Name = store.Name,
                     Position = DataUtil.deserializeValue(store.Position, Vector3),
                     Rotation = DataUtil.deserializeValue(store.Rotation, Vector3),
-                    Color = DataUtil.deserializeValue(store.Position, Color3),
+                    Color = DataUtil.deserializeValue(store.Color, Color3),
+                    Normal = normal, --DataUtil.deserializeValue(store.Normal, Vector3),
                 })
             else
                 warn(("Furniture %s did not load because model no longer exists"):format(name))
