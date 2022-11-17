@@ -170,4 +170,44 @@ function InstanceUtil.onDestroyed(instance: Instance, callback: () -> nil)
     return connection
 end
 
+--[[
+    More mature WaitForChild implementation
+]]
+function InstanceUtil.waitForChild(
+    instance: Instance,
+    config: {
+        ChildName: string?,
+        ChildClassName: string?,
+        Timeout: number?,
+    }
+)
+    -- ERROR: Needs name or class
+    if not (config.ChildName or config.ChildClassName) then
+        error("Supply ChildName or ChildClassName")
+    end
+
+    local stopAtTick = tick() + (config.Timeout or math.huge)
+    while tick() < stopAtTick do
+        for _, child in pairs(instance:GetChildren()) do
+            -- Both
+            if
+                config.ChildName
+                and config.ChildClassName
+                and config.ChildName == child.Name
+                and config.ChildClassName == child.ClassName
+            then
+                return child
+            end
+
+            if config.ChildName and config.ChildName == child.Name then
+                return child
+            end
+
+            if config.ChildClassName and config.ChildClassName == child.ClassName then
+                return child
+            end
+        end
+    end
+end
+
 return InstanceUtil

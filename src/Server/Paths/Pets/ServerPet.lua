@@ -38,12 +38,18 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setupModel()
-        -- Anchor + Disable collisions
+        -- ERROR: No character
+        local character = owner.Character
+        if not character then
+            error(("No player Character (%s)"):format(owner.Name))
+            serverPet:Destroy()
+        end
+
+        -- Disable collisions
         local baseParts = InstanceUtil.getChildren(model, function(child)
             return child:IsA("BasePart")
         end)
         for _, basePart: BasePart in pairs(baseParts) do
-            basePart.Anchored = true
             basePart.CanCollide = false
         end
 
@@ -52,15 +58,11 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         model.Parent = petsFolder
 
         -- Position + Give client ownership
-        local character = owner.Character
-        if character then
-            model:PivotTo(character:GetPivot())
+        model:PivotTo(character:GetPivot())
+        InstanceUtil.weld(model.PrimaryPart, character.PrimaryPart)
 
-            model.PrimaryPart:SetNetworkOwner(owner)
-            owner:RequestStreamAroundAsync(model:GetPivot().Position)
-        else
-            error(("No player Character (%s)"):format(owner.Name))
-        end
+        model.PrimaryPart:SetNetworkOwner(owner)
+        owner:RequestStreamAroundAsync(model:GetPivot().Position)
     end
 
     -------------------------------------------------------------------------------

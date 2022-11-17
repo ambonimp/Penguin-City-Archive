@@ -22,12 +22,16 @@ local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Scope = require(Paths.Shared.Scope)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local ClientPet = require(Paths.Client.Pets.ClientPet)
 
 local CHECK_HATCHABLE_EGGS_EVERY = 3
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 
 local hatchRequestMaid = Maid.new()
 local hatchRequestScope = Scope.new()
+
+local petId: number | nil
+local pet: ClientPet.ClientPet | nil
 
 PetsController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
 
@@ -80,6 +84,45 @@ function PetsController.Start()
             end
         end)
     end
+
+    -- Communication
+    Remotes.bindEvents({
+        PetEggHatched = function(petData: PetConstants.PetData, petDataIndex: string)
+            -- Circular Dependency
+            local PetEggHatchingScreen = require(Paths.Client.UI.Screens.PetEggHatching.PetEggHatchingScreen)
+
+            PetEggHatchingScreen:SetHatchedPetData(petData, petDataIndex)
+        end,
+        PetCreated = function(newPetId: number, petDataIndex: string)
+            -- Cull Old
+            if petId then
+                petId = newPetId
+
+                if pet then
+                    pet:Destroy()
+                end
+            end
+            petId = newPetId
+
+            -- Create New
+            local newPet = ClientPet.new(newPetId, petDataIndex) -- Yields while we get model
+            if petId == newPetId then
+                pet = newPet
+            else
+                newPet:Destroy()
+            end
+        end,
+        PetDestroyed = function(oldPetId: number)
+            -- Cull Old
+            if petId == oldPetId then
+                petId = nil
+
+                if pet then
+                    pet:Destroy()
+                end
+            end
+        end,
+    })
 end
 
 -------------------------------------------------------------------------------
@@ -197,24 +240,5 @@ function PetsController.getTotalHatchableEggs()
 
     return total
 end
-
--------------------------------------------------------------------------------
--- Communication
--------------------------------------------------------------------------------
-
-Remotes.bindEvents({
-    PetEggHatched = function(petData: PetConstants.PetData, petDataIndex: string)
-        -- Circular Dependency
-        local PetEggHatchingScreen = require(Paths.Client.UI.Screens.PetEggHatching.PetEggHatchingScreen)
-
-        PetEggHatchingScreen:SetHatchedPetData(petData, petDataIndex)
-    end,
-    PetCreated = function(petId: number)
-        print("create pet", petId)
-    end,
-    PetDestroyed = function(petId: number)
-        print("destroy pet", petId)
-    end,
-})
 
 return PetsController

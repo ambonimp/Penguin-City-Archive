@@ -121,7 +121,7 @@ local function updatePlayerPet(player: Player, isLeaving: boolean?)
             local newPet = ServerPet.new(player, equippedPetDataIndex)
             petsByPlayer[player] = newPet
 
-            Remotes.fireClient(player, "PetCreated", newPet:GetId())
+            Remotes.fireClient(player, "PetCreated", newPet:GetId(), equippedPetDataIndex)
         else
             warn(("Cannot update pet for %s; no character!"):format(player.Name))
         end
