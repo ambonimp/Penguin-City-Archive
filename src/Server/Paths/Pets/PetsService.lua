@@ -22,6 +22,11 @@ local Remotes = require(Paths.Shared.Remotes)
 local Products = require(Paths.Shared.Products.Products)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
+local ServerPet = require(Paths.Server.Pets.ServerPet)
+
+local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
+
+local petsByPlayer: { [Player]: ServerPet.ServerPet } = {}
 
 function PetsService.Init()
     -- Dependencies
@@ -30,6 +35,10 @@ end
 -------------------------------------------------------------------------------
 -- Pets
 -------------------------------------------------------------------------------
+
+local function isValidPetDataIndex(player: Player, petDataIndex: string)
+    return PetsService.getPets(player)[petDataIndex] and true or false
+end
 
 -- Returns the PetDataIndex
 function PetsService.addPet(player: Player, petData: PetConstants.PetData)
@@ -45,6 +54,10 @@ function PetsService.removePet(player: Player, petDataIndex: string)
     DataService.set(player, address, nil, "PetUpdated", {
         PetDataIndex = petDataIndex,
     })
+
+    if petDataIndex == PetsService.getEquippedPetDataIndex(player) then
+        PetsService.unequipPet(player)
+    end
 end
 
 -- Keys are petDataIndex
@@ -85,6 +98,58 @@ function PetsService.changePetName(player: Player, petDataIndex: string, petName
     DataService.set(player, PetUtils.getPetDataAddress(petDataIndex), petData, "PetDataUpdated")
 
     return true
+end
+
+-- Will create and/or destroy a pet for our player
+local function updatePlayerPet(player: Player, isLeaving: boolean?)
+    local equippedPetDataIndex = PetsService.getEquippedPetDataIndex(player)
+    local currentPet = petsByPlayer[player]
+
+    local doDestroy = currentPet and (isLeaving or currentPet:GetPetDataIndex() ~= equippedPetDataIndex)
+    if doDestroy then
+        Remotes.fireClient(player, "PetDestroyed", currentPet:GetId())
+
+        currentPet:Destroy()
+        petsByPlayer[player] = nil
+    end
+
+    local doCreate = equippedPetDataIndex and not isLeaving and ((not currentPet) or currentPet:GetPetDataIndex() ~= equippedPetDataIndex)
+    if doCreate then
+        -- WARN: Needs character
+        local character = player.Character
+        if character then
+            local newPet = ServerPet.new(player, equippedPetDataIndex)
+            petsByPlayer[player] = newPet
+
+            Remotes.fireClient(player, "PetCreated", newPet:GetId())
+        else
+            warn(("Cannot update pet for %s; no character!"):format(player.Name))
+        end
+    end
+end
+Remotes.declareEvent("PetDestroyed")
+Remotes.declareEvent("PetCreated")
+
+function PetsService.equipPet(player: Player, petDataIndex: string)
+    local _petData = PetsService.getPet(player, petDataIndex) -- Will throw an error for us if petDataIndex is bad
+
+    -- Unequip old pet
+    if PetsService.getEquippedPetDataIndex(player) then
+        PetsService.unequipPet(player)
+    end
+
+    DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, petDataIndex, "EquippedPetUpdated")
+    updatePlayerPet(player)
+end
+
+-- Returns PetDataIndex (if it exists)
+function PetsService.getEquippedPetDataIndex(player: Player)
+    return DataService.get(player, EQUIPPED_PET_DATA_ADDRESS)
+end
+
+function PetsService.unequipPet(player: Player)
+    DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
+    updatePlayerPet(player)
 end
 
 -------------------------------------------------------------------------------
@@ -178,7 +243,13 @@ end
 -- Players
 -------------------------------------------------------------------------------
 
+function PetsService.loadPlayer(player: Player)
+    updatePlayerPet(player)
+end
+
 function PetsService.unloadPlayer(player: Player)
+    updatePlayerPet(player, true)
+
     -- Deduct playtime from egg hatch times data
     DataService.set(player, "Pets.Eggs", PetsService.getHatchTimes(player))
 end
@@ -223,6 +294,22 @@ Remotes.bindFunctions({
         end
 
         return PetsService.changePetName(player, petDataIndex, petName, true)
+    end,
+    EquipRequest = function(player: Player, dirtyPetDataIndex: any)
+        -- Clean Data
+        local petDataIndex = TypeUtil.toString(dirtyPetDataIndex)
+        if petDataIndex then
+            if isValidPetDataIndex(player, petDataIndex) then
+                PetsService.equipPet(player, petDataIndex)
+                return true
+            else
+                warn(("%q is invalid"):format(petDataIndex))
+                return false
+            end
+        end
+
+        PetsService.unequipPet(player)
+        return true
     end,
 })
 

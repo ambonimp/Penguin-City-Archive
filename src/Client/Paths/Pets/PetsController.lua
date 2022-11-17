@@ -24,6 +24,7 @@ local Scope = require(Paths.Shared.Scope)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 
 local CHECK_HATCHABLE_EGGS_EVERY = 3
+local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 
 local hatchRequestMaid = Maid.new()
 local hatchRequestScope = Scope.new()
@@ -119,6 +120,19 @@ function PetsController.setPetName(petName: string, petDataIndex: string)
     return assume
 end
 
+-- Returns PetDataIndex (if it exists)
+function PetsController.getEquippedPetDataIndex()
+    return DataController.get(EQUIPPED_PET_DATA_ADDRESS)
+end
+
+function PetsController.equipPetRequest(petDataIndex: string)
+    Remotes.invokeServer("EquipRequest", petDataIndex)
+end
+
+function PetsController.unequipPetRequest()
+    Remotes.invokeServer("EquipRequest", nil)
+end
+
 -------------------------------------------------------------------------------
 -- Eggs
 -------------------------------------------------------------------------------
@@ -194,6 +208,12 @@ Remotes.bindEvents({
         local PetEggHatchingScreen = require(Paths.Client.UI.Screens.PetEggHatching.PetEggHatchingScreen)
 
         PetEggHatchingScreen:SetHatchedPetData(petData, petDataIndex)
+    end,
+    PetCreated = function(petId: number)
+        print("create pet", petId)
+    end,
+    PetDestroyed = function(petId: number)
+        print("destroy pet", petId)
     end,
 })
 

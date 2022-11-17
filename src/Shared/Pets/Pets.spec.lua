@@ -32,10 +32,14 @@ return function()
         -- Models
         for _, petVariant in pairs(petVariants) do
             -- Must have a model
-            local success, result = pcall(function()
+            local success, result: Model | string = pcall(function()
                 return PetUtils.getModel(petType, petVariant)
             end)
-            if not success then
+            if success then
+                if not result.PrimaryPart then
+                    table.insert(issues, ("Pet Model missing Primary Part for %q %q"):format(petType, petVariant))
+                end
+            else
                 table.insert(issues, ("Missing model for %q %q (%s)"):format(petType, petVariant, tostring(result)))
             end
         end

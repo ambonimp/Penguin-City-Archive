@@ -244,7 +244,7 @@ function InventoryWindow.new(
                 if equipping then
                     if entry.EquipValue == equippedValue then
                         inventoryWindow:Equip(nil)
-                    else
+                    elseif entry.EquipValue ~= nil then
                         inventoryWindow:Equip(entry.EquipValue)
                     end
                 end

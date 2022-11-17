@@ -41,6 +41,15 @@ function InventoryPetsWindow.new(
     data = data or {}
     local inventoryPetsWindow = InventoryWindow.new(icon, title, {
         AddCallback = data.AddCallback,
+        Equipping = {
+            Equip = function(petDataIndex: string)
+                PetsController.equipPetRequest(petDataIndex)
+            end,
+            Unequip = function(_product: Products.Product)
+                PetsController.unequipPetRequest()
+            end,
+            StartEquipped = PetsController.getEquippedPetDataIndex(),
+        },
     })
 
     -------------------------------------------------------------------------------
@@ -113,6 +122,7 @@ function InventoryPetsWindow.new(
 
                 return widget
             end,
+            EquipValue = petDataIndex,
         }
         table.insert(populateData, entry)
     end

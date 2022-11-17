@@ -43,6 +43,7 @@ function PlayerService.Start()
         PlotService.loadPlayer(player)
         ZoneService.loadPlayer(player)
         RewardsService.loadPlayer(player)
+        PetsService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)

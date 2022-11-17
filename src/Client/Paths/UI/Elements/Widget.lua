@@ -244,7 +244,7 @@ function Widget.diverseWidget()
     local outlineStroke = Instance.new("UIStroke")
     outlineStroke.Name = "outlineStroke"
     outlineStroke.Color = Color3.fromRGB(59, 148, 0)
-    outlineStroke.Thickness = 6
+    outlineStroke.Thickness = 10
     outlineStroke.Enabled = false
     outlineStroke.Parent = imageButton
 
