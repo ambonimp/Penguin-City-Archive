@@ -52,6 +52,14 @@ local ALIGNER_PROPERTIES = {
     },
 }
 
+local function getHeightAlphaFromJumpProgress(jumpProgress: number)
+    if jumpProgress < 0.5 then
+        return TweenService:GetValue(jumpProgress * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    else
+        return TweenService:GetValue(1 - (jumpProgress - 0.5) * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    end
+end
+
 function PetMover.new(model: Model)
     local petMover = {}
 
@@ -230,7 +238,7 @@ function PetMover.new(model: Model)
             -- Jumping
             if movementState.Jumping then
                 -- Get Jump Height
-                local progress = MathUtil.map(
+                local linearProgress = MathUtil.map(
                     tick(),
                     movementState.Jumping.StartedAtTick,
                     movementState.Jumping.StartedAtTick + PetConstants.Following.JumpDuration,
@@ -238,15 +246,15 @@ function PetMover.new(model: Model)
                     1,
                     true
                 )
-                local heightAlpha = progress < 0.5 and progress or (1 - progress)
+                local heightAlpha = getHeightAlphaFromJumpProgress(linearProgress)
                 local finalY = movementState.Jumping.StartPosition.Y + heightAlpha * PetConstants.Following.JumpHeight
 
-                local currentCFrame = getPetBottomCFrame()
-                local newPosition = Vector3.new(currentCFrame.Position.X, finalY, currentCFrame.Position.Z)
-                setPetBottomCFrame(CFrameUtil.setPosition(currentCFrame, newPosition))
+                local currentPosition = movementState.Moving and movementState.Moving.GoalPosition or getPetBottomCFrame().Position
+                local newPosition = Vector3.new(currentPosition.X, finalY, currentPosition.Z)
+                setPetBottomCFrame(CFrameUtil.setPosition(getPetBottomCFrame(), newPosition))
 
                 -- Clear if jump completed
-                if progress == 1 then
+                if linearProgress == 1 then
                     movementState.Jumping = nil
                 else
                     finalState = "Jumping"

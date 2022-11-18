@@ -74,6 +74,7 @@ PetConstants.PetRarities = petRarities
 PetConstants.DefaultHatchTime = 20 * 60
 
 local petEggs: { [string]: PetEgg } = {
+    --#region Common
     Common = {
         HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
@@ -127,6 +128,8 @@ local petEggs: { [string]: PetEgg } = {
             },
         },
     },
+    --#endregion
+    --#region Rare
     Rare = {
         HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
@@ -180,6 +183,8 @@ local petEggs: { [string]: PetEgg } = {
             },
         },
     },
+    --#endregion
+    --#region Legendary
     Legendary = {
         HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
@@ -233,6 +238,7 @@ local petEggs: { [string]: PetEgg } = {
             },
         },
     },
+    --#endregion
 }
 PetConstants.PetEggs = petEggs
 
@@ -250,8 +256,8 @@ PetConstants.PetEggHatchingDuration = 2
 PetConstants.Following = {
     SideDistance = 5,
     MaxDistance = 10,
-    JumpHeight = 10,
-    JumpDuration = 1,
+    JumpHeight = 5,
+    JumpDuration = 0.5,
 }
 
 PetConstants.ModelScale = 0.5
