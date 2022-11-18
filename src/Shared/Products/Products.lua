@@ -68,10 +68,10 @@ local products: { [string]: { [string]: Product } } = {
     --#endregion
     --#region Pet Eggs
     PetEgg = {
-        pet_egg_test = {
-            Id = "pet_egg_test",
-            DisplayName = "Test Egg",
-            Description = "Test Egg",
+        pet_egg_common = {
+            Id = "pet_egg_common",
+            DisplayName = "Common Egg",
+            Description = "Common Egg",
             ImageId = Images.Pets.Eggs.Blue,
             IsConsumable = true,
             ConsumeImmediately = true,
@@ -80,8 +80,40 @@ local products: { [string]: { [string]: Product } } = {
                 DeveloperProductId = 1335900877,
             },
             Metadata = {
-                PetEggName = "Test",
+                PetEggName = "Common",
                 Model = assets.Pets.Eggs.Blue,
+            },
+        },
+        pet_egg_rare = {
+            Id = "pet_egg_rare",
+            DisplayName = "Rare Egg",
+            Description = "Rare Egg",
+            ImageId = Images.Pets.Eggs.Purple,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 99,
+                DeveloperProductId = 1335900877,
+            },
+            Metadata = {
+                PetEggName = "Rare",
+                Model = assets.Pets.Eggs.Purple,
+            },
+        },
+        pet_egg_legendary = {
+            Id = "pet_egg_legendary",
+            DisplayName = "Legendary Egg",
+            Description = "Legendary Egg",
+            ImageId = Images.Pets.Eggs.Gold,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 99,
+                DeveloperProductId = 1335900877,
+            },
+            Metadata = {
+                PetEggName = "Legendary",
+                Model = assets.Pets.Eggs.Gold,
             },
         },
     },

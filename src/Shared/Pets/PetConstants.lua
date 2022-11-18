@@ -56,7 +56,7 @@ local petVariants: { [string]: { [string]: string } } = {
         White = "White",
         Yellow = "Yellow",
     },
-    [petTypes.Dinosaur] = {
+    [petTypes.Unicorn] = {
         Pink = "Pink",
         Purple = "Purple",
         Yellow = "Yellow",
@@ -74,9 +74,147 @@ PetConstants.PetRarities = petRarities
 PetConstants.DefaultHatchTime = 20 * 60
 
 local petEggs: { [string]: PetEgg } = {
-    Test = {
+    Common = {
         HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Dog",
+                    PetVariant = "Black",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Dog",
+                    PetVariant = "Brown",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Cat",
+                    PetVariant = "Black",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Cat",
+                    PetVariant = "Blue",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Rabbit",
+                    PetVariant = "Green",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Panda",
+                    PetVariant = "Black",
+                    PetRarity = "Common",
+                },
+            },
+        },
+    },
+    Rare = {
+        HatchTime = PetConstants.DefaultHatchTime,
+        WeightTable = {
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Dog",
+                    PetVariant = "Grey",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Cat",
+                    PetVariant = "Grey",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Rabbit",
+                    PetVariant = "White",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Rabbit",
+                    PetVariant = "Yellow",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Unicorn",
+                    PetVariant = "Pink",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Panda",
+                    PetVariant = "Blue",
+                    PetRarity = "Common",
+                },
+            },
+        },
+    },
+    Legendary = {
+        HatchTime = PetConstants.DefaultHatchTime,
+        WeightTable = {
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Panda",
+                    PetVariant = "Purple",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Unicorn",
+                    PetVariant = "Purple",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Unicorn",
+                    PetVariant = "Yellow",
+                    PetRarity = "Common",
+                },
+            },
+            {
+                Weight = 1,
+                Value = {
+                    PetType = "Dinosaur",
+                    PetVariant = "Pink",
+                    PetRarity = "Common",
+                },
+            },
             {
                 Weight = 1,
                 Value = {
@@ -86,18 +224,10 @@ local petEggs: { [string]: PetEgg } = {
                 },
             },
             {
-                Weight = 2,
+                Weight = 1,
                 Value = {
                     PetType = "Dinosaur",
                     PetVariant = "Orange",
-                    PetRarity = "Common",
-                },
-            },
-            {
-                Weight = 3,
-                Value = {
-                    PetType = "Dinosaur",
-                    PetVariant = "Pink",
                     PetRarity = "Common",
                 },
             },
@@ -124,6 +254,6 @@ PetConstants.Following = {
     JumpDuration = 1,
 }
 
-PetConstants.ModelScale = 0.4
+PetConstants.ModelScale = 0.5
 
 return PetConstants
