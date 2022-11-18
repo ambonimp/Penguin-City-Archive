@@ -13,7 +13,7 @@ local PropertyStack = require(Paths.Shared.PropertyStack)
 local CharacterController = require(Paths.Server.Characters.CharacterService)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
-local ChangeUti = require(Paths.Shared.Utils.ChanceUtil)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
@@ -130,7 +130,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
             local collectableId = tostring(idCounter)
             local collectableDropOrigin = collectableSpawns[random:NextInteger(1, #collectableSpawns)].Position
-            local collectableType = ChangeUti.drawFromPool(IceCreamExtravaganzaConstants.CollectableDropProbability)
+            local collectableType = MathUtil.weightedChoice(IceCreamExtravaganzaConstants.CollectableDropProbability)
             local collectableModel = collectableModels[collectableType][random:NextInteger(1, #collectableModels[collectableType])]
 
             local collectable: Collectable = {
