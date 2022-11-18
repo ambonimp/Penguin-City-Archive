@@ -85,6 +85,10 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         return petData
     end
 
+    function serverPet:GetModel()
+        return model
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------

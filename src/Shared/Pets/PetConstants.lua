@@ -256,8 +256,8 @@ PetConstants.PetEggHatchingDuration = 2
 PetConstants.Following = {
     SideDistance = 5,
     MaxDistance = 10,
-    JumpHeight = 5,
-    JumpDuration = 0.5,
+    JumpHeight = 1,
+    JumpDuration = 0.3,
 }
 
 PetConstants.ModelScale = 0.5

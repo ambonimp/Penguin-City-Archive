@@ -23,6 +23,8 @@ local Products = require(Paths.Shared.Products.Products)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
+local ZoneService = require(Paths.Server.Zones.ZoneService)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 
@@ -32,6 +34,7 @@ function PetsService.Init()
     -- Dependencies
     ProductService = require(Paths.Server.Products.ProductService)
 end
+
 -------------------------------------------------------------------------------
 -- Pets
 -------------------------------------------------------------------------------

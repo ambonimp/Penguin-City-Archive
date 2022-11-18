@@ -40,6 +40,7 @@ local VECTOR_DOWN = Vector3.new(0, -1, 0)
 local RAYCAST_ORIGIN_OFFSET = Vector3.new(0, 5, 0)
 local RAYCAST_LENGTH = 20
 local CLOSE_EPSILON = 0.1
+local PIVOT_TO_PLAYER_AT_DISTANCE = 200
 
 local ALIGNER_PROPERTIES = {
     ALIGN_POSITION = {
@@ -56,7 +57,7 @@ local function getHeightAlphaFromJumpProgress(jumpProgress: number)
     if jumpProgress < 0.5 then
         return TweenService:GetValue(jumpProgress * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     else
-        return TweenService:GetValue(1 - (jumpProgress - 0.5) * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        return TweenService:GetValue(math.pow(1 - (jumpProgress - 0.5) * 2, 1.5), Enum.EasingStyle.Quad, Enum.EasingDirection.In)
     end
 end
 
@@ -187,6 +188,15 @@ function PetMover.new(model: Model)
         }
         lastTickState = lastTickState or thisTickState -- First time init
 
+        -- Teleport
+        local isVeryFarAway = thisTickState.Distance > PIVOT_TO_PLAYER_AT_DISTANCE
+        if isVeryFarAway then
+            local newCFrame = CFrameUtil.setPosition(character:GetPivot(), getSidePosition() or getSidePosition(true))
+
+            model:PivotTo(newCFrame)
+            goalPart:PivotTo(newCFrame)
+        end
+
         -- Make Decision
         do
             --* Moving
@@ -247,7 +257,8 @@ function PetMover.new(model: Model)
                     true
                 )
                 local heightAlpha = getHeightAlphaFromJumpProgress(linearProgress)
-                local finalY = movementState.Jumping.StartPosition.Y + heightAlpha * PetConstants.Following.JumpHeight
+                local finalY = (movementState.Moving and movementState.Moving.GoalPosition.Y or movementState.Jumping.StartPosition.Y)
+                    + heightAlpha * PetConstants.Following.JumpHeight
 
                 local currentPosition = movementState.Moving and movementState.Moving.GoalPosition or getPetBottomCFrame().Position
                 local newPosition = Vector3.new(currentPosition.X, finalY, currentPosition.Z)
