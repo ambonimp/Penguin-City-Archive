@@ -62,7 +62,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
     -------------------------------------------------------------------------------
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
         CharacterUtil.setEthereal(participant, true, "SledRace")
-        SledRaceSled.spawnSled(participant, spawnPoints[table.find(participants, participant)])
+        SledRaceSled.spawnSled(participant, minigameSession:GetPlayerSpawnPoint(participant))
     end)
 
     minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
@@ -190,8 +190,8 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
         participantData = {}
     end, function()
         -- Respawn at spawn points
-        for i, participant in pairs(participants) do
-            SledRaceSled.spawnSled(participant, spawnPoints[i])
+        for _, participant in pairs(participants) do
+            SledRaceSled.spawnSled(participant, minigameSession:GetPlayerSpawnPoint(participant))
         end
     end)
 

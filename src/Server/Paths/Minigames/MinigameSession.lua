@@ -29,7 +29,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-
     local janitor = Janitor.new()
     local stateMachine = StateMachine.new(TableUtil.getKeys(STATES), STATES.Nothing)
     janitor:Add(stateMachine)
@@ -37,6 +36,9 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, id)
     local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
     janitor:Add(ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone()))
+
+    local playerSpawns: Model? = map:FindFirstChild("PlayerSpawns")
+    local playerSpawnRandomizer: number = 0
 
     local participants: Participants = {}
     local scores: { [Player]: number }?
@@ -46,6 +48,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     local defaultScore: number?
     local started: boolean = false
+
+    local random = Random.new()
 
     -------------------------------------------------------------------------------
     -- PUBLIC MEMBERS
@@ -71,6 +75,10 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     -------------------------------------------------------------------------------
     -- PUBLIC METHODS
     -------------------------------------------------------------------------------
+    function minigameSession:GetJanitor()
+        return janitor
+    end
+
     function minigameSession:GetState(): string
         return stateMachine:GetState()
     end
@@ -100,8 +108,29 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         return map
     end
 
-    function minigameSession:GetJanitor()
-        return janitor
+    function minigameSession:GetPlayerSpawnPoint(participant: Player): BasePart
+        -- ERROR: Player doesn't belong to this minigame
+        if not minigameSession:IsPlayerParticipant(participant) then
+            error(minigameName .. " minigame attempting to get a spawn point for a player who isn't participanting in the session")
+        end
+
+        -- ERROR: No spawn points
+        if not playerSpawns then
+            error(minigameName .. " minigame doesn't have player spawn points. Spawn points should be in a folder called PlayerSpawns")
+        end
+
+        -- ERROR: Not enough player spawns
+        if not (#playerSpawns < config.MaxParticipants) then
+            error(
+                ("%s minigame doesn't have enough player spawn points. Only has %d/%d"):format(
+                    minigameName,
+                    #playerSpawns,
+                    config.MaxParticipants
+                )
+            )
+        end
+
+        return playerSpawns[(table.find(participants, participant) + playerSpawnRandomizer) % #playerSpawns]
     end
 
     function minigameSession:RelayToParticipants(eventName: string, ...: any)
@@ -341,6 +370,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.AwardShow, function()
+            playerSpawnRandomizer = random:NextNumber(0, #playerSpawns)
+
             for _, participant in pairs(participants) do
                 if not scores[participant] then
                     scores[participant] = defaultScore

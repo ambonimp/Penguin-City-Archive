@@ -56,7 +56,6 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
     minigameJanitor:Add(minigameJanitor)
 
     local map = minigameSession:GetMap()
-    local playerSpawns = map.PlayerSpawns:GetChildren()
     local collectableSpawns = map.CollectableSpawns:GetChildren()
 
     -------------------------------------------------------------------------------
@@ -75,7 +74,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
         local humanoidRootPart = character.HumanoidRootPart
 
         PropertyStack.setProperty(humanoid, "WalkSpeed", IceCreamExtravaganzaConstants.WalkSpeed, PROPERTY_STACK_KEY_SPEED, math.huge)
-        CharacterController.standOn(character, playerSpawns[table.find(participants, participant)])
+        CharacterController.standOn(character, minigameSession:GetPlayerSpawnPoint(participant))
 
         clearCone(participant)
         local cone: Model = serverAssets.Cone:Clone()
