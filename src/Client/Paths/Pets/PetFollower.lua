@@ -15,6 +15,7 @@ local ZoneController = require(Paths.Client.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
+local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
 
 export type PetFollower = typeof(PetFollower.new())
 
@@ -37,9 +38,17 @@ local VECTOR_DOWN = Vector3.new(0, -1, 0)
 local RAYCAST_ORIGIN_OFFSET = Vector3.new(0, 5, 0)
 local RAYCAST_LENGTH = 20
 local EPSILON = 0.01
-local SPEED_CLOSE_DISTANCE = 10
-local SPEED_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local SPEED_MIN = 2
+
+local MOVER_PROPERTIES = {
+    ALIGN_POSITION = {
+        MaxForce = 100000,
+        Responsiveness = 20,
+    },
+    ALIGN_ORIENTATION = {
+        MaxTorque = 1000000,
+        Responsiveness = 30,
+    },
+}
 
 function PetFollower.new(model: Model)
     local petFollower = {}
@@ -50,11 +59,16 @@ function PetFollower.new(model: Model)
 
     local maid = Maid.new()
     local isDestroyed = false
-
     local character: Model
-
+    local goalPart = Instance.new("Part")
+    local goalAttachment = Instance.new("Attachment")
+    local modelAttachment = Instance.new("Attachment")
+    local alignPosition = Instance.new("AlignPosition")
+    local alignOrientation = Instance.new("AlignOrientation")
     local lastTickState: TickState | nil
     local movementState: MovementState = {}
+
+    maid:GiveTask(goalPart)
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -66,7 +80,34 @@ function PetFollower.new(model: Model)
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function getDistance()
+    local function setup()
+        modelAttachment.Name = "PetFollowerAttachment"
+        modelAttachment.Parent = model.PrimaryPart
+        modelAttachment.Position = Vector3.new(0, -model.PrimaryPart.Size.Y / 2, 0)
+
+        goalPart.Size = Vector3.new(0.1, 0.1, 0.1)
+        goalPart.Anchored = true
+        goalPart.CanCollide = false
+        goalPart.Transparency = 1
+        goalPart.Name = "PetFollowerGoalPart"
+        goalPart.Parent = game.Workspace
+
+        goalAttachment.Parent = goalPart
+
+        InstanceUtil.setProperties(alignPosition, MOVER_PROPERTIES.ALIGN_POSITION)
+        alignPosition.Attachment0 = modelAttachment
+        alignPosition.Attachment1 = goalAttachment
+        alignPosition.Parent = model.PrimaryPart
+
+        InstanceUtil.setProperties(alignOrientation, MOVER_PROPERTIES.ALIGN_ORIENTATION)
+        alignOrientation.Attachment0 = modelAttachment
+        alignOrientation.Attachment1 = goalAttachment
+        alignOrientation.Parent = model.PrimaryPart
+
+        model.PrimaryPart.CanCollide = false
+    end
+
+    local function getDistanceFromCharacter()
         return (character:GetPivot().Position - model:GetPivot().Position).Magnitude
     end
 
@@ -98,15 +139,13 @@ function PetFollower.new(model: Model)
     end
 
     -- `cframe` is the position of the pets feet
-    local function setPetCFrame(cframe: CFrame)
-        local centeredCFrame = cframe + Vector3.new(0, model.PrimaryPart.Size.Y / 2, 0)
-        model:PivotTo(centeredCFrame)
+    local function setPetBottomCFrame(cframe: CFrame)
+        goalPart:PivotTo(cframe)
     end
 
     -- Returns CFrame of the position of the pets feet
-    local function getPetCFrame()
-        local floorCFrame = model:GetPivot() - Vector3.new(0, model.PrimaryPart.Size.Y / 2, 0)
-        return floorCFrame
+    local function getPetBottomCFrame()
+        return AttachmentUtil.getWorldCFrame(modelAttachment)
     end
 
     local function doTick(dt: number)
@@ -124,15 +163,16 @@ function PetFollower.new(model: Model)
         local thisTickState: TickState = {
             IsMoving = humanoid.MoveDirection.Magnitude > 0,
             IsJumping = humanoid:GetState() == Enum.HumanoidStateType.Freefall,
-            Distance = getDistance(),
+            Distance = getDistanceFromCharacter(),
         }
         lastTickState = lastTickState or thisTickState -- First time init
 
         -- Make Decision
         do
             --* Moving
-            if thisTickState.IsMoving then
-                local doUpdatePosition = movementState.Moving or thisTickState.Distance > PetConstants.Following.MaxDistance
+            local isFarAway = thisTickState.Distance > PetConstants.Following.MaxDistance
+            if thisTickState.IsMoving or isFarAway then
+                local doUpdatePosition = movementState.Moving or isFarAway
                 if doUpdatePosition then
                     movementState.Moving = movementState.Moving or {}
 
@@ -148,7 +188,7 @@ function PetFollower.new(model: Model)
                 -- If we just jumped, and pet is not jumping
                 if not lastTickState.IsJumping and not movementState.Jumping then
                     movementState.Jumping = movementState.Jumping or {}
-                    movementState.Jumping.StartPosition = getPetCFrame().Position
+                    movementState.Jumping.StartPosition = getPetBottomCFrame().Position
                     movementState.Jumping.StartedAtTick = tick()
                 end
 
@@ -161,35 +201,11 @@ function PetFollower.new(model: Model)
         do
             -- Moving
             if movementState.Moving then
-                -- Calculate speed
-                local currentDistance = (movementState.Moving.GoalPosition - getPetCFrame().Position).Magnitude
-                local travelDistance: number
-                if currentDistance >= SPEED_CLOSE_DISTANCE then
-                    -- If far away, get within `SPEED_CLOSE_DISTANCE` in a fixed time
-                    travelDistance = currentDistance * ((1 / SPEED_TWEEN_INFO.Time) * dt)
-                else
-                    -- If close, tween to goal position, slowing down as we go
-                    local currentAlpha = math.clamp((SPEED_CLOSE_DISTANCE - currentDistance) / SPEED_CLOSE_DISTANCE, 0, 1)
-                    local newAlpha = math.clamp(currentAlpha + SPEED_TWEEN_INFO.Time * dt, 0, 1)
-                    local alpha0 = TweenService:GetValue(currentAlpha, SPEED_TWEEN_INFO.EasingStyle, SPEED_TWEEN_INFO.EasingDirection)
-                    local alpha1 = TweenService:GetValue(newAlpha, SPEED_TWEEN_INFO.EasingStyle, SPEED_TWEEN_INFO.EasingDirection)
-
-                    print(currentAlpha, alpha1, alpha0)
-
-                    local alpha = (alpha1 - alpha0) / alpha1
-                    travelDistance = math.max(alpha * currentDistance, SPEED_MIN * dt)
-                end
-
-                -- Lerp Position
-                local lerpAlpha = currentDistance ~= 0 and math.clamp(travelDistance / currentDistance, 0, 1) or 1
-                print(lerpAlpha)
-                local goalCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition)
-                local finalCFrame = getPetCFrame():Lerp(goalCFrame, lerpAlpha)
-
-                setPetCFrame(finalCFrame)
+                local newCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition)
+                setPetBottomCFrame(newCFrame)
 
                 -- Clear if close enough
-                if (getPetCFrame().Position - movementState.Moving.GoalPosition).Magnitude < EPSILON then
+                if (getPetBottomCFrame().Position - movementState.Moving.GoalPosition).Magnitude < EPSILON then
                     movementState.Moving = nil
                 end
             end
@@ -208,9 +224,9 @@ function PetFollower.new(model: Model)
                 local heightAlpha = progress < 0.5 and progress or (1 - progress)
                 local finalY = movementState.Jumping.StartPosition.Y + heightAlpha * PetConstants.Following.JumpHeight
 
-                local currentCFrame = getPetCFrame()
+                local currentCFrame = getPetBottomCFrame()
                 local newPosition = Vector3.new(currentCFrame.Position.X, finalY, currentCFrame.Position.Z)
-                setPetCFrame(CFrameUtil.setPosition(currentCFrame, newPosition))
+                setPetBottomCFrame(CFrameUtil.setPosition(currentCFrame, newPosition))
 
                 -- Clear if jump completed
                 if progress == 1 then
@@ -239,6 +255,8 @@ function PetFollower.new(model: Model)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    setup()
 
     maid:GiveTask(RunService.RenderStepped:Connect(doTick))
 

@@ -38,7 +38,7 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function setupModel()
+    local function setup()
         -- Pet Follower
         petFollower = PetFollower.new(model)
         clientPet:GetMaid():GiveTask(petFollower)
@@ -57,7 +57,7 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     if model then
-        setupModel()
+        setup()
     end
 
     return clientPet

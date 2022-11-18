@@ -39,7 +39,7 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function setupModel()
+    local function setup()
         PhysicsService:SetPartCollisionGroup(model.PrimaryPart, CollisionsConstants.Groups.Pet)
         serverPet:GetMaid():GiveTask(model)
 
@@ -72,7 +72,7 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -- Logic
     -------------------------------------------------------------------------------
 
-    setupModel()
+    setup()
 
     return serverPet
 end
