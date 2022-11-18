@@ -22,6 +22,11 @@ export type PetData = {
 
 local petTypes: { [string]: string } = {
     Dinosaur = "Dinosaur",
+    Cat = "Cat",
+    Dog = "Dog",
+    Panda = "Panda",
+    Rabbit = "Rabbit",
+    Unicorn = "Unicorn",
 }
 PetConstants.PetTypes = petTypes
 
@@ -30,6 +35,31 @@ local petVariants: { [string]: { [string]: string } } = {
         Green = "Green",
         Orange = "Orange",
         Pink = "Pink",
+    },
+    [petTypes.Cat] = {
+        Black = "Black",
+        Blue = "Blue",
+        Grey = "Grey",
+    },
+    [petTypes.Dog] = {
+        Black = "Black",
+        Brown = "Brown",
+        Grey = "Grey",
+    },
+    [petTypes.Panda] = {
+        Black = "Black",
+        Blue = "Blue",
+        Purple = "Purple",
+    },
+    [petTypes.Rabbit] = {
+        Green = "Green",
+        White = "White",
+        Yellow = "Yellow",
+    },
+    [petTypes.Dinosaur] = {
+        Pink = "Pink",
+        Purple = "Purple",
+        Yellow = "Yellow",
     },
 }
 PetConstants.PetVariants = petVariants
