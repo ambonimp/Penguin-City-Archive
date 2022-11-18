@@ -1,4 +1,4 @@
-local PetFollower = {}
+local PetMover = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -16,8 +16,9 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
+local Signal = require(Paths.Shared.Signal)
 
-export type PetFollower = typeof(PetFollower.new())
+export type PetMover = typeof(PetMover.new())
 
 type TickState = {
     IsMoving: boolean,
@@ -33,13 +34,14 @@ type MovementState = {
         StartedAtTick: number,
     }?,
 }
+type State = "Idle" | "Walking" | "Jumping"
 
 local VECTOR_DOWN = Vector3.new(0, -1, 0)
 local RAYCAST_ORIGIN_OFFSET = Vector3.new(0, 5, 0)
 local RAYCAST_LENGTH = 20
-local EPSILON = 0.01
+local CLOSE_EPSILON = 0.1
 
-local MOVER_PROPERTIES = {
+local ALIGNER_PROPERTIES = {
     ALIGN_POSITION = {
         MaxForce = 100000,
         Responsiveness = 20,
@@ -50,8 +52,8 @@ local MOVER_PROPERTIES = {
     },
 }
 
-function PetFollower.new(model: Model)
-    local petFollower = {}
+function PetMover.new(model: Model)
+    local petMover = {}
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -68,17 +70,27 @@ function PetFollower.new(model: Model)
     local lastTickState: TickState | nil
     local movementState: MovementState = {}
 
+    local state: State = "Idle"
+
     maid:GiveTask(goalPart)
 
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
 
-    --todo
+    petMover.StateChanged = Signal.new() -- {state: "Idle" | "Walking" | "Jumping"}
+    maid:GiveTask(petMover.StateChanged)
 
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
+
+    local function setState(newState: State)
+        if newState ~= state then
+            state = newState
+            petMover.StateChanged:Fire(state)
+        end
+    end
 
     local function setup()
         modelAttachment.Name = "PetFollowerAttachment"
@@ -94,12 +106,12 @@ function PetFollower.new(model: Model)
 
         goalAttachment.Parent = goalPart
 
-        InstanceUtil.setProperties(alignPosition, MOVER_PROPERTIES.ALIGN_POSITION)
+        InstanceUtil.setProperties(alignPosition, ALIGNER_PROPERTIES.ALIGN_POSITION)
         alignPosition.Attachment0 = modelAttachment
         alignPosition.Attachment1 = goalAttachment
         alignPosition.Parent = model.PrimaryPart
 
-        InstanceUtil.setProperties(alignOrientation, MOVER_PROPERTIES.ALIGN_ORIENTATION)
+        InstanceUtil.setProperties(alignOrientation, ALIGNER_PROPERTIES.ALIGN_ORIENTATION)
         alignOrientation.Attachment0 = modelAttachment
         alignOrientation.Attachment1 = goalAttachment
         alignOrientation.Parent = model.PrimaryPart
@@ -148,7 +160,7 @@ function PetFollower.new(model: Model)
         return AttachmentUtil.getWorldCFrame(modelAttachment)
     end
 
-    local function doTick(dt: number)
+    local function doTick(_dt: number)
         -- RETURN: No Character right now
         local currentCharacter = Players.LocalPlayer.Character
         if not currentCharacter then
@@ -199,14 +211,19 @@ function PetFollower.new(model: Model)
 
         -- Move
         do
+            local finalState: State = "Idle"
+
             -- Moving
             if movementState.Moving then
                 local newCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition)
                 setPetBottomCFrame(newCFrame)
 
                 -- Clear if close enough
-                if (getPetBottomCFrame().Position - movementState.Moving.GoalPosition).Magnitude < EPSILON then
+                local isCloseby = (getPetBottomCFrame().Position - movementState.Moving.GoalPosition).Magnitude < CLOSE_EPSILON
+                if isCloseby then
                     movementState.Moving = nil
+                else
+                    finalState = "Walking"
                 end
             end
 
@@ -231,8 +248,12 @@ function PetFollower.new(model: Model)
                 -- Clear if jump completed
                 if progress == 1 then
                     movementState.Jumping = nil
+                else
+                    finalState = "Jumping"
                 end
             end
+
+            setState(finalState)
         end
 
         -- Update Cache
@@ -243,7 +264,7 @@ function PetFollower.new(model: Model)
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function petFollower:Destroy()
+    function petMover:Destroy()
         if isDestroyed then
             return
         end
@@ -260,7 +281,7 @@ function PetFollower.new(model: Model)
 
     maid:GiveTask(RunService.RenderStepped:Connect(doTick))
 
-    return petFollower
+    return petMover
 end
 
-return PetFollower
+return PetMover

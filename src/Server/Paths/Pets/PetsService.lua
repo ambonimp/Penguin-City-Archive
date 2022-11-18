@@ -147,6 +147,10 @@ function PetsService.getEquippedPetDataIndex(player: Player)
     return DataService.get(player, EQUIPPED_PET_DATA_ADDRESS)
 end
 
+function PetsService.getEquippedPet(player: Player)
+    return petsByPlayer[player] or nil
+end
+
 function PetsService.unequipPet(player: Player)
     DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
     updatePlayerPet(player)
@@ -310,6 +314,32 @@ Remotes.bindFunctions({
 
         PetsService.unequipPet(player)
         return true
+    end,
+})
+
+Remotes.bindEvents({
+    PlayPetAnimation = function(player: Player, dirtyPetId: any, dirtyAnimationName: any)
+        -- Clean Data
+        local petId = TypeUtil.toNumber(dirtyPetId)
+        local animationName = TypeUtil.toString(dirtyAnimationName)
+        if not (petId and animationName) then
+            return
+        end
+
+        -- RETURN: Bad PetId
+        local equippedPet = PetsService.getEquippedPet(player)
+        if not (equippedPet and equippedPet:GetId() == petId) then
+            return
+        end
+
+        -- RETURN: Bad AnimationName
+        local animations = PetUtils.getAnimations(equippedPet:GetPetData().PetTuple.PetType)
+        if not animations[animationName] then
+            return
+        end
+
+        -- Inform Clients
+        Remotes.fireAllOtherClients(player, "PlayPetAnimation", petId, animationName)
     end,
 })
 

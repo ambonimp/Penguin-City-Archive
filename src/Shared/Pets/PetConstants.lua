@@ -94,4 +94,6 @@ PetConstants.Following = {
     JumpDuration = 1,
 }
 
+PetConstants.ModelScale = 0.4
+
 return PetConstants

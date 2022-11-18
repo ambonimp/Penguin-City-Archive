@@ -9,6 +9,8 @@ local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local CollisionsService = require(Paths.Server.CollisionsService)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
+local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
 
 export type ServerPet = typeof(ServerPet.new())
 
@@ -50,8 +52,19 @@ function ServerPet.new(owner: Player, petDataIndex: string)
             serverPet:Destroy()
         end
 
+        -- Animations
+        local animationController = Instance.new("AnimationController")
+        animationController.Parent = model
+        local animator = Instance.new("Animator")
+        animator.Parent = animationController
+
+        for _, animation in pairs(PetUtils.getAnimations(petData.PetTuple.PetType)) do
+            animation:Clone().Parent = animator
+        end
+
         -- Name + Parent
         model.Name = tostring(serverPet:GetId())
+        ModelUtil.scale(model, PetConstants.ModelScale)
         model.Parent = petsFolder
 
         -- Position + Give client ownership
@@ -66,6 +79,10 @@ function ServerPet.new(owner: Player, petDataIndex: string)
 
     function serverPet:GetPetDataIndex()
         return petDataIndex
+    end
+
+    function serverPet:GetPetData()
+        return petData
     end
 
     -------------------------------------------------------------------------------
