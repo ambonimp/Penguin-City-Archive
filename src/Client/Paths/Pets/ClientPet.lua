@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 local Pet = require(Paths.Shared.Pets.Pet)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local PetFollower = require(Paths.Client.Pets.PetFollower)
 
 export type ClientPet = typeof(ClientPet.new())
 
@@ -25,6 +26,7 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local model: Model = petsFolder:WaitForChild(tostring(petId), WAIT_FOR_MODEL_FOR)
+    local petFollower: PetFollower.PetFollower
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -37,12 +39,17 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setupModel()
+        -- Server -> Client control of model
         local weldConstraint: WeldConstraint = InstanceUtil.waitForChild(model.PrimaryPart, {
             ChildClassName = "WeldConstraint",
         })
         weldConstraint:Destroy()
 
         model.PrimaryPart.Anchored = true
+
+        -- Pet Follower
+        petFollower = PetFollower.new(model)
+        clientPet:GetMaid():GiveTask(petFollower)
     end
 
     -------------------------------------------------------------------------------
@@ -57,7 +64,9 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -- Logic
     -------------------------------------------------------------------------------
 
-    setupModel()
+    if model then
+        setupModel()
+    end
 
     return clientPet
 end

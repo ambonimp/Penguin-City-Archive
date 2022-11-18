@@ -87,4 +87,11 @@ PetConstants.AnimationNames = animationNames
 
 PetConstants.PetEggHatchingDuration = 2
 
+PetConstants.Following = {
+    SideDistance = 5,
+    MaxDistance = 10,
+    JumpHeight = 10,
+    JumpDuration = 1,
+}
+
 return PetConstants
