@@ -308,11 +308,11 @@ function InventoryWindow.new(
         end
 
         if equippedValue and equipping.Unequip then
-            equipping.Unequip(equippedValue)
+            task.spawn(equipping.Unequip, equippedValue)
         end
 
         if newEquipValue then
-            equipping.Equip(newEquipValue)
+            task.spawn(equipping.Equip, newEquipValue)
         end
         equippedValue = newEquipValue
 

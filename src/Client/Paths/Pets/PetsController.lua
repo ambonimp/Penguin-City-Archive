@@ -168,12 +168,14 @@ function PetsController.getEquippedPetDataIndex()
     return DataController.get(EQUIPPED_PET_DATA_ADDRESS)
 end
 
+-- Returns true if successful. Yields.
 function PetsController.equipPetRequest(petDataIndex: string)
-    Remotes.invokeServer("EquipRequest", petDataIndex)
+    return Remotes.invokeServer("EquipRequest", petDataIndex)
 end
 
+-- Returns true if successful. Yields.
 function PetsController.unequipPetRequest()
-    Remotes.invokeServer("EquipRequest", nil)
+    return Remotes.invokeServer("EquipRequest", nil)
 end
 
 -------------------------------------------------------------------------------
