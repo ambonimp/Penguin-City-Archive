@@ -39,14 +39,6 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setupModel()
-        -- Server -> Client control of model
-        local weldConstraint: WeldConstraint = InstanceUtil.waitForChild(model.PrimaryPart, {
-            ChildClassName = "WeldConstraint",
-        })
-        weldConstraint:Destroy()
-
-        model.PrimaryPart.Anchored = true
-
         -- Pet Follower
         petFollower = PetFollower.new(model)
         clientPet:GetMaid():GiveTask(petFollower)

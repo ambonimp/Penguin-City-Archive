@@ -1,11 +1,14 @@
 local ServerPet = {}
 
+local PhysicsService = game:GetService("PhysicsService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local Pet = require(Paths.Shared.Pets.Pet)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local CollisionsService = require(Paths.Server.CollisionsService)
+local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 export type ServerPet = typeof(ServerPet.new())
 
@@ -25,7 +28,6 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local model: Model = PetUtils.getModel(petData.PetTuple.PetType, petData.PetTuple.PetVariant):Clone()
-    serverPet:GetMaid():GiveTask(model)
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -38,19 +40,14 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setupModel()
+        PhysicsService:SetPartCollisionGroup(model.PrimaryPart, CollisionsConstants.Groups.Pet)
+        serverPet:GetMaid():GiveTask(model)
+
         -- ERROR: No character
         local character = owner.Character
         if not character then
             error(("No player Character (%s)"):format(owner.Name))
             serverPet:Destroy()
-        end
-
-        -- Disable collisions
-        local baseParts = InstanceUtil.getChildren(model, function(child)
-            return child:IsA("BasePart")
-        end)
-        for _, basePart: BasePart in pairs(baseParts) do
-            basePart.CanCollide = false
         end
 
         -- Name + Parent
@@ -59,8 +56,6 @@ function ServerPet.new(owner: Player, petDataIndex: string)
 
         -- Position + Give client ownership
         model:PivotTo(character:GetPivot())
-        InstanceUtil.weld(model.PrimaryPart, character.PrimaryPart)
-
         model.PrimaryPart:SetNetworkOwner(owner)
         owner:RequestStreamAroundAsync(model:GetPivot().Position)
     end

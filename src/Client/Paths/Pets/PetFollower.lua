@@ -3,6 +3,7 @@ local PetFollower = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Pet = require(Paths.Shared.Pets.Pet)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
@@ -36,6 +37,9 @@ local VECTOR_DOWN = Vector3.new(0, -1, 0)
 local RAYCAST_ORIGIN_OFFSET = Vector3.new(0, 5, 0)
 local RAYCAST_LENGTH = 20
 local EPSILON = 0.01
+local SPEED_CLOSE_DISTANCE = 10
+local SPEED_TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local SPEED_MIN = 2
 
 function PetFollower.new(model: Model)
     local petFollower = {}
@@ -157,7 +161,32 @@ function PetFollower.new(model: Model)
         do
             -- Moving
             if movementState.Moving then
-                setPetCFrame(CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition))
+                -- Calculate speed
+                local currentDistance = (movementState.Moving.GoalPosition - getPetCFrame().Position).Magnitude
+                local travelDistance: number
+                if currentDistance >= SPEED_CLOSE_DISTANCE then
+                    -- If far away, get within `SPEED_CLOSE_DISTANCE` in a fixed time
+                    travelDistance = currentDistance * ((1 / SPEED_TWEEN_INFO.Time) * dt)
+                else
+                    -- If close, tween to goal position, slowing down as we go
+                    local currentAlpha = math.clamp((SPEED_CLOSE_DISTANCE - currentDistance) / SPEED_CLOSE_DISTANCE, 0, 1)
+                    local newAlpha = math.clamp(currentAlpha + SPEED_TWEEN_INFO.Time * dt, 0, 1)
+                    local alpha0 = TweenService:GetValue(currentAlpha, SPEED_TWEEN_INFO.EasingStyle, SPEED_TWEEN_INFO.EasingDirection)
+                    local alpha1 = TweenService:GetValue(newAlpha, SPEED_TWEEN_INFO.EasingStyle, SPEED_TWEEN_INFO.EasingDirection)
+
+                    print(currentAlpha, alpha1, alpha0)
+
+                    local alpha = (alpha1 - alpha0) / alpha1
+                    travelDistance = math.max(alpha * currentDistance, SPEED_MIN * dt)
+                end
+
+                -- Lerp Position
+                local lerpAlpha = currentDistance ~= 0 and math.clamp(travelDistance / currentDistance, 0, 1) or 1
+                print(lerpAlpha)
+                local goalCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition)
+                local finalCFrame = getPetCFrame():Lerp(goalCFrame, lerpAlpha)
+
+                setPetCFrame(finalCFrame)
 
                 -- Clear if close enough
                 if (getPetCFrame().Position - movementState.Moving.GoalPosition).Magnitude < EPSILON then
