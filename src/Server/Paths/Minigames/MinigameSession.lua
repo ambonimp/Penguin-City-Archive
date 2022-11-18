@@ -35,9 +35,9 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
 
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, id)
     local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
-    janitor:Add(ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone()))
+    janitor:Add((ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone())))
 
-    local playerSpawns: Model? = map:FindFirstChild("PlayerSpawns")
+    local playerSpawns: { BasePart }? = if map:FindFirstChild("PlayerSpawns") then map.PlayerSpawns:GetChildren() else nil
     local playerSpawnRandomizer: number = 0
 
     local participants: Participants = {}
@@ -120,7 +120,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end
 
         -- ERROR: Not enough player spawns
-        if not (#playerSpawns < config.MaxParticipants) then
+        if #playerSpawns < config.MaxParticipants then
             error(
                 ("%s minigame doesn't have enough player spawn points. Only has %d/%d"):format(
                     minigameName,
@@ -353,7 +353,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.CoreCountdown, function()
-            if minigameSession:CountdownSync(4) then
+            if minigameSession:CountdownSync(MinigameConstants.CoreCountdownLength) then
                 minigameSession:ChangeState(STATES.Core)
             end
         end)
@@ -370,7 +370,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.AwardShow, function()
-            playerSpawnRandomizer = random:NextNumber(0, #playerSpawns)
+            playerSpawnRandomizer = random:NextInteger(0, #playerSpawns - 1)
 
             for _, participant in pairs(participants) do
                 if not scores[participant] then

@@ -78,17 +78,20 @@ function DescendantLooper.add(
 
     if not ignoreAdded then
         return function()
-            local remainingInstances: { Instance } = {}
+            local remainingDescedants: { Instance } = {}
 
             for _, instance in pairs(instances) do
                 local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance)
                 if instanceCheckerCallbackPairs then
                     checkerCallbackPairs[checker] = nil
-                    table.insert(remainingInstances)
+
+                    for _, descendant in pairs(instance:GetDescendants()) do
+                        table.insert(remainingDescedants, descendant)
+                    end
                 end
             end
 
-            return remainingInstances
+            return remainingDescedants
         end
     end
 end

@@ -78,6 +78,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
         clearCone(participant)
         local cone: Model = serverAssets.Cone:Clone()
+        cone.Parent = character
         local conePrimary: BasePart = cone.PrimaryPart
         cone:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -(1 + conePrimary.Size.Z / 2)))
         BasePartUtil.weld(conePrimary, humanoidRootPart)
@@ -112,38 +113,40 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
         end
     end)
 
-    minigameSession:RegisterStateCallbacks(MinigameConstants.States.CoreCountdown, function()
+    minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
         local collectables: { [string]: Collectable } = {}
         local idCounter: number = 0
 
         local inviciblePlayers = {}
-        coreJanitor:Add(function()
-            for _, invicibleReverter in pairs(inviciblePlayers) do
-                invicibleReverter()
-            end
-        end)
 
         -- Spawn collectables
         coreJanitor:Add(task.spawn(function()
-            idCounter += 1
+            while true do
+                idCounter += 1
 
-            local collectableId = tostring(idCounter)
-            local collectableDropOrigin = collectableSpawns[random:NextInteger(1, #collectableSpawns)].Position
-            local collectableType = MathUtil.weightedChoice(IceCreamExtravaganzaConstants.CollectableDropProbability)
-            local collectableModel = collectableModels[collectableType][random:NextInteger(1, #collectableModels[collectableType])]
+                local collectableId = tostring(idCounter)
+                local collectableDropOrigin = collectableSpawns[random:NextInteger(1, #collectableSpawns)].Position
+                local collectableType = MathUtil.weightedChoice(IceCreamExtravaganzaConstants.CollectableDropProbability)
+                local collectableModel = collectableModels[collectableType][random:NextInteger(1, #collectableModels[collectableType])]
 
-            local collectable: Collectable = {
-                Id = collectableId,
-                DropOrigin = collectableDropOrigin,
-                Type = collectableType,
-                Model = collectableModel,
-                SpawnTime = os.clock(),
-            }
+                local collectable: Collectable = {
+                    Id = collectableId,
+                    DropOrigin = collectableDropOrigin,
+                    Type = collectableType,
+                    Model = collectableModel,
+                    SpawnTime = os.clock(),
+                }
 
-            collectables[collectableId] = collectable
-            minigameSession:RelayToParticipants("IceCreamExtravaganzaCollectableSpawned", id, collectableModel.Name, collectableDropOrigin)
+                collectables[collectableId] = collectable
+                minigameSession:RelayToParticipants(
+                    "IceCreamExtravaganzaCollectableSpawned",
+                    collectableId,
+                    collectableModel,
+                    CFrame.new(collectableDropOrigin) * CFrame.Angles(0, random:NextNumber(0, math.pi), 0)
+                )
 
-            task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
+                task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
+            end
         end))
 
         coreJanitor:Add(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
@@ -154,7 +157,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
                 return
             end
 
-            local collectable = collectables[id]
+            local collectable = collectables[collectableId]
             -- RETURN: Collectable already collected
             if not collectable then
                 return
@@ -203,16 +206,18 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
                     inviciblePlayers[player] = function()
                         inviciblePlayers[player] = nil
-                        for _, instance in pairs(descedantAddedHandlerCleanup()) do
-                            PropertyStack.clearProperties(instance, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
+                        for _, descendant in pairs(descedantAddedHandlerCleanup()) do
+                            PropertyStack.clearProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
                         end
                     end
+
+                    coreJanitor:Add(task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player]))
                 else
                     local scoreAddend = if collectableType == "Regular" then 1 else 2
 
                     local _, oldScore = minigameSession:IncrementScore(player, scoreAddend)
                     for i = 1, scoreAddend do
-                        local lastScoop: Model = character[getScoopName(oldScore + i - 1)]
+                        local lastScoopCFrame, lastScoopSize = (if i == 1 then cone else cone[getScoopName(oldScore + i - 1)]):GetBoundingBox()
 
                         local scoop: Model = collectableModel:Clone()
                         local scoopPrimary = scoop.PrimaryPart
@@ -220,16 +225,24 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
                         scoop:PivotTo(
                             ModelUtil.getWorldPivotToCenter(
                                 scoop,
-                                lastScoop.WorldPivot * CFrame.new(0, (lastScoop:GetExtentsSize() + collectableSize).Y / 2, 0)
+                                CFrame.new(0, (lastScoopSize + collectableSize).Y / 2, 0) * lastScoopCFrame
                             )
                         )
-                        scoop.Parent = scoop
+                        scoop.Parent = cone
                         scoopPrimary.Anchored = false
                         BasePartUtil.weld(scoopPrimary, cone.PrimaryPart)
                     end
                 end
             end)
         end))
+
+        coreJanitor:Add(function()
+            for _, invicibleReverter in pairs(inviciblePlayers) do
+                invicibleReverter()
+            end
+        end)
+
+        --
     end, function()
         if minigameSession:GetState() ~= MinigameConstants.States.Core then
             coreJanitor:Cleanup()
@@ -242,30 +255,58 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
     return minigameSession
 end
 
--- Set up
-for _, collectableType in pairs(IceCreamExtravaganzaConstants.CollectableDropProbability) do
-    local models = replicatedAssets.Collectables[collectableType]:GetChildren()
-    collectableModels[collectableType] = models
+-------------------------------------------------------------------------------
+-- Template set up
+-------------------------------------------------------------------------------
+-- Collectables
+do
+    for collectableType in pairs(IceCreamExtravaganzaConstants.CollectableDropProbability) do
+        local models = replicatedAssets.Collectables[collectableType]:GetChildren()
+        collectableModels[collectableType] = models
 
-    for _, model in ipairs(models) do
-        local primaryPart: BasePart
-        for _, descendant in ipairs(model:GetDescendants()) do
-            if descendant:IsA("BasePart") then
-                if not primaryPart then
-                    primaryPart = descendant
-                    primaryPart.Anchored = true
-                else
-                    descendant.Anchored = false
-                    BasePartUtil.weld(descendant, primaryPart)
+        for _, model in ipairs(models) do
+            model:SetAttribute("Type", collectableType)
+
+            local primaryPart: BasePart
+            for _, descendant in ipairs(model:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    if not primaryPart then
+                        primaryPart = descendant
+                        primaryPart.Anchored = true
+                    else
+                        descendant.Anchored = false
+                        BasePartUtil.weld(descendant, primaryPart)
+                    end
+
+                    descendant.CanCollide = false
+                    descendant.CanQuery = false
+                    descendant.CanTouch = true
+                    descendant.Massless = true
                 end
-
-                descendant.CanCollide = false
-                descendant.CanQuery = false
-                descendant.CanTouch = true
-                descendant.Massless = true
             end
         end
     end
+end
+
+-- Map
+do
+    local mapTemplate: Model = serverAssets.Map
+    local collectableSpawns: Model = mapTemplate.CollectableSpawns
+    local height: number = collectableSpawns.WorldPivot.Position.Y
+
+    for _, collectableSpawn in pairs(collectableSpawns:GetChildren()) do
+        local position: Vector3 = collectableSpawn.Position
+        collectableSpawn.Position = Vector3.new(position.X, height, position.Z)
+    end
+
+    local collectableContainer = Instance.new("Folder", mapTemplate)
+    collectableContainer.Name = IceCreamExtravaganzaConstants.CollectableContainerName
+    collectableContainer.Parent = mapTemplate
+end
+
+do
+    Remotes.declareEvent("IceCreamExtravaganzaCollectableSpawned")
+    Remotes.declareEvent("IceCreamExtravaganzaCollectableCollected")
 end
 
 return IceCreamExtravaganzaSession

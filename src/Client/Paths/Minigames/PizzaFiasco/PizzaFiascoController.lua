@@ -45,11 +45,13 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     SharedMinigameScreen.openStartMenu()
 
     -- Disable movement
-    if ZoneController.getCurrentZone().ZoneType ~= ZoneConstants.ZoneType.Minigame then
-        ZoneController.ZoneChanged:Wait()
-    end
+    minigameJanitor:Add(task.spawn(function()
+        if ZoneController.getCurrentZone().ZoneType ~= ZoneConstants.ZoneType.Minigame then
+            ZoneController.ZoneChanged:Wait()
+        end
 
-    CharacterUtil.anchor(player.Character)
+        CharacterUtil.anchor(player.Character)
+    end))
 
     -- Revert changes
     minigameJanitor:Add(function()

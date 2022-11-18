@@ -46,6 +46,7 @@ MinigameConstants.States = {
 }
 
 MinigameConstants.DoDebug = false -- Set to false to stop getting minigame debug messages
+MinigameConstants.CoreCountdownLength = 4
 MinigameConstants.BlurSize = 8
 
 return MinigameConstants

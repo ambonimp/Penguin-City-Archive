@@ -78,7 +78,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         Client tells itself when to give player control of driving
         This way people with worser ping have less of a disadvantage on start
     ]]
-    MinigameController.startCountdownAsync(4, SharedMinigameScreen.coreCountdown)
+    MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
 
     local startingLine = MinigameController.getMap().Course.Start.StartingLine.PrimaryPart
     startingLine.Transparency = 1
@@ -112,7 +112,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     local coinsCollected = CollectableController.getCoinsCollected()
 
     SharedMinigameScreen.openResults({
-        { Title = "Placement", Value = placement },
+        if isMultiplayer then { Title = "Placement", Value = placement } else nil,
         { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore(scores)) },
         { Title = "Coins Collected", Value = coinsCollected },
         { Title = "Total Coins", Icon = Images.Coins.Coin, Value = SledRaceConstants.SessionConfig.Reward(placement) + coinsCollected },

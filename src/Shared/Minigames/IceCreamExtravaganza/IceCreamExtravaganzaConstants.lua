@@ -39,6 +39,7 @@ IceCreamExtravaganzaConstants.DropVelocity = 12
 IceCreamExtravaganzaConstants.CollectableDropRate = 0.4
 IceCreamExtravaganzaConstants.InvicibilityLength = 5
 
+IceCreamExtravaganzaConstants.CollectableContainerName = "Collectables"
 IceCreamExtravaganzaConstants.CollectableDropProbability = {
     Invicible = 5,
     Double = 10,
