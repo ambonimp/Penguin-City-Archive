@@ -15,6 +15,8 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
+local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
@@ -31,15 +33,13 @@ local INVALID_PLACEMENT_COLOR = Color3.fromRGB(255, 0, 0)
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
+local colorPanel = SelectionPanel.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local templates: Folder = Paths.Templates.Housing
 local models: Folder = Paths.Assets.Housing.Furniture
 
 local screenGui: ScreenGui = Paths.UI.Housing
-
-local paintFrame: Frame = screenGui.Paint
-local paintColors: ScrollingFrame = paintFrame.Body.Colors
 
 local placementControls: BillboardGui = screenGui.PlacementControls
 local moveButton: TextButton = placementControls.Move
@@ -55,6 +55,12 @@ local character: Model?
 
 local plot: Model?
 local plotCFrame: CFrame?
+
+local name: string
+local position: Vector3
+local normal: Vector3
+local rotationY: number
+local color: Color3
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -131,26 +137,12 @@ end
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
--- Initialize colors
-for _, color in pairs(FurnitureConstants.Colors) do
-    local button = templates.PaintColor:Clone()
-    button.Name = tostring(color)
-    button.ImageColor3 = color
-    button.Parent = paintColors
-    button:SetAttribute("ColorValue", color)
-end
 
 -- Register UIStates
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.FurniturePlacement, function(data)
         local model = data.Object
         local heightOffset: Vector3 = Vector3.new(0, model:GetExtentsSize().Y / 2, 0)
-
-        local name: string
-        local position: Vector3
-        local normal: Vector3 = Vector3.new(0, 1, 0)
-        local rotationY: number
-        local color: Color3
 
         local isNewObject = data.IsNewObject
 
@@ -344,33 +336,24 @@ do
             end))
         end
 
-        -- Color picker
-        do
-            for _, colorButton in pairs(paintColors:GetChildren()) do
-                if colorButton:IsA("ImageButton") then
-                    local colorName = colorButton.Name
-                    local colorValue = colorButton:GetAttribute("ColorValue")
-                    placementSession:GiveTask(colorButton.MouseButton1Down:Connect(function()
-                        if color ~= colorName then
-                            deselectPaintColor(color)
+        -- Cover Color
 
-                            color = colorValue
-                            selectPaintColor(colorValue)
-                            applyColor()
-                        end
-                    end))
-                end
+        for i = 1, 10 do
+            if model:FindFirstChild("Color" .. i) then
+                colorPanel:RemoveTab("Color" .. i)
             end
-
-            selectPaintColor(color) -- TODO: Scroll to this position
-            placementSession:GiveTask(function()
-                deselectPaintColor(color) -- Reset colors
-            end)
-            ScreenUtil.inLeft(paintFrame)
         end
+
+        for i = 1, 10 do
+            if model:FindFirstChild("Color" .. i) then
+                colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
+            end
+        end
+
+        ScreenUtil.inLeft(colorPanel:GetContainer())
     end, function()
         placementSession:Cleanup()
-        ScreenUtil.outLeft(paintFrame)
+        ScreenUtil.outLeft(colorPanel:GetContainer())
     end)
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function(data)
@@ -420,6 +403,51 @@ do
             editingSession:Cleanup()
         end
     end)
+
+    -- Color Panel Setup
+    do
+        colorPanel:Mount(screenGui)
+
+        colorPanel:SetAlignment("Left")
+        colorPanel:SetSize(1)
+
+        colorPanel.ClosePressed:Connect(function()
+            -- toggleEditMode(false)
+        end)
+
+        -- Initialize colors
+        for _, color in pairs(FurnitureConstants.Colors) do
+            local button = templates.PaintColor:Clone()
+            button.Name = tostring(color)
+            button.ImageColor3 = color
+            button.Parent = colorPanel:GetContainer()
+            button:SetAttribute("ColorValue", color)
+        end
+
+        -- Color picker
+        do
+            for _, colorButton in pairs(colorPanel:GetContainer():GetChildren()) do
+                if colorButton:IsA("ImageButton") then
+                    local colorName = colorButton.Name
+                    local colorValue = colorButton:GetAttribute("ColorValue")
+                    placementSession:GiveTask(colorButton.MouseButton1Down:Connect(function()
+                        if color ~= colorName then
+                            deselectPaintColor(color)
+
+                            color = colorValue
+                            selectPaintColor(colorValue)
+                            applyColor()
+                        end
+                    end))
+                end
+            end
+
+            selectPaintColor(color) -- TODO: Scroll to this position
+            placementSession:GiveTask(function()
+                deselectPaintColor(color) -- Reset colors
+            end)
+        end
+    end
 end
 
 return FurnitureEditingPage
