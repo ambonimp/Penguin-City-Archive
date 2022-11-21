@@ -15,6 +15,7 @@ local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCamera)
+local Sound = require(Paths.Shared.Sound)
 
 local SHADOW_TRANSPARENCY = 0.5
 local SHADOW_DEPH = Vector3.new(0, 0.1, 0)
@@ -99,10 +100,16 @@ function IceCreamExtravaganzaCollectables.setup()
                                 SharedMinigameScreen.textParticle("OOF!", nil, Color3.fromRGB(255, 90, 90))
                             end
                             CameraController.shake()
-                        elseif collectableType == "Regular" then
-                            SharedMinigameScreen.textParticle("+1", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
-                        elseif collectableType == "Double" then
-                            SharedMinigameScreen.textParticle("+2", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
+
+                            Sound.play("CollectBad")
+                        else
+                            if collectableType == "Regular" then
+                                SharedMinigameScreen.textParticle("+1", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
+                            elseif collectableType == "Double" then
+                                SharedMinigameScreen.textParticle("+2", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
+                            end
+
+                            Sound.play("CollectGood")
                         end
 
                         Remotes.fireServer("IceCreamExtravaganzaCollectableCollected", id)

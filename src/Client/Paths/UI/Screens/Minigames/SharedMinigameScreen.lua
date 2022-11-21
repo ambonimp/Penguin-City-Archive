@@ -17,6 +17,7 @@ local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
+local Sound = require(Paths.Shared.Sound)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
@@ -100,6 +101,8 @@ function SharedMinigameScreen.coreCountdown(timeLeft: number)
     coreCountdownLabel.Image = Images.Minigames["Countdown" .. (timeLeft - 1)] :: string
     coreCountdownLabel.Rotation = 90
     coreCountdownLabel.Size = UDim2.new()
+
+    Sound.play("Countdown")
 
     coreCountdownLabel.Visible = true
     TweenUtil.bind(

@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local Sound = require(Paths.Shared.Sound)
 
 type Range = {
     Min: number,
@@ -57,7 +58,7 @@ local origin: CFrame = viewportCamera.CFrame
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
-function Confetti.play(count: number?, lengthRange: Range?, layers: number?, colors: { Color3 }?, sizes: { Vector2 }?)
+function Confetti.play(count: number?, lengthRange: Range?, layers: number?, colors: { Color3 }?, sizes: { Vector2 }?, mute: true?)
     colors = colors or DEFAULT_COLORS
     sizes = sizes or DEFAULT_SIZES
     count = count or random:NextInteger(35, 45)
@@ -116,6 +117,10 @@ function Confetti.play(count: number?, lengthRange: Range?, layers: number?, col
             fall:Play()
             flip:Play()
         end
+    end
+
+    if not mute then
+        Sound.play("Celebration")
     end
 end
 

@@ -14,6 +14,7 @@ local IceCreamExtravaganzaConstants = require(Paths.Shared.Minigames.IceCreamExt
 local CollectableController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCollectables)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCamera)
+local Sound = require(Paths.Shared.Sound)
 
 local MINIGAME_NAME = "IceCreamExtravaganza"
 
@@ -28,6 +29,8 @@ local player = Players.LocalPlayer
 local coreJanitor = Janitor.new()
 local minigameJanitor = MinigameController.getMinigameJanitor()
 minigameJanitor:Add(coreJanitor, "Cleanup")
+
+local music: Sound?
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -84,6 +87,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     coreJanitor:Add(CollectableController.setup())
 
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
+    -- GOOO!
+    music = Sound.play(MINIGAME_NAME, true)
     unanchorCharacter()
 end)
 
@@ -97,6 +102,7 @@ end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
     Confetti.play()
+    Sound.fadeOut(music)
 
     task.wait(AWARD_SEQUENCE_DELAY)
 

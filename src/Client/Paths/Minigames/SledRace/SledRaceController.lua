@@ -16,6 +16,7 @@ local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCo
 local ProgressLineController = require(Paths.Client.Minigames.SledRace.SledRaceProgressLine)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
+local Sound = require(Paths.Shared.Sound)
 
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
@@ -31,6 +32,8 @@ local player = Players.LocalPlayer
 local raceJanitor = Janitor.new()
 local minigameJanitor = MinigameController.getMinigameJanitor()
 minigameJanitor:Add(raceJanitor, "Cleanup")
+
+local music: Sound?
 
 -------------------------------------------------------------------------------
 -- State handler
@@ -86,6 +89,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         startingLine.Transparency = INACTIVE_STARTING_LINE_TRANSPARENCY
     end)
 
+    music = Sound.play(MINIGAME_NAME, false)
+
     -- Goo
     raceJanitor:Add(DrivingController.setup())
 end)
@@ -101,6 +106,8 @@ end)
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
     local scores: MinigameConstants.SortedScores = data.Scores
     local isMultiplayer = MinigameController.isMultiplayer()
+
+    Sound.fadeOut(music)
 
     task.wait(AWARD_SEQUENCE_DELAY)
 
