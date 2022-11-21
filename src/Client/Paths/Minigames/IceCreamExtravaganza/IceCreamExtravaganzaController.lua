@@ -11,10 +11,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 local IceCreamExtravaganzaConstants = require(Paths.Shared.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaConstants)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local CollectableController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCollectables)
-local ZoneController = require(Paths.Client.ZoneController)
-local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCamera)
 
@@ -33,19 +30,25 @@ local minigameJanitor = MinigameController.getMinigameJanitor()
 minigameJanitor:Add(coreJanitor, "Cleanup")
 
 -------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function unanchorCharacter()
+    player.Character.Humanoid.WalkSpeed = IceCreamExtravaganzaConstants.WalkSpeed
+end
+
+local function anchorCharacter()
+    player.Character.Humanoid.WalkSpeed = 0
+end
+
+-------------------------------------------------------------------------------
 -- State handler
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
     SharedMinigameScreen.openStartMenu()
     minigameJanitor:Add(CameraController.setup())
 
-    minigameJanitor:Add(task.spawn(function()
-        -- Temporarily disable movement
-        if ZoneController.getCurrentZone().ZoneType ~= ZoneConstants.ZoneType.Minigame then
-            ZoneController.ZoneChanged:Wait()
-        end
-        CharacterUtil.anchor(player.Character)
-    end))
+    -- Disable walking
+    anchorCharacter()
 
     -- Disable jumping
     local humanoid: Humanoid = player.Character.Humanoid
@@ -81,7 +84,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     coreJanitor:Add(CollectableController.setup())
 
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
-    CharacterUtil.unanchor(player.Character)
+    unanchorCharacter()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
@@ -96,7 +99,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     Confetti.play()
 
     task.wait(AWARD_SEQUENCE_DELAY)
-    CharacterUtil.anchor(player.Character)
+
+    anchorCharacter()
 
     local scores: MinigameConstants.SortedScores = data.Scores
     local isMultiplayer = MinigameController.isMultiplayer()
