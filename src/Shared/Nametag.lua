@@ -124,6 +124,10 @@ function Nametag.new()
         billboardGui.PlayerToHideFrom = player
     end
 
+    function nametag:GetBillboardGui()
+        return billboardGui
+    end
+
     function nametag:Destroy()
         if isDestroyed then
             return

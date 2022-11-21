@@ -4,8 +4,6 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Workspace = game:GetService("Workspace")
 local Pet = require(Paths.Shared.Pets.Pet)
-local PetUtils = require(Paths.Shared.Pets.PetUtils)
-local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local PetMover = require(Paths.Client.Pets.PetMover)
 local PetAnimator = require(Paths.Client.Pets.PetAnimator)
 
@@ -45,6 +43,11 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setup()
+        --!! wait for primary part
+        while not model.PrimaryPart do
+            task.wait()
+        end
+
         -- Pet Follower
         petMover = PetMover.new(petData, model)
         clientPet:GetMaid():GiveTask(petMover)
@@ -67,6 +70,8 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    clientPet:SetId(petId)
 
     if model then
         setup()
