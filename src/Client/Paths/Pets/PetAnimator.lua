@@ -19,8 +19,6 @@ local JUMP_HEIGHT_TWEEN_INFO = TweenInfo.new(0, Enum.EasingStyle.Linear)
     Call `replicate` when animating our ClientPet
 ]]
 function PetAnimator.playAnimation(petId: number, animationName: string, replicate: boolean?)
-    print("PetAnimator.playAnimation", petId, animationName, replicate)
-
     -- See if we have all of the required instances..!
     local model: Model = petsFolder:FindFirstChild(tostring(petId))
     if not model then
