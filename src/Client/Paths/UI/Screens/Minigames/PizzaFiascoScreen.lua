@@ -37,7 +37,7 @@ do
     end)
     exitButton:Mount(instructionsFrame.Exit, true)
 end
-
+--[[
 do
     local exitGameplayButton = KeyboardButton.new()
     exitGameplayButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
@@ -46,5 +46,5 @@ do
     exitGameplayButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     exitGameplayButton:SetIcon(Images.Icons.Exit)
 end
-
+ *]]
 return PizzaFiascoScreen

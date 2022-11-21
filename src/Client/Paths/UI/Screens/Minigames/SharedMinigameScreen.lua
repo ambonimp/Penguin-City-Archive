@@ -31,7 +31,10 @@ local PLAY_DELAY = 0.3
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
+local random = Random.new()
+
 local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
 local templates = Paths.Templates.Minigames
 
@@ -94,7 +97,7 @@ end
 function SharedMinigameScreen.coreCountdown(timeLeft: number)
     local initialLabelSize: UDim2 = Binder.bindFirst(coreCountdownLabel, "InitialSize", coreCountdownLabel.Size)
     coreCountdownLabel.Visible = false
-    coreCountdownLabel.Image = Images[MinigameController.getMinigame()]["Countdown" .. (timeLeft - 1)] :: string
+    coreCountdownLabel.Image = Images.Minigames["Countdown" .. (timeLeft - 1)] :: string
     coreCountdownLabel.Rotation = 90
     coreCountdownLabel.Size = UDim2.new()
 
@@ -261,6 +264,54 @@ function SharedMinigameScreen.openResults(values: { { Title: string, Icon: strin
     for _, label in pairs(trash) do
         label:Destroy()
     end
+end
+
+function SharedMinigameScreen.textParticle(value: string, icon: string?, textColor: Color3?, iconColor: Color3?)
+    icon = icon or ""
+    iconColor = iconColor or Color3.new(1, 1, 1)
+    textColor = textColor or Color3.new(1, 1, 1)
+
+    local center: Vector3 = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+    local initPosition = UDim2.fromOffset(center.X, center.Y) + UDim2.fromScale(random:NextNumber(-0.1, 0.1), random:NextNumber(0, -0.2))
+
+    local particle: TextLabel = templates.TextParticle:Clone()
+    local initSize = particle.Size
+    local finalSize = UDim2.fromScale(0, 0)
+
+    particle.Text = value
+    particle.TextColor3 = textColor
+    particle.Icon.Image = icon
+    particle.Icon.ImageColor3 = iconColor
+    particle.Parent = sharedScreens
+    particle.Size = finalSize
+    particle.Position = initPosition
+    particle.Visible = true
+
+    local offset = random:NextNumber(-0.05, 0.05)
+    local sign = math.sign(offset)
+
+    local openTween: Tween = TweenService:Create(particle, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+        Size = initSize + UDim2.fromScale(0.025, 0.025),
+        Rotation = offset / 3,
+        Position = initPosition + UDim2.fromScale(offset, -random:NextNumber(0.07, 0.12)),
+    })
+
+    openTween.Completed:Connect(function()
+        local closeTween: Tween =
+            TweenService:Create(particle, TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0.2), {
+                Size = UDim2.fromScale(0, 0),
+                Rotation = particle.Rotation + sign * 180,
+                Position = particle.Position + UDim2.fromScale(offset * 2.5, random:NextNumber(0.05, 0.15)),
+            })
+
+        closeTween.Completed:Connect(function()
+            particle:Destroy()
+        end)
+
+        closeTween:Play()
+    end)
+
+    openTween:Play()
 end
 
 -------------------------------------------------------------------------------

@@ -17,6 +17,7 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Output = require(Paths.Shared.Output)
 
 type Collectable = {
@@ -37,6 +38,7 @@ local INVICIBILITY_PROPERTIES = {
 }
 
 local SCOOP_INSET = 0.6
+local CONE_HOLD_ANIMATION = InstanceUtil.tree("Animation", { Name = "ConeHold", AnimationId = "rbxassetid://11624834749" })
 
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
 
@@ -64,9 +66,17 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
     -- PRIVATE METHODS
     -------------------------------------------------------------------------------
     local function clearCone(participant: Player)
-        local cone: Model = participant.Character:FindFirstChild("Cone")
+        local character: Model = participant.Character
+        local cone: Model = character:FindFirstChild("Cone")
         if cone then
             cone:Destroy()
+        end
+
+        for _, track in pairs(character.Humanoid.Animator:GetPlayingAnimationTracks()) do
+            if track.Name == CONE_HOLD_ANIMATION.Name then
+                track:Stop(0)
+                track:Destroy()
+            end
         end
     end
 
@@ -79,12 +89,16 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
         CharacterController.standOn(character, minigameSession:GetPlayerSpawnPoint(participant))
 
         clearCone(participant)
+
         local cone: Model = serverAssets.Cone:Clone()
         cone.Parent = character
         local conePrimary: BasePart = cone.PrimaryPart
         conePrimary.Massless = true
         cone:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -(1 + conePrimary.Size.Z / 2)))
         BasePartUtil.weld(conePrimary, humanoidRootPart)
+
+        local track = humanoid.Animator:LoadAnimation(CONE_HOLD_ANIMATION)
+        track:Play(0, 11)
     end
 
     local function getScoopName(index: number)
@@ -169,19 +183,20 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
             local cone: Model = character.Cone
             local collectableModel: Model = collectable.Model
 
+            local coneCFrame: CFrame = cone:GetBoundingBox()
+            local characterSize: Vector3 = character:GetExtentsSize()
             local collectableSize: Vector3 = collectableModel:GetExtentsSize()
-            local coneCFrame: CFrame, coneSize: Vector3 = cone:GetBoundingBox()
             local collectablePosition: Vector3 = collectable.DropOrigin
                 - Vector3.new(0, IceCreamExtravaganzaConstants.DropVelocity * (collectable.SpawnTime - os.clock()), 0)
 
             local clientStudDiscrepancy = Vector3Util.getXZComponents((coneCFrame:PointToObjectSpace(collectablePosition))).Magnitude
                 - math.max(collectableSize.X, collectableSize.Z)
-                - math.max(coneSize.X, coneSize.Z)
+                - math.max(characterSize.X, characterSize.Z)
                 - character.HumanoidRootPart.AssemblyLinearVelocity.Magnitude * player:GetNetworkPing()
 
             -- RETURN: Collectable wasn't actually touched
             if clientStudDiscrepancy > CLIENT_STUD_DISCREPANCY_ALLOWANCE then
-                warn("NOT REGESTERING")
+                warn("NOT REGESTERING", clientStudDiscrepancy)
                 return
             end
 
@@ -196,7 +211,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
                     local newScore, oldScore = minigameSession:IncrementScore(player, -1)
                     if newScore ~= 0 then
-                        cone:FindFirstChild(getScoopName(oldScore))
+                        cone[getScoopName(oldScore)]:Destroy()
                     end
                 elseif collectableType == "Invicible" then
                     -- RETURN: Player is already invisible

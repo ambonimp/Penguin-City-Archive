@@ -7,7 +7,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Shake = require(Paths.Shared.Shake)
 
 local camera = Workspace.CurrentCamera
-local shake = Shake.new(8, 0.8, 0.5, 5, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+local shake = Shake.new(8, 0.5, 0.5, 5, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 
 function IceCreamExtravaganzaCamera.setup()
     -- Shake

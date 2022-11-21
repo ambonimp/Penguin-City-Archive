@@ -8,6 +8,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local Images = require(Paths.Shared.Images.Images)
 local CollisionConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
@@ -15,7 +16,8 @@ local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local CameraController = require(Paths.Client.Minigames.SledRace.SledRaceCamera)
 local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDriving)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
-local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
+local SledRaceScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
+local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 
 local MAX_OBSTACLE_MASS = 2800
 local FLING_FORCE = { Min = 125, Max = 200 }
@@ -137,8 +139,6 @@ function SledRaceCollectables.setup()
             collectable:Destroy()
         elseif SledRaceUtil.collectableIsA(collectable, "Boost") then
             DrivingController.applySpeedModifier(SledRaceConstants.BoostSpeedAdded)
-
-            -- TODO: Animation
             collectable:Destroy()
         elseif SledRaceUtil.collectableIsA(collectable, "Coin") then
             collectable.PrimaryPart:Destroy()
@@ -152,18 +152,20 @@ function SledRaceCollectables.setup()
                 emitter:Emit(random:NextNumber(4, 6))
             end
 
-            coinsCollected += SledRaceConstants.CoinValue
-            SharedMinigameScreen.setCoins(coinsCollected)
+            local value = SledRaceConstants.CoinValue
+            coinsCollected += value
+            SledRaceScreen.setCoins(coinsCollected)
+            SharedMinigameScreen.textParticle("+2", Images.Coins.Coin)
 
             task.wait(2)
             particlePackage:Destroy()
         end
     end)
 
-    SharedMinigameScreen.setCoins(0)
+    SledRaceScreen.setCoins(0)
 
     return function()
-        SharedMinigameScreen.closeCoins()
+        SledRaceScreen.closeCoins()
 
         hitbox:Destroy()
         colliding:Disconnect()

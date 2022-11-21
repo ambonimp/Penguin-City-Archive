@@ -6,8 +6,10 @@ local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
+local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local IceCreamExtravaganzaConstants = require(Paths.Shared.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaConstants)
+local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
@@ -35,8 +37,6 @@ function IceCreamExtravaganzaCollectables.setup()
     local drops: { [string]: table } = {}
 
     local character = player.Character
-    local cone: Model = character.Cone
-
     local participatingCharacters: { Model } = {}
     for _, participant in pairs(MinigameController.getParticpants()) do
         table.insert(participatingCharacters, participant.Character)
@@ -70,7 +70,7 @@ function IceCreamExtravaganzaCollectables.setup()
             model.Parent = collectableContainer
 
             local hitbox: Part = Instance.new("Part")
-            hitbox.Transparency = 0.5
+            hitbox.Transparency = 1
             hitbox.Size = modelSize
             hitbox.CFrame = modelCFrame
             hitbox.Massless = true
@@ -95,7 +95,14 @@ function IceCreamExtravaganzaCollectables.setup()
                     if characterHit == character then
                         local collectableType = model:GetAttribute("Type")
                         if collectableType == "Obstacle" then
+                            for _ = 1, 2 do
+                                SharedMinigameScreen.textParticle("OOF!", nil, Color3.fromRGB(255, 90, 90))
+                            end
                             CameraController.shake()
+                        elseif collectableType == "Regular" then
+                            SharedMinigameScreen.textParticle("+1", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
+                        elseif collectableType == "Double" then
+                            SharedMinigameScreen.textParticle("+2", Images.IceCreamExtravaganza.ConeIcon, nil, modelPrimary.Color)
                         end
 
                         Remotes.fireServer("IceCreamExtravaganzaCollectableCollected", id)
