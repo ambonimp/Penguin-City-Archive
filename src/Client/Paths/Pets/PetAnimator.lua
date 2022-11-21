@@ -12,7 +12,7 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local petsFolder = Workspace:WaitForChild("PetModels")
 local tracksByPetId: { [number]: { [string]: AnimationTrack } } = {}
 
-local JUMP_HEIGHT_OFFSET_MULTIPLIER = 3
+local JUMP_HEIGHT_OFFSET_MULTIPLIER = 2.5
 local JUMP_HEIGHT_TWEEN_INFO = TweenInfo.new(0, Enum.EasingStyle.Linear)
 
 --[[
