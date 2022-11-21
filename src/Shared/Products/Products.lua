@@ -92,8 +92,8 @@ local products: { [string]: { [string]: Product } } = {
             IsConsumable = true,
             ConsumeImmediately = true,
             RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
+                Cost = 149,
+                DeveloperProductId = 1339311091,
             },
             Metadata = {
                 PetEggName = "Rare",
@@ -108,8 +108,8 @@ local products: { [string]: { [string]: Product } } = {
             IsConsumable = true,
             ConsumeImmediately = true,
             RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
+                Cost = 299,
+                DeveloperProductId = 1339311146,
             },
             Metadata = {
                 PetEggName = "Legendary",
