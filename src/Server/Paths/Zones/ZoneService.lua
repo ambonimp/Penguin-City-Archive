@@ -23,8 +23,9 @@ local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
 
+local DEFAULT_ZONE = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneRoomState)
+
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
-local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
@@ -48,20 +49,20 @@ end
 function ZoneService.getPlayerRoom(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if playerZoneState then
-        local zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, playerZoneState.RoomId)
+        local zone = playerZoneState.RoomZone
         if ZoneUtil.doesZoneExist(zone) then
             return zone
         end
     end
 
-    return defaultZone
+    return DEFAULT_ZONE
 end
 
 -- Returns Zone
 function ZoneService.getPlayerMinigame(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    if playerZoneState and playerZoneState.MinigameId then
-        local zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, playerZoneState.MinigameId)
+    if playerZoneState then
+        local zone = playerZoneState.MinigameZone
         if ZoneUtil.doesZoneExist(zone) then
             return zone
         end
@@ -123,7 +124,7 @@ function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { I
                 if zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
                     ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
                 else
-                    ZoneService.teleportPlayerToZone(player, defaultZone)
+                    ZoneService.teleportPlayerToZone(player, DEFAULT_ZONE)
                 end
             end
         end
@@ -163,11 +164,11 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local oldZone = ZoneService.getPlayerZone(player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if zone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
-        playerZoneState.RoomId = zone.ZoneType
-        playerZoneState.MinigameId = nil
+        playerZoneState.RoomZone = zone
+        playerZoneState.MinigameZone = nil
     elseif zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
         -- Keep existing RoomId
-        playerZoneState.MinigameId = zone.ZoneType
+        playerZoneState.MinigameZone = zone
     else
         warn(("Unknown zonetype %s"):format(zone.ZoneCategory))
         return nil
@@ -219,7 +220,10 @@ function ZoneService.loadPlayer(player: Player)
     Output.doDebug(ZoneConstants.DoDebug, "loadPlayer", player)
 
     -- Setup Zone
-    playerZoneStatesByPlayer[player] = TableUtil.deepClone(ZoneConstants.DefaultPlayerZoneState) :: ZoneConstants.PlayerZoneState
+    playerZoneStatesByPlayer[player] = {
+        RoomZone = DEFAULT_ZONE,
+        TotalTeleports = 0,
+    }
 
     -- Send to zone
     ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {

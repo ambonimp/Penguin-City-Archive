@@ -21,7 +21,7 @@ local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 
 local localPlayer = Players.LocalPlayer
-local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneRoomState)
 local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()

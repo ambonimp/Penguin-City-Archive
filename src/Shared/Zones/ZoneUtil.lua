@@ -53,8 +53,8 @@ function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
     return userId and game.Players:GetPlayerByUserId(userId) and true or false
 end
 
-function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone)) and true or false
+function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone?)
+    return if zone and ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone)) then true else false
 end
 
 function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)

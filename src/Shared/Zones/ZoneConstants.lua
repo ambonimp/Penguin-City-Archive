@@ -4,17 +4,17 @@ local ZoneConstants = {}
 -- Types
 -------------------------------------------------------------------------------
 
-export type PlayerZoneState = {
-    RoomId: string,
-    MinigameId: string?,
-    IglooId: string?,
-    TotalTeleports: number,
-}
-
 export type Zone = {
     ZoneCategory: string,
     ZoneType: string,
     ZoneId: string?,
+}
+
+export type PlayerZoneState = {
+    RoomZone: Zone?,
+    MinigameZone: Zone?,
+    IglooId: string?,
+    TotalTeleports: number,
 }
 
 -------------------------------------------------------------------------------
@@ -45,11 +45,7 @@ ZoneConstants.ZoneInstances = {
     FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
 }
 
-local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneType.Room.Neighborhood,
-    TotalTeleports = 0,
-}
-ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
+ZoneConstants.DefaultPlayerZoneRoomState = ZoneConstants.ZoneType.Room.Neighborhood
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
 ZoneConstants.StreamingTargetRadius = 5300
