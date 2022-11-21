@@ -18,9 +18,6 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     Multiplayer = true,
     --
     HigherScoreWins = true,
-    ScoreFormatter = function(score: number): string
-        return (score / 10 ^ 2) .. "s"
-    end,
     Reward = function(placement): number
         if placement == 1 then
             return 35

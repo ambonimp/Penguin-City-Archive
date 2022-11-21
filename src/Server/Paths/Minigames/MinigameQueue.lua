@@ -64,7 +64,7 @@ function MinigameQueue.new(minigameName: string)
         return table.find(participants, player) ~= nil
     end
 
-    function queue:Janitor()
+    function queue:GetJanitor()
         return janitor
     end
 

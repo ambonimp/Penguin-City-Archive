@@ -184,7 +184,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
 
     if MinigameController.isMultiplayer() then
         getScreenGui().Instructions.Visible = false
-        menu = multiplayerMenu.Visible
+        menu = multiplayerMenu
     else
         if not temporary then
             startMenus.Visible = false
