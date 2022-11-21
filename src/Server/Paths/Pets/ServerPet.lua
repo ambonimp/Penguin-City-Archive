@@ -11,6 +11,7 @@ local CollisionsService = require(Paths.Server.CollisionsService)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local Nametag = require(Paths.Shared.Nametag)
 
 export type ServerPet = typeof(ServerPet.new())
 
@@ -30,6 +31,9 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local model: Model = PetUtils.getModel(petData.PetTuple.PetType, petData.PetTuple.PetVariant):Clone()
+
+    local nametag = Nametag.new()
+    serverPet:GetMaid():GiveTask(nametag)
 
     -------------------------------------------------------------------------------
     -- Public Members
@@ -71,6 +75,15 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         model:PivotTo(character:GetPivot())
         model.PrimaryPart:SetNetworkOwner(owner)
         owner:RequestStreamAroundAsync(model:GetPivot().Position)
+
+        -- Nametag
+        nametag:Mount(model)
+        nametag:SetName(petData.Name)
+        serverPet:GetMaid():GiveTask(PetsService.PetNameChanged:Connect(function(_player: Player, somePetDataIndex: string, petName: string)
+            if petDataIndex == somePetDataIndex then
+                nametag:SetName(petName)
+            end
+        end))
     end
 
     -------------------------------------------------------------------------------

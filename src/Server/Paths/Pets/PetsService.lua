@@ -25,8 +25,11 @@ local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Signal = require(Paths.Shared.Signal)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
+
+PetsService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
 
 local petsByPlayer: { [Player]: ServerPet.ServerPet } = {}
 
@@ -97,8 +100,12 @@ function PetsService.changePetName(player: Player, petDataIndex: string, petName
         return false
     end
 
+    -- Change
     petData.Name = petName
     DataService.set(player, PetUtils.getPetDataAddress(petDataIndex), petData, "PetDataUpdated")
+
+    -- Inform
+    PetsService.PetNameChanged:Fire(player, petDataIndex, petName)
 
     return true
 end
