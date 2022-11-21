@@ -81,7 +81,13 @@ return function()
             local success, result = pcall(function()
                 return ProductUtil.getPetEggProduct(petEggName)
             end)
-            if not success then
+            if success then
+                -- Needs Model
+                local model = ProductUtil.getModel(result)
+                if not model then
+                    table.insert(issues, ("PetEgg %q Product has no model (%s)"):format(petEggName, result.Id))
+                end
+            else
                 table.insert(issues, ("PetEgg %q has no matching Product (%s)"):format(petEggName, tostring(result)))
             end
         end

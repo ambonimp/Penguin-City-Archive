@@ -222,6 +222,7 @@ end
     **Client Only**
 
     Returns true if everything under this instance is loaded!
+    - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
 function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     -- ERROR: Client Only
@@ -235,11 +236,6 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     for _, someInstance in pairs(instances) do
         if not someInstance:IsA("BasePart") then
             local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
-
-            -- ERROR: No Server Total
-            if not serverTotal and not someInstance:FindFirstAncestorWhichIsA("BasePart") then
-                error(("No cached BasePart total for %s"):format(someInstance:GetFullName()))
-            end
 
             -- Query + Compare if more than 0
             if serverTotal and serverTotal > 0 then
@@ -258,6 +254,7 @@ end
     **Client Only**
 
     Returns true if success; false otherwise
+    - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
 function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     -- ERROR: Client Only

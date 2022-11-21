@@ -527,6 +527,10 @@ function Widget.diverseWidget()
         end
     end
 
+    function widget:GetGuiObject()
+        return diverseWidget
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------

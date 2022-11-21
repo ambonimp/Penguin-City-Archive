@@ -123,6 +123,9 @@ function PetsController.Start()
             end
         end,
     })
+
+    -- Load up PetEggDisplays
+    require(Paths.Client.Pets.PetEggDisplays)
 end
 
 -------------------------------------------------------------------------------
