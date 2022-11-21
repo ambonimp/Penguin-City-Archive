@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 local Pet = require(Paths.Shared.Pets.Pet)
 local PetMover = require(Paths.Client.Pets.PetMover)
 local PetAnimator = require(Paths.Client.Pets.PetAnimator)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 export type ClientPet = typeof(ClientPet.new())
 
@@ -43,20 +44,18 @@ function ClientPet.new(petId: number, petDataIndex: string)
     -------------------------------------------------------------------------------
 
     local function setup()
-        --!! wait for primary part
-        while not model.PrimaryPart do
-            task.wait()
+        local didLoad = ZoneUtil.waitForInstanceToLoad(model)
+        if didLoad then
+            -- Pet Follower
+            petMover = PetMover.new(petData, model)
+            clientPet:GetMaid():GiveTask(petMover)
+
+            -- Have mover state inform animation
+            clientPet:GetMaid():GiveTask(petMover.StateChanged:Connect(function(state)
+                PetAnimator.playAnimation(clientPet:GetId(), MOVER_STATE_TO_ANIMATION_NAME[state], true)
+            end))
+            PetAnimator.playAnimation(clientPet:GetId(), "Idle", true)
         end
-
-        -- Pet Follower
-        petMover = PetMover.new(petData, model)
-        clientPet:GetMaid():GiveTask(petMover)
-
-        -- Have mover state inform animation
-        clientPet:GetMaid():GiveTask(petMover.StateChanged:Connect(function(state)
-            PetAnimator.playAnimation(clientPet:GetId(), MOVER_STATE_TO_ANIMATION_NAME[state], true)
-        end))
-        PetAnimator.playAnimation(clientPet:GetId(), "Idle", true)
     end
 
     -------------------------------------------------------------------------------

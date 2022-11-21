@@ -129,66 +129,6 @@ local function verifyAndCleanModels(someModels: { Model })
     end
 end
 
-local function readWriteBasePartTotals(instance: Instance)
-    local totalBasePartChildren = 0
-    for _, child in pairs(instance:GetChildren()) do
-        if child:IsA("BasePart") then
-            totalBasePartChildren += 1
-        end
-    end
-
-    if totalBasePartChildren > 0 then
-        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBasePartChildren)
-    else
-        instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, nil)
-    end
-end
-
-local function processInstanceBasePartTotals(instance: Instance)
-    -- RETURN: Already processed
-    if instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
-        return
-    end
-    instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
-
-    readWriteBasePartTotals(instance)
-
-    -- Children added/removed
-    instance.ChildAdded:Connect(function(child)
-        if child:IsA("BasePart") then
-            readWriteBasePartTotals(instance)
-        end
-    end)
-    instance.ChildRemoved:Connect(function(child)
-        if child:IsA("BasePart") then
-            readWriteBasePartTotals(instance)
-        end
-    end)
-
-    -- Children
-    for _, child in pairs(instance:GetChildren()) do
-        processInstanceBasePartTotals(child)
-    end
-
-    -- Descendants
-    local totalBasePartDescendants = 0
-    for _, descendant in pairs(instance:GetDescendants()) do
-        if descendant:IsA("BasePart") then
-            totalBasePartDescendants += 1
-        end
-    end
-    if totalBasePartDescendants > 0 then
-        -- ERROR: BaseParts cannot have descendants that are BaseParts!
-        if instance:IsA("BasePart") then
-            error(
-                ("BasePart %s has descendants that are BaseParts - naughty! This harms content streaming. Use the 'Fix Nested BaseParts' macro (Socekt)"):format(
-                    instance:GetFullName()
-                )
-            )
-        end
-    end
-end
-
 --[[
     Appends instances with an attribute detailing how many BasePart children it has.
     Used to help the client detect when a Zone has been fully loaded
@@ -201,18 +141,7 @@ local function writeBasePartTotals(writeModels: { Model })
     end
 
     for _, model in pairs(writeModels) do
-        -- Now
-        processInstanceBasePartTotals(model)
-
-        -- Future adds/removals
-        model.DescendantAdded:Connect(function(descendant: Instance)
-            processInstanceBasePartTotals(descendant)
-        end)
-        model.DescendantRemoving:Connect(function(descendant: Instance)
-            if descendant:IsA("BasePart") and descendant.Parent then
-                readWriteBasePartTotals(descendant.Parent)
-            end
-        end)
+        ZoneUtil.writeBasepartTotals(model)
     end
 end
 

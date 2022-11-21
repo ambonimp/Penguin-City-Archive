@@ -12,6 +12,7 @@ local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local Nametag = require(Paths.Shared.Nametag)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 export type ServerPet = typeof(ServerPet.new())
 
@@ -75,6 +76,9 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         model:PivotTo(character:GetPivot())
         model.PrimaryPart:SetNetworkOwner(owner)
         owner:RequestStreamAroundAsync(model:GetPivot().Position)
+
+        -- Streaming Init
+        ZoneUtil.writeBasepartTotals(model)
 
         -- Nametag
         nametag:Mount(model)
