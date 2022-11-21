@@ -33,7 +33,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     local stateMachine = StateMachine.new(TableUtil.getKeys(STATES), STATES.Nothing)
     janitor:Add(stateMachine)
 
-    local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, id)
+    local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigameName], id)
     local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
     janitor:Add((ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone())))
 

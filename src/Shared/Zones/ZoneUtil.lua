@@ -16,8 +16,9 @@ export type ZoneInstances = {
     RoomDepartures: Folder?,
 }
 
-function ZoneUtil.zone(zoneType: string, zoneId: string)
+function ZoneUtil.zone(zoneCategory: string, zoneType: string, zoneId: string?)
     local zone: ZoneConstants.Zone = {
+        ZoneCategory = zoneCategory,
         ZoneType = zoneType,
         ZoneId = zoneId,
     }
@@ -25,21 +26,35 @@ function ZoneUtil.zone(zoneType: string, zoneId: string)
     return zone
 end
 
+function ZoneUtil.getZoneName(zone: ZoneConstants.Zone): string
+    local name: string = zone.ZoneType
+    local id: string? = zone.ZoneId
+    if id then
+        name = name .. "(" .. id .. ")"
+    end
+
+    return name
+end
+
 function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zone)
-    return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
+    return if zone1.ZoneCategory == zone2.ZoneCategory
+            and zone1.ZoneType == zone2.ZoneType
+            and zone1.ZoneId == zone2.ZoneId
+        then true
+        else false
 end
 
 function ZoneUtil.houseInteriorZone(player: Player)
-    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
+    return ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, tostring(player.UserId))
 end
 
 function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
-    local userId = tonumber(zone.ZoneId)
+    local userId = tonumber(zone.ZoneType)
     return userId and game.Players:GetPlayerByUserId(userId) and true or false
 end
 
 function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneTypeDirectory(zone.ZoneType):FindFirstChild(zone.ZoneId) and true or false
+    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone)) and true or false
 end
 
 function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)
@@ -48,22 +63,22 @@ function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)
         return nil
     end
 
-    local userId = tonumber(zone.ZoneId)
+    local userId = tonumber(zone.ZoneType)
     return Players:GetPlayerByUserId(userId)
 end
 
-function ZoneUtil.getZoneTypeDirectory(zoneType: string)
-    if zoneType == ZoneConstants.ZoneType.Room then
+function ZoneUtil.getZoneCategoryDirectory(zoneCategory: string)
+    if zoneCategory == ZoneConstants.ZoneCategory.Room then
         return game.Workspace.Rooms
-    elseif zoneType == ZoneConstants.ZoneType.Minigame then
+    elseif zoneCategory == ZoneConstants.ZoneCategory.Minigame then
         return game.Workspace.Minigames
     else
-        error(("ZoneType %q wat"):format(zoneType))
+        error(("ZoneCategory %q wat"):format(zoneCategory))
     end
 end
 
 function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneTypeDirectory(zone.ZoneType)[zone.ZoneId]
+    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory)[ZoneUtil.getZoneName(zone)]
 end
 
 function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
@@ -80,18 +95,21 @@ function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
 end
 
 function ZoneUtil.getZoneFromZoneModel(zoneModel: Model)
-    local zoneType = zoneModel.Parent == game.Workspace.Rooms and ZoneConstants.ZoneType.Room
-        or zoneModel.Parent == game.Workspace.Minigames and ZoneConstants.ZoneType.Minigame
-        or error(("Could not infer ZoneType from %q"):format(zoneModel:GetFullName()))
-    local zoneId = zoneModel.Name
-    return ZoneUtil.zone(zoneType, zoneId)
+    local zoneCategory = zoneModel.Parent == game.Workspace.Rooms and ZoneConstants.ZoneCategory.Room
+        or zoneModel.Parent == game.Workspace.Minigames and ZoneConstants.ZoneCategory.Minigame
+        or error(("Could not infer ZoneCategory from %q"):format(zoneModel:GetFullName()))
+
+    local name = zoneModel.Name
+    local zoneType = name:match("%w+")
+    local zoneId = name:gsub(zoneType, ""):match("%w+")
+    return ZoneUtil.zone(zoneCategory, zoneType, zoneId)
 end
 
 -- Returns a spawnpoint in the context of the zone we're leaving
 function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
-    local arrivals = ZoneUtil.getArrivals(toZone, fromZone.ZoneType)
+    local arrivals = ZoneUtil.getArrivals(toZone, fromZone.ZoneCategory)
     if arrivals then
-        local arrivalSpawnpoint = arrivals:FindFirstChild(fromZone.ZoneId)
+        local arrivalSpawnpoint = arrivals:FindFirstChild(fromZone.ZoneType)
         if arrivalSpawnpoint then
             return arrivalSpawnpoint
         end
@@ -100,22 +118,22 @@ function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConsta
     return ZoneUtil.getZoneInstances(toZone).Spawnpoint
 end
 
-function ZoneUtil.getArrivals(zone: ZoneConstants.Zone, zoneType: string)
-    return ZoneUtil.getZoneInstances(zone)[("%sArrivals"):format(zoneType)]
+function ZoneUtil.getArrivals(zone: ZoneConstants.Zone, zoneCategory: string)
+    return ZoneUtil.getZoneInstances(zone)[("%sArrivals"):format(zoneCategory)]
 end
 
-function ZoneUtil.getDepartures(zone: ZoneConstants.Zone, zoneType: string)
-    return ZoneUtil.getZoneInstances(zone)[("%sDepartures"):format(zoneType)]
+function ZoneUtil.getDepartures(zone: ZoneConstants.Zone, zoneCategory: string)
+    return ZoneUtil.getZoneInstances(zone)[("%sDepartures"):format(zoneCategory)]
 end
 
 function ZoneUtil.getSettings(zone: ZoneConstants.Zone)
-    return ZoneSettings[zone.ZoneType][zone.ZoneId] or nil
+    return ZoneSettings[zone.ZoneCategory][zone.ZoneType] or nil
 end
 
 function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
     local settings = ZoneUtil.getSettings(zone)
     if settings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if settings.Lighting then
@@ -127,7 +145,7 @@ end
 function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
     local settings = ZoneUtil.getSettings(zone)
     if settings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if settings.Lighting then
@@ -136,17 +154,17 @@ function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
     end
 end
 
-function ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
-    local zoneType = zoneTypeArgument:GetValue()
+function ZoneUtil.getZoneTypeCmdrArgument(zoneCategoryArgument)
+    local zoneCategory = zoneCategoryArgument:GetValue()
     return {
-        Type = ZoneUtil.getZoneIdCmdrTypeName(zoneType),
-        Name = "zoneId",
-        Description = ("zoneId (%s)"):format(zoneType),
+        Type = ZoneUtil.getZoneTypeCmdrTypeName(zoneCategory),
+        Name = "zoneType",
+        Description = ("zoneType (%s)"):format(zoneCategory),
     }
 end
 
-function ZoneUtil.getZoneIdCmdrTypeName(zoneType: string)
-    return StringUtil.toCamelCase(("%sZoneId"):format(zoneType))
+function ZoneUtil.getZoneTypeCmdrTypeName(zoneCategory: string)
+    return StringUtil.toCamelCase(("%sZoneType"):format(zoneCategory))
 end
 
 return ZoneUtil

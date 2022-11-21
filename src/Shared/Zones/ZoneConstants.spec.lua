@@ -5,22 +5,22 @@ local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameCon
 return function()
     local issues: { string } = {}
 
-    -- ZoneId should be Enum-like + non-numeric
-    for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
-        for key, value in pairs(zoneIds) do
+    -- ZoneType should be Enum-like + non-numeric
+    for zoneCategory, zoneTypes in pairs(ZoneConstants.ZoneType) do
+        for key, value in pairs(zoneTypes) do
             if key ~= value then
-                table.insert(issues, ("%s: %s pair inside ZoneConstants.ZoneId.%s must be equal"):format(key, value, zoneType))
+                table.insert(issues, ("%s: %s pair inside ZoneConstants.ZoneType.%s must be equal"):format(key, value, zoneCategory))
             end
             if tonumber(value) then
-                table.insert(issues, ("%s: %s cannot be numeric!"):format(key, value, zoneType))
+                table.insert(issues, ("%s: %s cannot be numeric!"):format(key, value, zoneCategory))
             end
         end
     end
 
-    -- Minigame ZoneIds should match Minigame Ids
-    for _, zoneId in pairs(ZoneConstants.ZoneId.Minigame) do
-        if not MinigameConstants.Minigames[zoneId] then
-            table.insert(issues, ("Minigame ZoneId %q has no corresponding MinigameConstants.Minigame of the sane name"):format(zoneId))
+    -- Minigame ZoneTypes should match Minigame Ids
+    for _, zoneType in pairs(ZoneConstants.ZoneType.Minigame) do
+        if not MinigameConstants.Minigames[zoneType] then
+            table.insert(issues, ("Minigame ZoneType %q has no corresponding MinigameConstants.Minigame of the sane name"):format(zoneType))
         end
     end
 

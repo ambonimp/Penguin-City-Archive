@@ -5,21 +5,21 @@ local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
 return function()
     local issues: { string } = {}
 
-    -- Have all ZoneTypes
-    for zoneType, _ in pairs(ZoneConstants.ZoneType) do
-        if not ZoneSettings[zoneType] then
-            table.insert(issues, ("ZoneSettings.%s missing"):format(zoneType))
+    -- Have all ZoneCategorys
+    for zoneCategory, _ in pairs(ZoneConstants.ZoneCategory) do
+        if not ZoneSettings[zoneCategory] then
+            table.insert(issues, ("ZoneSettings.%s missing"):format(zoneCategory))
         end
     end
     if #issues > 0 then
         return
     end
 
-    --[[     -- Have good ZoneIds
-    for zoneType, _ in pairs(ZoneConstants.ZoneType) do
-        for zoneId, _ in pairs(ZoneSettings[zoneType]) do
-            if not ZoneConstants.ZoneId[zoneType][zoneId] then
-                table.insert(issues, ("ZoneSettings.%s.%s %q is a bad ZoneId"):format(zoneType, zoneId, zoneId))
+    --[[     -- Have good ZoneTypes
+    for zoneCategory, _ in pairs(ZoneConstants.ZoneCategory) do
+        for zoneType, _ in pairs(ZoneSettings[zoneCategory]) do
+            if not ZoneConstants.ZoneType[zoneCategory][zoneType] then
+                table.insert(issues, ("ZoneSettings.%s.%s %q is a bad ZoneType"):format(zoneCategory, zoneType, zoneType))
             end
         end
     end *]]

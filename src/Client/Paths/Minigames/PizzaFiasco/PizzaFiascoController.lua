@@ -46,7 +46,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
     -- Disable movement
     minigameJanitor:Add(task.spawn(function()
-        if ZoneController.getCurrentZone().ZoneType ~= ZoneConstants.ZoneType.Minigame then
+        if ZoneController.getCurrentZone().ZoneCategory ~= ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
 

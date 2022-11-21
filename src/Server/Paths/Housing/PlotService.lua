@@ -42,7 +42,7 @@ local plots: { [string]: { [Player]: Model } } = {
 }
 
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
-local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.ZoneId.Room.Neighborhood)
+local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
 -------------------------------------------------------------------------------
 -- PLOT METHODS
@@ -155,12 +155,12 @@ local function loadHouse(player: Player, plot: Model, type: string)
 
         -- Departure
         local entrancePart: BasePart = model.Entrance
-        entrancePart.Name = zone.ZoneId
+        entrancePart.Name = zone.ZoneType
         entrancePart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomDepartures
 
         -- Arrival
         local spawnPart = model.Spawn
-        spawnPart.Name = zone.ZoneId
+        spawnPart.Name = zone.ZoneType
         spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
 
         -- Cleanup
@@ -221,7 +221,7 @@ function PlotService.loadPlayer(player: Player)
     PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
 
     local exitPart = interiorPlot:FindFirstChildOfClass("Model").Exit
-    exitPart.Name = ZoneConstants.ZoneId.Room.Neighborhood
+    exitPart.Name = ZoneConstants.ZoneType.Room.Neighborhood
     exitPart.Parent = ZoneUtil.getZoneInstances(houseInteriorZone).RoomDepartures
 end
 

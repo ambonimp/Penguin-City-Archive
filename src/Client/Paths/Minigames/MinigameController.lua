@@ -193,7 +193,7 @@ end
 Remotes.bindEvents({
     MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
         currentMinigame = minigame
-        currentZone = ZoneUtil.zone(ZoneConstans.ZoneType.Minigame, id)
+        currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
@@ -208,7 +208,7 @@ Remotes.bindEvents({
         janitor:Cleanup()
 
         -- Revert
-        if ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Minigame then
+        if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
 

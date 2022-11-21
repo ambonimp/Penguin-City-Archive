@@ -12,19 +12,20 @@ export type PlayerZoneState = {
 }
 
 export type Zone = {
+    ZoneCategory: string,
     ZoneType: string,
-    ZoneId: string,
+    ZoneId: string?,
 }
 
 -------------------------------------------------------------------------------
 -- Constants
 -------------------------------------------------------------------------------
 
-ZoneConstants.ZoneType = {
+ZoneConstants.ZoneCategory = {
     Room = "Room",
     Minigame = "Minigame",
 }
-ZoneConstants.ZoneId = {
+ZoneConstants.ZoneType = {
     Room = {
         Town = "Town",
         Neighborhood = "Neighborhood",
@@ -33,7 +34,11 @@ ZoneConstants.ZoneId = {
         CoffeeShop = "CoffeeShop",
         IceCreamShop = "IceCreamShop",
     },
-    Minigame = {},
+    Minigame = {
+        SledRace = "SledRace",
+        IceCreamExtravaganza = "IceCreamExtravaganza",
+        PizzaFiasco = "PizzaFiasco",
+    },
 }
 
 ZoneConstants.ZoneInstances = {
@@ -41,7 +46,7 @@ ZoneConstants.ZoneInstances = {
 }
 
 local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
+    RoomId = ZoneConstants.ZoneType.Room.Neighborhood,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
