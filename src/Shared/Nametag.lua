@@ -59,9 +59,9 @@ function Nametag.new()
 
     local nameUiStroke = Instance.new("UIStroke")
     nameUiStroke.Name = "nameUiStroke"
-    nameUiStroke.Color = Color3.fromRGB(38, 71, 118)
-    nameUiStroke.Thickness = 0.5
-    nameUiStroke.Transparency = 0.5
+    nameUiStroke.Color = Color3.fromRGB(255, 255, 255)
+    nameUiStroke.Thickness = 1
+    nameUiStroke.Transparency = 0
     nameUiStroke.Parent = nameLabel
 
     nameLabel.Parent = holderFrame

@@ -70,7 +70,7 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
 
     local maid = Maid.new()
     local isDestroyed = false
-    local character: Model
+    local character: Model = Players.LocalPlayer.Character
     local goalPart = Instance.new("Part")
     local goalAttachment = Instance.new("Attachment")
     local modelAttachment = Instance.new("Attachment")
@@ -112,6 +112,10 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
         goalPart.Transparency = 1
         goalPart.Name = "PetFollowerGoalPart"
         goalPart.Parent = game.Workspace
+
+        if character then
+            goalPart:PivotTo(character:GetPivot())
+        end
 
         goalAttachment.Parent = goalPart
 
@@ -186,7 +190,6 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
             IsJumping = humanoid:GetState() == Enum.HumanoidStateType.Freefall,
             Distance = getDistanceFromCharacter(),
         }
-        lastTickState = lastTickState or thisTickState -- First time init
 
         -- Teleport
         local isVeryFarAway = thisTickState.Distance > PIVOT_TO_PLAYER_AT_DISTANCE
@@ -199,6 +202,18 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
 
         -- Make Decision
         do
+            --* Jumping
+            if thisTickState.IsJumping then
+                -- If we just jumped, and pet is not jumping
+                if not (lastTickState and lastTickState.IsJumping) and not movementState.Jumping then
+                    movementState.Jumping = movementState.Jumping or {}
+                    movementState.Jumping.StartedAtTick = tick()
+                end
+
+                movementState.Moving = movementState.Moving or {}
+                movementState.Moving.GoalPosition = getSidePosition()
+            end
+
             --* Moving
             local isFarAway = thisTickState.Distance > PetConstants.Following.MaxDistance
             if thisTickState.IsMoving or isFarAway then
@@ -212,23 +227,16 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
                     end
                 end
             end
-
-            --* Jumping
-            if thisTickState.IsJumping then
-                -- If we just jumped, and pet is not jumping
-                if not lastTickState.IsJumping and not movementState.Jumping then
-                    movementState.Jumping = movementState.Jumping or {}
-                    movementState.Jumping.StartedAtTick = tick()
-                end
-
-                movementState.Moving = movementState.Moving or {}
-                movementState.Moving.GoalPosition = getSidePosition()
-            end
         end
 
         -- Move
         do
             local finalState: State = "Idle"
+
+            -- Init Position
+            if not lastTickState then
+                setPetBottomCFrame(CFrameUtil.setPosition(humanoidRootPart.CFrame, getSidePosition() or getSidePosition(true)))
+            end
 
             -- Moving
             if movementState.Moving then
