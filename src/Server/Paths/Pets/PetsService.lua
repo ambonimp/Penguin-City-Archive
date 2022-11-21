@@ -28,6 +28,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Signal = require(Paths.Shared.Signal)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
+local QUICK_HATCH_TIME = -10
 
 PetsService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
 
@@ -302,7 +303,7 @@ Remotes.bindFunctions({
         local hatchTime = PetsService.getHatchTime(player, petEggName, petEggDataIndex)
         if hatchTime > 0 and ProductService.getProductCount(player, Products.Products.Misc.quick_hatch) > 0 then
             ProductService.addProduct(player, Products.Products.Misc.quick_hatch, -1)
-            PetsService.setHatchTime(player, petEggName, petEggDataIndex, -1)
+            PetsService.setHatchTime(player, petEggName, petEggDataIndex, QUICK_HATCH_TIME)
             return true
         end
 
