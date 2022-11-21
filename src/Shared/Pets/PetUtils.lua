@@ -1,6 +1,7 @@
 local PetUtils = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
@@ -92,6 +93,14 @@ function PetUtils.getAnimations(petType: string)
     end
 
     return animations
+end
+
+function PetUtils.getHeightAlphaFromPetJumpProgress(jumpProgress: number)
+    if jumpProgress < 0.5 then
+        return TweenService:GetValue(jumpProgress * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    else
+        return TweenService:GetValue(1 - (jumpProgress - 0.5) * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    end
 end
 
 -------------------------------------------------------------------------------

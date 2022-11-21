@@ -53,14 +53,6 @@ local ALIGNER_PROPERTIES = {
     },
 }
 
-local function getHeightAlphaFromJumpProgress(jumpProgress: number)
-    if jumpProgress < 0.5 then
-        return TweenService:GetValue(jumpProgress * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    else
-        return TweenService:GetValue(1 - (jumpProgress - 0.5) * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-    end
-end
-
 function PetMover.new(petData: PetConstants.PetData, model: Model)
     local petMover = {}
 
@@ -263,7 +255,7 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
                     1,
                     true
                 )
-                local heightAlpha = getHeightAlphaFromJumpProgress(linearProgress)
+                local heightAlpha = PetUtils.getHeightAlphaFromPetJumpProgress(linearProgress)
 
                 local usePosition = movementState.Moving and movementState.Moving.GoalPosition or getSidePosition() or getSidePosition(true)
                 local finalY = usePosition.Y + heightAlpha * PetConstants.Following.JumpHeight

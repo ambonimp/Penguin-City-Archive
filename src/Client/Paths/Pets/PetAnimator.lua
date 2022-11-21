@@ -5,9 +5,15 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Workspace = game:GetService("Workspace")
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Remotes = require(Paths.Shared.Remotes)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local PetUtils = require(Paths.Shared.Pets.PetUtils)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 
 local petsFolder = Workspace:WaitForChild("PetModels")
 local tracksByPetId: { [number]: { [string]: AnimationTrack } } = {}
+
+local JUMP_HEIGHT_OFFSET_MULTIPLIER = 3
+local JUMP_HEIGHT_TWEEN_INFO = TweenInfo.new(0, Enum.EasingStyle.Linear)
 
 --[[
     Call `replicate` when animating our ClientPet
@@ -64,6 +70,22 @@ function PetAnimator.playAnimation(petId: number, animationName: string, replica
             someTrack:Play()
         else
             someTrack:Stop()
+        end
+    end
+
+    --!! We have some unfortunate behaviour with the jump animations - we need to manually + hackily offset the pet's Nametag off the back of the jump animation
+    if animationName == "Jump" then
+        local billboardGui = model:FindFirstChildWhichIsA("BillboardGui", true)
+        if billboardGui then
+            local duration = track.Length
+            local baseOffset = billboardGui.StudsOffset
+            local goalOffset = baseOffset + Vector3.new(0, PetConstants.Following.JumpHeight * JUMP_HEIGHT_OFFSET_MULTIPLIER, 0)
+
+            TweenUtil.run(function(jumpProgress)
+                local heightAlpha = PetUtils.getHeightAlphaFromPetJumpProgress(jumpProgress)
+                local offset = baseOffset:Lerp(goalOffset, heightAlpha)
+                billboardGui.StudsOffset = offset
+            end, TweenInfo.new(duration, JUMP_HEIGHT_TWEEN_INFO.EasingStyle, JUMP_HEIGHT_TWEEN_INFO.EasingDirection))
         end
     end
 
