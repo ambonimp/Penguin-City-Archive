@@ -281,13 +281,28 @@ Remotes.bindFunctions({
             return false
         end
 
+        -- Hatch!
         local hatchTime = PetsService.getHatchTime(player, petEggName, petEggDataIndex)
         if hatchTime == 0 then
             PetsService.hatchEgg(player, petEggName, petEggDataIndex)
             return true
-        elseif hatchTime > 0 and ProductService.getProductCount(player, Products.Products.Misc.quick_hatch) > 0 then
+        end
+
+        return false
+    end,
+    PetEggQuickHatchRequest = function(player: Player, dirtyPetEggName: any, dirtyPetEggDataIndex: any)
+        -- Clean Data
+        local petEggName = typeof(dirtyPetEggName) == "string" and PetConstants.PetEggs[dirtyPetEggName] and dirtyPetEggName
+        local petEggDataIndex = typeof(dirtyPetEggDataIndex) == "string" and dirtyPetEggDataIndex
+        if not (petEggName and petEggDataIndex) then
+            return false
+        end
+
+        -- Use Quick Hatch to nuke the hatch time
+        local hatchTime = PetsService.getHatchTime(player, petEggName, petEggDataIndex)
+        if hatchTime > 0 and ProductService.getProductCount(player, Products.Products.Misc.quick_hatch) > 0 then
             ProductService.addProduct(player, Products.Products.Misc.quick_hatch, -1)
-            PetsService.hatchEgg(player, petEggName, petEggDataIndex)
+            PetsService.setHatchTime(player, petEggName, petEggDataIndex, -1)
             return true
         end
 

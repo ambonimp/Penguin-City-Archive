@@ -52,7 +52,7 @@ function PetEditorScreen.Init()
             if newName and currentPetDataIndex then
                 PetsController.setPetName(newName, currentPetDataIndex)
             end
-            warn("todo equip")
+            PetsController.equipPetRequest(currentPetDataIndex)
 
             exitState()
         end)

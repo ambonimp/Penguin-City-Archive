@@ -32,7 +32,7 @@ local viewportFrame = Instance.new("ViewportFrame")
 viewportFrame.Size = UDim2.fromScale(0.7, 0.7)
 viewportFrame.SizeConstraint = Enum.SizeConstraint.RelativeXX
 viewportFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-viewportFrame.Position = UDim2.fromScale(0.5, 0.6)
+viewportFrame.Position = UDim2.fromScale(0.5, 0.5)
 viewportFrame.BackgroundTransparency = 1
 viewportFrame.Parent = screenGui
 

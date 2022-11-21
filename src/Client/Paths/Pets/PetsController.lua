@@ -208,29 +208,32 @@ end
 function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string, isPremature: boolean?)
     hatchRequestMaid:Cleanup()
 
-    local function request()
-        UIController.getStateMachine():Push(UIConstants.States.PetEggHatching, {
-            PetEggName = petEggName,
-        })
-
-        local didHatch = Remotes.invokeServer("PetEggHatchRequest", petEggName, petEggDataIndex)
-        if not didHatch then
-            UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
+    -- Premature.. use a quick hatch product to make it instantly hatchable
+    if isPremature then
+        if ProductController.getProductCount(Products.Products.Misc.quick_hatch) == 0 then
+            -- Needs to purchase product first
+            ProductController.prompt(Products.Products.Misc.quick_hatch)
+            hatchRequestMaid:GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
+                if product == Products.Products.Misc.quick_hatch then
+                    Remotes.invokeServer("PetEggQuickHatchRequest", petEggName, petEggDataIndex)
+                end
+            end))
+        else
+            -- We have a product to use
+            Remotes.invokeServer("PetEggQuickHatchRequest", petEggName, petEggDataIndex)
         end
-    end
-
-    -- Premature.. wrap inside needing a quickHatch product
-    if isPremature and ProductController.getProductCount(Products.Products.Misc.quick_hatch) == 0 then
-        ProductController.prompt(Products.Products.Misc.quick_hatch)
-        hatchRequestMaid:GiveTask(ProductController.ProductAdded:Connect(function(product: Products.Product)
-            if product == Products.Products.Misc.quick_hatch then
-                request()
-            end
-        end))
         return
     end
 
-    request()
+    -- We can go for it!
+    UIController.getStateMachine():Push(UIConstants.States.PetEggHatching, {
+        PetEggName = petEggName,
+    })
+
+    local didHatch = Remotes.invokeServer("PetEggHatchRequest", petEggName, petEggDataIndex)
+    if not didHatch then
+        UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
+    end
 end
 
 function PetsController.getTotalHatchableEggs()
