@@ -29,29 +29,33 @@ function PetAnimator.playAnimation(petId: number, animationName: string, replica
         return
     end
 
-    -- WARN: Bad animationName
-    local animation: Animation = animator:FindFirstChild(animationName)
-    if not animation then
-        warn(("Bad/Missing AnimationName %q"):format(animationName))
-        return
-    end
-
     -- Get tracks / Init
     local tracks = tracksByPetId[petId]
     if not tracks then
         tracks = {}
         tracksByPetId[petId] = tracks
 
+        -- Load all animations
+        for _, animation: Animation in pairs(animator:GetChildren()) do
+            if animation:IsA("Animation") then
+                tracks[animation.Name] = animator:LoadAnimation(animation)
+            end
+        end
+
         InstanceUtil.onDestroyed(model, function()
-            tracksByPetId[petId] = nil
+            if tracksByPetId[petId] then
+                for _, track in pairs(tracksByPetId[petId]) do
+                    track:Destroy()
+                end
+                tracksByPetId[petId] = nil
+            end
         end)
     end
 
     -- Get track
     local track = tracks[animationName]
     if not track then
-        track = animator:LoadAnimation(animation)
-        tracks[animationName] = track
+        error(("Bad AnimationName %q"):format(animationName))
     end
 
     -- Play this track

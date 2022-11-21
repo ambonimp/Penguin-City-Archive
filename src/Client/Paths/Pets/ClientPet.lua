@@ -46,7 +46,7 @@ function ClientPet.new(petId: number, petDataIndex: string)
 
     local function setup()
         -- Pet Follower
-        petMover = PetMover.new(model)
+        petMover = PetMover.new(petData, model)
         clientPet:GetMaid():GiveTask(petMover)
 
         -- Have mover state inform animation

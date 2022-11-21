@@ -57,11 +57,11 @@ local function getHeightAlphaFromJumpProgress(jumpProgress: number)
     if jumpProgress < 0.5 then
         return TweenService:GetValue(jumpProgress * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     else
-        return TweenService:GetValue(math.pow(1 - (jumpProgress - 0.5) * 2, 1.5), Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        return TweenService:GetValue(1 - (jumpProgress - 0.5) * 2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
     end
 end
 
-function PetMover.new(model: Model)
+function PetMover.new(petData: PetConstants.PetData, model: Model)
     local petMover = {}
 
     -------------------------------------------------------------------------------
@@ -218,12 +218,11 @@ function PetMover.new(model: Model)
                 -- If we just jumped, and pet is not jumping
                 if not lastTickState.IsJumping and not movementState.Jumping then
                     movementState.Jumping = movementState.Jumping or {}
-                    movementState.Jumping.StartPosition = getPetBottomCFrame().Position
                     movementState.Jumping.StartedAtTick = tick()
                 end
 
                 movementState.Moving = movementState.Moving or {}
-                movementState.Moving.GoalPosition = getSidePosition(true)
+                movementState.Moving.GoalPosition = getSidePosition()
             end
         end
 
@@ -257,12 +256,13 @@ function PetMover.new(model: Model)
                     true
                 )
                 local heightAlpha = getHeightAlphaFromJumpProgress(linearProgress)
-                local finalY = (movementState.Moving and movementState.Moving.GoalPosition.Y or movementState.Jumping.StartPosition.Y)
-                    + heightAlpha * PetConstants.Following.JumpHeight
+
+                local usePosition = movementState.Moving and movementState.Moving.GoalPosition or getSidePosition() or getSidePosition(true)
+                local finalY = usePosition.Y + heightAlpha * PetConstants.Following.JumpHeight
 
                 local currentPosition = movementState.Moving and movementState.Moving.GoalPosition or getPetBottomCFrame().Position
                 local newPosition = Vector3.new(currentPosition.X, finalY, currentPosition.Z)
-                setPetBottomCFrame(CFrameUtil.setPosition(getPetBottomCFrame(), newPosition))
+                setPetBottomCFrame(CFrameUtil.setPosition(humanoidRootPart.CFrame, newPosition))
 
                 -- Clear if jump completed
                 if linearProgress == 1 then
