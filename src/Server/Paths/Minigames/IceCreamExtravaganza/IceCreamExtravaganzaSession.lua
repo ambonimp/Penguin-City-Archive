@@ -36,6 +36,8 @@ local INVICIBILITY_PROPERTIES = {
     Color = Color3.new(1, 1, 1),
 }
 
+local SCOOP_INSET = 0.6
+
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
 
 local random = Random.new()
@@ -80,6 +82,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
         local cone: Model = serverAssets.Cone:Clone()
         cone.Parent = character
         local conePrimary: BasePart = cone.PrimaryPart
+        conePrimary.Massless = true
         cone:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -(1 + conePrimary.Size.Z / 2)))
         BasePartUtil.weld(conePrimary, humanoidRootPart)
     end
@@ -98,8 +101,8 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
     minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
         if stillInGame then
             local character: Model = participant.Character
+            clearCone(participant)
             CharacterUtil.unanchor(character)
-
             PropertyStack.clearProperty(character.Humanoid, "WalkSpeed", PROPERTY_STACK_KEY_SPEED)
         end
     end)
@@ -178,6 +181,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
             -- RETURN: Collectable wasn't actually touched
             if clientStudDiscrepancy > CLIENT_STUD_DISCREPANCY_ALLOWANCE then
+                warn("NOT REGESTERING")
                 return
             end
 
@@ -190,8 +194,10 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
                         return
                     end
 
-                    local _, oldScore = minigameSession:IncrementScore(player, -1)
-                    cone:FindFirstChild(getScoopName(oldScore)):Destroy()
+                    local newScore, oldScore = minigameSession:IncrementScore(player, -1)
+                    if newScore ~= 0 then
+                        cone:FindFirstChild(getScoopName(oldScore))
+                    end
                 elseif collectableType == "Invicible" then
                     -- RETURN: Player is already invisible
                     if inviciblePlayers[player] then
@@ -217,20 +223,33 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
                     local _, oldScore = minigameSession:IncrementScore(player, scoreAddend)
                     for i = 1, scoreAddend do
-                        local lastScoopCFrame, lastScoopSize = (if i == 1 then cone else cone[getScoopName(oldScore + i - 1)]):GetBoundingBox()
+                        local lastScoop: Model = if i == 1 then cone else cone[getScoopName(oldScore + i - 1)]
+                        local lastScoopCFrame, lastScoopSize = lastScoop:GetBoundingBox()
+                        local pivotCFrame: CFrame = CFrame.new(0, lastScoopSize.Y / 2 - SCOOP_INSET, 0) * lastScoopCFrame
 
                         local scoop: Model = collectableModel:Clone()
-                        local scoopPrimary = scoop.PrimaryPart
+                        local scoopPrimary: BasePart = scoop.PrimaryPart
                         scoop.Name = getScoopName(oldScore + i)
-                        scoop:PivotTo(
-                            ModelUtil.getWorldPivotToCenter(
-                                scoop,
-                                CFrame.new(0, (lastScoopSize + collectableSize).Y / 2, 0) * lastScoopCFrame
-                            )
-                        )
+                        scoop:PivotTo(ModelUtil.getWorldPivotToCenter(scoop, CFrame.new(0, collectableSize.Y / 2, 0) * pivotCFrame))
                         scoop.Parent = cone
-                        scoopPrimary.Anchored = false
-                        BasePartUtil.weld(scoopPrimary, cone.PrimaryPart)
+
+                        local att0: Attachment = Instance.new("Attachment")
+                        att0.Parent = scoopPrimary
+                        att0.WorldCFrame = pivotCFrame
+
+                        local att1: Attachment = Instance.new("Attachment")
+                        att1.Parent = lastScoop.PrimaryPart
+                        att1.WorldCFrame = pivotCFrame
+
+                        local ballSocket = Instance.new("BallSocketConstraint")
+                        ballSocket.Attachment0 = att0
+                        ballSocket.Attachment1 = att1
+                        ballSocket.LimitsEnabled = true
+                        ballSocket.UpperAngle = 10
+                        ballSocket.TwistLimitsEnabled = true
+                        ballSocket.TwistLowerAngle = 0
+                        ballSocket.TwistUpperAngle = 0
+                        ballSocket.Parent = scoopPrimary
                     end
                 end
             end)
@@ -272,16 +291,17 @@ do
                 if descendant:IsA("BasePart") then
                     if not primaryPart then
                         primaryPart = descendant
-                        primaryPart.Anchored = true
                     else
-                        descendant.Anchored = false
                         BasePartUtil.weld(descendant, primaryPart)
                     end
 
+                    descendant.Anchored = false
                     descendant.CanCollide = false
                     descendant.CanQuery = false
                     descendant.CanTouch = true
                     descendant.Massless = true
+
+                    descendant.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
                 end
             end
         end
@@ -302,6 +322,8 @@ do
     local collectableContainer = Instance.new("Folder", mapTemplate)
     collectableContainer.Name = IceCreamExtravaganzaConstants.CollectableContainerName
     collectableContainer.Parent = mapTemplate
+
+    mapTemplate.Floor.CustomPhysicalProperties = IceCreamExtravaganzaConstants.FloorPhysicalProperties
 end
 
 do

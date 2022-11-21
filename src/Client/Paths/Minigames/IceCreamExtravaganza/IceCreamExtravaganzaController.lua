@@ -15,6 +15,8 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local CollectableController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCollectables)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
+local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCamera)
 
 local MINIGAME_NAME = "IceCreamExtravaganza"
 
@@ -35,6 +37,7 @@ minigameJanitor:Add(coreJanitor, "Cleanup")
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
     SharedMinigameScreen.openStartMenu()
+    minigameJanitor:Add(CameraController.setup())
 
     minigameJanitor:Add(task.spawn(function()
         -- Temporarily disable movement
@@ -90,6 +93,8 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
+    Confetti.play()
+
     task.wait(AWARD_SEQUENCE_DELAY)
     CharacterUtil.anchor(player.Character)
 
@@ -101,7 +106,6 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     end
 
     local placement = MinigameController.getOwnPlacement(scores)
-
     SharedMinigameScreen.openResults({
         if isMultiplayer then { Title = "Placement", Value = placement } else nil,
         { Title = "Scoops", Value = MinigameController.getOwnScore(scores) },

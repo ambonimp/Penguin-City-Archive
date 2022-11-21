@@ -12,6 +12,7 @@ local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
+local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaCamera)
 
 local SHADOW_TRANSPARENCY = 0.5
 local SHADOW_DEPH = Vector3.new(0, 0.1, 0)
@@ -34,7 +35,12 @@ function IceCreamExtravaganzaCollectables.setup()
     local drops: { [string]: table } = {}
 
     local character = player.Character
-    local characterCFrame, characterSize = character:GetBoundingBox()
+    local cone: Model = character.Cone
+
+    local participatingCharacters: { Model } = {}
+    for _, participant in pairs(MinigameController.getParticpants()) do
+        table.insert(participatingCharacters, participant.Character)
+    end
 
     janitor:Add(
         Remotes.bindEventTemp("IceCreamExtravaganzaCollectableSpawned", function(id: string, modelTemplate: Model, dropOrigin: CFrame)
@@ -50,20 +56,55 @@ function IceCreamExtravaganzaCollectables.setup()
             local percentageOfDropRemaining: number = dropLength / idealDropLength
             local percentageOfDropUsed: number = 1 - percentageOfDropRemaining
 
+            -- Collectable
             local model: Model = modelTemplate:Clone()
             local modelSize: Vector3 = model:GetExtentsSize()
+            local modelCFrame: CFrame = CFrame.new(dropOriginXZ)
+                * CFrame.new(0, idealSpawnHeight - (percentageOfDropUsed * idealDropDistance), 0)
+                * dropOrigin.Rotation
+
+            local modelPrimary: BasePart = model.PrimaryPart
+            modelPrimary.Anchored = true
             model.Name = id
-            model:PivotTo(
-                ModelUtil.getWorldPivotToCenter(
-                    modelTemplate,
-                    CFrame.new(dropOriginXZ)
-                        * CFrame.new(0, idealSpawnHeight - (percentageOfDropUsed * idealDropDistance), 0)
-                        * dropOrigin.Rotation
-                )
-            )
+            model:PivotTo(ModelUtil.getWorldPivotToCenter(modelTemplate, modelCFrame))
             model.Parent = collectableContainer
 
-            local shadowTweenInfo = TweenInfo.new(dropLength, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            local hitbox: Part = Instance.new("Part")
+            hitbox.Transparency = 0.5
+            hitbox.Size = modelSize
+            hitbox.CFrame = modelCFrame
+            hitbox.Massless = true
+            hitbox.CanCollide = false
+            hitbox.Parent = model
+            BasePartUtil.weld(hitbox, modelPrimary)
+
+            local collisionConnection: RBXScriptConnection
+            collisionConnection = hitbox.Touched:Connect(function(hit)
+                local characterHit: Model
+                for _, participatingCharacter in pairs(participatingCharacters) do
+                    if hit:IsDescendantOf(participatingCharacter) then
+                        characterHit = participatingCharacter
+                        break
+                    end
+                end
+
+                if characterHit then
+                    drops[id]:cancel()
+                    collisionConnection:Disconnect()
+
+                    if characterHit == character then
+                        local collectableType = model:GetAttribute("Type")
+                        if collectableType == "Obstacle" then
+                            CameraController.shake()
+                        end
+
+                        Remotes.fireServer("IceCreamExtravaganzaCollectableCollected", id)
+                    end
+                end
+            end)
+
+            -- Shadow
+            local shadowTweenInfo = TweenInfo.new(dropLength, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
             local goalShadowSize: Vector3 = Vector3.new(1, 0, 1) * math.max(modelSize.X, modelSize.Z) + SHADOW_DEPH
 
             local shadowPart: BasePart = assets.CollectableShadow:Clone()
@@ -74,10 +115,11 @@ function IceCreamExtravaganzaCollectables.setup()
             local shadowDecal: Decal = shadowPart.Decal
             shadowDecal.Transparency = 1 - (1 - SHADOW_TRANSPARENCY) * percentageOfDropUsed
 
+            -- Drop
             drops[id] = TweenUtil.batch({
                 TweenService:Create(shadowPart, shadowTweenInfo, { Size = goalShadowSize }),
                 TweenService:Create(shadowDecal, shadowTweenInfo, { Transparency = SHADOW_TRANSPARENCY }),
-                TweenService:Create(model.PrimaryPart, TweenInfo.new(dropLength, Enum.EasingStyle.Linear), {
+                TweenService:Create(modelPrimary, TweenInfo.new(dropLength, Enum.EasingStyle.Linear), {
                     CFrame = ModelUtil.getWorldPivotToCenter(
                         model,
                         CFrame.new(0, -idealDropDistance * percentageOfDropRemaining, 0) * model.WorldPivot
@@ -102,34 +144,6 @@ function IceCreamExtravaganzaCollectables.setup()
             end, nil, id)
         end)
     )
-
-    local hitbox: Part = Instance.new("Part")
-    hitbox.Transparency = 1
-    hitbox.Size = characterSize
-    hitbox.CFrame = characterCFrame
-    hitbox.Massless = true
-    hitbox.CanCollide = false
-    hitbox.Parent = character
-    janitor:Add(hitbox)
-    BasePartUtil.weld(hitbox, character.HumanoidRootPart)
-    janitor:Add(hitbox.Touched:Connect(function(hit: BasePart)
-        -- RETURN: Did not touch a collectable
-        if not hit:IsDescendantOf(collectableContainer) then
-            return
-        end
-
-        local collectableModel = hit
-        repeat
-            collectableModel = collectableModel.Parent
-        until not collectableModel or collectableModel.Parent == collectableContainer
-
-        local collectableId: string = collectableModel.Name
-        local collectableType = collectableModel:GetAttribute("Type")
-
-        drops[collectableId]:cancel()
-
-        Remotes.fireServer("IceCreamExtravaganzaCollectableCollected", collectableId)
-    end))
 
     return janitor
 end

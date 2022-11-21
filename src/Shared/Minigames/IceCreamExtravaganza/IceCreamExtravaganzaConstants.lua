@@ -34,7 +34,9 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     end,
 }
 
-IceCreamExtravaganzaConstants.WalkSpeed = 60
+IceCreamExtravaganzaConstants.SessionConfig = sessionConfig
+
+IceCreamExtravaganzaConstants.WalkSpeed = 50
 IceCreamExtravaganzaConstants.DropVelocity = 12
 IceCreamExtravaganzaConstants.CollectableDropRate = 0.4
 IceCreamExtravaganzaConstants.InvicibilityLength = 5
@@ -47,6 +49,12 @@ IceCreamExtravaganzaConstants.CollectableDropProbability = {
     Regular = 57,
 }
 
-IceCreamExtravaganzaConstants.SessionConfig = sessionConfig
+IceCreamExtravaganzaConstants.FloorPhysicalProperties = PhysicalProperties.new(
+    1, -- density
+    0, -- friction
+    0.1, -- elasticity
+    200, -- frictionWeight
+    200 -- elasticityWeight
+)
 
 return IceCreamExtravaganzaConstants
