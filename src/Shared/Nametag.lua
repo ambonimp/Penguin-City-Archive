@@ -5,14 +5,6 @@ local Nametag = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Maid = require(ReplicatedStorage.Packages.maid)
-local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
-
-local MOUNT_PART_PROPERTIES = {
-    CanCollide = false,
-    Name = "NametagPart",
-    Size = Vector3.new(1, 1, 1),
-    Transparency = 1,
-}
 
 function Nametag.new()
     local nametag = {}

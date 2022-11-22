@@ -4,16 +4,14 @@
     PetEggs all have a hatch time associated to them - the value stored on our data profile is how long until that egg catches from the *start* of a
     players play session (see `unloadPlayer`)
 ]]
-local PetsService = {}
+local PetService = {}
 
-local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
 local ProductService: typeof(require(Paths.Server.Products.ProductService))
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local SessionService = require(Paths.Server.SessionService)
@@ -23,18 +21,16 @@ local Products = require(Paths.Shared.Products.Products)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
-local ZoneService = require(Paths.Server.Zones.ZoneService)
-local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Signal = require(Paths.Shared.Signal)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 local QUICK_HATCH_TIME = -10
 
-PetsService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
+PetService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
 
 local petsByPlayer: { [Player]: ServerPet.ServerPet } = {}
 
-function PetsService.Init()
+function PetService.Init()
     -- Dependencies
     ProductService = require(Paths.Server.Products.ProductService)
 end
@@ -44,11 +40,11 @@ end
 -------------------------------------------------------------------------------
 
 local function isValidPetDataIndex(player: Player, petDataIndex: string)
-    return PetsService.getPets(player)[petDataIndex] and true or false
+    return PetService.getPets(player)[petDataIndex] and true or false
 end
 
 -- Returns the PetDataIndex
-function PetsService.addPet(player: Player, petData: PetConstants.PetData)
+function PetService.addPet(player: Player, petData: PetConstants.PetData)
     local appendKey = DataService.getAppendageKey(player, "Pets.Pets")
     DataService.append(player, "Pets.Pets", TableUtil.deepClone(petData), "PetUpdated", {
         PetDataIndex = appendKey,
@@ -56,24 +52,24 @@ function PetsService.addPet(player: Player, petData: PetConstants.PetData)
     return appendKey
 end
 
-function PetsService.removePet(player: Player, petDataIndex: string)
+function PetService.removePet(player: Player, petDataIndex: string)
     local address = ("Pets.Pets.%s"):format(petDataIndex)
     DataService.set(player, address, nil, "PetUpdated", {
         PetDataIndex = petDataIndex,
     })
 
-    if petDataIndex == PetsService.getEquippedPetDataIndex(player) then
-        PetsService.unequipPet(player)
+    if petDataIndex == PetService.getEquippedPetDataIndex(player) then
+        PetService.unequipPet(player)
     end
 end
 
 -- Keys are petDataIndex
-function PetsService.getPets(player: Player)
+function PetService.getPets(player: Player)
     return DataService.get(player, "Pets.Pets") :: { [string]: PetConstants.PetData }
 end
 
-function PetsService.getPet(player: Player, petDataIndex: string)
-    local petData = PetsService.getPets(player)[petDataIndex]
+function PetService.getPet(player: Player, petDataIndex: string)
+    local petData = PetService.getPets(player)[petDataIndex]
     if not petData then
         error(("No pet under index %q"):format(petDataIndex))
     end
@@ -82,7 +78,7 @@ function PetsService.getPet(player: Player, petDataIndex: string)
 end
 
 -- Returns true if successful.
-function PetsService.changePetName(player: Player, petDataIndex: string, petName: string, doFilter: boolean?)
+function PetService.changePetName(player: Player, petDataIndex: string, petName: string, doFilter: boolean?)
     -- (Filter) FALSE: Was filtered
     if doFilter then
         local filteredPetName = TextFilterUtil.filter(petName, player.UserId)
@@ -95,7 +91,7 @@ function PetsService.changePetName(player: Player, petDataIndex: string, petName
     end
 
     -- ERROR: Bad pet data index
-    local petData = PetsService.getPet(player, petDataIndex)
+    local petData = PetService.getPet(player, petDataIndex)
     if not petData then
         warn(("Bad PetDataIndex %q"):format(petDataIndex))
         return false
@@ -106,14 +102,14 @@ function PetsService.changePetName(player: Player, petDataIndex: string, petName
     DataService.set(player, PetUtils.getPetDataAddress(petDataIndex), petData, "PetDataUpdated")
 
     -- Inform
-    PetsService.PetNameChanged:Fire(player, petDataIndex, petName)
+    PetService.PetNameChanged:Fire(player, petDataIndex, petName)
 
     return true
 end
 
 -- Will create and/or destroy a pet for our player
 local function updatePlayerPet(player: Player, isLeaving: boolean?)
-    local equippedPetDataIndex = PetsService.getEquippedPetDataIndex(player)
+    local equippedPetDataIndex = PetService.getEquippedPetDataIndex(player)
     local currentPet = petsByPlayer[player]
 
     local doDestroy = currentPet and (isLeaving or currentPet:GetPetDataIndex() ~= equippedPetDataIndex)
@@ -141,12 +137,12 @@ end
 Remotes.declareEvent("PetDestroyed")
 Remotes.declareEvent("PetCreated")
 
-function PetsService.equipPet(player: Player, petDataIndex: string)
-    local _petData = PetsService.getPet(player, petDataIndex) -- Will throw an error for us if petDataIndex is bad
+function PetService.equipPet(player: Player, petDataIndex: string)
+    local _petData = PetService.getPet(player, petDataIndex) -- Will throw an error for us if petDataIndex is bad
 
     -- Unequip old pet
-    if PetsService.getEquippedPetDataIndex(player) then
-        PetsService.unequipPet(player)
+    if PetService.getEquippedPetDataIndex(player) then
+        PetService.unequipPet(player)
     end
 
     DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, petDataIndex, "EquippedPetUpdated")
@@ -154,15 +150,15 @@ function PetsService.equipPet(player: Player, petDataIndex: string)
 end
 
 -- Returns PetDataIndex (if it exists)
-function PetsService.getEquippedPetDataIndex(player: Player)
+function PetService.getEquippedPetDataIndex(player: Player)
     return DataService.get(player, EQUIPPED_PET_DATA_ADDRESS)
 end
 
-function PetsService.getEquippedPet(player: Player)
+function PetService.getEquippedPet(player: Player)
     return petsByPlayer[player] or nil
 end
 
-function PetsService.unequipPet(player: Player)
+function PetService.unequipPet(player: Player)
     DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
     updatePlayerPet(player)
 end
@@ -176,7 +172,7 @@ local function getHatchTimeByEggsData(player: Player)
 end
 
 -- Returns PetEggDataIndex
-function PetsService.addPetEgg(player: Player, petEggName: string, hatchTime: number?)
+function PetService.addPetEgg(player: Player, petEggName: string, hatchTime: number?)
     local playtime = SessionService.getSession(player):GetPlayTime()
     hatchTime = (hatchTime or PetConstants.PetEggs[petEggName].HatchTime) + playtime
 
@@ -193,7 +189,7 @@ end
 --[[
     Will set the hatch time for a pet egg
 ]]
-function PetsService.setHatchTime(player: Player, petEggName: string, petEggDataIndex: string, hatchTime: number)
+function PetService.setHatchTime(player: Player, petEggName: string, petEggDataIndex: string, hatchTime: number)
     -- ERROR: Bad PetEggDataIndex
     local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), petEggDataIndex)
     if not DataService.get(player, address) then
@@ -206,7 +202,7 @@ function PetsService.setHatchTime(player: Player, petEggName: string, petEggData
     })
 end
 
-function PetsService.removePetEgg(player: Player, petEggName: string, petEggDataIndex: string)
+function PetService.removePetEgg(player: Player, petEggName: string, petEggDataIndex: string)
     local address = ("%s.%s"):format(PetUtils.getPetEggDataAddress(petEggName), petEggDataIndex)
     DataService.set(player, address, nil, "PetEggUpdated", {
         PetEggDataIndex = petEggDataIndex,
@@ -218,10 +214,10 @@ end
 
     If `petEggDataIndex` is passed, will wipe it form our data
 ]]
-function PetsService.hatchEgg(player: Player, petEggName: string, petEggDataIndex: string?)
+function PetService.hatchEgg(player: Player, petEggName: string, petEggDataIndex: string?)
     -- Clear Data
     if petEggDataIndex then
-        PetsService.removePetEgg(player, petEggName, petEggDataIndex)
+        PetService.removePetEgg(player, petEggName, petEggDataIndex)
     end
 
     -- Create + Add Pet
@@ -231,7 +227,7 @@ function PetsService.hatchEgg(player: Player, petEggName: string, petEggDataInde
         Name = ("%s %s"):format(StringUtil.possessiveName(player.Name), StringUtil.getFriendlyString(petTuple.PetType)),
         BirthServerTime = Workspace:GetServerTimeNow(),
     }
-    local petDataIndex = PetsService.addPet(player, petData)
+    local petDataIndex = PetService.addPet(player, petData)
 
     -- Inform Client
     Remotes.fireClient(player, "PetEggHatched", petData, petDataIndex)
@@ -243,14 +239,14 @@ Remotes.declareEvent("PetEggHatched")
 
     `{ [petEggName]: { [petEggDataIndex]: hatchTime } }`
 ]]
-function PetsService.getHatchTimes(player: Player, ignorePlaytime: boolean?)
+function PetService.getHatchTimes(player: Player, ignorePlaytime: boolean?)
     local playtime = ignorePlaytime and 0 or SessionService.getSession(player):GetPlayTime()
     local hatchTimeByEggsData = getHatchTimeByEggsData(player)
     return PetUtils.getHatchTimes(hatchTimeByEggsData, playtime)
 end
 
-function PetsService.getHatchTime(player: Player, petEggName: string, petEggDataIndex: string, ignorePlaytime: boolean?)
-    local hatchTimes = PetsService.getHatchTimes(player, ignorePlaytime)
+function PetService.getHatchTime(player: Player, petEggName: string, petEggDataIndex: string, ignorePlaytime: boolean?)
+    local hatchTimes = PetService.getHatchTimes(player, ignorePlaytime)
     return hatchTimes[petEggName] and hatchTimes[petEggName][petEggDataIndex] or -1
 end
 
@@ -258,15 +254,15 @@ end
 -- Players
 -------------------------------------------------------------------------------
 
-function PetsService.loadPlayer(player: Player)
+function PetService.loadPlayer(player: Player)
     updatePlayerPet(player)
 end
 
-function PetsService.unloadPlayer(player: Player)
+function PetService.unloadPlayer(player: Player)
     updatePlayerPet(player, true)
 
     -- Deduct playtime from egg hatch times data
-    DataService.set(player, "Pets.Eggs", PetsService.getHatchTimes(player))
+    DataService.set(player, "Pets.Eggs", PetService.getHatchTimes(player))
 end
 
 -------------------------------------------------------------------------------
@@ -283,9 +279,9 @@ Remotes.bindFunctions({
         end
 
         -- Hatch!
-        local hatchTime = PetsService.getHatchTime(player, petEggName, petEggDataIndex)
+        local hatchTime = PetService.getHatchTime(player, petEggName, petEggDataIndex)
         if hatchTime == 0 then
-            PetsService.hatchEgg(player, petEggName, petEggDataIndex)
+            PetService.hatchEgg(player, petEggName, petEggDataIndex)
             return true
         end
 
@@ -300,10 +296,10 @@ Remotes.bindFunctions({
         end
 
         -- Use Quick Hatch to nuke the hatch time
-        local hatchTime = PetsService.getHatchTime(player, petEggName, petEggDataIndex)
+        local hatchTime = PetService.getHatchTime(player, petEggName, petEggDataIndex)
         if hatchTime > 0 and ProductService.getProductCount(player, Products.Products.Misc.quick_hatch) > 0 then
             ProductService.addProduct(player, Products.Products.Misc.quick_hatch, -1)
-            PetsService.setHatchTime(player, petEggName, petEggDataIndex, QUICK_HATCH_TIME)
+            PetService.setHatchTime(player, petEggName, petEggDataIndex, QUICK_HATCH_TIME)
             return true
         end
 
@@ -318,19 +314,19 @@ Remotes.bindFunctions({
         end
 
         -- FALSE: Bad petDataIndex
-        local petData = PetsService.getPets(player)[petDataIndex]
+        local petData = PetService.getPets(player)[petDataIndex]
         if not petData then
             return false
         end
 
-        return PetsService.changePetName(player, petDataIndex, petName, true)
+        return PetService.changePetName(player, petDataIndex, petName, true)
     end,
     EquipRequest = function(player: Player, dirtyPetDataIndex: any)
         -- Clean Data
         local petDataIndex = TypeUtil.toString(dirtyPetDataIndex)
         if petDataIndex then
             if isValidPetDataIndex(player, petDataIndex) then
-                PetsService.equipPet(player, petDataIndex)
+                PetService.equipPet(player, petDataIndex)
                 return true
             else
                 warn(("%q is invalid"):format(petDataIndex))
@@ -338,7 +334,7 @@ Remotes.bindFunctions({
             end
         end
 
-        PetsService.unequipPet(player)
+        PetService.unequipPet(player)
         return true
     end,
 })
@@ -353,7 +349,7 @@ Remotes.bindEvents({
         end
 
         -- RETURN: Bad PetId
-        local equippedPet = PetsService.getEquippedPet(player)
+        local equippedPet = PetService.getEquippedPet(player)
         if not (equippedPet and equippedPet:GetId() == petId) then
             return
         end
@@ -369,4 +365,4 @@ Remotes.bindEvents({
     end,
 })
 
-return PetsService
+return PetService

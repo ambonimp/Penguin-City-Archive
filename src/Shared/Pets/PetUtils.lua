@@ -8,7 +8,6 @@ local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 local directory: Folder = ReplicatedStorage.Assets.Pets
 local typesFolder: Folder = directory.Types
-local eggsFolder: Folder = directory.Eggs
 
 -------------------------------------------------------------------------------
 -- Eggs

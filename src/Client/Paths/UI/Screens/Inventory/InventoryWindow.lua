@@ -232,7 +232,7 @@ function InventoryWindow.new(
             drawMaid:GiveTask(addWidget)
         end
 
-        -- Product Widgets
+        -- Widgets
         widgetsByEquipValue = {}
         for i, entry in pairs(visibleEntries) do
             local holder = getHolderFrame(i)

@@ -9,7 +9,6 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Products = require(Paths.Shared.Products.Products)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
@@ -20,7 +19,6 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local Button = require(Paths.Client.UI.Elements.Button)
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -131,7 +129,7 @@ end
 ]]
 function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string)
     -- Circular Dependencies
-    local PetsController = require(Paths.Client.Pets.PetsController)
+    local PetController = require(Paths.Client.Pets.PetController)
 
     local widget = Widget.diverseWidget()
     local product = ProductUtil.getPetEggProduct(petEggName)
@@ -150,7 +148,7 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string
     local doLoop = true
     task.spawn(function()
         while doLoop do
-            local hatchesIn = PetsController.getHatchTime(petEggName, petEggDataIndex)
+            local hatchesIn = PetController.getHatchTime(petEggName, petEggDataIndex)
 
             -- Update Text
             if hatchesIn > 0 then
@@ -200,12 +198,12 @@ end
 
 function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
     -- Circular Dependencies
-    local PetsController = require(Paths.Client.Pets.PetsController)
+    local PetController = require(Paths.Client.Pets.PetController)
 
-    local petData = PetsController.getPet(petDataIndex)
+    local petData = PetController.getPet(petDataIndex)
     local widget = Widget.diverseWidgetFromPetData(petData)
 
-    widget:GetMaid():GiveTask(PetsController.PetNameChanged:Connect(function(petName: string, somePetDataIndex: string)
+    widget:GetMaid():GiveTask(PetController.PetNameChanged:Connect(function(petName: string, somePetDataIndex: string)
         if somePetDataIndex == petDataIndex then
             widget:SetText(petName)
         end

@@ -18,7 +18,7 @@ function NotificationIcon.new()
     notificationFrame.BackgroundColor3 = Color3.fromRGB(220, 0, 0)
     notificationFrame.BackgroundTransparency = 0.1
     notificationFrame.Position = UDim2.fromScale(1, 0)
-    notificationFrame.Size = UDim2.fromOffset(22, 22)
+    notificationFrame.Size = UDim2.fromOffset(35, 35)
     notificationIcon:GetMaid():GiveTask(notificationFrame)
 
     local uICorner = Instance.new("UICorner")
@@ -36,14 +36,14 @@ function NotificationIcon.new()
     textLabel.Name = "textLabel"
     textLabel.Font = UIConstants.Font
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextSize = 18
+    textLabel.TextSize = 28
     textLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     textLabel.BackgroundTransparency = 1
     textLabel.Size = UDim2.fromScale(1, 1)
     textLabel.Parent = notificationFrame
     --#endregion
 
-    local num = 0
+    local notificationNumber = 0
 
     -------------------------------------------------------------------------------
     -- Public Methods
@@ -61,21 +61,21 @@ function NotificationIcon.new()
         notificationFrame.Position = UDim2.fromScale(anchorPoint.X, anchorPoint.Y)
     end
 
-    function notificationIcon:SetNumber(newNum: number)
-        num = newNum
+    function notificationIcon:SetNumber(newNumber: number)
+        notificationNumber = newNumber
 
-        textLabel.Text = tostring(num)
+        textLabel.Text = tostring(notificationNumber)
 
         -- Hide if there is no number
-        notificationIcon:SetVisible(not (num == 0))
+        notificationIcon:SetVisible(not (notificationNumber == 0))
     end
 
     function notificationIcon:GetNumber()
-        return num
+        return notificationNumber
     end
 
     function notificationIcon:IncrementNumber(add: number)
-        notificationIcon:SetNumber(math.clamp(num + add, 0, math.huge))
+        notificationIcon:SetNumber(math.clamp(notificationNumber + add, 0, math.huge))
     end
 
     -------------------------------------------------------------------------------

@@ -6,8 +6,6 @@ local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local Pet = require(Paths.Shared.Pets.Pet)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
-local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local CollisionsService = require(Paths.Server.CollisionsService)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
@@ -22,9 +20,9 @@ petsFolder.Parent = Workspace
 
 function ServerPet.new(owner: Player, petDataIndex: string)
     -- Circular Dependency
-    local PetsService = require(Paths.Server.Pets.PetsService)
+    local PetService = require(Paths.Server.Pets.PetService)
 
-    local petData = PetsService.getPet(owner, petDataIndex)
+    local petData = PetService.getPet(owner, petDataIndex)
     local serverPet = Pet.new(owner, petData)
 
     -------------------------------------------------------------------------------
@@ -83,7 +81,7 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         -- Nametag
         nametag:Mount(model)
         nametag:SetName(petData.Name)
-        serverPet:GetMaid():GiveTask(PetsService.PetNameChanged:Connect(function(_player: Player, somePetDataIndex: string, petName: string)
+        serverPet:GetMaid():GiveTask(PetService.PetNameChanged:Connect(function(_player: Player, somePetDataIndex: string, petName: string)
             if petDataIndex == somePetDataIndex then
                 nametag:SetName(petName)
             end

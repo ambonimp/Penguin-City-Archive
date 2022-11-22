@@ -16,7 +16,7 @@ local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Products = require(Paths.Shared.Products.Products)
 local VehicleController = require(Paths.Client.VehicleController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local PetsController = require(Paths.Client.Pets.PetsController)
+local PetController = require(Paths.Client.Pets.PetController)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -139,7 +139,7 @@ function InventoryScreen.open()
     openMaid:Cleanup()
 
     -- Custom open tab depending on state
-    if PetsController.getTotalHatchableEggs() > 0 then
+    if PetController.getTotalHatchableEggs() > 0 then
         tabbedWindow:OpenTab("Pets")
     else
         tabbedWindow:OpenTab("Vehicles")

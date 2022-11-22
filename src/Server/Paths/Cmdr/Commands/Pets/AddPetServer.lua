@@ -1,7 +1,7 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
-local PetsService = require(Paths.Server.Pets.PetsService)
+local PetService = require(Paths.Server.Pets.PetService)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 
@@ -15,7 +15,7 @@ return function(_context, players: { Player }, petType: string, petVariant: stri
     local output = ""
     for _, player in pairs(players) do
         for _ = 1, amount do
-            PetsService.addPet(player, petData)
+            PetService.addPet(player, petData)
         end
 
         output ..= (" > %s +%d %s %s (%s)\n"):format(player.Name, amount, petVariant, petType, petRarity)

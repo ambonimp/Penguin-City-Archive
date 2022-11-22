@@ -21,9 +21,9 @@ local petsFolder = Workspace:WaitForChild("PetModels")
 
 function ClientPet.new(petId: number, petDataIndex: string)
     -- Circular Dependency
-    local PetsController = require(Paths.Client.Pets.PetsController)
+    local PetController = require(Paths.Client.Pets.PetController)
 
-    local petData = PetsController.getPet(petDataIndex)
+    local petData = PetController.getPet(petDataIndex)
     local clientPet = Pet.new(Players.LocalPlayer, petData)
 
     -------------------------------------------------------------------------------
@@ -34,12 +34,6 @@ function ClientPet.new(petId: number, petDataIndex: string)
     local petMover: PetMover.PetMover
 
     -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
-
-    -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
 
@@ -47,12 +41,18 @@ function ClientPet.new(petId: number, petDataIndex: string)
         local didLoad = ZoneUtil.waitForInstanceToLoad(model)
         if didLoad then
             -- Pet Follower
-            petMover = PetMover.new(petData, model)
+            petMover = PetMover.new(model)
             clientPet:GetMaid():GiveTask(petMover)
 
             -- Have mover state inform animation
             clientPet:GetMaid():GiveTask(petMover.StateChanged:Connect(function(state)
-                PetAnimator.playAnimation(clientPet:GetId(), MOVER_STATE_TO_ANIMATION_NAME[state], true)
+                -- ERROR: No animation name
+                local animationName = MOVER_STATE_TO_ANIMATION_NAME[state]
+                if not animationName then
+                    error(("No AnimationName from state %q"):format(state))
+                end
+
+                PetAnimator.playAnimation(clientPet:GetId(), animationName, true)
             end))
             PetAnimator.playAnimation(clientPet:GetId(), "Idle", true)
         end

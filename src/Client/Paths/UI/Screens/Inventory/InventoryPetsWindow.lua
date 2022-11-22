@@ -3,27 +3,13 @@ local InventoryPetsWindow = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Products = require(Paths.Shared.Products.Products)
-local ProductController = require(Paths.Client.ProductController)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local InventoryWindow = require(Paths.Client.UI.Screens.Inventory.InventoryWindow)
-local PetsController = require(Paths.Client.Pets.PetsController)
+local PetController = require(Paths.Client.Pets.PetController)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
-local Maid = require(Paths.Packages.maid)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local Products = require(Paths.Shared.Products.Products)
-local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local CameraUtil = require(Paths.Client.Utils.CameraUtil)
-local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local PetConstants = require(Paths.Shared.Pets.PetConstants)
-local PetUtils = require(Paths.Shared.Pets.PetUtils)
-local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local Button = require(Paths.Client.UI.Elements.Button)
-local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 
 --[[
@@ -43,12 +29,12 @@ function InventoryPetsWindow.new(
         AddCallback = data.AddCallback,
         Equipping = {
             Equip = function(petDataIndex: string)
-                PetsController.equipPetRequest(petDataIndex)
+                PetController.equipPetRequest(petDataIndex)
             end,
             Unequip = function(_product: Products.Product)
-                PetsController.unequipPetRequest()
+                PetController.unequipPetRequest()
             end,
-            StartEquipped = PetsController.getEquippedPetDataIndex(),
+            StartEquipped = PetController.getEquippedPetDataIndex(),
         },
     })
 
@@ -64,18 +50,18 @@ function InventoryPetsWindow.new(
         {}
 
     -- Eggs
-    for petEggName, hatchTimes in pairs(PetsController.getHatchTimes(true)) do
+    for petEggName, hatchTimes in pairs(PetController.getHatchTimes(true)) do
         for petEggDataIndex, hatchTime in pairs(hatchTimes) do
             -- Create Entry
             local entry = {
                 WidgetConstructor = function()
                     local widget = Widget.diverseWidgetFromEgg(petEggName, petEggDataIndex)
                     widget.Pressed:Connect(function()
-                        local currentHatchTime = PetsController.getHatchTime(petEggName, petEggDataIndex)
+                        local currentHatchTime = PetController.getHatchTime(petEggName, petEggDataIndex)
                         if currentHatchTime > 0 then
-                            PetsController.hatchRequest(petEggName, petEggDataIndex, true)
+                            PetController.hatchRequest(petEggName, petEggDataIndex, true)
                         elseif currentHatchTime == 0 then
-                            PetsController.hatchRequest(petEggName, petEggDataIndex)
+                            PetController.hatchRequest(petEggName, petEggDataIndex)
                         end
                     end)
 
@@ -100,7 +86,7 @@ function InventoryPetsWindow.new(
     end
 
     -- Pets
-    local petDatas = PetsController.getPets()
+    local petDatas = PetController.getPets()
     for petDataIndex, petData in pairs(petDatas) do
         -- Create Entry
         local entry = {

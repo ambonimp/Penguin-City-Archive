@@ -6,7 +6,6 @@ local Sound = require(Shared.Sound)
 local Signal = require(Shared.Signal)
 local Limiter = require(Shared.Limiter)
 local UIElement = require(script.Parent.UIElement)
-local UIUtil = require(script.Parent.Parent.Utils.UIUtil)
 
 export type Button = typeof(Button.new(Instance.new("ImageButton")))
 
@@ -16,6 +15,7 @@ function Button.fromImage(image: string)
     local imageButton = Instance.new("ImageButton")
     imageButton.Size = UDim2.fromScale(1, 1)
     imageButton.BackgroundTransparency = 1
+    imageButton.ScaleType = Enum.ScaleType.Fit
     imageButton.Image = image
 
     return Button.new(imageButton)

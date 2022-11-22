@@ -1,6 +1,6 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local PetsService = require(Paths.Server.Pets.PetsService)
+local PetService = require(Paths.Server.Pets.PetService)
 
 return function(_context, players: { Player })
     local output = ""
@@ -8,7 +8,7 @@ return function(_context, players: { Player })
     for _, player in pairs(players) do
         output ..= (" > %s:\n"):format(player.Name)
 
-        local allHatchTimes = PetsService.getHatchTimes(player)
+        local allHatchTimes = PetService.getHatchTimes(player)
         for petEggName, hatchTimes in pairs(allHatchTimes) do
             for _, hatchTime in pairs(hatchTimes) do
                 output ..= ("    %s Pet Egg (%ds)\n"):format(petEggName, hatchTime)

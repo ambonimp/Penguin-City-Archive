@@ -1,11 +1,11 @@
+--[[
+    A class that moves a pet model around our local character
+]]
 local PetMover = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
-local Pet = require(Paths.Shared.Pets.Pet)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
@@ -20,12 +20,12 @@ local Signal = require(Paths.Shared.Signal)
 
 export type PetMover = typeof(PetMover.new())
 
-type TickState = {
+type TickMemory = {
     IsMoving: boolean,
     IsJumping: boolean,
     Distance: number,
 }
-type MovementState = {
+type MovementMemory = {
     Moving: {
         GoalPosition: Vector3,
     }?,
@@ -53,7 +53,7 @@ local ALIGNER_PROPERTIES = {
     },
 }
 
-function PetMover.new(petData: PetConstants.PetData, model: Model)
+function PetMover.new(model: Model)
     local petMover = {}
 
     -------------------------------------------------------------------------------
@@ -68,9 +68,8 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
     local modelAttachment = Instance.new("Attachment")
     local alignPosition = Instance.new("AlignPosition")
     local alignOrientation = Instance.new("AlignOrientation")
-    local lastTickState: TickState | nil
-    local movementState: MovementState = {}
-
+    local lastTickMemory: TickMemory | nil
+    local movementMemory: MovementMemory = {}
     local state: State = "Idle"
 
     maid:GiveTask(goalPart)
@@ -86,7 +85,7 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function setState(newState: State)
+    local function updateState(newState: State)
         if newState ~= state then
             state = newState
             petMover.StateChanged:Fire(state)
@@ -124,7 +123,7 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
         model.PrimaryPart.CanCollide = false
     end
 
-    local function getDistanceFromCharacter()
+    local function getDistanceFromPetToCharacter()
         return (character:GetPivot().Position - model:GetPivot().Position).Magnitude
     end
 
@@ -138,6 +137,7 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
         local humanoidRootPart: Part = character.HumanoidRootPart
         local sidePosition = humanoidRootPart.Position + (humanoidRootPart.CFrame.RightVector.Unit * PetConstants.Following.SideDistance)
 
+        -- Use character's Y position
         if useFootHeight then
             return Vector3.new(
                 sidePosition.X,
@@ -177,10 +177,10 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
         local humanoidRootPart: Part = character.HumanoidRootPart
 
         -- Read State
-        local thisTickState: TickState = {
+        local thisTickState: TickMemory = {
             IsMoving = humanoid.MoveDirection.Magnitude > 0,
             IsJumping = humanoid:GetState() == Enum.HumanoidStateType.Freefall,
-            Distance = getDistanceFromCharacter(),
+            Distance = getDistanceFromPetToCharacter(),
         }
 
         -- Teleport
@@ -197,25 +197,25 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
             --* Jumping
             if thisTickState.IsJumping then
                 -- If we just jumped, and pet is not jumping
-                if not (lastTickState and lastTickState.IsJumping) and not movementState.Jumping then
-                    movementState.Jumping = movementState.Jumping or {}
-                    movementState.Jumping.StartedAtTick = tick()
+                if not (lastTickMemory and lastTickMemory.IsJumping) and not movementMemory.Jumping then
+                    movementMemory.Jumping = movementMemory.Jumping or {}
+                    movementMemory.Jumping.StartedAtTick = tick()
                 end
 
-                movementState.Moving = movementState.Moving or {}
-                movementState.Moving.GoalPosition = getSidePosition()
+                movementMemory.Moving = movementMemory.Moving or {}
+                movementMemory.Moving.GoalPosition = getSidePosition()
             end
 
             --* Moving
             local isFarAway = thisTickState.Distance > PetConstants.Following.MaxDistance
             if thisTickState.IsMoving or isFarAway then
-                local doUpdatePosition = movementState.Moving or isFarAway
+                local doUpdatePosition = movementMemory.Moving or isFarAway
                 if doUpdatePosition then
-                    movementState.Moving = movementState.Moving or {}
+                    movementMemory.Moving = movementMemory.Moving or {}
 
-                    movementState.Moving.GoalPosition = getSidePosition() or movementState.Moving.GoalPosition
-                    if not movementState.Moving.GoalPosition then
-                        movementState.Moving = nil
+                    movementMemory.Moving.GoalPosition = getSidePosition() or movementMemory.Moving.GoalPosition
+                    if not movementMemory.Moving.GoalPosition then
+                        movementMemory.Moving = nil
                     end
                 end
             end
@@ -226,57 +226,59 @@ function PetMover.new(petData: PetConstants.PetData, model: Model)
             local finalState: State = "Idle"
 
             -- Init Position
-            if not lastTickState then
+            if not lastTickMemory then
                 setPetBottomCFrame(CFrameUtil.setPosition(humanoidRootPart.CFrame, getSidePosition() or getSidePosition(true)))
             end
 
             -- Moving
-            if movementState.Moving then
-                local newCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementState.Moving.GoalPosition)
+            if movementMemory.Moving then
+                local newCFrame = CFrameUtil.setPosition(humanoidRootPart.CFrame, movementMemory.Moving.GoalPosition)
                 setPetBottomCFrame(newCFrame)
 
                 -- Clear if close enough
-                local isCloseby = (getPetBottomCFrame().Position - movementState.Moving.GoalPosition).Magnitude < CLOSE_EPSILON
+                local isCloseby = (getPetBottomCFrame().Position - movementMemory.Moving.GoalPosition).Magnitude < CLOSE_EPSILON
                 if isCloseby then
-                    movementState.Moving = nil
+                    movementMemory.Moving = nil
                 else
                     finalState = "Walking"
                 end
             end
 
             -- Jumping
-            if movementState.Jumping then
+            if movementMemory.Jumping then
                 -- Get Jump Height
                 local linearProgress = MathUtil.map(
                     tick(),
-                    movementState.Jumping.StartedAtTick,
-                    movementState.Jumping.StartedAtTick + PetConstants.Following.JumpDuration,
+                    movementMemory.Jumping.StartedAtTick,
+                    movementMemory.Jumping.StartedAtTick + PetConstants.Following.JumpDuration,
                     0,
                     1,
                     true
                 )
                 local heightAlpha = PetUtils.getHeightAlphaFromPetJumpProgress(linearProgress)
 
-                local usePosition = movementState.Moving and movementState.Moving.GoalPosition or getSidePosition() or getSidePosition(true)
+                local usePosition = movementMemory.Moving and movementMemory.Moving.GoalPosition
+                    or getSidePosition()
+                    or getSidePosition(true)
                 local finalY = usePosition.Y + heightAlpha * PetConstants.Following.JumpHeight
 
-                local currentPosition = movementState.Moving and movementState.Moving.GoalPosition or getPetBottomCFrame().Position
+                local currentPosition = movementMemory.Moving and movementMemory.Moving.GoalPosition or getPetBottomCFrame().Position
                 local newPosition = Vector3.new(currentPosition.X, finalY, currentPosition.Z)
                 setPetBottomCFrame(CFrameUtil.setPosition(humanoidRootPart.CFrame, newPosition))
 
                 -- Clear if jump completed
                 if linearProgress == 1 then
-                    movementState.Jumping = nil
+                    movementMemory.Jumping = nil
                 else
                     finalState = "Jumping"
                 end
             end
 
-            setState(finalState)
+            updateState(finalState)
         end
 
         -- Update Cache
-        lastTickState = thisTickState
+        lastTickMemory = thisTickState
     end
 
     -------------------------------------------------------------------------------

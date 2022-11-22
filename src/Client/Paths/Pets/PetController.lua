@@ -1,4 +1,4 @@
-local PetsController = {}
+local PetController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -6,7 +6,6 @@ local SessionController = require(Paths.Client.SessionController)
 local DataController = require(Paths.Client.DataController)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local ProductController = require(Paths.Client.ProductController)
 local Products = require(Paths.Shared.Products.Products)
@@ -14,44 +13,41 @@ local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local UIActions = require(Paths.Client.UI.UIActions)
 local Images = require(Paths.Shared.Images.Images)
-local Widget = require(Paths.Client.UI.Elements.Widget)
 local Signal = require(Paths.Shared.Signal)
 local Assume = require(Paths.Shared.Assume)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
-local Scope = require(Paths.Shared.Scope)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local ClientPet = require(Paths.Client.Pets.ClientPet)
 
 local CHECK_HATCHABLE_EGGS_EVERY = 3
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 
 local hatchRequestMaid = Maid.new()
-local hatchRequestScope = Scope.new()
 
 local petId: number | nil
 local pet: ClientPet.ClientPet | nil
 
-PetsController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
+PetController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
 
-function PetsController.Start()
-    -- Routine for informing of eggs ready to hatch
+function PetController.Start()
+    -- Routine for informing of eggs ready to hatch by notifications
     do
         -- Circular Dependencies
         local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 
-        local informed: { [string]: { [string]: boolean } } = {} -- Keys are PetEggName, Values are arrays of petEggDataIndex
+        local informedPetEggs: { [string]: { [string]: boolean } } = {} -- Keys are PetEggName, Values are arrays of petEggDataIndex
         UIUtil.waitForHudAndRoomZone():andThen(function()
             while true do
                 -- Inform New
-                local allHatchTimes = PetsController.getHatchTimes()
+                local allHatchTimes = PetController.getHatchTimes()
                 for petEggName, hatchTimes in pairs(allHatchTimes) do
                     for petEggDataIndex, hatchTime in pairs(hatchTimes) do
-                        local doInform = hatchTime == 0 and not (informed[petEggName] and informed[petEggName][petEggDataIndex])
+                        local doInform = hatchTime == 0
+                            and not (informedPetEggs[petEggName] and informedPetEggs[petEggName][petEggDataIndex])
                         if doInform then
-                            informed[petEggName] = informed[petEggName] or {}
-                            informed[petEggName][petEggDataIndex] = true
+                            informedPetEggs[petEggName] = informedPetEggs[petEggName] or {}
+                            informedPetEggs[petEggName][petEggDataIndex] = true
 
                             local product = ProductUtil.getPetEggProduct(petEggName)
                             UIActions.sendRobloxNotification({
@@ -66,11 +62,11 @@ function PetsController.Start()
                     end
                 end
 
-                -- Clear old informed
-                for petEggName, petEggDataIndexes in pairs(informed) do
+                -- Clear old informedPetEggs
+                for petEggName, petEggDataIndexes in pairs(informedPetEggs) do
                     for petEggDataIndex, _ in pairs(petEggDataIndexes) do
                         if not (allHatchTimes[petEggName] and allHatchTimes[petEggName][petEggDataIndex]) then
-                            informed[petEggName][petEggDataIndex] = nil
+                            informedPetEggs[petEggName][petEggDataIndex] = nil
 
                             local notificationIcon = UIActions.getNotificationIcon(HUDScreen.getInventoryButton():GetButtonObject())
                             if notificationIcon then
@@ -133,12 +129,12 @@ end
 -------------------------------------------------------------------------------
 
 -- Keys are petDataIndex
-function PetsController.getPets()
+function PetController.getPets()
     return DataController.get("Pets.Pets") :: { [string]: PetConstants.PetData }
 end
 
-function PetsController.getPet(petDataIndex: string)
-    local petData = PetsController.getPets()[petDataIndex]
+function PetController.getPet(petDataIndex: string)
+    local petData = PetController.getPets()[petDataIndex]
     if not petData then
         error(("No pet under index %q"):format(petDataIndex))
     end
@@ -147,8 +143,8 @@ function PetsController.getPet(petDataIndex: string)
 end
 
 -- Assumes `petName` has been filtered
-function PetsController.setPetName(petName: string, petDataIndex: string)
-    local oldName = PetsController.getPet(petDataIndex)
+function PetController.requestSetPetName(petName: string, petDataIndex: string)
+    local oldName = PetController.getPet(petDataIndex)
 
     local assume = Assume.new(function()
         return Remotes.invokeServer("ChangePetName", petName, petDataIndex)
@@ -157,27 +153,27 @@ function PetsController.setPetName(petName: string, petDataIndex: string)
         return response == true
     end)
     assume:Run(function()
-        PetsController.PetNameChanged:Fire(petName, petDataIndex)
+        PetController.PetNameChanged:Fire(petName, petDataIndex)
     end)
     assume:Else(function()
-        PetsController.PetNameChanged:Fire(oldName, petDataIndex)
+        PetController.PetNameChanged:Fire(oldName, petDataIndex)
     end)
 
     return assume
 end
 
 -- Returns PetDataIndex (if it exists)
-function PetsController.getEquippedPetDataIndex()
+function PetController.getEquippedPetDataIndex()
     return DataController.get(EQUIPPED_PET_DATA_ADDRESS)
 end
 
 -- Returns true if successful. Yields.
-function PetsController.equipPetRequest(petDataIndex: string)
+function PetController.equipPetRequest(petDataIndex: string)
     return Remotes.invokeServer("EquipRequest", petDataIndex)
 end
 
 -- Returns true if successful. Yields.
-function PetsController.unequipPetRequest()
+function PetController.unequipPetRequest()
     return Remotes.invokeServer("EquipRequest", nil)
 end
 
@@ -194,18 +190,18 @@ end
 
     `{ [petEggName]: { [petEggDataIndex]: hatchTime } }`
 ]]
-function PetsController.getHatchTimes(ignorePlaytime: boolean?)
+function PetController.getHatchTimes(ignorePlaytime: boolean?)
     local playtime = ignorePlaytime and 0 or SessionController.getSession():GetPlayTime()
     local hatchTimeByEggsData = getHatchTimeByEggsData()
     return PetUtils.getHatchTimes(hatchTimeByEggsData, playtime)
 end
 
-function PetsController.getHatchTime(petEggName: string, petEggDataIndex: string, ignorePlaytime: boolean?)
-    local hatchTimes = PetsController.getHatchTimes(ignorePlaytime)
+function PetController.getHatchTime(petEggName: string, petEggDataIndex: string, ignorePlaytime: boolean?)
+    local hatchTimes = PetController.getHatchTimes(ignorePlaytime)
     return hatchTimes[petEggName] and hatchTimes[petEggName][petEggDataIndex] or -1
 end
 
-function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string, isPremature: boolean?)
+function PetController.hatchRequest(petEggName: string, petEggDataIndex: string, isPremature: boolean?)
     hatchRequestMaid:Cleanup()
 
     -- Premature.. use a quick hatch product to make it instantly hatchable
@@ -236,9 +232,9 @@ function PetsController.hatchRequest(petEggName: string, petEggDataIndex: string
     end
 end
 
-function PetsController.getTotalHatchableEggs()
+function PetController.getTotalHatchableEggs()
     local total = 0
-    for _, hatchTimes in pairs(PetsController.getHatchTimes()) do
+    for _, hatchTimes in pairs(PetController.getHatchTimes()) do
         for _, hatchTime in pairs(hatchTimes) do
             if hatchTime == 0 then
                 total += 1
@@ -249,4 +245,4 @@ function PetsController.getTotalHatchableEggs()
     return total
 end
 
-return PetsController
+return PetController

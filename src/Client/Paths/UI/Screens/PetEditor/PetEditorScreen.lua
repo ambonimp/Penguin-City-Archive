@@ -8,11 +8,10 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local Maid = require(Paths.Packages.maid)
-local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
-local PetsController = require(Paths.Client.Pets.PetsController)
+local PetController = require(Paths.Client.Pets.PetController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local screenGui: ScreenGui = Ui.PetEditor
@@ -50,9 +49,9 @@ function PetEditorScreen.Init()
         leftButton:Mount(leftButtonFrame, true)
         leftButton.Pressed:Connect(function()
             if newName and currentPetDataIndex then
-                PetsController.setPetName(newName, currentPetDataIndex)
+                PetController.requestSetPetName(newName, currentPetDataIndex)
             end
-            PetsController.equipPetRequest(currentPetDataIndex)
+            PetController.equipPetRequest(currentPetDataIndex)
 
             exitState()
         end)
@@ -62,7 +61,7 @@ function PetEditorScreen.Init()
         rightButton:Mount(rightButtonFrame, true)
         rightButton.Pressed:Connect(function()
             if newName and currentPetDataIndex then
-                PetsController.setPetName(newName, currentPetDataIndex)
+                PetController.requestSetPetName(newName, currentPetDataIndex)
             end
 
             exitState()

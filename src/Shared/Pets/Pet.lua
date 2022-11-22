@@ -11,7 +11,7 @@ local function getNewId()
     return idCounter
 end
 
-function Pet.new(owner: Player, petData: PetConstants.PetData)
+function Pet.new(owner: Player)
     local pet = {}
 
     -------------------------------------------------------------------------------
@@ -21,21 +21,7 @@ function Pet.new(owner: Player, petData: PetConstants.PetData)
     local maid = Maid.new()
     local isDestroyed = false
 
-    local name = petData.Name
-
     local id = getNewId()
-
-    -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
-
-    -------------------------------------------------------------------------------
-    -- Private Methods
-    -------------------------------------------------------------------------------
-
-    --todo
 
     -------------------------------------------------------------------------------
     -- Public Methods
@@ -57,10 +43,6 @@ function Pet.new(owner: Player, petData: PetConstants.PetData)
         return maid
     end
 
-    function pet:UpdateName(newName: string)
-        name = newName
-    end
-
     function pet:Destroy()
         if isDestroyed then
             return
@@ -69,12 +51,6 @@ function Pet.new(owner: Player, petData: PetConstants.PetData)
 
         maid:Destroy()
     end
-
-    -------------------------------------------------------------------------------
-    -- Logic
-    -------------------------------------------------------------------------------
-
-    --todo
 
     return pet
 end

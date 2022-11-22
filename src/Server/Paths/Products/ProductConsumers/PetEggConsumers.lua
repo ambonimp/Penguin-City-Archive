@@ -2,7 +2,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local PetsService = require(Paths.Server.Pets.PetsService)
+local PetService = require(Paths.Server.Pets.PetService)
 
 local petEggProducts = Products.Products.PetEgg
 local consumersById: { [string]: (player: Player) -> nil } = {}
@@ -10,9 +10,9 @@ local consumersById: { [string]: (player: Player) -> nil } = {}
 for productId, product in pairs(petEggProducts) do
     local productData = ProductUtil.getPetEggProductData(product)
 
-    -- Give an incubating egg then immediately nuke it
+    -- Convert products to a pet egg
     consumersById[productId] = function(player: Player)
-        PetsService.addPetEgg(player, productData.PetEggName)
+        PetService.addPetEgg(player, productData.PetEggName)
     end
 end
 

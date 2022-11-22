@@ -1,3 +1,6 @@
+--[[
+    Handles animation of all pets - our own and that of other clients
+]]
 local PetAnimator = {}
 
 local Players = game:GetService("Players")
@@ -38,6 +41,7 @@ function PetAnimator.playAnimation(petId: number, animationName: string, replica
     -- Get tracks / Init
     local tracks = tracksByPetId[petId]
     if not tracks then
+        -- Create Dictionary
         tracks = {}
         tracksByPetId[petId] = tracks
 

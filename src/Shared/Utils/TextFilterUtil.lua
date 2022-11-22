@@ -7,7 +7,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local TypeUtil = require(ReplicatedStorage.Shared.Utils.TypeUtil)
 
 --[[
-    Returns an Instance with multiple methods for getting the filtered text, depending on the context
+    Returns a filtered string. Yields.
 
     https://create.roblox.com/docs/reference/engine/classes/TextFilterResult
 ]]

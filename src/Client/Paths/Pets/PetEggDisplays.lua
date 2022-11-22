@@ -1,5 +1,5 @@
 --[[
-    Handles the PetEgg BillboardGuis
+    Handles the PetEgg BillboardGuis that show % chances, and prompts the user to purchase
 ]]
 local PetEggDisplays = {}
 
@@ -9,10 +9,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ZoneController = require(Paths.Client.ZoneController)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Maid = require(Paths.Packages.maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
