@@ -6,7 +6,6 @@ local Ui = Paths.UI
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)

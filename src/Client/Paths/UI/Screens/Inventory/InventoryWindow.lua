@@ -193,10 +193,6 @@ function InventoryWindow.new(
         return math.clamp(math.ceil(#currentPopulateData / totalWidgetsPerPage), 1, math.huge)
     end
 
-    local function getWidgetFromEquipValue(equipValue: any)
-        return widgetsByEquipValue[equipValue]
-    end
-
     local function getHolderFrame(layoutOrder: number)
         local holder = Instance.new("Frame")
         holder.BackgroundTransparency = 1

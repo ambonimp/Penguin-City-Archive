@@ -40,18 +40,15 @@ GenericPromptScreen.Defaults = {
     },
 }
 
-function GenericPromptScreen.Init()
-    local function exitState()
-        UIController.getStateMachine():Remove(UIConstants.States.GenericPrompt)
-    end
+local function exitState()
+    UIController.getStateMachine():Remove(UIConstants.States.GenericPrompt)
+end
 
+function GenericPromptScreen.Init()
     -- Buttons
     do
         leftButton:Mount(leftButtonFrame, true)
-        leftButton.Pressed:Connect(exitState)
-
         rightButton:Mount(rightButtonFrame, true)
-        rightButton.Pressed:Connect(exitState)
 
         closeButton:Mount(closeButtonFrame, true)
         closeButton.Pressed:Connect(exitState)
@@ -71,7 +68,7 @@ function GenericPromptScreen.boot(data: table)
     local description: string? = data.Description
     local middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)? = data.MiddleMounter
     local leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
-    local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
+    local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.RightButton
     local background: { Blur: boolean?, Image: string?, DoRotate: boolean? }? = data.Background
 
     titleLabel.Text = title or "Title"
@@ -85,17 +82,25 @@ function GenericPromptScreen.boot(data: table)
     leftButton:SetText(leftButtonData.Text or GenericPromptScreen.Defaults.LeftButton.Text)
     leftButton:SetIcon(leftButtonData.Icon or "")
     leftButton:SetColor(leftButtonData.Color or GenericPromptScreen.Defaults.LeftButton.Color)
-    if leftButtonData.Callback then
-        openMaid:GiveTask(leftButton.Pressed:Connect(leftButtonData.Callback))
-    end
+    openMaid:GiveTask(leftButton.Pressed:Connect(function()
+        exitState()
+
+        if leftButtonData.Callback then
+            leftButtonData.Callback()
+        end
+    end))
 
     rightButtonData = rightButtonData or {}
     rightButton:SetText(rightButtonData.Text or GenericPromptScreen.Defaults.RightButton.Text)
     rightButton:SetIcon(rightButtonData.Icon or "")
     rightButton:SetColor(rightButtonData.Color or GenericPromptScreen.Defaults.RightButton.Color)
-    if rightButtonData.Callback then
-        openMaid:GiveTask(rightButton.Pressed:Connect(rightButtonData.Callback))
-    end
+    openMaid:GiveTask(rightButton.Pressed:Connect(function()
+        exitState()
+
+        if rightButtonData.Callback then
+            rightButtonData.Callback()
+        end
+    end))
 
     if background then
         backgroundFrame.Visible = true

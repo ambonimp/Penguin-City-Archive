@@ -12,7 +12,7 @@ local StateMachine = require(Paths.Shared.StateMachine)
 local CoreGui = require(Paths.Client.UI.CoreGui)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
-local SHOW_STATE_MACHINE_DEBUG = true
+local SHOW_STATE_MACHINE_DEBUG = false
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.HUD)
 local stateScreenData: {
@@ -94,7 +94,7 @@ do
                         screenData.Meta.IsBooted = false
                         if screenData.Callbacks.Shutdown then
                             screenData.Callbacks.Shutdown()
-                            --print(someState, "Shutdown")
+                            print(someState, "Shutdown")
                         end
                     end
                 end
@@ -103,7 +103,7 @@ do
                     screenData.Meta.IsMaximized = false
                     if screenData.Callbacks.Minimize then
                         screenData.Callbacks.Minimize()
-                        --print(someState, "Minimize")
+                        print(someState, "Minimize")
                     end
                 end
             end
@@ -114,7 +114,7 @@ do
                     screenData.Meta.IsBooted = true
                     if screenData.Callbacks.Boot then
                         screenData.Callbacks.Boot(data)
-                        --print(someState, "Boot")
+                        print(someState, "Boot")
                     end
                 end
 
@@ -122,7 +122,7 @@ do
                     screenData.Meta.IsMaximized = true
                     if screenData.Callbacks.Maximize then
                         screenData.Callbacks.Maximize()
-                        --print(someState, "Maximize")
+                        print(someState, "Maximize")
                     end
                 end
             end
