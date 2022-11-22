@@ -70,6 +70,7 @@ do
             local isInvisible = table.find(UIConstants.InvisibleStates, someState) and true or false
             local isOnTop = not isInvisible and (toState == someState or UIUtil.getPseudoState(someState))
 
+            -- Custom UIConstants Behaviour
             if not isOnTop then
                 -- Check if states above us are "invisible"
                 local statesAbove = stateMachine:GetStatesAbove(someState)
@@ -87,20 +88,22 @@ do
 
             -- Shutdown and Minimize
             if not isOnTop then
-                if screenData.Meta.IsMaximized then
-                    screenData.Meta.IsMaximized = false
-                    if screenData.Callbacks.Minimize then
-                        screenData.Callbacks.Minimize()
-                    end
-                end
-
                 if screenData.Meta.IsBooted then
                     local isRemoved = stateMachine:HasState(someState) == false
                     if isRemoved then
                         screenData.Meta.IsBooted = false
                         if screenData.Callbacks.Shutdown then
                             screenData.Callbacks.Shutdown()
+                            --print(someState, "Shutdown")
                         end
+                    end
+                end
+
+                if screenData.Meta.IsMaximized then
+                    screenData.Meta.IsMaximized = false
+                    if screenData.Callbacks.Minimize then
+                        screenData.Callbacks.Minimize()
+                        --print(someState, "Minimize")
                     end
                 end
             end
@@ -111,6 +114,7 @@ do
                     screenData.Meta.IsBooted = true
                     if screenData.Callbacks.Boot then
                         screenData.Callbacks.Boot(data)
+                        --print(someState, "Boot")
                     end
                 end
 
@@ -118,6 +122,7 @@ do
                     screenData.Meta.IsMaximized = true
                     if screenData.Callbacks.Maximize then
                         screenData.Callbacks.Maximize()
+                        --print(someState, "Maximize")
                     end
                 end
             end

@@ -60,7 +60,7 @@ function GenericPromptScreen.Init()
     -- Register UIState
     UIController.registerStateScreenCallbacks(UIConstants.States.GenericPrompt, {
         Boot = GenericPromptScreen.boot,
-        Shutdown = nil,
+        Shutdown = GenericPromptScreen.shutdown,
         Maximize = GenericPromptScreen.maximize,
         Minimize = GenericPromptScreen.minimize,
     })
@@ -73,8 +73,6 @@ function GenericPromptScreen.boot(data: table)
     local leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
     local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
     local background: { Blur: boolean?, Image: string?, DoRotate: boolean? }? = data.Background
-
-    openMaid:Cleanup()
 
     titleLabel.Text = title or "Title"
     descriptionLabel.Text = description or "Description"
@@ -119,13 +117,19 @@ function GenericPromptScreen.boot(data: table)
     end
 end
 
+function GenericPromptScreen.shutdown()
+    openMaid:Cleanup()
+end
+
 function GenericPromptScreen.maximize()
     ScreenUtil.inDown(screenGui.Back)
+    ScreenUtil.inDown(backgroundFrame)
     screenGui.Enabled = true
 end
 
 function GenericPromptScreen.minimize()
     ScreenUtil.outUp(screenGui.Back)
+    ScreenUtil.outUp(backgroundFrame)
 end
 
 return GenericPromptScreen

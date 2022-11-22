@@ -229,7 +229,7 @@ function StateMachine:_RunOperation(operation, state, data)
     end
 
     -- Fire global callback
-    if self.eventGlobal and hasStateChanged then
+    if self.eventGlobal then
         prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
         self.eventGlobal:Fire(oldState, currentState, data, oldStack)
     end
