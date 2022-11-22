@@ -27,6 +27,7 @@ local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+ZoneService.PlayerTeleported = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
@@ -192,6 +193,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
 
             -- Teleport
             CharacterService.standOn(player.Character, spawnpoint, true)
+            ZoneService.PlayerTeleported:Fire(player, oldZone, zone)
 
             -- Wait to re-enable collisions (while we're still on the same request!)
             local zoneSettings = ZoneUtil.getSettings(zone)

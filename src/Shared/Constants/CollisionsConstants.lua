@@ -5,6 +5,7 @@ CollisionsConstants.Groups = {
     Characters = "Characters",
     HiddenCharacters = "HiddenCharacters",
     EtherealCharacters = "EtherealCharacters",
+    Pet = "Pet",
 }
 
 return CollisionsConstants

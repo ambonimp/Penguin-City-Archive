@@ -119,8 +119,8 @@ function ProductUtil.getCharacterItemProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ItemKey = product.Metadata.ItemKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ItemKey = product.Metadata.ItemKey :: string,
     }
 end
 
@@ -153,8 +153,8 @@ function ProductUtil.getHouseObjectProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        ObjectKey = product.Metadata.ObjectKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        ObjectKey = product.Metadata.ObjectKey :: string,
     }
 end
 
@@ -187,8 +187,8 @@ function ProductUtil.getStampBookProductData(product: Products.Product)
     end
 
     return {
-        CategoryName = product.Metadata.CategoryName,
-        PropertyKey = product.Metadata.PropertyKey,
+        CategoryName = product.Metadata.CategoryName :: string,
+        PropertyKey = product.Metadata.PropertyKey :: string,
     }
 end
 
@@ -200,7 +200,6 @@ end
 -- Vehicles
 -------------------------------------------------------------------------------
 
--- Example: CoverColor, Red
 function ProductUtil.getVehicleProductId(vehicleName: string)
     return ("vehicle_%s"):format(StringUtil.toCamelCase(vehicleName))
 end
@@ -221,12 +220,44 @@ function ProductUtil.getVehicleProductData(product: Products.Product)
     end
 
     return {
-        VehicleName = product.Metadata.VehicleName,
+        VehicleName = product.Metadata.VehicleName :: string,
     }
 end
 
 function ProductUtil.isVehicleProduct(product: Products.Product)
     return product.Type == ProductConstants.ProductType.Vehicle
+end
+
+-------------------------------------------------------------------------------
+-- PetEggs
+-------------------------------------------------------------------------------
+
+function ProductUtil.getPetEggProductId(petEggName: string)
+    return ("pet_egg_%s"):format(StringUtil.toCamelCase(petEggName))
+end
+
+function ProductUtil.getPetEggProduct(petEggName: string)
+    local product = Products.Products.PetEgg[ProductUtil.getPetEggProductId(petEggName)]
+    if not product then
+        error(("No PetEgg %s Product"):format(petEggName))
+    end
+
+    return product
+end
+
+function ProductUtil.getPetEggProductData(product: Products.Product)
+    -- ERROR: Not a PetEgg product
+    if not ProductUtil.isPetEggProduct(product) then
+        error("Passed a non-PetEgg product")
+    end
+
+    return {
+        PetEggName = product.Metadata.PetEggName :: string,
+    }
+end
+
+function ProductUtil.isPetEggProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.PetEgg
 end
 
 -------------------------------------------------------------------------------

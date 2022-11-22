@@ -84,7 +84,25 @@ return function()
         -- Product Id must match ProductUtil getter
         local vehicleData = ProductUtil.getVehicleProductData(product)
         if product.Id ~= ProductUtil.getVehicleProductId(vehicleData.VehicleName) then
-            addIssue("ProductId does not match return value for ProductUtil.getHouseObjectProductData")
+            addIssue("ProductId does not match return value for ProductUtil.getVehicleProductData")
+        end
+    end
+
+    local function testPetEggProduct(product: Products.Product)
+        local productName = ("%s.%s"):format("PetEgg", product.Id)
+        local function addIssue(issue: string)
+            table.insert(issues, ("[%s] %s"):format(productName, issue))
+        end
+
+        -- Product Id must match ProductUtil getter
+        local petEggData = ProductUtil.getPetEggProductData(product)
+        if product.Id ~= ProductUtil.getPetEggProductId(petEggData.PetEggName) then
+            addIssue("ProductId does not match return value for ProductUtil.getPetEggProductData")
+        end
+
+        -- Must consume immediately!
+        if not (product.IsConsumable and product.ConsumeImmediately) then
+            addIssue("Must consume immediately!")
         end
     end
 
@@ -123,6 +141,10 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.Vehicle then
                 testVehicleProduct(product)
+            end
+
+            if productTypeKey == ProductConstants.ProductType.PetEgg then
+                testPetEggProduct(product)
             end
         end
     end

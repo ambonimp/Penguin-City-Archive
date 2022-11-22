@@ -109,7 +109,7 @@ end
 function ProductService.clearProduct(player: Player, product: Products.Product, kickPlayer: boolean?)
     -- Detract
     local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
-    DataService.set(player, address, 0)
+    DataService.set(player, address, nil)
 
     -- Read
     ProductService.readProducts(player)
@@ -168,12 +168,6 @@ function ProductService.promptProductPurchase(player: Player, product: Products.
     -- WARN: Cannot prompt purchase of a product if it is 1) already owned 2) not consumable (you either own it or you dont)
     if ProductService.hasProduct(player, product) and not product.IsConsumable then
         warn(("Cannot prompt %s to purchase %s; they already own it, and it is not consumable"):format(player.Name, product.DisplayName))
-        return false
-    end
-
-    -- WARN: Will not prompt user to purchase; no handler or consumer!
-    if not (getHandler(product.Type, product.Id) or getConsumer(product.Type, product.Id)) then
-        warn(("Will not prompt %s to purchase %s; it has no handler and no consumer!"):format(player.Name, product.DisplayName))
         return false
     end
 
@@ -308,13 +302,13 @@ function ProductService.consumeProduct(player: Player, product: Products.Product
         return false
     end
 
-    -- Consume
-    local consumer = getConsumer(product.Type, product.Id)
-    consumer(player)
-
     -- Detract
     local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
     DataService.increment(player, address, -1)
+
+    -- Consume
+    local consumer = getConsumer(product.Type, product.Id)
+    consumer(player)
 
     -- Read + update data
     ProductService.readProducts(player)
@@ -366,7 +360,8 @@ end
 do
     -- Handlers
     do
-        for _, handlerModule in pairs(Paths.Server.Products.ProductHandlers:GetChildren()) do
+        local productHandlers: Folder = Paths.Server.Products:FindFirstChild("ProductHandlers")
+        for _, handlerModule in pairs(productHandlers and productHandlers:GetChildren() or {}) do
             -- ERROR: Could not match productType
             local productType = StringUtil.chopEnd(handlerModule.Name, HANDLER_MODULE_NAME_SUFFIX)
             if not Products.ProductType[productType] then

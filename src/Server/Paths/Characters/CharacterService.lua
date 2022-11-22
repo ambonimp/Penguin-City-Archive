@@ -15,6 +15,7 @@ local PlayerService = require(Paths.Server.PlayerService)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
+local Nametag = require(Paths.Shared.Nametag)
 
 Players.CharacterAutoLoads = false
 
@@ -59,6 +60,7 @@ local function setupCharacter(character: Model)
 end
 
 function CharacterService.loadPlayer(player: Player)
+    -- Load Character
     local character = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
     character.Name = player.Name
     character.Parent = Workspace
@@ -67,6 +69,7 @@ function CharacterService.loadPlayer(player: Player)
     -- Apply saved appearance
     CharacterUtil.applyAppearance(character, DataUtil.readAsArray(DataService.get(player, "CharacterAppearance")))
 
+    -- Setup Humanoid
     local humanoid = character.Humanoid
     humanoid.WalkSpeed = CharacterConstants.WalkSpeed
     humanoid.JumpPower = CharacterConstants.JumpPower
@@ -76,6 +79,13 @@ function CharacterService.loadPlayer(player: Player)
     PlayerService.getPlayerMaid(player):GiveTask(player.CharacterAdded:Connect(function(newCharacter: Model)
         setupCharacter(newCharacter)
     end))
+
+    -- Nametag
+    local nametag = Nametag.new()
+    nametag:Mount(character)
+    nametag:HideFrom(player)
+    nametag:SetName(player.DisplayName)
+    PlayerService.getPlayerMaid(player):GiveTask(nametag)
 end
 
 return CharacterService

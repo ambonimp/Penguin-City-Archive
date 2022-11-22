@@ -3,6 +3,7 @@ local ZoneUtil = {}
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
@@ -16,6 +17,12 @@ export type ZoneInstances = {
     RoomDepartures: Folder?,
 }
 
+local MAX_YIELD_TIME_INSTANCE_LOADING = 20
+
+-------------------------------------------------------------------------------
+-- Zone Datastructure Generators
+-------------------------------------------------------------------------------
+
 function ZoneUtil.zone(zoneType: string, zoneId: string)
     local zone: ZoneConstants.Zone = {
         ZoneType = zoneType,
@@ -25,12 +32,16 @@ function ZoneUtil.zone(zoneType: string, zoneId: string)
     return zone
 end
 
-function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zone)
-    return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
-end
-
 function ZoneUtil.houseInteriorZone(player: Player)
     return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
+end
+
+-------------------------------------------------------------------------------
+-- Zone Querying
+-------------------------------------------------------------------------------
+
+function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zone)
+    return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
 end
 
 function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
@@ -51,6 +62,10 @@ function ZoneUtil.getHouseInteriorZoneOwner(zone: ZoneConstants.Zone)
     local userId = tonumber(zone.ZoneId)
     return Players:GetPlayerByUserId(userId)
 end
+
+-------------------------------------------------------------------------------
+-- Models / Instances
+-------------------------------------------------------------------------------
 
 function ZoneUtil.getZoneTypeDirectory(zoneType: string)
     if zoneType == ZoneConstants.ZoneType.Room then
@@ -87,6 +102,10 @@ function ZoneUtil.getZoneFromZoneModel(zoneModel: Model)
     return ZoneUtil.zone(zoneType, zoneId)
 end
 
+-------------------------------------------------------------------------------
+-- ZoneInstances
+-------------------------------------------------------------------------------
+
 -- Returns a spawnpoint in the context of the zone we're leaving
 function ZoneUtil.getSpawnpoint(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
     local arrivals = ZoneUtil.getArrivals(toZone, fromZone.ZoneType)
@@ -107,6 +126,10 @@ end
 function ZoneUtil.getDepartures(zone: ZoneConstants.Zone, zoneType: string)
     return ZoneUtil.getZoneInstances(zone)[("%sDepartures"):format(zoneType)]
 end
+
+-------------------------------------------------------------------------------
+-- Settings
+-------------------------------------------------------------------------------
 
 function ZoneUtil.getSettings(zone: ZoneConstants.Zone)
     return ZoneSettings[zone.ZoneType][zone.ZoneId] or nil
@@ -135,6 +158,126 @@ function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
         end
     end
 end
+
+-------------------------------------------------------------------------------
+-- Streaming
+-------------------------------------------------------------------------------
+
+local function countBasePartsUnderInstance(instance: Instance)
+    local totalBaseParts = 0
+    for _, child in pairs(instance:GetChildren()) do
+        if child:IsA("BasePart") then
+            totalBaseParts += 1
+        end
+    end
+
+    return totalBaseParts
+end
+
+--[[
+    **Server Only**
+
+    Will keep this instance heirachy updated such that related streaming functions can be called on the client
+]]
+function ZoneUtil.writeBasepartTotals(instance: Instance)
+    -- ERROR: Server only
+    if not RunService:IsServer() then
+        error("Server Only")
+    end
+
+    -- Tot up our baseparts
+    local totalBaseParts = 0
+    for _, child in pairs(instance:GetChildren()) do
+        if child:IsA("BasePart") then
+            totalBaseParts += 1
+
+            -- ERROR: Nested Basepart!
+            local nestedBasePart = child:FindFirstAncestorWhichIsA("BasePart")
+            if nestedBasePart then
+                error(("%s has nested BasePart(s) (%s)"):format(instance:GetFullName(), nestedBasePart:GetFullName()))
+            end
+        else
+            ZoneUtil.writeBasepartTotals(child)
+        end
+    end
+
+    -- Write
+    instance:SetAttribute(ZoneConstants.AttributeBasePartTotal, totalBaseParts)
+
+    -- Handle new/old children
+    if not instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
+        instance.ChildAdded:Connect(function()
+            task.wait() -- Breathing room for full heirachy to get loaded
+            ZoneUtil.writeBasepartTotals(instance)
+        end)
+        instance.ChildRemoved:Connect(function()
+            ZoneUtil.writeBasepartTotals(instance)
+        end)
+
+        instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
+    end
+end
+
+--[[
+    **Client Only**
+
+    Returns true if everything under this instance is loaded!
+    - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
+]]
+function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
+    -- ERROR: Client Only
+    if not RunService:IsClient() then
+        return
+    end
+
+    local instances: { Instance } = instance:GetDescendants()
+    table.insert(instances, 1, instance)
+
+    for _, someInstance in pairs(instances) do
+        if not someInstance:IsA("BasePart") then
+            local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
+
+            -- Query + Compare if more than 0
+            if serverTotal and serverTotal > 0 then
+                local clientTotal = countBasePartsUnderInstance(someInstance)
+                if serverTotal > clientTotal then
+                    return false
+                end
+            end
+        end
+    end
+
+    return true
+end
+
+--[[
+    **Client Only**
+
+    Returns true if success; false otherwise
+    - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
+]]
+function ZoneUtil.waitForInstanceToLoad(instance: Instance)
+    -- ERROR: Client Only
+    if not RunService:IsClient() then
+        return
+    end
+
+    local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
+    while tick() < endTick do
+        local isLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        if isLoaded then
+            task.wait() -- Give client threads time to catch up
+            return true
+        end
+        task.wait(1)
+    end
+
+    return false
+end
+
+-------------------------------------------------------------------------------
+-- Cmdr
+-------------------------------------------------------------------------------
 
 function ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
     local zoneType = zoneTypeArgument:GetValue()

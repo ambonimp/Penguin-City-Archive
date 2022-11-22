@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
+local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 -------------------------------------------------------------------------------
 -- Types
@@ -43,6 +44,7 @@ export type GenericProduct = {
 -- Products
 -------------------------------------------------------------------------------
 
+local assets: Folder = ReplicatedStorage.Assets
 local productType: { [string]: string } = ProductConstants.ProductType
 
 local products: { [string]: { [string]: Product } } = {
@@ -64,32 +66,71 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
-    Test = {
-        coin_login_reward = {
-            Id = "coin_login_reward",
-            DisplayName = "+5 Coin Login Reward",
-            Description = "Gives you +5 coins each time you log in!",
-            RobuxData = {
-                Cost = 123456789,
-                GamepassId = 91726149,
-            },
-            Metadata = {
-                AddCoins = 5,
-            },
-        },
-        print_name = {
-            Id = "print_name",
-            DisplayName = "Print Name",
-            Description = "Prints your name when consumed",
+    --#region Pet Eggs
+    PetEgg = {
+        pet_egg_common = {
+            Id = "pet_egg_common",
+            DisplayName = "Common Egg",
+            Description = "Common Egg",
+            ImageId = Images.Pets.Eggs.Blue,
             IsConsumable = true,
+            ConsumeImmediately = true,
             RobuxData = {
                 Cost = 99,
+                DeveloperProductId = 1335900877,
             },
-            CoinData = {
-                Cost = 5,
+            Metadata = {
+                PetEggName = "Common",
+                Model = assets.Pets.Eggs.Blue,
+            },
+        },
+        pet_egg_rare = {
+            Id = "pet_egg_rare",
+            DisplayName = "Rare Egg",
+            Description = "Rare Egg",
+            ImageId = Images.Pets.Eggs.Purple,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 149,
+                DeveloperProductId = 1339311091,
+            },
+            Metadata = {
+                PetEggName = "Rare",
+                Model = assets.Pets.Eggs.Purple,
+            },
+        },
+        pet_egg_legendary = {
+            Id = "pet_egg_legendary",
+            DisplayName = "Legendary Egg",
+            Description = "Legendary Egg",
+            ImageId = Images.Pets.Eggs.Gold,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 299,
+                DeveloperProductId = 1339311146,
+            },
+            Metadata = {
+                PetEggName = "Legendary",
+                Model = assets.Pets.Eggs.Gold,
             },
         },
     },
+    --#endregion
+    --#region Misc
+    Misc = {
+        quick_hatch = {
+            Id = "quick_hatch",
+            DisplayName = "Quick Hatch",
+            Description = "Instantly hatches an egg",
+            RobuxData = {
+                Cost = 49,
+                DeveloperProductId = 1337359490,
+            },
+        },
+    },
+    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {
@@ -105,7 +146,10 @@ for _, generatorScript: ModuleScript in pairs(productGenerators:GetChildren()) d
     local generatorProductType = StringUtil.chopEnd(generatorScript.Name, "Products")
     local generatorProducts = require(generatorScript)
 
-    products[generatorProductType] = generatorProducts
+    products[generatorProductType] = products[generatorProductType] or {}
+    for generatedId, generatedProduct in pairs(generatorProducts) do
+        products[generatorProductType][generatedId] = generatedProduct
+    end
 end
 
 -------------------------------------------------------------------------------
