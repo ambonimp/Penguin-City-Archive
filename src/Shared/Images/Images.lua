@@ -75,6 +75,7 @@ Images.Icons = {
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
     Exit_Shadowless = "rbxassetid://11259375721",
+    Click = "rbxassetid://11637103411",
 }
 --#endregion
 --#region Coins
