@@ -403,6 +403,51 @@ do
             editingSession:Cleanup()
         end
     end)
+
+    -- Color Panel Setup
+    do
+        colorPanel:Mount(screenGui)
+
+        colorPanel:SetAlignment("Left")
+        colorPanel:SetSize(1)
+
+        colorPanel.ClosePressed:Connect(function()
+            -- toggleEditMode(false)
+        end)
+
+        -- Initialize colors
+        for _, color in pairs(FurnitureConstants.Colors) do
+            local button = templates.PaintColor:Clone()
+            button.Name = tostring(color)
+            button.ImageColor3 = color
+            button.Parent = colorPanel:GetContainer()
+            button:SetAttribute("ColorValue", color)
+        end
+
+        -- Color picker
+        do
+            for _, colorButton in pairs(colorPanel:GetContainer():GetChildren()) do
+                if colorButton:IsA("ImageButton") then
+                    local colorName = colorButton.Name
+                    local colorValue = colorButton:GetAttribute("ColorValue")
+                    placementSession:GiveTask(colorButton.MouseButton1Down:Connect(function()
+                        if color ~= colorName then
+                            deselectPaintColor(color)
+
+                            color = colorValue
+                            selectPaintColor(colorValue)
+                            applyColor()
+                        end
+                    end))
+                end
+            end
+
+            selectPaintColor(color) -- TODO: Scroll to this position
+            placementSession:GiveTask(function()
+                deselectPaintColor(color) -- Reset colors
+            end)
+        end
+    end
 end
 
 return FurnitureEditingPage
