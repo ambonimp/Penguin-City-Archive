@@ -18,7 +18,6 @@ local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local Output = require(Paths.Shared.Output)
 
 type Collectable = {
     Id: string,
@@ -297,7 +296,9 @@ end
 -------------------------------------------------------------------------------
 -- Collectables
 do
-    for collectableType in pairs(IceCreamExtravaganzaConstants.CollectableDropProbability) do
+    for _, weightedChoice in pairs(IceCreamExtravaganzaConstants.CollectableDropProbability) do
+        local collectableType = weightedChoice.Value
+
         local models = replicatedAssets.Collectables[collectableType]:GetChildren()
         collectableModels[collectableType] = models
 
@@ -333,6 +334,7 @@ do
     local height: number = collectableSpawns.WorldPivot.Position.Y
 
     for _, collectableSpawn in pairs(collectableSpawns:GetChildren()) do
+        collectableSpawn.Transparency = 1
         local position: Vector3 = collectableSpawn.Position
         collectableSpawn.Position = Vector3.new(position.X, height, position.Z)
     end

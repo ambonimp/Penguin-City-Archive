@@ -40,10 +40,10 @@ IceCreamExtravaganzaConstants.InvicibilityLength = 5
 
 IceCreamExtravaganzaConstants.CollectableContainerName = "Collectables"
 IceCreamExtravaganzaConstants.CollectableDropProbability = {
-    Invicible = 5,
-    Double = 10,
-    Obstacle = 35,
-    Regular = 50,
+    { Weight = 5, Value = "Invicible" },
+    { Weight = 10, Value = "Double" },
+    { Weight = 35, Value = "Obstacle" },
+    { Weight = 50, Value = "Regular" },
 }
 
 IceCreamExtravaganzaConstants.FloorPhysicalProperties = PhysicalProperties.new(

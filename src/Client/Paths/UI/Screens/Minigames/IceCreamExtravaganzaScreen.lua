@@ -2,7 +2,6 @@ local IceCreamExtravaganzaScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Images = require(Paths.Shared.Images.Images)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
