@@ -7,6 +7,10 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
+local Maid = require(Paths.Packages.maid)
+local StampUtil = require(Paths.Shared.Stamps.StampUtil)
+local StampButton = require(Paths.Client.UI.Elements.StampButton)
+local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
 
 local NEXT_BUTTON_TEXT = "Next"
 
@@ -15,10 +19,11 @@ local resultsFrame: Frame = screenGui.Results
 local logoLabel: ImageLabel = resultsFrame.Background.Logo
 local valuesFrame: Frame = resultsFrame.Background.Values
 local templateValueFrame: Frame = valuesFrame.template
-local _stampsFrame: Frame = resultsFrame.Background.Stamps
+local stampsHolder: Frame = resultsFrame.Background.Stamps.Stamps
+local templateStampsFrame: Frame = stampsHolder.template
 local nextButton = KeyboardButton.new()
 local cachedNextCallback: (() -> nil) | nil
-local cachedValueFrames: { Frame } = {}
+local openMaid = Maid.new()
 
 function ResultsScreen.Init()
     -- Setup Buttons
@@ -44,8 +49,8 @@ function ResultsScreen.Init()
             -- Read data
             local logoId = data.LogoId
             local values = data.Values
-            local stamps = data.Stamps
             local nextCallback = data.NextCallback
+            local stampData = data.StampData
 
             -- Verify
             if not (logoId and tostring(logoId)) then
@@ -57,8 +62,24 @@ function ResultsScreen.Init()
             if nextCallback and not typeof(nextCallback) == "function" then
                 error("Bad data.NextCallback")
             end
+            if stampData then
+                if typeof(stampData) == "table" then
+                    for stampId, progress in pairs(stampData) do
+                        if tostring(stampId) and tonumber(progress) then
+                            local stamp = StampUtil.getStampFromId(stampId)
+                            if not stamp then
+                                error(("Bad data.StampData; no stamp %q"):format(stampId))
+                            end
+                        else
+                            error(("Bad data.StampData (unexpected key/value pair) %q %q"):format(tostring(stampId), tostring(progress)))
+                        end
+                    end
+                else
+                    error("Bad data.StampData")
+                end
+            end
 
-            ResultsScreen.open(logoId, values, stamps, nextCallback)
+            ResultsScreen.open(logoId, values, nextCallback, stampData)
         end
 
         local function exit()
@@ -70,28 +91,24 @@ function ResultsScreen.Init()
 
     -- Misc
     templateValueFrame.Visible = false
+    templateStampsFrame.Visible = false
 end
 
 function ResultsScreen.open(
     logoId: string,
     values: { { Name: string, Value: any, Icon: string? } },
-    _stamps: nil?,
-    nextCallback: (() -> nil)?
+    nextCallback: (() -> nil)?,
+    stampData: { [string]: number }?
 )
+    openMaid:Cleanup()
     cachedNextCallback = nextCallback
 
     logoLabel.Image = logoId
 
-    -- Clear old value frames
-    for _, valueFrame in pairs(cachedValueFrames) do
-        valueFrame:Destroy()
-    end
-    cachedValueFrames = {}
-
     -- Create new value frames
     for i, valueInfo in pairs(values) do
         -- ERROR: Bad valueInfo
-        if not typeof(valueInfo.Name) == "string" then
+        if not (typeof(valueInfo.Name) == "string") then
             warn(values)
             error("valueInfo missing string .Name")
         end
@@ -105,6 +122,7 @@ function ResultsScreen.open(
         end
 
         local valueFrame = templateValueFrame:Clone()
+        openMaid:GiveTask(valueFrame)
 
         -- Name
         local name = valueInfo.Name
@@ -127,7 +145,27 @@ function ResultsScreen.open(
         valueFrame.Name = name
         valueFrame.LayoutOrder = -i -- Bottom up
         valueFrame.Parent = valuesFrame
-        table.insert(cachedValueFrames, valueFrame)
+    end
+
+    -- Stamps
+    if stampData then
+        for stampId, progress in pairs(stampData) do
+            local holder = templateStampsFrame:Clone()
+            holder.Visible = true
+            holder.Parent = stampsHolder
+            openMaid:GiveTask(holder)
+
+            local stamp = StampUtil.getStampFromId(stampId)
+            local stampButton = StampButton.new(stamp, {
+                Progress = progress,
+            })
+            stampButton.Pressed:Connect(function()
+                StampInfoScreen.open(stamp.Id, progress)
+            end)
+            stampButton:Mount(holder, true)
+
+            openMaid:GiveTask(stampButton)
+        end
     end
 
     screenGui.Enabled = true

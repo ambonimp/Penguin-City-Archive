@@ -9,11 +9,23 @@ local DataController = require(Paths.Client.DataController)
 local Signal = require(Paths.Shared.Signal)
 local Button = require(Paths.Client.UI.Elements.Button)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local ProductController = require(Paths.Client.ProductController)
+
 export type EquippedItems = { string }
 export type ItemInfo = { Name: string, Icon: string, Color: Color3? }
 
 local BUTTON_SCALE_UP_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(1.15, 1.15))
 local BUTTON_SCALE_DOWN_ANIMATION = AnimatedButton.Animations.Squish(UDim2.fromScale(0.9, 0.9))
+
+local LOCKED_ITEM = {
+    BackgroundTransparency = 0.7,
+    ImageTransparency = 0.3,
+}
+local OWNED_ITEM = {
+    BackgroundTransparency = 0,
+    ImageTransparency = 0,
+}
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
@@ -35,8 +47,10 @@ function CharacterEditorCategory.createItemButton(
     local buttonObject = templates.Item:Clone()
     buttonObject.Name = itemName
     buttonObject.BackgroundColor3 = Color3.fromRGB(235, 244, 255)
+    buttonObject.BackgroundTransparency = LOCKED_ITEM.BackgroundTransparency
     buttonObject.Icon.Image = assert(itemInfo.Icon, string.format("%s character item icon is nil: %s", categoryName, itemName))
     buttonObject.Icon.ImageColor3 = itemInfo.Color or Color3.fromRGB(255, 255, 255)
+    buttonObject.Icon.ImageTransparency = LOCKED_ITEM.BackgroundTransparency
 
     return Button.new(buttonObject)
 end
@@ -52,7 +66,6 @@ function CharacterEditorCategory.new(categoryName: string)
 
     local constants = CharacterItems[categoryName]
     local itemCount: number = TableUtil.length(constants.Items)
-    local itemsOwned: { [string]: any }
     local multiEquip: boolean = constants.MaxEquippables > 1
     local canEquip: boolean = constants.MaxEquippables ~= 0
 
@@ -88,14 +101,17 @@ function CharacterEditorCategory.new(categoryName: string)
     end
 
     local function isItemOwned(itemName: string)
-        return constants.Items[itemName].Price == 0 or itemsOwned[itemName]
+        local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+        return ProductUtil.isFree(product) or ProductController.hasProduct(product)
     end
 
     local function onItemOwned(itemName: string)
         local itemInfo = constants.Items[itemName]
 
         local itemButton: Frame = page[itemName]
-        itemButton.LayoutOrder = if itemInfo.LayoutOrder then -(itemCount - itemInfo.LayoutOrder) else 0
+        itemButton.LayoutOrder = itemInfo.LayoutOrder and -(itemCount - itemInfo.LayoutOrder) or 0
+        itemButton.BackgroundTransparency = OWNED_ITEM.BackgroundTransparency
+        itemButton.Icon.ImageTransparency = OWNED_ITEM.ImageTransparency
     end
 
     local function unequipItem(itemName: string, doNotUpdateAppearance: boolean?)
@@ -180,8 +196,6 @@ function CharacterEditorCategory.new(categoryName: string)
     end
 
     function category:Open()
-        itemsOwned = DataController.get("Inventory." .. constants.InventoryPath)
-
         tab.Visible = false
         page.Visible = true
 
@@ -205,6 +219,8 @@ function CharacterEditorCategory.new(categoryName: string)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
+
+    -- Create UI
     for itemName, itemConstants in pairs(constants.Items) do
         local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
         button:Mount(page)
@@ -215,6 +231,7 @@ function CharacterEditorCategory.new(categoryName: string)
             button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder or itemCount
         end
 
+        local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
         button.InternalPress:Connect(function()
             if isItemOwned(itemName) then
                 if not canEquip then
@@ -229,14 +246,20 @@ function CharacterEditorCategory.new(categoryName: string)
                     equipItem(itemName)
                 end
             else
-                warn("todo prompt purchase")
-                -- TODO: Prompt purchase
-                -- TODO: Prompt purchase
-                -- TODO: Prompt purchase
-                -- TODO: Prompt purchase
+                ProductController.prompt(product)
             end
         end)
     end
+
+    -- Listen for added products
+    ProductController.ProductAdded:Connect(function(addedProduct, _amount)
+        if ProductUtil.isCharacterItemProduct(addedProduct) then
+            local data = ProductUtil.getCharacterItemProductData(addedProduct)
+            if data.CategoryName == categoryName then
+                onItemOwned(data.ItemKey)
+            end
+        end
+    end)
 
     if canEquip then
         equippedItems = {}

@@ -4,20 +4,23 @@ local Images = require(ReplicatedStorage.Shared.Images.Images)
 local BackpackConstant = {}
 export type Item = {
     Price: number,
+    Name: string,
     Icon: string,
 }
 
 local items: { [string]: Item } = {}
 items["Angel_Wings"] = {
+    Name = "Angel Wings",
     Price = 0,
     Icon = Images.Backpacks["Angel_Wings"],
 }
 items["Brown_Backpack"] = {
+    Name = "Brown Backpack",
     Price = 0,
     Icon = Images.Backpacks["Brown_Backpack"],
 }
 
-BackpackConstant.InventoryPath = "Backpacks"
+BackpackConstant.AssetsPath = "Backpacks"
 BackpackConstant.TabOrder = 6
 BackpackConstant.TabIcon = Images.Icons.Bag
 BackpackConstant.SortOrder = Enum.SortOrder.Name

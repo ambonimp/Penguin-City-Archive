@@ -266,7 +266,7 @@ local function placeModelOnGrid(model: Model)
     model:PivotTo(cframe)
 
     -- Listen for release index
-    model.Destroying:Connect(function()
+    InstanceUtil.onDestroyed(model, function()
         usedGridIndexes[index] = nil
     end)
 end
@@ -301,7 +301,7 @@ local function createCollisionHitbox(zone: ZoneConstants.Zone, departurePart: Ba
         CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_DEPARTURES)
     end)
 
-    departurePart.Destroying:Connect(function()
+    InstanceUtil.onDestroyed(departurePart, function()
         collisionHitbox:Destroy(true)
     end)
 end

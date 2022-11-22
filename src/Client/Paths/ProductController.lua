@@ -9,6 +9,35 @@ local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local CurrencyController = require(Paths.Client.CurrencyController)
 local Promise = require(Paths.Packages.promise)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
+local DataController = require(Paths.Client.DataController)
+local Signal = require(Paths.Shared.Signal)
+
+ProductController.ProductAdded = Signal.new() -- {product: Product, amount: number}
+
+function ProductController.getProductCount(product: Products.Product): number
+    local address = ProductUtil.getProductDataAddress(product.Type, product.Id)
+    return DataController.get(address) or 0
+end
+
+function ProductController.hasProduct(product: Products.Product)
+    return ProductController.getProductCount(product) > 0
+end
+
+-- Returns a dictionary of all products the local player currently owns, and how many of each
+function ProductController.getOwnedProducts()
+    local ownedProducts: { [Products.Product]: number } = {}
+
+    local storedProducts = DataController.get(ProductConstants.DataAddress)
+    for productType, products in pairs(storedProducts) do
+        for productId, amount in pairs(products) do
+            local product = ProductUtil.getProduct(productType, productId)
+            ownedProducts[product] = amount
+        end
+    end
+
+    return ownedProducts
+end
 
 -- Returns a boolean whether we can afford it or not. Returns nil if product cannot be purchased with coins
 function ProductController.canAffordInCoins(product: Products.Product)
@@ -66,7 +95,7 @@ Remotes.bindEvents({
         ProductController.prompt(product)
     end,
     AddProduct = function(productType: string, productId: string, amount: number)
-        print(("+%d %s %s Product"):format(amount, productType, productId))
+        ProductController.ProductAdded:Fire(ProductUtil.getProduct(productType, productId), amount)
     end,
 })
 

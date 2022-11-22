@@ -33,7 +33,6 @@ items["Adult"] = {
     LayoutOrder = 3,
 }
 
-BodyTypeConstants.InventoryPath = "BodyTypes"
 BodyTypeConstants.TabOrder = 7
 BodyTypeConstants.TabIcon = Images.Icons.Face
 BodyTypeConstants.SortOrder = Enum.SortOrder.LayoutOrder

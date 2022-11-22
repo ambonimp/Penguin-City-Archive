@@ -199,7 +199,7 @@ local function applyAccessoryApperance(character: Model, type: string, accessori
 
     for _, accessoryName: string in pairs(accessories) do
         if not alreadyEquippedAccessories[accessoryName] and categoryConstant.Items[accessoryName] then
-            local model: Accessory = characterAssets[categoryConstant.InventoryPath][accessoryName]:Clone()
+            local model: Accessory = characterAssets[categoryConstant.AssetsPath][accessoryName]:Clone()
 
             local rigidConstraint = Instance.new("RigidConstraint")
             rigidConstraint.Attachment0 = model.Handle.AccessoryAttachment
@@ -221,7 +221,7 @@ local function applyClothingAppearance(character: Model, type: string, clothingN
     if clothingName then
         local body = character.Body
         local bodyPosition = body.Position
-        for _, pieceTemplate in pairs(characterAssets[CharacterItems[type].InventoryPath][clothingName]:GetChildren()) do
+        for _, pieceTemplate in pairs(characterAssets[CharacterItems[type].AssetsPath][clothingName]:GetChildren()) do
             local piece = pieceTemplate:Clone()
             piece.Position = bodyPosition
             piece.Parent = character
@@ -370,6 +370,10 @@ function CharacterUtil.isCollidingWithOtherCharacter(character: Model)
     end
 
     return false
+end
+
+function CharacterUtil.getHumanoidRootPart(player: Player)
+    return player.Character and player.Character:FindFirstChild("HumanoidRootPart") or nil
 end
 
 -------------------------------------------------------------------------------

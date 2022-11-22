@@ -15,11 +15,13 @@ type contents = {
 export type Item = {
     Price: number,
     Icon: string,
+    Name: string,
     Items: contents,
 }
 
 local items: { [string]: Item } = {}
 items["Farmer"] = {
+    Name = "Farmer",
     Price = 0,
     Icon = Images.Outfits["Farmer"],
     Items = {
@@ -28,7 +30,6 @@ items["Farmer"] = {
     },
 }
 
-OutfitConstants.InventoryPath = "Outfits"
 OutfitConstants.TabOrder = 4
 OutfitConstants.TabIcon = Images.Icons.Outfit
 OutfitConstants.SortOrder = Enum.SortOrder.LayoutOrder

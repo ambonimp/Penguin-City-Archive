@@ -1,20 +1,21 @@
 --[[
     RULES
     - No spaces in keys, use underscores or preferably just camel case instead
+
+    !! Data Keys found in GameConstants
 ]]
 
 local DataConfig = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local GameUtil = require(Paths.Shared.Utils.GameUtil)
+local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
 DataConfig.DataKey = GameUtil.getDataKey()
 
 --#region Default constants
-local defaultInventory = {}
 local defaultHouse = {
     Blueprint = "Default",
     -- TODO: Make this save items for every blueprint
@@ -41,19 +42,24 @@ local defaultCharacterAppearance = {
 function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,
-        Inventory = defaultInventory,
         House = defaultHouse,
         Products = {},
         ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},
+        Stamps = {
+            OwnedStamps = {},
+            StampBook = StampUtil.getStampBookDataDefaults(),
+        },
         Coins = 0,
+        Rewards = {
+            DailyReward = {
+                BestStreak = 0,
+                Entries = {},
+                Unclaimed = {},
+            },
+        },
     } :: DataUtil.Store
-end
-
--- Load default character items into inventory
-for _, itemConstants in pairs(CharacterItems) do
-    defaultInventory[itemConstants.InventoryPath] = {}
 end
 
 return DataConfig

@@ -1,4 +1,4 @@
-local ResultsScreen = {}
+local ProductPromptScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -9,10 +9,11 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Products = require(Paths.Shared.Products.Products)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
-local CurrencyController = require(Paths.Client.CurrencyController)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local Widget = require(Paths.Client.UI.Elements.Widget)
+local Maid = require(Paths.Packages.maid)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -24,8 +25,9 @@ local titleLabel: TextLabel = contents.Text.Title
 local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
 local currentProduct: Products.Product
+local openMaid = Maid.new()
 
-function ResultsScreen.Init()
+function ProductPromptScreen.Init()
     local function leaveState()
         UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.PromptProduct)
     end
@@ -63,18 +65,18 @@ function ResultsScreen.Init()
     -- Register UIState
     do
         local function enter(data: table)
-            ResultsScreen.open(data)
+            ProductPromptScreen.open(data)
         end
 
         local function exit()
-            ResultsScreen.close()
+            ProductPromptScreen.close()
         end
 
         UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PromptProduct, enter, exit)
     end
 end
 
-function ResultsScreen.open(data: table)
+function ProductPromptScreen.open(data: table)
     -- RETURN: No product!
     local product: Products.Product = data.Product
     if not product then
@@ -84,17 +86,17 @@ function ResultsScreen.open(data: table)
     end
     currentProduct = product
 
+    openMaid:Cleanup()
+
     -- Text
     titleLabel.Text = currentProduct.DisplayName
     descriptionLabel.Text = currentProduct.Description or ""
 
-    -- Icon
-    if currentProduct.ImageId then
-        icon.Image = currentProduct.ImageId
-        icon.Visible = true
-    else
-        icon.Visible = false
-    end
+    -- Widget
+    icon.Image = ""
+    local widget = Widget.diverseWidgetFromProduct(product)
+    widget:Mount(icon)
+    openMaid:GiveTask(widget)
 
     -- Robux Button
     robuxButton:GetButtonObject().Parent.Visible = currentProduct.RobuxData and true or false
@@ -113,10 +115,11 @@ function ResultsScreen.open(data: table)
     end
 
     screenGui.Enabled = true
+    ScreenUtil.inDown(screenGui.Back)
 end
 
-function ResultsScreen.close()
-    screenGui.Enabled = false
+function ProductPromptScreen.close()
+    ScreenUtil.outUp(screenGui.Back)
 end
 
-return ResultsScreen
+return ProductPromptScreen

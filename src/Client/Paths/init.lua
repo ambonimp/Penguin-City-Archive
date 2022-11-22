@@ -23,8 +23,11 @@ Paths.Initialized = false
 
 -- Loading Coroutine
 task.delay(0, function()
-    -- Require necessary files
+    -- Ensure PlayerGui is present
     local Loader = require(client.Loader)
+    Loader.yieldPlayerGui()
+
+    -- Require necessary files
     local requiredModulesInOrder = {
         -- Loader
         Loader,
@@ -45,6 +48,7 @@ task.delay(0, function()
         require(client.ZoneController),
         require(client.MusicController),
         require(client.PlayerMenuController),
+        require(client.Rewards.RewardsController),
 
         -- UnitTest
         require(client.UnitTestingController),

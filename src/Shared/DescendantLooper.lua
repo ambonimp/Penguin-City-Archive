@@ -1,10 +1,11 @@
 --[[
     This file makes it nice and easy to run checks on all current and future descendants of an instance(s)
-    ]]
+]]
 local DescendantLooper = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Janitor = require(ReplicatedStorage.Packages.janitor)
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+local Maid = require(ReplicatedStorage.Packages.maid)
 
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 
@@ -14,12 +15,15 @@ local instanceCheckerCallbackPairs: { [Instance]: { [(descendant: Instance) -> b
     Returns the dictionary for checker/callback pairings.
     Also sets up descendant added for first-time calls for individual instances
 ]]
-local function getInstanceCheckerCallbackPairs(instance: Instance)
+local function getInstanceCheckerCallbackPairs(instance: Instance, maid: typeof(Maid.new()))
     if not instanceCheckerCallbackPairs[instance] then
         instanceCheckerCallbackPairs[instance] = {}
+        maid:GiveTask(function()
+            instanceCheckerCallbackPairs[instance] = nil
+        end)
 
         local count = 0
-        instance.DescendantAdded:Connect(function(descendant)
+        maid:GiveTask(instance.DescendantAdded:Connect(function(descendant)
             -- Throttle
             if count % THROTTLE_EVERY == 0 then
                 task.wait()
@@ -31,10 +35,10 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
                     task.spawn(callback, descendant)
                 end
             end
-        end)
+        end))
 
         -- Cleanup cache
-        instance.Destroying:Connect(function()
+        InstanceUtil.onDestroyed(instance, function()
             instanceCheckerCallbackPairs[instance] = nil
         end)
     end
@@ -43,20 +47,25 @@ local function getInstanceCheckerCallbackPairs(instance: Instance)
 end
 
 --[[
-    Adds a checker/callback pair for looping all passed instances
+    Adds a checker/callback pair for looping all passed instances.
+    Returns a maid that can be destroyed to stop this operation - this is null if `ignoreAdded=true` though.
+    !! A known issue is `callback` can be called twice when a new Instance is introduced into a scope being tracked by this method.
+    !! as both `DescendantAdded` and `instance:GetDescendants()` will get the same instance
 ]]
 function DescendantLooper.add(
     checker: (descendant: Instance) -> boolean,
     callback: (descendant: Instance) -> nil,
     instances: { Instance },
     ignoreAdded: boolean?
-): () -> ({ Instance })
+)
     ignoreAdded = ignoreAdded or false
+
+    local maid = Maid.new()
 
     -- Cache checker/callback for new added descendants
     local count = 0
     for _, instance in pairs(instances) do
-        local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance)
+        local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance, maid)
 
         if not ignoreAdded then
             checkerCallbackPairs[checker] = callback
@@ -76,24 +85,7 @@ function DescendantLooper.add(
         end
     end
 
-    if not ignoreAdded then
-        return function()
-            local remainingDescedants: { Instance } = {}
-
-            for _, instance in pairs(instances) do
-                local checkerCallbackPairs = getInstanceCheckerCallbackPairs(instance)
-                if instanceCheckerCallbackPairs then
-                    checkerCallbackPairs[checker] = nil
-
-                    for _, descendant in pairs(instance:GetDescendants()) do
-                        table.insert(remainingDescedants, descendant)
-                    end
-                end
-            end
-
-            return remainingDescedants
-        end
-    end
+    return maid
 end
 
 --[[
@@ -104,7 +96,7 @@ function DescendantLooper.workspace(
     callback: (descendant: Instance) -> nil,
     ignoreAdded: boolean?
 )
-    DescendantLooper.add(checker, callback, { game.Workspace }, ignoreAdded)
+    return DescendantLooper.add(checker, callback, { game.Workspace }, ignoreAdded)
 end
 
 return DescendantLooper

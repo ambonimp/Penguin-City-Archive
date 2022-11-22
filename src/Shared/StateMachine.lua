@@ -394,6 +394,22 @@ function StateMachine:RegisterStateCallbacks(
     end)
 end
 
+-- Will run callback ONLY ONCE EVER as soon as we are in `state`
+function StateMachine:InvokeInState(callback: () -> nil, state: string)
+    if self:GetState() == state then
+        callback()
+        return
+    end
+
+    local connection: RBXScriptConnection
+    connection = self:RegisterGlobalCallback(function(_fromState, toState, _data)
+        if toState == state then
+            connection:Disconnect()
+            callback()
+        end
+    end)
+end
+
 --[[
     Disposes all internal resources of this machine.
 ]]

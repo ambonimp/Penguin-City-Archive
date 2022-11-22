@@ -1,4 +1,24 @@
-local CharacterItems = {}
+local CharacterItems: {
+    [string]: {
+        AssetsPath: string,
+        TabOrder: number,
+        TabIcon: string,
+        SortOrder: Enum.SortOrder,
+        MaxEquippables: number,
+        CanUnequip: boolean,
+        Items: { [string]: Item },
+    },
+} =
+    {}
+
+type Item = {
+    Name: string,
+    Price: number,
+    Icon: string,
+    Color: Color3?, -- FurColor
+    LayoutOrder: number?, -- BodyType
+    Height: number?, -- BodyType
+}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)

@@ -25,10 +25,13 @@ local NICE_NAMES = {
 function PizzaFiascoUtil.rollRecipeType(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for recipeLabel, weightEquation in pairs(PizzaFiascoConstants.RecipeTypeWeightEquations) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[recipeLabel] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = recipeLabel,
+        })
     end
 
     local selectedRecipeLabel: string = MathUtil.weightedChoice(weightTable)
@@ -45,19 +48,28 @@ function PizzaFiascoUtil.rollToppings(pizzaNumber: number, toppingsNeeded: numbe
         error(("Requested to roll %d toppings, only %d toppings exist!"):format(toppingsNeeded, TOTAL_TOPPINGS))
     end
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
+    local totalWeight = 0
     for topping, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Toppings) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[topping] = weight
+        totalWeight += weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = topping,
+        })
     end
 
     local toppings: { string } = {}
     for _ = 1, toppingsNeeded do
-        local totalWeight = TableUtil.sumValues(weightTable)
         if totalWeight > 0 then
             local selectedTopping: string = MathUtil.weightedChoice(weightTable)
             table.insert(toppings, selectedTopping)
-            weightTable[selectedTopping] = nil
+            for index, entry in pairs(weightTable) do
+                if entry.Value == selectedTopping then
+                    table.remove(weightTable, index)
+                    break
+                end
+            end
         else
             local _, selectedTopping = TableUtil.getRandom(weightTable)
             table.insert(toppings, selectedTopping)
@@ -70,10 +82,13 @@ end
 function PizzaFiascoUtil.rollSauce(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for sauce, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Sauces) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[sauce] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = sauce,
+        })
     end
 
     return MathUtil.weightedChoice(weightTable) :: string
@@ -82,10 +97,13 @@ end
 function PizzaFiascoUtil.rollBase(pizzaNumber: number)
     local alpha = pizzaNumber / PizzaFiascoConstants.MaxPizzas
 
-    local weightTable: { [string]: number } = {}
+    local weightTable: { { Weight: number, Value: any } } = {}
     for base, weightEquation in pairs(PizzaFiascoConstants.IngredientWeightEquations.Bases) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        weightTable[base] = weight
+        table.insert(weightTable, {
+            Weight = weight,
+            Value = base,
+        })
     end
 
     return MathUtil.weightedChoice(weightTable) :: string

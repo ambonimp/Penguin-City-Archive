@@ -2,7 +2,6 @@ local UIConstants = {}
 
 UIConstants.States = {
     Loading = "Loading",
-    Vehicles = "Vehicles",
     CharacterEditor = "CharacterEditor",
     Minigame = "Minigame",
     House = "House",
@@ -15,16 +14,20 @@ UIConstants.States = {
     Results = "Results",
     PromptProduct = "PromptProduct",
     StampBook = "StampBook",
+    DailyRewards = "DailyRewards",
+    GiftPopup = "GiftPopup",
+    Paycheck = "Paycheck",
+    Inventory = "Inventory",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
 UIConstants.PseudoStates = {
     [UIConstants.States.HUD] = {
-        UIConstants.States.Vehicles,
         UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.House,
+        UIConstants.States.Paycheck,
     },
 }
 
@@ -44,7 +47,6 @@ UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Nothing,
     UIConstants.States.Loading,
     UIConstants.States.HUD,
-    UIConstants.States.Vehicles,
 }
 
 UIConstants.Font = Enum.Font.GothamBold
@@ -65,6 +67,8 @@ UIConstants.Colors = {
         StampBeige = Color3.fromRGB(225, 209, 159),
         IglooPink = Color3.fromRGB(229, 142, 237),
         NextTeal = Color3.fromRGB(50, 195, 185),
+        WaitOrange = Color3.fromRGB(255, 151, 32),
+        EditOrange = Color3.fromRGB(255, 158, 46),
     },
 }
 

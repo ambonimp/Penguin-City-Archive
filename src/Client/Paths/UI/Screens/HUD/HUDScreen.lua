@@ -6,7 +6,6 @@ local Ui = Paths.UI
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
@@ -58,6 +57,14 @@ local function map(button: AnimatedButton.AnimatedButton)
     button.Pressed:Connect(ZoneController.teleportToRandomRoom)
 end
 
+local function dailyRewards(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Rewards
+
+    button.Pressed:Connect(function()
+        UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
+    end)
+end
+
 local function party(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.Party
 
@@ -74,8 +81,8 @@ local function igloo(button: AnimatedButton.AnimatedButton)
     button.Pressed:Connect(function()
         if isIglooButtonEdit() then
             uiStateMachine:Push(UIConstants.States.HouseEditor, {
-                        InteriorPlot = uiStateMachine:GetData().InteriorPlot
-                    })
+                InteriorPlot = uiStateMachine:GetData().InteriorPlot,
+            })
         else
             ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone())
         end
@@ -85,16 +92,24 @@ end
 local function stampBook(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.StampBook
 
-    --!!temp
     button.Pressed:Connect(function()
-        Sound.play("OpenBook")
+        uiStateMachine:Push(UIConstants.States.StampBook, {
+            Player = Players.LocalPlayer,
+        })
+    end)
+end
+
+local function clothing(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Shirt
+    button.Pressed:Connect(function()
+        uiStateMachine:Push(UIConstants.States.CharacterEditor)
     end)
 end
 
 local function inventory(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.Inventory
     button.Pressed:Connect(function()
-        uiStateMachine:Push(UIConstants.States.CharacterEditor)
+        uiStateMachine:Push(UIConstants.States.Inventory)
     end)
 end
 
@@ -127,19 +142,23 @@ function HUDScreen.Init()
         -- Create Buttons
         table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["1"], "Left"))
         table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["2"], "Left"))
+        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["3"], "Left"))
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["1"], "Right"))
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["2"], "Right"))
         table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["3"], "Right"))
+        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["4"], "Right"))
 
         -- Setup
-        local mapButton = buttons.Left[2]
+        local mapButton = buttons.Left[3]
         local iglooButton = buttons.Right[1]
 
-        party(buttons.Left[1])
+        dailyRewards(buttons.Left[1])
+        party(buttons.Left[2])
         map(mapButton)
         igloo(iglooButton)
         stampBook(buttons.Right[2])
-        inventory(buttons.Right[3])
+        clothing(buttons.Right[3])
+        inventory(buttons.Right[4])
 
         -- Igloo Button (toggle edit look)
         do
@@ -214,7 +233,7 @@ function HUDScreen.Init()
         end
 
         local function readState()
-            if UIUtil.getPseudoState(UIConstants.States.HUD, uiStateMachine) then
+            if UIUtil.getPseudoState(UIConstants.States.HUD) then
                 enter()
             else
                 exit()

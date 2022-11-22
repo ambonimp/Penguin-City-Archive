@@ -96,13 +96,6 @@ function DataService.multiply(player: Player, address: string, scalar: number, e
     return DataService.set(player, address, currentValue * scalar, event, eventMeta)
 end
 
-function DataService.wipe(player: Player)
-    local profile = DataService.Profiles[player]
-    profile.Data = nil
-
-    player:Kick("DATA WIPE " .. player.Name)
-end
-
 local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     for k, v in pairs(default) do
         if not tonumber(k) and data[k] == nil then
@@ -111,6 +104,14 @@ local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
             reconcile(data[k], v)
         end
     end
+end
+
+function DataService.wipe(player: Player)
+    local profile = DataService.Profiles[player]
+    profile.Data = {}
+    reconcile(profile.Data, Config.getDefaults(player))
+
+    player:Kick("DATA WIPE " .. player.Name)
 end
 
 function DataService.loadPlayer(player)

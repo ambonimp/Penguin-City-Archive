@@ -1,12 +1,20 @@
 local TableUtil = {}
 
-function TableUtil.deepClone<T>(tbl: T): T
+function TableUtil.deepClone(tbl: table)
     local clone = {}
 
-    for i, v in tbl do
+    for i, v in pairs(tbl) do
         clone[i] = typeof(v) == "table" and TableUtil.deepClone(v) or v
     end
 
+    return clone
+end
+
+function TableUtil.shallowClone(tbl: table)
+    local clone = {}
+    for k, v in pairs(tbl) do
+        clone[k] = v
+    end
     return clone
 end
 
@@ -35,7 +43,7 @@ function TableUtil.getRandom(tbl: table)
     local selection = math.random(1, TableUtil.length(tbl))
     local index = 1
 
-    for k, v in tbl do
+    for k, v in pairs(tbl) do
         if index == selection then
             return v, k
         else
@@ -81,8 +89,8 @@ function TableUtil.valuesToKeys(tbl: table, key: any)
     return returning
 end
 
--- table.find doesn't work for dictionaries
-function TableUtil.find(tbl: table, needle: any)
+-- table.find doesn't work for dictionaries. Returns the key
+function TableUtil.find(tbl: table, needle: any): any | nil
     for k, value in tbl do
         if needle == value then
             return k
@@ -129,6 +137,16 @@ function TableUtil.toArray(tbl: table)
 
     for _, v in tbl do
         table.insert(returning, v)
+    end
+
+    return returning
+end
+
+function TableUtil.toDictionary(tbl: table)
+    local returning = {}
+
+    for k, v in tbl do
+        returning[tostring(k)] = v
     end
 
     return returning
@@ -207,6 +225,24 @@ function TableUtil.remove(tbl: table, value: any, maxOccurences: number?)
             end
         end
     end
+end
+
+function TableUtil.mapKeys(tbl: table, map: (key: any) -> any)
+    local mappedTbl = {}
+    for key, value in pairs(tbl) do
+        mappedTbl[map(key)] = value
+    end
+
+    return mappedTbl
+end
+
+function TableUtil.mapValues(tbl: table, map: (value: any) -> any)
+    local mappedTbl = {}
+    for key, value in pairs(tbl) do
+        mappedTbl[key] = map(value)
+    end
+
+    return mappedTbl
 end
 
 return TableUtil

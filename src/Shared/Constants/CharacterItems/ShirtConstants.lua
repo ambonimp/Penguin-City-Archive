@@ -20,7 +20,7 @@ items["Flannel_Shirt"] = {
     Icon = Images.Shirts["Flannel_Shirt"],
 }
 
-ShirtConstants.InventoryPath = "Shirts"
+ShirtConstants.AssetsPath = "Shirts"
 ShirtConstants.TabOrder = 1
 ShirtConstants.TabIcon = Images.Icons.Shirt
 ShirtConstants.SortOrder = Enum.SortOrder.LayoutOrder

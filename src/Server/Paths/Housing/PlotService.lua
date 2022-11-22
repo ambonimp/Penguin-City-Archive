@@ -20,6 +20,8 @@ local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+
 type FurnitureMetadata = {
     Name: string,
     Position: Vector3,
@@ -164,7 +166,7 @@ local function loadHouse(player: Player, plot: Model, type: string)
         spawnPart.Parent = game.Workspace.Rooms.Neighborhood.ZoneInstances.RoomArrivals
 
         -- Cleanup
-        model.Destroying:Connect(function()
+        InstanceUtil.onDestroyed(model, function()
             entrancePart:Destroy()
             spawnPart:Destroy()
         end)

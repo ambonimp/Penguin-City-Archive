@@ -21,6 +21,7 @@ objects["House"] = {
     Icon = "",
 }
 
+BlueprintConstants.AssetsPath = "Exteriors"
 BlueprintConstants.TabOrder = 5
 BlueprintConstants.TabIcon = Images.Icons.Igloo
 BlueprintConstants.Objects = objects

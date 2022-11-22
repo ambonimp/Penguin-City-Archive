@@ -8,6 +8,7 @@ local Images = {}
 
 --#region ButtonIcons
 Images.ButtonIcons = {
+    Calendar = "rbxassetid://11505043486",
     Family = "rbxassetid://11152372064",
     FoldedMap = "rbxassetid://11152371848",
     Igloo = "rbxassetid://11152371425",
@@ -17,23 +18,32 @@ Images.ButtonIcons = {
     Pencil = "rbxassetid://11374218958",
     StampBook = "rbxassetid://11152369533",
     Toolbox = "rbxassetid://11152369313",
+    Rewards = "rbxassetid://11390824777",
+    Shirt = "rbxassetid://11456885118",
 }
 --#endregion
 --#region Icons
 Images.Icons = {
-    Add = "rbxassetid://11152372782",
+    AddFriend = "rbxassetid://11152372782",
+    Add = "rbxassetid://11501070397",
     Badge = "rbxassetid://11152372668",
     Bag = "rbxassetid://11152372582",
     Book = "rbxassetid://11152372490",
+    Checkmark = "rbxassetid://11374895711",
     Close = "rbxassetid://11152372397",
+    CoinWhite = "rbxassetid://11374896378",
+    Egg = "rbxassetid://11563573619",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
+    Food = "rbxassetid://11505043267",
     Shoe = "rbxassetid://11200887082",
     FloorCarpet = "rbxassetid://11152371963",
     Furniture = "rbxassetid://11152371773",
+    Gift = "rbxassetid://11374896210",
     Hat = "rbxassetid://11152371685",
     Heart = "rbxassetid://11154920458",
+    Hoverboard = "rbxassetid://11505043087",
     Igloo = "rbxassetid://11152371572",
     Instructions = "rbxassetid://11152371331",
     Layout = "rbxassetid://11152371133",
@@ -51,6 +61,7 @@ Images.Icons = {
     Pets = "rbxassetid://11152370072",
     Place = "rbxassetid://11152370003",
     Robux = "rbxassetid://11333748345",
+    Roleplay = "rbxassetid://11505042951",
     Rotate = "rbxassetid://11152369890",
     RightArrow = "rbxassetid://6583638192",
     Seal = "rbxassetid://11152369785",
@@ -58,6 +69,7 @@ Images.Icons = {
     Shirt = "rbxassetid://11152369627",
     Stamp = "rbxassetid://11250982379",
     Text = "rbxassetid://11152369398",
+    Toy = "rbxassetid://11505042821",
     VoldexLogo = "rbxassetid://11250982454",
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
@@ -125,11 +137,12 @@ Images.IceCreamExtravaganza = {
     ConeIcon = "rbxassetid://11625086321",
 }
 --#endregion
---#region CharacterEditor
-Images.CharacterEditor = {
+--#region SelectionPanel
+Images.SelectionPanel = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",
+    BlueArrow = "rbxassetid://11447909821",
+    BeigeArrow = "rbxassetid://11447909674",
 }
---#endregion
 --#region Shirts
 Images.Shirts = {
     ["Purple_Shirt"] = "rbxassetid://11192098373",
@@ -180,6 +193,7 @@ Images.BodyTypes = {
     ["Adult"] = "rbxassetid://11191456133",
 }
 --#endregion
+--#endregion
 --#region StampBook
 Images.StampBook = {
     Cover = "rbxassetid://11251247354",
@@ -200,7 +214,111 @@ Images.StampBook = {
     },
 }
 --#endregion
+--#region Misc
+Images.Misc = {
+    McGrawSignature = "rbxassetid://11374895887",
+}
+--#endregion
+--#region Rewards
+Images.Rewards = {
+    DailyRewards = "rbxassetid://11374896618",
+    Paycheck = "rbxassetid://11374896889",
+}
+--#region Stamps
+Images.Stamps = {
+    Types = {
+        Clothing = {
+            Pattern = "rbxassetid://11457316509",
+            Background = "rbxassetid://11457316727",
+            Border = "rbxassetid://11457316952",
+            Shine = "rbxassetid://11457317168",
+        },
+        Events = {
+            Pattern = "rbxassetid://11457314423",
+            Background = "rbxassetid://11457314605",
+            Border = "rbxassetid://11457314768",
+            Shine = "rbxassetid://11457314912",
+        },
+        Igloo = {
+            Pattern = "rbxassetid://11457317342",
+            Background = "rbxassetid://11457317467",
+            Border = "rbxassetid://11457317630",
+            Shine = "rbxassetid://11457317854",
+        },
+        Location = {
+            Pattern = "rbxassetid://11457315612",
+            Background = "rbxassetid://11457315961",
+            Border = "rbxassetid://11457316077",
+            Shine = "rbxassetid://11457316298",
+        }, --TODO Verify this is correct (Location/Pets)
+        Minigame = {
+            Pattern = "rbxassetid://11457315005",
+            Background = "rbxassetid://11457315104",
+            Border = "rbxassetid://11457315242",
+            Shine = "rbxassetid://11457315451",
+        },
+        Pets = {
+            Pattern = "rbxassetid://11457317995",
+            Background = "rbxassetid://11457318170",
+            Shine = "rbxassetid://11457318417",
+            Border = "rbxassetid://11457318650",
+        }, --TODO Verify this is correct (Location/Pets)
+    },
+    Icons = {
+        WelcomeBack = "rbxassetid://11457313651",
+        Weeeee = "rbxassetid://11457313830",
+        Twins = "rbxassetid://11457313985",
+        ThatsBetter = "rbxassetid://11457314100",
+        Stylish = "rbxassetid://11457314234",
+        Sleepover = "rbxassetid://11457318764",
+        Scoops = "rbxassetid://11457318878",
+        RacingStreak = "rbxassetid://11457318993",
+        Racer_25 = "rbxassetid://11457319381",
+        Racer_10 = "rbxassetid://11457319528",
+        Racer_1 = "rbxassetid://11457319702",
+        Payday = "rbxassetid://11457319841",
+        PartyInMyIggy = "rbxassetid://11457319994",
+        OneMonthIn = "rbxassetid://11457320174",
+        OnARoll = "rbxassetid://11457320377",
+        OfficialCitizen = "rbxassetid://11457320559",
+        MasterChef = "rbxassetid://11457320717",
+        MakingMoney = "rbxassetid://11457320887",
+        LuckyFind = "rbxassetid://11457320996",
+        LookOut = "rbxassetid://11457321083",
+        LineCook = "rbxassetid://11457321211",
+        LeaningTowerOfIceCream = "rbxassetid://11457321311",
+        InteriorDecorator = "rbxassetid://11457321418",
+        IglooCritic = "rbxassetid://11457321516",
+        IcyWinner_25 = "rbxassetid://11457321653",
+        IcyWinner_10 = "rbxassetid://11457321780",
+        IcyWinner_1 = "rbxassetid://11457321914",
+        IScreamYouScream = "rbxassetid://11457322026",
+        Hoarder = "rbxassetid://11457322111",
+        GettingStarted = "rbxassetid://11457322191",
+        FullCloset = "rbxassetid://11457322310",
+        Fired = "rbxassetid://11457322430",
+        ChefInTraining = "rbxassetid://11457322531",
+        BestHouseOnTheBlock_200 = "rbxassetid://11457322614",
+        BestHouseOnTheBlock_100 = "rbxassetid://11457322741",
+        BestHouseOnTheBlock_50 = "rbxassetid://11457322914",
+    },
+}
+--#endregion
 
+--#endregion
+--#region Pets
+Images.Pets = {
+    Eggs = {
+        Standard = "rbxassetid://11563572752",
+        Red = "rbxassetid://11563572937",
+        Gold = "rbxassetid://11563573078",
+        Green = "rbxassetid://11563573533",
+        Purple = "rbxassetid://11563573803",
+        Blue = "rbxassetid://11563573939",
+    },
+    Lightburst = "rbxassetid://11563573407",
+}
+--#endregion
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images

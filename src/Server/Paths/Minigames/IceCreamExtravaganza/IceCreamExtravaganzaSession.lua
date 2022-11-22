@@ -219,7 +219,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
                         return
                     end
 
-                    local descedantAddedHandlerCleanup = DescendantLooper.add(function(descendant)
+                    local descendantMaid = DescendantLooper.add(function(descendant)
                         return descendant:IsA("BasePart")
                     end, function(descendant: BasePart)
                         PropertyStack.setProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE, math.huge)
@@ -227,8 +227,11 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
 
                     inviciblePlayers[player] = function()
                         inviciblePlayers[player] = nil
-                        for _, descendant in pairs(descedantAddedHandlerCleanup()) do
-                            PropertyStack.clearProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
+                        for _, descendant in pairs(character:GetDescendants()) do
+                            descendantMaid:Destroy()
+                            if descendant:IsA("BasePart") then
+                                PropertyStack.clearProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
+                            end
                         end
                     end
 
@@ -334,7 +337,7 @@ do
         collectableSpawn.Position = Vector3.new(position.X, height, position.Z)
     end
 
-    local collectableContainer = Instance.new("Folder", mapTemplate)
+    local collectableContainer = Instance.new("Folder")
     collectableContainer.Name = IceCreamExtravaganzaConstants.CollectableContainerName
     collectableContainer.Parent = mapTemplate
 

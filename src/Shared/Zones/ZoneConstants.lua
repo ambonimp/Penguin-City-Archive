@@ -33,6 +33,7 @@ ZoneConstants.ZoneType = {
         PizzaPlace = "PizzaPlace",
         CoffeeShop = "CoffeeShop",
         IceCreamShop = "IceCreamShop",
+        Boardwalk = "Boardwalk",
     },
     Minigame = {
         SledRace = "SledRace",
