@@ -9,6 +9,7 @@ local Maid = require(Paths.Packages.maid)
 local Queue = require(Paths.Shared.Queue)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local NotificationIcon = require(Paths.Client.UI.Elements.NotificationIcon)
+local Sound = require(Paths.Shared.Sound)
 
 local notificationIconsByGuiObject: { [GuiObject]: typeof(NotificationIcon.new()) } = {}
 
@@ -68,6 +69,7 @@ function UIActions.sendRobloxNotification(configTable: {
     configTable.Text = configTable.Text or ""
 
     StarterGui:SetCore("SendNotification", configTable)
+    Sound.play("Notification")
 end
 
 --[[

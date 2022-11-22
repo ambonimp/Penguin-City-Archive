@@ -20,6 +20,7 @@ local Scope = require(Paths.Shared.Scope)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local UIActions = require(Paths.Client.UI.UIActions)
 local Images = require(Paths.Shared.Images.Images)
+local Sound = require(Paths.Shared.Sound)
 
 local TWEEN_TIME = 0.2
 
@@ -100,6 +101,7 @@ function PetEggHatchingScreen.open(petEggName: string)
             TweenUtil.tween(camera, TweenInfo.new(TWEEN_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 CFrame = cameraCFrames[i],
             })
+            Sound.play("Swoosh")
             task.wait(sectionTime)
 
             -- EXIT: Closed
@@ -135,6 +137,7 @@ function PetEggHatchingScreen.open(petEggName: string)
                 })
             end,
         }, { Image = Images.Pets.Lightburst, DoRotate = true })
+        Sound.play("Prize")
 
         UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
     end)
