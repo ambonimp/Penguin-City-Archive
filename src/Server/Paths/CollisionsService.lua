@@ -61,4 +61,8 @@ setGroupCollideableWhitelist(groupNames.HiddenCharacters, { groupNames.Default }
 createGroup(groupNames.EtherealCharacters)
 setGroupCollideableWhitelist(groupNames.EtherealCharacters, { groupNames.Default })
 
+-- Pet
+createGroup(groupNames.Pet)
+setGroupCollideableWhitelist(groupNames.Pet, { groupNames.Default })
+
 return CollisionsService

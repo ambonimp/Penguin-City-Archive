@@ -232,7 +232,7 @@ function InventoryWindow.new(
             drawMaid:GiveTask(addWidget)
         end
 
-        -- Product Widgets
+        -- Widgets
         widgetsByEquipValue = {}
         for i, entry in pairs(visibleEntries) do
             local holder = getHolderFrame(i)
@@ -244,7 +244,7 @@ function InventoryWindow.new(
                 if equipping then
                     if entry.EquipValue == equippedValue then
                         inventoryWindow:Equip(nil)
-                    else
+                    elseif entry.EquipValue ~= nil then
                         inventoryWindow:Equip(entry.EquipValue)
                     end
                 end
@@ -287,16 +287,17 @@ function InventoryWindow.new(
             end
         end
 
+        -- Init data + page
         currentPopulateData = populateData
         pageNumber = 1
 
-        -- Draw
-        draw()
-
         -- Start Equipped
         if equipping and equipping.StartEquipped then
-            inventoryWindow:Equip(equipping.StartEquipped)
+            equippedValue = equipping.StartEquipped
         end
+
+        -- Draw
+        draw()
     end
 
     function inventoryWindow:Equip(newEquipValue: any | nil)
@@ -307,11 +308,11 @@ function InventoryWindow.new(
         end
 
         if equippedValue and equipping.Unequip then
-            equipping.Unequip(equippedValue)
+            task.spawn(equipping.Unequip, equippedValue)
         end
 
         if newEquipValue then
-            equipping.Equip(newEquipValue)
+            task.spawn(equipping.Equip, newEquipValue)
         end
         equippedValue = newEquipValue
 

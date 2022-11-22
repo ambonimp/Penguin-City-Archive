@@ -11,6 +11,16 @@ export type Button = typeof(Button.new(Instance.new("ImageButton")))
 
 local idCounter = 0
 
+function Button.fromImage(image: string)
+    local imageButton = Instance.new("ImageButton")
+    imageButton.Size = UDim2.fromScale(1, 1)
+    imageButton.BackgroundTransparency = 1
+    imageButton.ScaleType = Enum.ScaleType.Fit
+    imageButton.Image = image
+
+    return Button.new(imageButton)
+end
+
 function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
     local button = UIElement.new()
 

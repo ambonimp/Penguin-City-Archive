@@ -36,6 +36,8 @@ local buttons: {
 local openCallbacks: { () -> () } = {}
 local closeCallbacks: { () -> () } = {}
 
+local inventoryButton: AnimatedButton.AnimatedButton
+
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
     local houseOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
@@ -151,6 +153,7 @@ function HUDScreen.Init()
         -- Setup
         local mapButton = buttons.Left[3]
         local iglooButton = buttons.Right[1]
+        inventoryButton = buttons.Right[4]
 
         dailyRewards(buttons.Left[1])
         party(buttons.Left[2])
@@ -158,7 +161,7 @@ function HUDScreen.Init()
         igloo(iglooButton)
         stampBook(buttons.Right[2])
         clothing(buttons.Right[3])
-        inventory(buttons.Right[4])
+        inventory(inventoryButton)
 
         -- Igloo Button (toggle edit look)
         do
@@ -243,6 +246,10 @@ function HUDScreen.Init()
         uiStateMachine:RegisterGlobalCallback(readState)
         readState()
     end
+end
+
+function HUDScreen.getInventoryButton()
+    return inventoryButton
 end
 
 function HUDScreen.open()

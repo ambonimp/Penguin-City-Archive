@@ -8,7 +8,7 @@ local FADE_CLASSNAME_BY_PROPERTY = {
     BackgroundTransparency = { "GuiObject" },
     TextTransparency = { "TextLabel", "TextButton" },
     TextStrokeTransparency = { "TextLabel", "TextButton" },
-    ImageTransparency = { "ImageLabel", "ImageButton" },
+    ImageTransparency = { "ImageLabel", "ImageButton", "ViewportFrame" },
 }
 local FADE_TWEEN_INFO = TweenInfo.new(0.5)
 local ATTRIBUTE_FADE_FORMAT = "_InstanceUtilFade_%s"
@@ -168,6 +168,46 @@ function InstanceUtil.onDestroyed(instance: Instance, callback: () -> nil)
     end)
 
     return connection
+end
+
+--[[
+    More mature WaitForChild implementation
+]]
+function InstanceUtil.waitForChild(
+    instance: Instance,
+    config: {
+        ChildName: string?,
+        ChildClassName: string?,
+        Timeout: number?,
+    }
+)
+    -- ERROR: Needs name or class
+    if not (config.ChildName or config.ChildClassName) then
+        error("Supply ChildName or ChildClassName")
+    end
+
+    local stopAtTick = tick() + (config.Timeout or math.huge)
+    while tick() < stopAtTick do
+        for _, child in pairs(instance:GetChildren()) do
+            -- Both
+            if
+                config.ChildName
+                and config.ChildClassName
+                and config.ChildName == child.Name
+                and config.ChildClassName == child.ClassName
+            then
+                return child
+            end
+
+            if config.ChildName and config.ChildName == child.Name then
+                return child
+            end
+
+            if config.ChildClassName and config.ChildClassName == child.ClassName then
+                return child
+            end
+        end
+    end
 end
 
 return InstanceUtil

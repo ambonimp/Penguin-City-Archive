@@ -4,6 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local BooleanUtil = require(ReplicatedStorage.Shared.Utils.BooleanUtil)
+local DebugUtil = require(ReplicatedStorage.Shared.Utils.DebugUtil)
+
+local DO_SHOW_RAYCASTS = false
 
 local internalRaycastParams = RaycastParams.new()
 
@@ -61,7 +64,13 @@ function RaycastUtil.raycast(
         direction = direction.Unit * length
     end
 
-    return game.Workspace:Raycast(origin, direction, internalRaycastParams)
+    local raycastResult = game.Workspace:Raycast(origin, direction, internalRaycastParams)
+
+    if DO_SHOW_RAYCASTS then
+        DebugUtil.showRaycast(origin, direction, direction.Magnitude, raycastResult)
+    end
+
+    return raycastResult
 end
 
 return RaycastUtil
