@@ -214,10 +214,11 @@ function PetMover.new(model: Model)
                     movementMemory.Moving = movementMemory.Moving or {}
 
                     movementMemory.Moving.GoalPosition = getSidePosition() or movementMemory.Moving.GoalPosition
-                    if not movementMemory.Moving.GoalPosition then
-                        movementMemory.Moving = nil
-                    end
                 end
+            end
+
+            if movementMemory.Moving and not movementMemory.Moving.GoalPosition then
+                movementMemory.Moving = nil
             end
         end
 
