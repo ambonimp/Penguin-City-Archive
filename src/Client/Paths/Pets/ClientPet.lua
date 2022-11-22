@@ -20,11 +20,7 @@ local MOVER_STATE_TO_ANIMATION_NAME = {
 local petsFolder = Workspace:WaitForChild("PetModels")
 
 function ClientPet.new(petId: number, petDataIndex: string)
-    -- Circular Dependency
-    local PetController = require(Paths.Client.Pets.PetController)
-
-    local petData = PetController.getPet(petDataIndex)
-    local clientPet = Pet.new(Players.LocalPlayer, petData)
+    local clientPet = Pet.new(Players.LocalPlayer)
 
     -------------------------------------------------------------------------------
     -- Private Members
