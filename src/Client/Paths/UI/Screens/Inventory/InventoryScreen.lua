@@ -3,7 +3,6 @@ local InventoryScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local Maid = require(Paths.Packages.maid)
@@ -122,20 +121,16 @@ function InventoryScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter()
-            InventoryScreen.open()
-        end
 
-        local function exit()
-            InventoryScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.Inventory, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.Inventory, {
+        Boot = InventoryScreen.boot,
+        Shutdown = nil,
+        Maximize = InventoryScreen.maximize,
+        Minimize = InventoryScreen.minimize,
+    })
 end
 
-function InventoryScreen.open()
+function InventoryScreen.boot()
     openMaid:Cleanup()
 
     -- Custom open tab depending on state
@@ -144,13 +139,15 @@ function InventoryScreen.open()
     else
         tabbedWindow:OpenTab("Vehicles")
     end
-
-    ScreenUtil.inDown(tabbedWindow:GetContainer())
-    screenGui.Enabled = true
 end
 
-function InventoryScreen.close()
+function InventoryScreen.minimize()
     ScreenUtil.outUp(tabbedWindow:GetContainer())
+end
+
+function InventoryScreen.maximize()
+    ScreenUtil.inDown(tabbedWindow:GetContainer())
+    screenGui.Enabled = true
 end
 
 return InventoryScreen

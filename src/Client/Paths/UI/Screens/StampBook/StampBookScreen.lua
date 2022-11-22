@@ -45,7 +45,6 @@ local TABS = {
     Seal = "Seal",
     Pattern = "Pattern",
 }
-local COLOR_GREEN = Color3.fromRGB(45, 158, 0)
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container

@@ -58,27 +58,22 @@ function GenericPromptScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter(data: table)
-            GenericPromptScreen.open(data.Title, data.Description, data.MiddleMounter, data.LeftButton, data.RightButton, data.Background)
-        end
-
-        local function exit()
-            GenericPromptScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.GenericPrompt, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.GenericPrompt, {
+        Boot = GenericPromptScreen.boot,
+        Shutdown = nil,
+        Maximize = GenericPromptScreen.maximize,
+        Minimize = GenericPromptScreen.minimize,
+    })
 end
 
-function GenericPromptScreen.open(
-    title: string?,
-    description: string?,
-    middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
-    leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
-    rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
-    background: { Blur: boolean?, Image: string?, DoRotate: boolean? }?
-)
+function GenericPromptScreen.boot(data: table)
+    local title: string? = data.Title
+    local description: string? = data.Description
+    local middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)? = data.MiddleMounter
+    local leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
+    local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
+    local background: { Blur: boolean?, Image: string?, DoRotate: boolean? }? = data.Background
+
     openMaid:Cleanup()
 
     titleLabel.Text = title or "Title"
@@ -122,14 +117,15 @@ function GenericPromptScreen.open(
     else
         backgroundFrame.Visible = false
     end
+end
 
+function GenericPromptScreen.maximize()
     ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
-function GenericPromptScreen.close()
+function GenericPromptScreen.minimize()
     ScreenUtil.outUp(screenGui.Back)
-    screenGui.Enabled = false
 end
 
 return GenericPromptScreen

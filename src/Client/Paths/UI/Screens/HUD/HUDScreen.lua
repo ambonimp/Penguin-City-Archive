@@ -212,47 +212,19 @@ function HUDScreen.Init()
     end
 
     -- Register UIState
-    do
-        local isInState = true
-
-        local function enter()
-            -- RETURN: Already entered
-            if isInState then
-                return
-            end
-            isInState = true
-
-            HUDScreen.open()
-        end
-
-        local function exit()
-            -- RETURN: Not in state
-            if not isInState then
-                return
-            end
-            isInState = false
-
-            HUDScreen.close()
-        end
-
-        local function readState()
-            if UIUtil.getPseudoState(UIConstants.States.HUD) then
-                enter()
-            else
-                exit()
-            end
-        end
-
-        uiStateMachine:RegisterGlobalCallback(readState)
-        readState()
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.HUD, {
+        Boot = nil,
+        Shutdown = nil,
+        Maximize = HUDScreen.maximize,
+        Minimize = HUDScreen.minimize,
+    })
 end
 
 function HUDScreen.getInventoryButton()
     return inventoryButton
 end
 
-function HUDScreen.open()
+function HUDScreen.maximize()
     for _, callback in pairs(openCallbacks) do
         task.spawn(callback)
     end
@@ -261,7 +233,7 @@ function HUDScreen.open()
     ScreenUtil.inLeft(screenGui.Right)
 end
 
-function HUDScreen.close()
+function HUDScreen.minimize()
     for _, callback in pairs(closeCallbacks) do
         task.spawn(callback)
     end

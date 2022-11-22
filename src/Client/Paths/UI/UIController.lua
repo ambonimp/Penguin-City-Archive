@@ -18,10 +18,10 @@ local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIC
 local stateScreenData: {
     [string]: {
         Callbacks: {
-            Boot: (data: table?) -> nil,
-            Shutdown: () -> nil,
-            Maximize: () -> nil,
-            Minimize: () -> nil,
+            Boot: ((data: table?) -> nil) | nil,
+            Shutdown: (() -> nil) | nil,
+            Maximize: (() -> nil) | nil,
+            Minimize: (() -> nil) | nil,
         },
         Meta: {
             IsBooted: boolean,
@@ -89,14 +89,18 @@ do
             if not isOnTop then
                 if screenData.Meta.IsMaximized then
                     screenData.Meta.IsMaximized = false
-                    screenData.Callbacks.Minimize()
+                    if screenData.Callbacks.Minimize then
+                        screenData.Callbacks.Minimize()
+                    end
                 end
 
                 if screenData.Meta.IsBooted then
                     local isRemoved = stateMachine:HasState(someState) == false
                     if isRemoved then
                         screenData.Meta.IsBooted = false
-                        screenData.Callbacks.Shutdown()
+                        if screenData.Callbacks.Shutdown then
+                            screenData.Callbacks.Shutdown()
+                        end
                     end
                 end
             end
@@ -105,12 +109,16 @@ do
             if isOnTop then
                 if not screenData.Meta.IsBooted then
                     screenData.Meta.IsBooted = true
-                    screenData.Callbacks.Boot(data)
+                    if screenData.Callbacks.Boot then
+                        screenData.Callbacks.Boot(data)
+                    end
                 end
 
                 if not screenData.Meta.IsMaximized then
                     screenData.Meta.IsMaximized = true
-                    screenData.Callbacks.Maximize()
+                    if screenData.Callbacks.Maximize then
+                        screenData.Callbacks.Maximize()
+                    end
                 end
             end
         end
@@ -131,7 +139,7 @@ end
 
     `Boot` and `Shutdown` are for initializing a UI screen, or cleaning it up. `Maximize` and `Minimize` are for visually showing/hiding the screen
     - Example: The InventoryScreen opens up a product prompt by pushing a state to the stack. When we return to the inventory to the top, it reopens it
-    while still retaining it's current tab etc..
+    while still retaining it's current tab, as we `Minimize/Maximize`- and don't `Shutdown`
 ]]
 function UIController.registerStateScreenCallbacks(
     state: string,
