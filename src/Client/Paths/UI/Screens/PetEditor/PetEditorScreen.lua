@@ -25,7 +25,7 @@ local textBox: TextBox = middleFrame.Edit.TextBox
 
 local leftButton = KeyboardButton.new()
 local rightButton = KeyboardButton.new()
-local closeButton = ExitButton.new()
+local closeButton = ExitButton.new(UIConstants.States.PetEditor)
 
 local openMaid = Maid.new()
 

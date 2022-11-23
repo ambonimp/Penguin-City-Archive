@@ -95,6 +95,12 @@ do
     editToggleButton:Mount(editToggleContainer, true)
     ScreenUtil.outUp(editToggleContainer)
 
+    UIController.registerStateCloseCallback(UIConstants.States.HouseEditor, function()
+        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+            close()
+        end
+    end)
+
     local exitButton = ExitButton.new()
     exitButton:Mount(editFrame.ExitButton, true)
     exitButton.Pressed:Connect(close)

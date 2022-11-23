@@ -57,6 +57,9 @@ function PaycheckScreen.Init()
         cashoutButton.Pressed:Connect(closePaycheck)
     end
 
+    -- Closing
+    UIController.registerStateCloseCallback(UIConstants.States.Paycheck, closePaycheck)
+
     -- Register UIState
     UIController.registerStateScreenCallbacks(UIConstants.States.Paycheck, {
         Boot = PaycheckScreen.boot,
