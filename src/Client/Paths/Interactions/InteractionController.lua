@@ -4,17 +4,29 @@ local CollectionService = game:GetService("CollectionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Signal = require(Paths.Shared.Signal)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
+local RadialMenu = require(Paths.Client.UI.Elements.RadialMenu)
+local Button = require(Paths.Client.UI.Elements.Button)
+local InputConstants = require(Paths.Client.Input.InputConstants)
 
 local MAX_PROMPTS_VISIBLE = 5
 local GAMEPAD_KEY_CODE = Enum.KeyCode.ButtonX
 local KEYBOARD_KEY_CODE = Enum.KeyCode.E
 local MAX_ACTIVATION_DISTANCE = 20
 
+local MENU_FONT_SIZE = 35
+local MENU_FONT = Enum.Font.Highway
+
+local IS_DESKTOP = DeviceUtil.isDesktop()
+local IS_MOBILE = DeviceUtil.isMobile()
+
 type ProximityPromptDict = { [ProximityPrompt]: true? }
-type InteractionHandler = (instance: PVInstance, prompt: ProximityPrompt) -> ()
+type InteractionHandler = (instance: PVInstance, proximityPrompt: ProximityPrompt) -> ()
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
@@ -23,12 +35,17 @@ local player = Players.LocalPlayer
 local camera: Camera = Workspace.CurrentCamera
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ProximityPrompts"
+screenGui.Name = "Interactions"
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = player.PlayerGui
 
 local interactions: { [string]: { Handler: InteractionHandler, Label: string? } } = {}
 local activePrompts: { [ProximityPrompt]: BillboardGui } = {}
+
+-------------------------------------------------------------------------------
+-- PUBLIC MEMBERS
+-------------------------------------------------------------------------------
+InteractionController.InternalPromptTriggered = Signal.new()
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -58,12 +75,119 @@ local function createPrompt(instance: PVInstance)
     end
 end
 
+local function invokeHandler(interaction: string, proximityPrompt: ProximityPrompt)
+    task.spawn(interactions[interaction].Handler, proximityPrompt.Parent, proximityPrompt)
+end
+
 local function onPromptTriggered(proximityPrompt: ProximityPrompt)
+    InteractionController.InternalPromptTriggered:Fire(proximityPrompt)
+
     local instance = proximityPrompt.Parent
     local attachedInteractions = getAttachedInteractions(instance)
 
     if #attachedInteractions == 1 then
-        interactions[attachedInteractions[1]].Handler(instance, proximityPrompt)
+        invokeHandler(attachedInteractions[1], proximityPrompt)
+    else
+        local radialMenu = RadialMenu.new()
+        local maid = radialMenu:GetMaid()
+
+        local menuBillboard: BillboardGui = Instance.new("BillboardGui")
+        menuBillboard.Name = "Menu"
+        menuBillboard.Size = UDim2.fromOffset(300, 300)
+        menuBillboard.AlwaysOnTop = true
+        menuBillboard.Adornee = instance
+        menuBillboard.Active = true
+        menuBillboard.Parent = screenGui
+        menuBillboard.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+        local container: ImageButton = Instance.new("ImageButton")
+        container.AutoButtonColor = false
+        container.BackgroundTransparency = 1
+        container.Image = ""
+        container.Size = UDim2.fromScale(1, 1)
+        container.Parent = menuBillboard
+
+        local closed = false
+        local function close()
+            -- RETURN: Menu is already closed
+            if closed then
+                return
+            end
+
+            closed = true
+            proximityPrompt.Enabled = true
+
+            radialMenu:Close():await()
+            radialMenu:Destroy()
+            menuBillboard:Destroy()
+        end
+
+        local longestInteraction = ""
+        for _, interaction in pairs(attachedInteractions) do
+            if #interaction > #longestInteraction then
+                longestInteraction = interaction .. (if IS_DESKTOP then 4 else 0)
+            end
+        end
+
+        local textSize = TextService:GetTextSize(longestInteraction, MENU_FONT_SIZE, MENU_FONT, camera.ViewportSize)
+        local textDim = UDim2.fromOffset(textSize.X, textSize.Y)
+        local buttonDim = textDim + UDim2.fromOffset(50, 0)
+
+        for i, interaction in pairs(attachedInteractions) do
+            local imageButton: ImageButton = Instance.new("ImageButton")
+            imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
+            imageButton.Position = UDim2.fromScale(0.5, 0.5)
+            imageButton.BackgroundColor3 = Color3.fromRGB(98, 195, 255)
+            imageButton.BackgroundTransparency = 0.2
+            imageButton.Size = buttonDim
+
+            local stroke = Instance.new("UIStroke")
+            stroke.Color = Color3.new(1, 1, 1)
+            stroke.Thickness = 4
+            stroke.Parent = imageButton
+
+            local roundedCorners = Instance.new("UICorner")
+            roundedCorners.CornerRadius = UDim.new(0.5, 0)
+            roundedCorners.Parent = imageButton
+
+            local textLabel = Instance.new("TextLabel")
+            textLabel.BackgroundTransparency = 1
+            textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+            textLabel.Position = UDim2.fromScale(0.5, 0.5)
+            textLabel.Size = textDim
+            textLabel.Font = MENU_FONT
+            textLabel.TextSize = MENU_FONT_SIZE
+            textLabel.TextColor3 = Color3.new(1, 1, 1)
+            textLabel.Text = if IS_DESKTOP then ("%s (%d)"):format(interaction, i) else interaction
+            textLabel.TextWrapped = false
+            textLabel.TextTruncate = Enum.TextTruncate.None
+            textLabel.Parent = imageButton
+
+            radialMenu:AddButton(Button.new(imageButton)).Pressed:Connect(function()
+                close()
+                invokeHandler(interaction, proximityPrompt)
+            end)
+        end
+
+        container.MouseButton1Down:Connect(close)
+
+        maid:GiveTask(InteractionController.InternalPromptTriggered:Connect(function()
+            close()
+        end))
+
+        if DeviceUtil.isDesktop() then
+            radialMenu:GetMaid():GiveTask(UserInputService.InputBegan:Connect(function(input)
+                local index = InputConstants.KeyCodeNumbers[input.KeyCode]
+                if index then
+                    close()
+                    invokeHandler(attachedInteractions[index], proximityPrompt)
+                end
+            end))
+        end
+
+        proximityPrompt.Enabled = false
+        radialMenu:Mount(container)
+        radialMenu:Open()
     end
 end
 
@@ -130,15 +254,15 @@ ProximityPromptService.PromptShown:Connect(function(proximityPrompt)
     local instance: PVInstance = proximityPrompt.Parent
     local attachedInteractions = getAttachedInteractions(instance)
 
-    local prompt: BillboardGui = Paths.Templates.ProximityPrompt:Clone()
-    prompt.Adornee = instance
-    prompt.Parent = screenGui
-    activePrompts[proximityPrompt] = prompt
+    local promptBillboard: BillboardGui = Paths.Templates.ProximityPrompt:Clone()
+    promptBillboard.Adornee = instance
+    promptBillboard.Parent = screenGui
+    activePrompts[proximityPrompt] = promptBillboard
 
-    local promptButton: ImageButton = prompt.Button
-
+    local promptButton: ImageButton = promptBillboard.Button
     local label: TextLabel = promptButton.Label
     label.Text = (if #attachedInteractions == 1 then interactions[attachedInteractions[1]].Label else nil) or ""
+    label.Visible = false
 
     promptButton.MouseButton1Down:Connect(function()
         onPromptTriggered(proximityPrompt)
@@ -168,7 +292,7 @@ ProximityPromptService.PromptTriggered:Connect(function(proximityPrompt)
 end)
 
 -- Focus
-if not DeviceUtil.isMobile() then
+if not IS_MOBILE then
     RunService.RenderStepped:Connect(function()
         for proximityPrompt in pairs(prevShownProximityPrompt) do
             if not shownProximityPrompts[proximityPrompt] then
