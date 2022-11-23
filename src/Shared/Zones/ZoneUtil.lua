@@ -36,6 +36,10 @@ function ZoneUtil.houseInteriorZone(player: Player)
     return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
 end
 
+function ZoneUtil.defaultZone()
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+end
+
 -------------------------------------------------------------------------------
 -- Zone Querying
 -------------------------------------------------------------------------------

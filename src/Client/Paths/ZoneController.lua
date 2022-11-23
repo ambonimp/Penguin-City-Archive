@@ -24,7 +24,7 @@ local MIN_TIME_BETWEEN_SAVING = 5
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
 
 local localPlayer = Players.LocalPlayer
-local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local defaultZone = ZoneUtil.defaultZone()
 local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
