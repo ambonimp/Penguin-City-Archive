@@ -77,7 +77,7 @@ function ZoneUtil.getZoneTypeDirectory(zoneType: string)
     end
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone): Model
     return ZoneUtil.getZoneTypeDirectory(zone.ZoneType)[zone.ZoneId]
 end
 

@@ -17,9 +17,11 @@ local MinigameController: typeof(require(Paths.Client.Minigames.MinigameControll
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
-local MAX_YIELD_TIME_ZONE_LOADING = 10
-local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
+local CHECK_SOS_DISTANCE_EVERY = 1
+local SAVE_SOUL_AFTER_BEING_LOST_FOR = 1
+local MIN_TIME_BETWEEN_SAVING = 5
+local ZERO_VECTOR = Vector3.new(0, 0, 0)
 
 local localPlayer = Players.LocalPlayer
 local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
@@ -34,6 +36,44 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
+end
+
+function ZoneController.Start()
+    -- SOS if we go too far from the zone
+    task.spawn(function()
+        local beenLostSinceTick: number | nil
+        local lastSaveAtTick = 0
+        while task.wait(CHECK_SOS_DISTANCE_EVERY) do
+            -- RETURN: No character!
+            local character = localPlayer.Character
+            if not character then
+                return
+            end
+
+            -- RETURN: No zone model?
+            local zoneModel = ZoneUtil.getZoneModel(currentZone)
+            if not zoneModel then
+                return
+            end
+
+            local distance = (character:GetPivot().Position - zoneModel:GetPivot().Position).Magnitude
+            local isLost = distance > ZoneConstants.StreamingTargetRadius
+            if isLost then
+                beenLostSinceTick = beenLostSinceTick or tick()
+                local beenLostFor = tick() - beenLostSinceTick
+                local timeSinceLastSave = tick() - lastSaveAtTick
+                if beenLostFor >= SAVE_SOUL_AFTER_BEING_LOST_FOR and timeSinceLastSave >= MIN_TIME_BETWEEN_SAVING then
+                    -- Save Our Soul!
+                    lastSaveAtTick = tick()
+                    ZoneController.teleportToDefaultZone()
+                end
+            else
+                beenLostSinceTick = nil
+            end
+
+            print(distance)
+        end
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -150,6 +190,7 @@ function ZoneController.transitionToZone(
             -- Init character
             local character = localPlayer.Character
             if character then
+                character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
             end
 
