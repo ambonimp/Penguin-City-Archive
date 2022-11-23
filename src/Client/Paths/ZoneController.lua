@@ -70,8 +70,6 @@ function ZoneController.Start()
             else
                 beenLostSinceTick = nil
             end
-
-            print(distance)
         end
     end)
 end
