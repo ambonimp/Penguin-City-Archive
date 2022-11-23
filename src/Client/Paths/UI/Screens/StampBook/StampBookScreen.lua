@@ -45,7 +45,6 @@ local TABS = {
     Seal = "Seal",
     Pattern = "Pattern",
 }
-local COLOR_GREEN = Color3.fromRGB(45, 158, 0)
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container
@@ -80,6 +79,7 @@ local deselectedTabColor: Color3
 local totalStampsPerPage: number
 local chapterMaid = Maid.new()
 local isEditing = false
+local wasEditing = false -- For maximize/minimise
 local readStampDataMaid = Maid.new()
 
 -- Hoist
@@ -90,6 +90,7 @@ local function toggleEditMode(forceEnabled: boolean?)
     if forceEnabled ~= nil and forceEnabled == isEditing then
         return
     end
+    wasEditing = isEditing
     isEditing = not isEditing
 
     -- Handle active/deactive
@@ -353,15 +354,12 @@ function StampBookScreen.Init()
 
     -- Register UIState
     do
-        local function enter(data: table)
-            StampBookScreen.open(data.Player)
-        end
-
-        local function exit()
-            StampBookScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.StampBook, enter, exit)
+        UIController.registerStateScreenCallbacks(UIConstants.States.StampBook, {
+            Boot = StampBookScreen.boot,
+            Shutdown = StampBookScreen.shutdown,
+            Maximize = StampBookScreen.maximize,
+            Minimize = StampBookScreen.minimize,
+        })
     end
 end
 
@@ -546,8 +544,9 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
     end
 end
 
-function StampBookScreen.open(player: Player)
+function StampBookScreen.boot(data: table)
     -- WARN: No player?!
+    local player: Player = data.Player
     if not player then
         warn("No player?!")
         UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
@@ -589,18 +588,27 @@ function StampBookScreen.open(player: Player)
     end)
 
     toggleEditMode(false)
+end
+
+function StampBookScreen.maximize()
+    toggleEditMode(wasEditing)
     ScreenUtil.inDown(containerFrame)
     screenGui.Enabled = true
 end
 
-function StampBookScreen.close()
+function StampBookScreen.minimize()
+    toggleEditMode(false)
+    ScreenUtil.outUp(containerFrame)
+end
+
+function StampBookScreen.shutdown()
     -- Inform Server of any changes
     Remotes.fireServer("StampBookData", updatedStampBookData)
 
     -- Close Routine
     toggleEditMode(false)
-    ScreenUtil.outUp(containerFrame)
     currentChapter = nil
+    wasEditing = false
 end
 
 -- Setup UI
