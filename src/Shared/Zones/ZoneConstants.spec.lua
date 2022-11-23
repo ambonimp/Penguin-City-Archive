@@ -1,18 +1,20 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameConstants)
+local TestUtil = require(ReplicatedStorage.Shared.Utils.TestUtil)
 
 return function()
     local issues: { string } = {}
 
-    -- ZoneId should be Enum-like + non-numeric
+    -- ZoneId should be Enum-like
+    TestUtil.enum(ZoneConstants.ZoneId.Room, issues)
+    TestUtil.enum(ZoneConstants.ZoneId.Minigame, issues)
+
+    -- Must be strings
     for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
         for key, value in pairs(zoneIds) do
-            if key ~= value then
-                table.insert(issues, ("%s: %s pair inside ZoneConstants.ZoneId.%s must be equal"):format(key, value, zoneType))
-            end
-            if tonumber(value) then
-                table.insert(issues, ("%s: %s cannot be numeric!"):format(key, value, zoneType))
+            if not tostring(value) == value then
+                table.insert(issues, ("%s: %s must be a string!"):format(key, value, zoneType))
             end
         end
     end

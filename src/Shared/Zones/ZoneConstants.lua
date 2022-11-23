@@ -1,5 +1,8 @@
 local ZoneConstants = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DescendantLooper = require(ReplicatedStorage.Shared.DescendantLooper)
+
 -------------------------------------------------------------------------------
 -- Types
 -------------------------------------------------------------------------------
@@ -17,6 +20,31 @@ export type Zone = {
 }
 
 -------------------------------------------------------------------------------
+-- Internal Methods
+-------------------------------------------------------------------------------
+
+-- Gets our constants directly out of studio
+local function getRoomIds()
+    local roomIds = setmetatable({}, {
+        __index = function(_, index)
+            error(("Bad RoomId %q"):format(index))
+        end,
+    }) :: { [string]: string }
+
+    local function addRoom(roomFolder: Folder)
+        roomIds[roomFolder.Name] = roomFolder.Name
+    end
+
+    local rooms: Folder = game.Workspace.Rooms
+    for _, child in pairs(rooms:GetChildren()) do
+        addRoom(child)
+    end
+    rooms.ChildAdded:Connect(addRoom)
+
+    return roomIds
+end
+
+-------------------------------------------------------------------------------
 -- Constants
 -------------------------------------------------------------------------------
 
@@ -25,15 +53,7 @@ ZoneConstants.ZoneType = {
     Minigame = "Minigame",
 }
 ZoneConstants.ZoneId = {
-    Room = {
-        Town = "Town",
-        Neighborhood = "Neighborhood",
-        SkiHill = "SkiHill",
-        PizzaPlace = "PizzaPlace",
-        CoffeeShop = "CoffeeShop",
-        IceCreamShop = "IceCreamShop",
-        Boardwalk = "Boardwalk",
-    },
+    Room = getRoomIds(),
     Minigame = {
         Pizza = "Pizza",
     },
