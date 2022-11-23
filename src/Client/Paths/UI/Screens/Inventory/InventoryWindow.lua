@@ -296,20 +296,31 @@ function InventoryWindow.new(
         draw()
     end
 
-    function inventoryWindow:Equip(newEquipValue: any | nil)
+    --[[
+        If `isExternal=true`, this is a call informing this UI the equipped value has been changed externally (e.g., `mountHoverboard` command).
+    ]]
+    function inventoryWindow:Equip(newEquipValue: any | nil, isExternal: boolean?)
         -- WARN: No equipping!
         if not equipping then
             warn("No equipping data")
             return
         end
 
-        if equippedValue and equipping.Unequip then
-            task.spawn(equipping.Unequip, equippedValue)
+        -- RETURN: No Change
+        if equippedValue == newEquipValue then
+            return
         end
 
-        if newEquipValue then
-            task.spawn(equipping.Equip, newEquipValue)
+        if not isExternal then
+            if equippedValue ~= nil and equipping.Unequip then
+                task.spawn(equipping.Unequip, equippedValue)
+            end
+
+            if newEquipValue ~= nil then
+                task.spawn(equipping.Equip, newEquipValue)
+            end
         end
+
         equippedValue = newEquipValue
 
         draw()

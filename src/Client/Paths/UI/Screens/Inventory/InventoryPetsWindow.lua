@@ -127,6 +127,11 @@ function InventoryPetsWindow.new(
     inventoryPetsWindow:GetMaid():GiveTask(PetController.PetUpdated:Connect(populate))
     inventoryPetsWindow:GetMaid():GiveTask(PetController.PetEggUpdated:Connect(populate))
 
+    -- External Equipping
+    inventoryPetsWindow:GetMaid():GiveTask(PetController.PetCreated:Connect(function(petDataIndex: string)
+        inventoryPetsWindow:Equip(petDataIndex, true)
+    end))
+
     return inventoryPetsWindow
 end
 
