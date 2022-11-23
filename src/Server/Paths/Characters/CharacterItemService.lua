@@ -95,7 +95,8 @@ Remotes.bindFunctions({
                 local allItemsAreValid = true
                 for _, itemKey in pairs(items) do
                     local product = ProductUtil.getCharacterItemProduct(categoryName, itemKey)
-                    if not (ProductUtil.isFree(product) or ProductService.hasProduct(client, product)) then
+                    if not product or not (ProductUtil.isFree(product) or ProductService.hasProduct(client, product)) then
+                        warn(("Invalid Character Items %q"):format(itemKey), items)
                         allItemsAreValid = false
                         break
                     end
