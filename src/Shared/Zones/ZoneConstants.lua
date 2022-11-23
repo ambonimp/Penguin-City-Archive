@@ -24,12 +24,15 @@ export type Zone = {
 local function getRoomIds()
     local roomIds = setmetatable({}, {
         __index = function(_, index)
-            error(("Bad RoomId %q"):format(index))
+            warn(("Bad RoomId %q"):format(index))
         end,
     }) :: { [string]: string }
 
     local function addRoom(roomFolder: Folder)
-        roomIds[roomFolder.Name] = roomFolder.Name
+        local zoneId = roomFolder.Name
+        if not tonumber(zoneId) then -- Exclude houseInteriorZones
+            roomIds[zoneId] = zoneId
+        end
     end
 
     local rooms: Folder = game.Workspace.Rooms
@@ -37,9 +40,6 @@ local function getRoomIds()
         addRoom(child)
     end
     rooms.ChildAdded:Connect(addRoom)
-    rooms.ChildRemoved:Connect(function(oldRoom)
-        roomIds[oldRoom.Name] = nil
-    end)
 
     return roomIds
 end
