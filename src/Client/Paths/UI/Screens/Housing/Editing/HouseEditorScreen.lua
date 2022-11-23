@@ -65,29 +65,11 @@ end
 -------------------------------------------------------------------------------
 -- Register UIStates
 do
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.House, function(data)
-        if data.CanEdit then
-            editToggleContainer.Visible = true
-            interiorPlot = data.InteriorPlot or interiorPlot
-        end
-    end, function()
-        if not uiStateMachine:HasState(UIConstants.States.House) then
-            interiorPlot = nil
-        elseif uiStateMachine:GetState() ~= UIConstants.States.HouseEditor then
-            editToggleContainer.Visible = false
-        end
-    end)
-
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function()
         ScreenUtil.inDown(editToggleContainer)
-        editToggleContainer.Visible = true
 
         ScreenUtil.inUp(editFrame)
     end, function()
-        if uiStateMachine:GetState() ~= UIConstants.States.House then
-            editToggleContainer.Visible = false
-        end
-
         ScreenUtil.outDown(editFrame)
         ScreenUtil.outUp(editToggleContainer)
     end)
@@ -96,9 +78,7 @@ end
 -- Manipulate UIStates
 do
     local function close()
-        local houseOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
-        local canEdit = houseOwner and ZoneController.hasEditPerms(houseOwner)
-        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = canEdit, InteriorPlot = interiorPlot })
+        uiStateMachine:Remove(UIConstants.States.HouseEditor)
     end
 
     UIUtil.offsetGuiInset(editToggleContainer)

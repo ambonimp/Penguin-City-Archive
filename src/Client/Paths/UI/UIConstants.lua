@@ -29,7 +29,6 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
-        UIConstants.States.House,
         UIConstants.States.Paycheck,
     },
 }

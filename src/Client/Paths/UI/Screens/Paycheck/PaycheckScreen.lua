@@ -21,7 +21,7 @@ local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1, Enum.EasingStyle.Back, Enum.E
 local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
 local ENTER_ROTATE = 180
 local COIN_EFFECT_DURATION = 3
-local AUTO_CLOSE_AFTER = 3
+local AUTO_CLOSE_AFTER = 6
 
 local screenGui: ScreenGui = Ui.Paycheck
 local container: Frame = screenGui.Container
