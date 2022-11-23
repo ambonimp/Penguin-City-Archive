@@ -2,13 +2,20 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CmdrUtil = require(ReplicatedStorage.Shared.Cmdr.CmdrUtil)
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 return function(registry)
     -- We have to create a uniqe zoneId type for each zoneType
     for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
         local function stringsGetter()
-            return TableUtil.getKeys(zoneIds)
+            local cleanedZoneIds: { string } = {}
+            for _, zoneId in pairs(zoneIds) do
+                -- Don't show player igloos for this - thats a different command!
+                if not ZoneUtil.isHouseInteriorZone(ZoneUtil.zone(zoneType, zoneId)) then
+                    table.insert(cleanedZoneIds, zoneId)
+                end
+            end
+
+            return cleanedZoneIds
         end
 
         local function stringToObject(zoneId: string)

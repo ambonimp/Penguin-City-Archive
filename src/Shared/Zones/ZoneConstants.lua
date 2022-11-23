@@ -1,8 +1,5 @@
 local ZoneConstants = {}
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local DescendantLooper = require(ReplicatedStorage.Shared.DescendantLooper)
-
 -------------------------------------------------------------------------------
 -- Types
 -------------------------------------------------------------------------------
@@ -40,6 +37,9 @@ local function getRoomIds()
         addRoom(child)
     end
     rooms.ChildAdded:Connect(addRoom)
+    rooms.ChildRemoved:Connect(function(oldRoom)
+        roomIds[oldRoom.Name] = nil
+    end)
 
     return roomIds
 end
@@ -70,7 +70,7 @@ local defaultPlayerZoneState: PlayerZoneState = {
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
-ZoneConstants.StreamingTargetRadius = 2533
+ZoneConstants.StreamingTargetRadius = 3000
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
