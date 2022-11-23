@@ -20,7 +20,7 @@ for categoryName, objectConstants in pairs(HouseObjects) do
             DisplayName = StringUtil.getFriendlyString(object.Name),
             ImageId = object.Icon,
             CoinData = {
-                Cost = math.random(0, 2), --!! Temp
+                Cost = productId:len() % 2, --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,
