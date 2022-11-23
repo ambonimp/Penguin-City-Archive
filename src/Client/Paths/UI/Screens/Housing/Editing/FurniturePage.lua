@@ -61,6 +61,7 @@ local position: Vector3
 local normal: Vector3
 local rotationY: number
 local color: Color3
+local model: Model
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -137,11 +138,18 @@ end
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
+local function applyColor()
+    for _, part: BasePart in (model:GetDescendants()) do
+        if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "Color1" then
+            part.Color = color
+        end
+    end
+end
 
 -- Register UIStates
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.FurniturePlacement, function(data)
-        local model = data.Object
+        model = data.Object
         local heightOffset: Vector3 = Vector3.new(0, model:GetExtentsSize().Y / 2, 0)
 
         local isNewObject = data.IsNewObject
@@ -170,13 +178,6 @@ do
             end
         end
 
-        local function applyColor()
-            for _, part: BasePart in (model:GetDescendants()) do
-                if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "Color1" then
-                    part.Color = color
-                end
-            end
-        end
         -- Initialize info
         do
             if isNewObject then
@@ -396,6 +397,10 @@ do
                 })
             end
         end))
+
+        placementSession:GiveTask(function()
+            deselectPaintColor(color) -- Reset colors
+        end)
     end, function()
         if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
             plot = nil
@@ -406,6 +411,7 @@ do
 
     -- Color Panel Setup
     do
+        local template = templates.PaintTemplate:Clone()
         colorPanel:Mount(screenGui)
 
         colorPanel:SetAlignment("Left")
@@ -414,14 +420,15 @@ do
         colorPanel.ClosePressed:Connect(function()
             -- toggleEditMode(false)
         end)
-
+        template.Parent = colorPanel:GetContainer()
         -- Initialize colors
         for _, color in pairs(FurnitureConstants.Colors) do
             local button = templates.PaintColor:Clone()
             button.Name = tostring(color)
             button.ImageColor3 = color
-            button.Parent = colorPanel:GetContainer()
+            button.Parent = template.Colors
             button:SetAttribute("ColorValue", color)
+            button.ZIndex = 50
         end
 
         -- Color picker
@@ -430,7 +437,7 @@ do
                 if colorButton:IsA("ImageButton") then
                     local colorName = colorButton.Name
                     local colorValue = colorButton:GetAttribute("ColorValue")
-                    placementSession:GiveTask(colorButton.MouseButton1Down:Connect(function()
+                    colorButton.MouseButton1Down:Connect(function()
                         if color ~= colorName then
                             deselectPaintColor(color)
 
@@ -438,15 +445,14 @@ do
                             selectPaintColor(colorValue)
                             applyColor()
                         end
-                    end))
+                    end)
                 end
             end
 
             selectPaintColor(color) -- TODO: Scroll to this position
-            placementSession:GiveTask(function()
-                deselectPaintColor(color) -- Reset colors
-            end)
         end
+
+        ScreenUtil.outLeft(colorPanel:GetContainer())
     end
 end
 
