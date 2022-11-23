@@ -3,10 +3,7 @@ local StampInfoScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
-local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
@@ -15,6 +12,7 @@ local Stamps = require(Paths.Shared.Stamps.Stamps)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local RichTextUtil = require(Paths.Shared.Utils.RichTextUtil)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local RICH_TEXT_BRONZE = RichTextUtil.addTag(RichTextUtil.addTag("Bronze", "b"), "font", {
     RichTextUtil.getRGBTagContent(StampConstants.TierColors.Bronze),
@@ -25,6 +23,7 @@ local RICH_TEXT_SILVER = RichTextUtil.addTag(RichTextUtil.addTag("Silver", "b"),
 local RICH_TEXT_GOLD = RichTextUtil.addTag(RichTextUtil.addTag("Gold", "b"), "font", {
     RichTextUtil.getRGBTagContent(StampConstants.TierColors.Gold),
 })
+local ZINDEX_OFFSET = 100
 
 local screenGui: ScreenGui = Ui.StampInfo
 local containerFrame: Frame = screenGui.Container
@@ -107,5 +106,8 @@ end
 UIController.getStateMachine():RegisterGlobalCallback(function()
     StampInfoScreen.close()
 end)
+
+-- Move up the UI heirachy
+UIUtil.offsetZIndex(containerFrame, ZINDEX_OFFSET, true)
 
 return StampInfoScreen
