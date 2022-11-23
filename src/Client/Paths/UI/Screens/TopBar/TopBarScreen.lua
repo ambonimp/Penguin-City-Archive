@@ -22,7 +22,7 @@ function TopBarScreen.displayCoinsDiff(addCoins: number)
     -- Get UI Elements + setup initial state
     local coinsLabel: TextLabel = coinImageButton.Coins:Clone()
     coinsLabel.ZIndex = coinsLabel.ZIndex - 1
-    coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "-", StringUtil.commaValue(addCoins))
+    coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "", StringUtil.commaValue(addCoins))
     coinsLabel.Name = "CoinsDiff"
     local whiteLabel: TextLabel = coinImageButton.White:Clone()
     whiteLabel.ZIndex = whiteLabel.ZIndex - 1

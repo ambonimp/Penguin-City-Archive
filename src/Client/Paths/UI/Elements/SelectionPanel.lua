@@ -15,6 +15,8 @@ local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local Products = require(Paths.Shared.Products.Products)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local ProductController = require(Paths.Client.ProductController)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 type Tab = {
     Name: string,
@@ -441,7 +443,14 @@ function SelectionPanel.new()
         selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
             local widget = Widget.diverseWidgetFromProduct(product, state)
             widget:Mount(widgetParent)
-            widget.Pressed:Connect(callback)
+            widget.Pressed:Connect(function()
+                local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
+                local doRunCallback = not (state and state.VerifyOwnership) or isOwned
+
+                if doRunCallback then
+                    callback()
+                end
+            end)
 
             maid:GiveTask(widget)
         end)

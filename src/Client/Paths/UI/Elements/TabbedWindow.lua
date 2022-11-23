@@ -8,7 +8,6 @@ local TabbedWindow = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Maid = require(Paths.Packages.maid)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Button = require(Paths.Client.UI.Elements.Button)

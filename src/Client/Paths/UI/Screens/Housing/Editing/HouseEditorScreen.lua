@@ -12,8 +12,6 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local FurniturePage = require(Paths.Client.UI.Screens.Housing.Editing.FurniturePage)
-local ZoneController = require(Paths.Client.ZoneController)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local DEFAULT_EDIT_CATEGORY = "Furniture"
