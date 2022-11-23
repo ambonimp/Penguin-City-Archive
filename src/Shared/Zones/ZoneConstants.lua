@@ -37,6 +37,9 @@ local function getRoomIds()
         addRoom(child)
     end
     rooms.ChildAdded:Connect(addRoom)
+    rooms.ChildRemoved:Connect(function(oldRoom)
+        roomIds[oldRoom.Name] = nil
+    end)
 
     return roomIds
 end
