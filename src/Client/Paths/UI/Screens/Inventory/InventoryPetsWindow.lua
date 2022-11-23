@@ -39,81 +39,93 @@ function InventoryPetsWindow.new(
     })
 
     -------------------------------------------------------------------------------
-    -- Logic
+    -- Private Methods
     -------------------------------------------------------------------------------
 
-    -- Populate
-    local populateData: { {
-        WidgetConstructor: () -> typeof(Widget.diverseWidget()),
-        EquipValue: any | nil,
-    } } | { { _HatchTime: number? } } =
-        {}
+    local function populate()
+        -- Populate
+        local populateData: { {
+            WidgetConstructor: () -> typeof(Widget.diverseWidget()),
+            EquipValue: any | nil,
+        } } | { { _HatchTime: number? } } =
+            {}
 
-    -- Eggs
-    for petEggName, hatchTimes in pairs(PetController.getHatchTimes(true)) do
-        for petEggDataIndex, hatchTime in pairs(hatchTimes) do
+        -- Eggs
+        for petEggName, hatchTimes in pairs(PetController.getHatchTimes(true)) do
+            for petEggDataIndex, hatchTime in pairs(hatchTimes) do
+                -- Create Entry
+                local entry = {
+                    WidgetConstructor = function()
+                        local widget = Widget.diverseWidgetFromEgg(petEggName, petEggDataIndex)
+                        widget.Pressed:Connect(function()
+                            local currentHatchTime = PetController.getHatchTime(petEggName, petEggDataIndex)
+                            if currentHatchTime > 0 then
+                                PetController.hatchRequest(petEggName, petEggDataIndex, true)
+                            elseif currentHatchTime == 0 then
+                                PetController.hatchRequest(petEggName, petEggDataIndex)
+                            end
+                        end)
+
+                        return widget
+                    end,
+                    _HatchTime = hatchTime,
+                }
+
+                -- Insert shortest hatchtime at front
+                local didInsert = false
+                for index, someEntry in pairs(populateData) do
+                    if someEntry._HatchTime and hatchTime < someEntry._HatchTime then
+                        table.insert(populateData, index, entry)
+                        didInsert = true
+                        break
+                    end
+                end
+                if not didInsert then
+                    table.insert(populateData, entry)
+                end
+            end
+        end
+
+        -- Pets
+        local petDatas = PetController.getPets()
+        for petDataIndex, petData in pairs(petDatas) do
             -- Create Entry
             local entry = {
                 WidgetConstructor = function()
-                    local widget = Widget.diverseWidgetFromEgg(petEggName, petEggDataIndex)
-                    widget.Pressed:Connect(function()
-                        local currentHatchTime = PetController.getHatchTime(petEggName, petEggDataIndex)
-                        if currentHatchTime > 0 then
-                            PetController.hatchRequest(petEggName, petEggDataIndex, true)
-                        elseif currentHatchTime == 0 then
-                            PetController.hatchRequest(petEggName, petEggDataIndex)
-                        end
+                    -- Edit Button
+                    local button = AnimatedButton.fromButton(Button.fromImage(Images.ButtonIcons.Pencil))
+                    button:SetPressAnimation()
+                    button:SetHoverAnimation(AnimatedButton.Animations.Nod)
+                    button.Pressed:Connect(function()
+                        UIController.getStateMachine():Push(UIConstants.States.PetEditor, {
+                            PetData = petData,
+                            PetDataIndex = petDataIndex,
+                        })
                     end)
+
+                    -- Widget
+                    local widget = Widget.diverseWidgetFromPetData(petData)
+                    widget:SetCornerButton(button)
 
                     return widget
                 end,
-                _HatchTime = hatchTime,
+                EquipValue = petDataIndex,
             }
-
-            -- Insert shortest hatchtime at front
-            local didInsert = false
-            for index, someEntry in pairs(populateData) do
-                if someEntry._HatchTime and hatchTime < someEntry._HatchTime then
-                    table.insert(populateData, index, entry)
-                    didInsert = true
-                    break
-                end
-            end
-            if not didInsert then
-                table.insert(populateData, entry)
-            end
+            table.insert(populateData, entry)
         end
+
+        inventoryPetsWindow:Populate(populateData)
     end
 
-    -- Pets
-    local petDatas = PetController.getPets()
-    for petDataIndex, petData in pairs(petDatas) do
-        -- Create Entry
-        local entry = {
-            WidgetConstructor = function()
-                -- Edit Button
-                local button = AnimatedButton.fromButton(Button.fromImage(Images.ButtonIcons.Pencil))
-                button:SetPressAnimation()
-                button:SetHoverAnimation(AnimatedButton.Animations.Nod)
-                button.Pressed:Connect(function()
-                    UIController.getStateMachine():Push(UIConstants.States.PetEditor, {
-                        PetData = petData,
-                        PetDataIndex = petDataIndex,
-                    })
-                end)
+    -------------------------------------------------------------------------------
+    -- Logic
+    -------------------------------------------------------------------------------
 
-                -- Widget
-                local widget = Widget.diverseWidgetFromPetData(petData)
-                widget:SetCornerButton(button)
+    populate()
 
-                return widget
-            end,
-            EquipValue = petDataIndex,
-        }
-        table.insert(populateData, entry)
-    end
-
-    inventoryPetsWindow:Populate(populateData)
+    -- Repopulate/draw when we get an update
+    inventoryPetsWindow:GetMaid():GiveTask(PetController.PetUpdated:Connect(populate))
+    inventoryPetsWindow:GetMaid():GiveTask(PetController.PetEggUpdated:Connect(populate))
 
     return inventoryPetsWindow
 end
