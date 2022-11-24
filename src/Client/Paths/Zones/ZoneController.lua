@@ -16,6 +16,7 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ZoneWater = require(Paths.Client.Zones.ZoneWater)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -234,6 +235,11 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     end)
 
     setupTeleporters()
+
+    local zoneWater = ZoneWater.scanZoneModel(ZoneUtil.getZoneModel(currentZone))
+    if zoneWater then
+        zoneMaid:GiveTask(zoneWater)
+    end
 
     -- Inform Client
     ZoneController.ZoneChanged:Fire(oldZone, currentZone)

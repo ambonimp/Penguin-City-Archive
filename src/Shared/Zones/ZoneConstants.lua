@@ -64,7 +64,7 @@ ZoneConstants.ZoneInstances = {
 }
 
 local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
+    RoomId = ZoneConstants.ZoneId.Room.Boardwalk,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
@@ -78,6 +78,7 @@ ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
 
+ZoneConstants.CollectionTagZoneWater = "ZoneWater"
 ZoneConstants.DoDebug = false
 
 return ZoneConstants

@@ -9,7 +9,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local Assume = require(Paths.Shared.Assume)
 local Output = require(Paths.Shared.Output)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
