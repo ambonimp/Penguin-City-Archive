@@ -72,20 +72,18 @@ function PetEditorScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter(data: table)
-            PetEditorScreen.open(data.PetData, data.PetDataIndex)
-        end
-
-        local function exit()
-            PetEditorScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PetEditor, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.PetEditor, {
+        Boot = PetEditorScreen.boot,
+        Shutdown = PetEditorScreen.shutdown,
+        Maximize = PetEditorScreen.maximize,
+        Minimize = PetEditorScreen.minimize,
+    })
 end
 
-function PetEditorScreen.open(petData: PetConstants.PetData, petDataIndex: string)
+function PetEditorScreen.boot(data: table)
+    local petData: PetConstants.PetData = data.PetData
+    local petDataIndex: string = data.PetDataIndex
+
     currentPetDataIndex = petDataIndex
 
     openMaid:Cleanup()
@@ -127,16 +125,20 @@ function PetEditorScreen.open(petData: PetConstants.PetData, petDataIndex: strin
             textBox:ReleaseFocus()
         end
     end))
+end
 
+function PetEditorScreen.shutdown()
+    newName = nil
+    isFiltering = false
+    currentPetDataIndex = nil
+end
+
+function PetEditorScreen.maximize()
     ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
-function PetEditorScreen.close()
-    newName = nil
-    isFiltering = false
-    currentPetDataIndex = nil
-
+function PetEditorScreen.minimize()
     ScreenUtil.outUp(screenGui.Back)
 end
 

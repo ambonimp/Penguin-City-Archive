@@ -11,6 +11,7 @@ local Maid = require(Paths.Packages.maid)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
 local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local NEXT_BUTTON_TEXT = "Next"
 
@@ -82,11 +83,12 @@ function ResultsScreen.Init()
             ResultsScreen.open(logoId, values, nextCallback, stampData)
         end
 
-        local function exit()
-            ResultsScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.Results, enter, exit)
+        UIController.registerStateScreenCallbacks(UIConstants.States.Results, {
+            Boot = enter,
+            Shutdown = ResultsScreen.shutdown,
+            Maximize = ResultsScreen.maximize,
+            Minimize = ResultsScreen.minimize,
+        })
     end
 
     -- Misc
@@ -167,12 +169,15 @@ function ResultsScreen.open(
             openMaid:GiveTask(stampButton)
         end
     end
+end
 
+function ResultsScreen.maximize()
+    ScreenUtil.inUp(resultsFrame)
     screenGui.Enabled = true
 end
 
-function ResultsScreen.close()
-    screenGui.Enabled = false
+function ResultsScreen.minimize()
+    ScreenUtil.outDown(resultsFrame)
 end
 
 return ResultsScreen

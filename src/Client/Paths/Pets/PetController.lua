@@ -29,6 +29,10 @@ local petId: number | nil
 local pet: ClientPet.ClientPet | nil
 
 PetController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
+PetController.PetUpdated = Signal.new() -- Added/Removed { petDataIndex: string }
+PetController.PetEggUpdated = Signal.new() -- Added/Removed { petEggDataIndex: string, isNewEgg: boolean? }
+PetController.PetCreated = Signal.new() -- { petDataIndex: string }
+PetController.PetDestroyed = Signal.new() -- { petDataIndex: string }
 
 function PetController.Start()
     -- Routine for informing of eggs ready to hatch by notifications
@@ -104,6 +108,7 @@ function PetController.Start()
             local newPet = ClientPet.new(newPetId, petDataIndex) -- Yields while we get model
             if petId == newPetId then
                 pet = newPet
+                PetController.PetCreated:Fire(petDataIndex)
             else
                 newPet:Destroy()
             end
@@ -114,11 +119,21 @@ function PetController.Start()
                 petId = nil
 
                 if pet then
+                    PetController.PetDestroyed:Fire(pet:GetPetDataIndex())
                     pet:Destroy()
                 end
             end
         end,
     })
+
+    -- Catch Data Change Events
+    DataController.Updated:Connect(function(event: string, _newValue: any, eventMeta: table)
+        if event == "PetUpdated" then
+            PetController.PetUpdated:Fire(eventMeta.PetDataIndex)
+        elseif event == "PetEggUpdated" then
+            PetController.PetEggUpdated:Fire(eventMeta.PetEggDataIndex, eventMeta.IsNewEgg)
+        end
+    end)
 
     -- Load up PetEggDisplays
     require(Paths.Client.Pets.PetEggDisplays)

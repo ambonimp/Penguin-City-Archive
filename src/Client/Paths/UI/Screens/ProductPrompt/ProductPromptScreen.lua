@@ -63,20 +63,15 @@ function ProductPromptScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter(data: table)
-            ProductPromptScreen.open(data)
-        end
-
-        local function exit()
-            ProductPromptScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PromptProduct, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.PromptProduct, {
+        Boot = ProductPromptScreen.boot,
+        Shutdown = nil,
+        Maximize = ProductPromptScreen.maximize,
+        Minimize = ProductPromptScreen.minimize,
+    })
 end
 
-function ProductPromptScreen.open(data: table)
+function ProductPromptScreen.boot(data: table)
     -- RETURN: No product!
     local product: Products.Product = data.Product
     if not product then
@@ -113,12 +108,14 @@ function ProductPromptScreen.open(data: table)
         local canAfford = ProductController.canAffordInCoins(currentProduct)
         coinsButton:SetColor(canAfford and UIConstants.Colors.Buttons.AvailableGreen or UIConstants.Colors.Buttons.UnavailableGrey, true)
     end
-
-    screenGui.Enabled = true
-    ScreenUtil.inDown(screenGui.Back)
 end
 
-function ProductPromptScreen.close()
+function ProductPromptScreen.maximize()
+    ScreenUtil.inDown(screenGui.Back)
+    screenGui.Enabled = true
+end
+
+function ProductPromptScreen.minimize()
     ScreenUtil.outUp(screenGui.Back)
 end
 

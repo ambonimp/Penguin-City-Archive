@@ -30,20 +30,15 @@ function GiftPopupScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter(data: table)
-            GiftPopupScreen.open(data)
-        end
-
-        local function exit()
-            GiftPopupScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.GiftPopup, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.GiftPopup, {
+        Boot = GiftPopupScreen.boot,
+        Shutdown = nil,
+        Maximize = GiftPopupScreen.maximize,
+        Minimize = GiftPopupScreen.minimize,
+    })
 end
 
-function GiftPopupScreen.open(data: table)
+function GiftPopupScreen.boot(data: table)
     -- RETURN: No product or coins!
     local product: Products.Product = data.Product
     local coins: number = data.Coins
@@ -74,12 +69,14 @@ function GiftPopupScreen.open(data: table)
         icon.Image = Images.Coins.Coin
         icon.Visible = true
     end
+end
 
+function GiftPopupScreen.maximize()
     ScreenUtil.inDown(screenGui.Back)
     screenGui.Enabled = true
 end
 
-function GiftPopupScreen.close()
+function GiftPopupScreen.minimize()
     ScreenUtil.outUp(screenGui.Back)
 end
 

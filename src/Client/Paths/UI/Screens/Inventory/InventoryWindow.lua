@@ -193,10 +193,6 @@ function InventoryWindow.new(
         return math.clamp(math.ceil(#currentPopulateData / totalWidgetsPerPage), 1, math.huge)
     end
 
-    local function getWidgetFromEquipValue(equipValue: any)
-        return widgetsByEquipValue[equipValue]
-    end
-
     local function getHolderFrame(layoutOrder: number)
         local holder = Instance.new("Frame")
         holder.BackgroundTransparency = 1
@@ -253,6 +249,7 @@ function InventoryWindow.new(
             if entry.EquipValue ~= nil then
                 if entry.EquipValue == equippedValue then
                     widget:SetOutline(EQUIPPED_COLOR)
+                    holder.LayoutOrder = 0 -- Near the top
                 end
 
                 widgetsByEquipValue[entry.EquipValue] = widget
@@ -278,13 +275,25 @@ function InventoryWindow.new(
     } })
         -- Ensure unique EquipValue
         local equipValues: { [any]: true } = {}
-        for _, entry in pairs(populateData) do
+        local startEquippedIndex: number | nil
+        for i, entry in pairs(populateData) do
             if entry.EquipValue ~= nil then
                 if equipValues[entry.EquipValue] then
                     warn(("Duplicate equip value %q"):format(tostring(entry.EquipValue)))
                 end
+                if equipping and equipping.StartEquipped == entry.EquipValue then
+                    startEquippedIndex = i
+                end
+
                 equipValues[entry.EquipValue] = true
             end
+        end
+
+        -- Move equipped data to the front
+        if startEquippedIndex then
+            local equippedEntry = populateData[startEquippedIndex]
+            table.remove(populateData, startEquippedIndex)
+            table.insert(populateData, 1, equippedEntry)
         end
 
         -- Init data + page
@@ -300,20 +309,31 @@ function InventoryWindow.new(
         draw()
     end
 
-    function inventoryWindow:Equip(newEquipValue: any | nil)
+    --[[
+        If `isExternal=true`, this is a call informing this UI the equipped value has been changed externally (e.g., `mountHoverboard` command).
+    ]]
+    function inventoryWindow:Equip(newEquipValue: any | nil, isExternal: boolean?)
         -- WARN: No equipping!
         if not equipping then
             warn("No equipping data")
             return
         end
 
-        if equippedValue and equipping.Unequip then
-            task.spawn(equipping.Unequip, equippedValue)
+        -- RETURN: No Change
+        if equippedValue == newEquipValue then
+            return
         end
 
-        if newEquipValue then
-            task.spawn(equipping.Equip, newEquipValue)
+        if not isExternal then
+            if equippedValue ~= nil and equipping.Unequip then
+                task.spawn(equipping.Unequip, equippedValue)
+            end
+
+            if newEquipValue ~= nil then
+                task.spawn(equipping.Equip, newEquipValue)
+            end
         end
+
         equippedValue = newEquipValue
 
         draw()

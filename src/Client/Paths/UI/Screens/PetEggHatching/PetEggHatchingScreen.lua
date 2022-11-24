@@ -44,20 +44,17 @@ local petDataIndex: string | nil
 
 function PetEggHatchingScreen.Init()
     -- Register UIState
-    do
-        local function enter(data: table)
-            PetEggHatchingScreen.open(data.PetEggName)
-        end
-
-        local function exit()
-            PetEggHatchingScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PetEggHatching, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.PetEggHatching, {
+        Boot = PetEggHatchingScreen.boot,
+        Shutdown = PetEggHatchingScreen.shutdown,
+        Maximize = nil,
+        Minimize = nil,
+    })
 end
 
-function PetEggHatchingScreen.open(petEggName: string)
+function PetEggHatchingScreen.boot(data: table)
+    local petEggName: string = data.PetEggName
+
     openMaid:Cleanup()
 
     openScope:NewScope()
@@ -141,7 +138,7 @@ function PetEggHatchingScreen.open(petEggName: string)
     screenGui.Enabled = true
 end
 
-function PetEggHatchingScreen.close()
+function PetEggHatchingScreen.shutdown()
     petData = nil
     petDataIndex = nil
     openScope:NewScope()
