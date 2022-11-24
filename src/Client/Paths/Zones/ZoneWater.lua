@@ -69,7 +69,7 @@ local TIDE_MOVEMENT = {
 }
 
 local function createWaterPart(name: string, useMeshPart: boolean, keepSurfaceAppearance: boolean?)
-    local part: MeshPart = useMeshPart and game.ReplicatedStorage.Assets.Zones.WaterMeshPart:Clone() or Instance.new("Part") -- Cannot assign MeshId by script :'c
+    local part: MeshPart = useMeshPart and game.ReplicatedStorage.Assets.Misc.WaterMeshPart:Clone() or Instance.new("Part") -- Cannot assign MeshId by script :'c
     part.Name = name
     part.Size = Vector3.new(2048, 1, 2048)
     part.Anchored = true

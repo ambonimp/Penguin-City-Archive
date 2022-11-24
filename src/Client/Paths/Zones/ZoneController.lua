@@ -1,5 +1,6 @@
 local ZoneController = {}
 
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -17,6 +18,8 @@ local MinigameController: typeof(require(Paths.Client.Minigames.MinigameControll
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ZoneWater = require(Paths.Client.Zones.ZoneWater)
+local PropertyStack = require(Paths.Shared.PropertyStack)
+local WindController = require(Paths.Client.Wind.WindController)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -229,9 +232,9 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     end
 
     -- Zone Settings
-    ZoneUtil.applySettings(zone)
+    ZoneController.applySettings(zone)
     zoneMaid:GiveTask(function()
-        ZoneUtil.revertSettings(zone)
+        ZoneController.revertSettings(zone)
     end)
 
     setupTeleporters()
@@ -307,6 +310,44 @@ function ZoneController.teleportToRandomRoom()
     local zoneId = TableUtil.getRandom(ZoneConstants.ZoneId.Room)
     local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, zoneId)
     ZoneController.teleportToRoomRequest(roomZone)
+end
+
+-------------------------------------------------------------------------------
+-- Settings
+-------------------------------------------------------------------------------
+
+function ZoneController.applySettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.setProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.startWind()
+        end
+    end
+end
+
+function ZoneController.revertSettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.clearProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.stopWind()
+        end
+    end
 end
 
 -------------------------------------------------------------------------------

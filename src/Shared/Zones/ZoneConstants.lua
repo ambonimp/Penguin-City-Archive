@@ -64,7 +64,7 @@ ZoneConstants.ZoneInstances = {
 }
 
 local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Boardwalk,
+    RoomId = ZoneConstants.ZoneId.Room.Town,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
