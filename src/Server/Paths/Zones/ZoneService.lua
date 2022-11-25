@@ -266,4 +266,7 @@ do
     })
 end
 
+-- See Cmdr TeleportServer
+Remotes.declareEvent("CmdrRoomTeleport")
+
 return ZoneService
