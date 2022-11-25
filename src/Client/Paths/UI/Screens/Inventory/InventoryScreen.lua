@@ -3,7 +3,6 @@ local InventoryScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local Maid = require(Paths.Packages.maid)
@@ -11,10 +10,12 @@ local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
 local InventoryProductWindow = require(Paths.Client.UI.Screens.Inventory.InventoryProductWindow)
+local InventoryPetsWindow = require(Paths.Client.UI.Screens.Inventory.InventoryPetsWindow)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Products = require(Paths.Shared.Products.Products)
 local VehicleController = require(Paths.Client.VehicleController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local PetController = require(Paths.Client.Pets.PetController)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -29,7 +30,7 @@ function InventoryScreen.Init()
         screenGui.Name = "InventoryScreen"
         screenGui.Parent = Ui
 
-        tabbedWindow = TabbedWindow.new()
+        tabbedWindow = TabbedWindow.new(UIConstants.States.Inventory)
         tabbedWindow:Mount(screenGui)
 
         -- Close
@@ -100,36 +101,53 @@ function InventoryScreen.Init()
             inventoryWindow:GetWindowFrame().Parent = parent
         end)
 
+        -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
+        tabbedWindow:SetWindowConstructor("Pets", function(parent, maid)
+            local inventoryWindow = InventoryPetsWindow.new(Images.Icons.Pets, "Pets", {
+                AddCallback = function()
+                    warn("TODO Teleport to pet shop")
+                end,
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:GetWindowFrame().Parent = parent
+        end)
+
+        --TODO
         tabbedWindow:AddTab("Food", Images.Icons.Food)
         tabbedWindow:AddTab("Toys", Images.Icons.Toy)
         tabbedWindow:AddTab("Roleplay", Images.Icons.Roleplay)
     end
 
     -- Register UIState
-    do
-        local function enter()
-            InventoryScreen.open()
-        end
 
-        local function exit()
-            InventoryScreen.close()
-        end
+    UIController.registerStateScreenCallbacks(UIConstants.States.Inventory, {
+        Boot = InventoryScreen.boot,
+        Shutdown = nil,
+        Maximize = InventoryScreen.maximize,
+        Minimize = InventoryScreen.minimize,
+    })
+end
 
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.Inventory, enter, exit)
+function InventoryScreen.boot()
+    openMaid:Cleanup()
+
+    -- Custom open tab depending on state
+    if PetController.getTotalHatchableEggs() > 0 then
+        tabbedWindow:OpenTab("Pets")
+    else
+        tabbedWindow:OpenTab("Vehicles")
     end
 end
 
-function InventoryScreen.open()
-    openMaid:Cleanup()
-    tabbedWindow:OpenTab("Vehicles")
-
-    ScreenUtil.inDown(tabbedWindow:GetContainer())
-    screenGui.Enabled = true
+function InventoryScreen.minimize()
+    ScreenUtil.outUp(tabbedWindow:GetContainer())
 end
 
-function InventoryScreen.close()
-    ScreenUtil.outUp(tabbedWindow:GetContainer())
+function InventoryScreen.maximize()
+    ScreenUtil.inDown(tabbedWindow:GetContainer())
+    screenGui.Enabled = true
 end
 
 return InventoryScreen

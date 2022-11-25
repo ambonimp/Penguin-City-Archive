@@ -6,7 +6,6 @@ local Ui = Paths.UI
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -35,6 +34,8 @@ local buttons: {
     }
 local openCallbacks: { () -> () } = {}
 local closeCallbacks: { () -> () } = {}
+
+local inventoryButton: AnimatedButton.AnimatedButton
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
@@ -151,6 +152,7 @@ function HUDScreen.Init()
         -- Setup
         local mapButton = buttons.Left[3]
         local iglooButton = buttons.Right[1]
+        inventoryButton = buttons.Right[4]
 
         dailyRewards(buttons.Left[1])
         party(buttons.Left[2])
@@ -158,7 +160,7 @@ function HUDScreen.Init()
         igloo(iglooButton)
         stampBook(buttons.Right[2])
         clothing(buttons.Right[3])
-        inventory(buttons.Right[4])
+        inventory(inventoryButton)
 
         -- Igloo Button (toggle edit look)
         do
@@ -209,43 +211,19 @@ function HUDScreen.Init()
     end
 
     -- Register UIState
-    do
-        local isInState = true
-
-        local function enter()
-            -- RETURN: Already entered
-            if isInState then
-                return
-            end
-            isInState = true
-
-            HUDScreen.open()
-        end
-
-        local function exit()
-            -- RETURN: Not in state
-            if not isInState then
-                return
-            end
-            isInState = false
-
-            HUDScreen.close()
-        end
-
-        local function readState()
-            if UIUtil.getPseudoState(UIConstants.States.HUD) then
-                enter()
-            else
-                exit()
-            end
-        end
-
-        uiStateMachine:RegisterGlobalCallback(readState)
-        readState()
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.HUD, {
+        Boot = nil,
+        Shutdown = nil,
+        Maximize = HUDScreen.maximize,
+        Minimize = HUDScreen.minimize,
+    })
 end
 
-function HUDScreen.open()
+function HUDScreen.getInventoryButton()
+    return inventoryButton
+end
+
+function HUDScreen.maximize()
     for _, callback in pairs(openCallbacks) do
         task.spawn(callback)
     end
@@ -254,7 +232,7 @@ function HUDScreen.open()
     ScreenUtil.inLeft(screenGui.Right)
 end
 
-function HUDScreen.close()
+function HUDScreen.minimize()
     for _, callback in pairs(closeCallbacks) do
         task.spawn(callback)
     end

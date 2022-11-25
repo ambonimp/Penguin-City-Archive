@@ -229,6 +229,38 @@ function ProductUtil.isVehicleProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- PetEggs
+-------------------------------------------------------------------------------
+
+function ProductUtil.getPetEggProductId(petEggName: string)
+    return ("pet_egg_%s"):format(StringUtil.toCamelCase(petEggName))
+end
+
+function ProductUtil.getPetEggProduct(petEggName: string)
+    local product = Products.Products.PetEgg[ProductUtil.getPetEggProductId(petEggName)]
+    if not product then
+        error(("No PetEgg %s Product"):format(petEggName))
+    end
+
+    return product
+end
+
+function ProductUtil.getPetEggProductData(product: Products.Product)
+    -- ERROR: Not a PetEgg product
+    if not ProductUtil.isPetEggProduct(product) then
+        error("Passed a non-PetEgg product")
+    end
+
+    return {
+        PetEggName = product.Metadata.PetEggName :: string,
+    }
+end
+
+function ProductUtil.isPetEggProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.PetEgg
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 

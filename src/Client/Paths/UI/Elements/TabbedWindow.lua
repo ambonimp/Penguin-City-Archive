@@ -8,7 +8,6 @@ local TabbedWindow = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Maid = require(Paths.Packages.maid)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Button = require(Paths.Client.UI.Elements.Button)
@@ -28,7 +27,10 @@ local TABS_PER_VIEW = 5
 
 local tabbedWindowScreenGui: ScreenGui = game.StarterGui.TabbedWindow
 
-function TabbedWindow.new()
+--[[
+    - `closeCallbackState`: See `ExitButton`
+]]
+function TabbedWindow.new(closeCallbackState: string?)
     local tabbedWindow = UIElement.new()
 
     -------------------------------------------------------------------------------
@@ -37,6 +39,7 @@ function TabbedWindow.new()
 
     local tabs: { Tab } = {}
     local openTabName: string | nil
+    local openTabNameByTabIndex: { [number]: string | nil } = {} -- Memory for when we rotate between tabs
 
     local containerMaid = Maid.new()
     local drawMaid = Maid.new()
@@ -74,7 +77,14 @@ function TabbedWindow.new()
     local function updateTabIndex(increaseBy: number)
         tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
 
-        -- Select new tab + draw
+        -- Select last tab
+        local lastOpenTabName = openTabNameByTabIndex[tabsIndex]
+        if lastOpenTabName then
+            tabbedWindow:OpenTab(lastOpenTabName)
+            return
+        end
+
+        -- Select new tab
         local tabIndex = ((tabsIndex - 1) * TABS_PER_VIEW) + 1
         tabbedWindow:OpenTab(tabs[tabIndex].Name)
     end
@@ -112,7 +122,7 @@ function TabbedWindow.new()
         end
 
         -- Close
-        closeButton = ExitButton.new()
+        closeButton = ExitButton.new(closeCallbackState)
         closeButton:Mount(backgroundFrame.CloseButton, true)
         closeButton.Pressed:Connect(function()
             tabbedWindow.ClosePressed:Fire()
@@ -247,6 +257,8 @@ function TabbedWindow.new()
         end
 
         openTabName = tabName
+        openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
+
         draw()
     end
 

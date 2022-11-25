@@ -1,5 +1,8 @@
 local ZoneConstants = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameConstants)
+
 -------------------------------------------------------------------------------
 -- Types
 -------------------------------------------------------------------------------
@@ -18,6 +21,34 @@ export type PlayerZoneState = {
 }
 
 -------------------------------------------------------------------------------
+-- Internal Methods
+-------------------------------------------------------------------------------
+
+-- Gets our constants directly out of studio
+local function getRoomTypes()
+    local roomTypes = setmetatable({}, {
+        __index = function(_, index)
+            warn(("Bad RoomId %q"):format(index))
+        end,
+    }) :: { [string]: string }
+
+    local function addRoom(roomFolder: Folder)
+        local roomType = roomFolder.Name
+        if not tonumber(roomType) then -- Exclude houseInteriorZones
+            roomTypes[roomType] = roomType
+        end
+    end
+
+    local rooms: Folder = game.Workspace.Rooms
+    for _, child in pairs(rooms:GetChildren()) do
+        addRoom(child)
+    end
+    rooms.ChildAdded:Connect(addRoom)
+
+    return roomTypes
+end
+
+-------------------------------------------------------------------------------
 -- Constants
 -------------------------------------------------------------------------------
 
@@ -26,20 +57,8 @@ ZoneConstants.ZoneCategory = {
     Minigame = "Minigame",
 }
 ZoneConstants.ZoneType = {
-    Room = {
-        Town = "Town",
-        Neighborhood = "Neighborhood",
-        SkiHill = "SkiHill",
-        PizzaPlace = "PizzaPlace",
-        CoffeeShop = "CoffeeShop",
-        IceCreamShop = "IceCreamShop",
-        Boardwalk = "Boardwalk",
-    },
-    Minigame = {
-        SledRace = "SledRace",
-        IceCreamExtravaganza = "IceCreamExtravaganza",
-        PizzaFiasco = "PizzaFiasco",
-    },
+    Room = getRoomTypes(),
+    Minigame = MinigameConstants.Minigames,
 }
 
 ZoneConstants.ZoneInstances = {

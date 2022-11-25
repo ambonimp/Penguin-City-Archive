@@ -218,9 +218,9 @@ end
 
 -- Manipulate UIState
 do
-    local exitButton = ExitButton.new()
+    local exitButton = ExitButton.new(UIConstants.States.CharacterEditor)
     exitButton:Mount(tabs.Exit, true)
-    exitButton.InternalPress:Connect(function()
+    exitButton.Pressed:Connect(function()
         uiStateMachine:Pop()
     end)
 end

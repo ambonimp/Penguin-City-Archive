@@ -4,7 +4,7 @@ UIConstants.States = {
     Loading = "Loading",
     CharacterEditor = "CharacterEditor",
     Minigame = "Minigame",
-    House = "House",
+    PizzaMinigame = "PizzaMinigame",
     HouseEditor = "HouseEditor",
     FurniturePlacement = "FurniturePlacement",
     PlotSettings = "PlotSettings",
@@ -18,6 +18,9 @@ UIConstants.States = {
     GiftPopup = "GiftPopup",
     Paycheck = "Paycheck",
     Inventory = "Inventory",
+    GenericPrompt = "GenericPrompt",
+    PetEditor = "PetEditor",
+    PetEggHatching = "PetEggHatching",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -26,25 +29,21 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
-        UIConstants.States.House,
         UIConstants.States.Paycheck,
     },
 }
 
+-- If any states in here are on the top of the stack, the state below will *also* be treated as being on top of the stack
+UIConstants.InvisibleStates = {}
+
 UIConstants.Keybinds = {
-    PopStateMachine = {
+    StateCloseCallback = {
         Enum.KeyCode.ButtonB,
         Enum.KeyCode.B,
     },
 }
 
-UIConstants.DontPopStatesFromKeybind = {
-    UIConstants.States.Nothing,
-    UIConstants.States.Loading,
-}
-
 UIConstants.EnableCoreGuiInStates = {
-    UIConstants.States.Nothing,
     UIConstants.States.Loading,
     UIConstants.States.HUD,
 }

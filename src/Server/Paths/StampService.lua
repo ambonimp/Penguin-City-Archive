@@ -7,6 +7,8 @@ local Stamps = require(Paths.Shared.Stamps.Stamps)
 local DataService = require(Paths.Server.Data.DataService)
 local Remotes = require(Paths.Shared.Remotes)
 local StampConstants = require(Paths.Shared.Stamps.StampConstants)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local ProductService = require(Paths.Server.Products.ProductService)
 
 local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
@@ -106,28 +108,20 @@ do
                 return
             end
 
-            -- CoverColor
-            local coverColor = tostring(dirtyStampBookData.CoverColor)
-            if coverColor and StampConstants.StampBook.CoverColor[coverColor] then
-                DataService.set(player, "Stamps.StampBook.CoverColor", coverColor)
-            end
-
-            -- TextColor
-            local textColor = tostring(dirtyStampBookData.TextColor)
-            if textColor and StampConstants.StampBook.TextColor[textColor] then
-                DataService.set(player, "Stamps.StampBook.TextColor", textColor)
-            end
-
-            -- Seal
-            local seal = tostring(dirtyStampBookData.Seal)
-            if seal and StampConstants.StampBook.Seal[seal] then
-                DataService.set(player, "Stamps.StampBook.Seal", seal)
-            end
-
-            -- CoverPattern
-            local coverPattern = tostring(dirtyStampBookData.CoverPattern)
-            if coverPattern and StampConstants.StampBook.CoverPattern[coverPattern] then
-                DataService.set(player, "Stamps.StampBook.CoverPattern", coverPattern)
+            -- Apply StampBook changes (CoverColor/CoverPattern/TextColor/Seal)
+            for categoryName, properties in pairs(StampConstants.StampBook) do
+                local propertyName = dirtyStampBookData[categoryName]
+                if propertyName and properties[propertyName] then
+                    local product = ProductUtil.getStampBookProduct(categoryName, propertyName)
+                    if product and (ProductService.hasProduct(player, product) or ProductUtil.isFree(product)) then
+                        local address = ("Stamps.StampBook.%s"):format(categoryName)
+                        DataService.set(player, address, propertyName)
+                    else
+                        warn(("Player %s does not own product %q"):format(player.Name, tostring(product and product.Id)))
+                    end
+                elseif propertyName then
+                    warn(("%s Bad StampBookData %s %s"):format(player.Name, categoryName, propertyName))
+                end
             end
 
             -- StampIds
@@ -136,7 +130,8 @@ do
             if typeof(dirtyCoverStampIds) == "table" then
                 for i, entry in ipairs(dirtyCoverStampIds) do
                     local stampId = tostring(entry)
-                    if StampUtil.getStampFromId(stampId) then
+                    local stamp = StampUtil.getStampFromId(stampId)
+                    if stamp and StampService.hasStamp(player, stampId) then
                         coverStampIds[tostring(i)] = stampId
                     end
                 end

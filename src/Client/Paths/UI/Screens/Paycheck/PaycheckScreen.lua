@@ -21,7 +21,7 @@ local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1, Enum.EasingStyle.Back, Enum.E
 local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
 local ENTER_ROTATE = 180
 local COIN_EFFECT_DURATION = 3
-local AUTO_CLOSE_AFTER = 3
+local AUTO_CLOSE_AFTER = 6
 
 local screenGui: ScreenGui = Ui.Paycheck
 local container: Frame = screenGui.Container
@@ -57,21 +57,19 @@ function PaycheckScreen.Init()
         cashoutButton.Pressed:Connect(closePaycheck)
     end
 
+    -- Closing
+    UIController.registerStateCloseCallback(UIConstants.States.Paycheck, closePaycheck)
+
     -- Register UIState
-    do
-        local function enter(data: table)
-            PaycheckScreen.open(data)
-        end
-
-        local function exit()
-            PaycheckScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.Paycheck, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.Paycheck, {
+        Boot = PaycheckScreen.boot,
+        Shutdown = PaycheckScreen.shutdown,
+        Maximize = PaycheckScreen.maximize,
+        Minimize = PaycheckScreen.minimize,
+    })
 end
 
-function PaycheckScreen.open(data: table)
+function PaycheckScreen.boot(data: table)
     -- Read Data
     local amount: number = data.Amount
     local totalPaychecks: number = data.TotalPaychecks
@@ -94,10 +92,8 @@ function PaycheckScreen.open(data: table)
     end
 
     -- Grow + Spin in
-    ScreenUtil.inDown(container)
     UIScaleController.updateUIScale(uiScale, 0)
     container.Rotation = ENTER_ROTATE
-    screenGui.Enabled = true
 
     openMaid:GiveTask(TweenUtil.run(function(alpha)
         UIScaleController.updateUIScale(uiScale, UIScaleController.getScale() * alpha)
@@ -117,10 +113,18 @@ function PaycheckScreen.open(data: table)
     end)
 end
 
-function PaycheckScreen.close()
+function PaycheckScreen.shutdown()
     openMaid:Cleanup()
-    ScreenUtil.outUp(container)
     Sound.play("CashRegister")
+end
+
+function PaycheckScreen.maximize()
+    ScreenUtil.inDown(container)
+    screenGui.Enabled = true
+end
+
+function PaycheckScreen.minimize()
+    ScreenUtil.outUp(container)
 end
 
 return PaycheckScreen

@@ -18,6 +18,7 @@ local OPERATION_POP_TO: Operation = "PopTo"
 local OPERATION_POP_TO_AND_PUSH: Operation = "PopToAndPush"
 local OPERATION_CLEAR_AND_PUSH: Operation = "ClearAndPush"
 local OPERATION_REMOVE: Operation = "Remove"
+
 local SHOW_TRACEBACK_IN_DEBUG = false
 local SHOW_DEBUG = false
 
@@ -222,13 +223,9 @@ function StateMachine:_RunOperation(operation, state, data)
         local hasStateChanged = oldState ~= currentState
         local _isOldStateDiscarded = hasStateChanged and oldStackSize >= currentStackSize
 
-        -- Reset total state time
-        if hasStateChanged then
-            self.stateTotalTime = 0
-        end
-
         -- Fire global callback
         if self.eventGlobal then
+            prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
             self.eventGlobal:Fire(oldState, currentState, data)
         end
     end)
@@ -350,6 +347,29 @@ function StateMachine:GetStateCount(): number
 end
 
 --[[
+    Returns an array of states above this state in the stack.
+
+    Returns false if state not in stack, or on top
+]]
+function StateMachine:GetStatesAbove(state: string)
+    if self:HasState(state) == false or self:GetState() == state then
+        return false
+    end
+
+    local index = table.find(self.stateStack, state)
+    if not index then
+        error("wat")
+    end
+
+    local above: { string } = {}
+    for i = index + 1, self:GetStateCount() do
+        table.insert(above, self.stateStack[i])
+    end
+
+    return above
+end
+
+--[[
     Enables/Disables the debug printing mode where state changes are printed to the output view.
 ]]
 function StateMachine:SetDebugPrintingEnabled(isEnabled: boolean)
@@ -365,7 +385,9 @@ end
 --[[
     Adds a callback function that's called every time this machine changes its state.
 ]]
-function StateMachine:RegisterGlobalCallback(callback: (fromState: string, toState: string, data: table?) -> ()): RBXScriptConnection
+function StateMachine:RegisterGlobalCallback(
+    callback: (fromState: string, toState: string, data: table?, oldStack: { string }) -> ()
+): Signal.Connection
     return self.eventGlobal:Connect(callback)
 end
 
@@ -379,7 +401,7 @@ function StateMachine:RegisterStateCallbacks(
     exitCallback: ((data: table?) -> ())?,
     callNow: boolean | nil,
     callNowData: table | nil
-): RBXScriptConnection
+): Signal.Connection
     if callNow and self:GetState() == state then
         enterCallback(callNowData)
     end
@@ -401,7 +423,7 @@ function StateMachine:InvokeInState(callback: () -> nil, state: string)
         return
     end
 
-    local connection: RBXScriptConnection
+    local connection: Signal.Connection
     connection = self:RegisterGlobalCallback(function(_fromState, toState, _data)
         if toState == state then
             connection:Disconnect()

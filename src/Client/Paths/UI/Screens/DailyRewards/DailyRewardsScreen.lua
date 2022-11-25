@@ -30,17 +30,12 @@ function DailyRewardsScreen.Init()
     RewardsController = require(Paths.Client.Rewards.RewardsController)
 
     -- Register UIState
-    do
-        local function enter()
-            DailyRewardsScreen.open()
-        end
-
-        local function exit()
-            DailyRewardsScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.DailyRewards, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.DailyRewards, {
+        Boot = nil,
+        Shutdown = nil,
+        Maximize = DailyRewardsScreen.boot,
+        Minimize = DailyRewardsScreen.shutdown,
+    })
 
     -- Setup Background
     local background: ImageLabel = container.Background
@@ -63,6 +58,10 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
 
     local currentDisplayingDay = 1
     local isAttemptingClaim = false
+
+    local function close()
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+    end
 
     -- Button
     local canClaim = true
@@ -89,9 +88,12 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             end
             claimAssume:Then(afterClaim):Else(afterClaim)
         elseif isUi then
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+            close()
         end
     end)
+
+    -- Closing
+    UIController.registerStateCloseCallback(UIConstants.States.DailyRewards, close)
 
     -- Text Labels
     local streak: TextLabel = background.Streak
@@ -234,7 +236,7 @@ function DailyRewardsScreen.attachToPart(part: BasePart, face: Enum.NormalId)
     DailyRewardsScreen.setup(background, maid, false)
 end
 
-function DailyRewardsScreen.open()
+function DailyRewardsScreen.boot()
     isOpen = true
     ScreenUtil.inDown(container)
 
@@ -243,7 +245,7 @@ function DailyRewardsScreen.open()
     end
 end
 
-function DailyRewardsScreen.close()
+function DailyRewardsScreen.shutdown()
     isOpen = false
     ScreenUtil.outUp(container)
 end

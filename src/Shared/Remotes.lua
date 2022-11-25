@@ -19,12 +19,29 @@ type EventHandler = {
     registerCallback: (callback: EventCallback, dontCascade: boolean?) -> (() -> nil),
 }
 
-local IS_STUDIO = RunService:IsStudio()
-local IS_SERVER = RunService:IsServer()
+local RATE_LIMITS_PER_SECOND = 20
 
 local eventHandlers: { [string]: EventHandler } = {}
 local functionHandlers: { [string]: FunctionHandler } = {}
+local rateLimitsByPlayer: { [Player]: number } = {}
 local communicationFolder: Folder, functionFolder: Folder, eventFolder: Folder
+
+local function addRateLimit(player: Player)
+    rateLimitsByPlayer[player] = rateLimitsByPlayer[player] + 1
+    task.delay(1, function()
+        if rateLimitsByPlayer[player] then
+            rateLimitsByPlayer[player] = rateLimitsByPlayer[player] - 1
+        end
+    end)
+end
+
+local function getRateLimit(player: Player)
+    return rateLimitsByPlayer[player]
+end
+
+local function isRateLimited(player: Player)
+    return rateLimitsByPlayer[player] > RATE_LIMITS_PER_SECOND
+end
 
 local function getFunctionHandler(name: string): FunctionHandler
     assert(typeof(name) == "string", "Remote name is not a string -> " .. name)
@@ -35,9 +52,10 @@ local function getFunctionHandler(name: string): FunctionHandler
     end
 
     handler = {}
-    handler.Remote = IS_SERVER and InstanceUtil.new("RemoteFunction", tostring(name), functionFolder) or functionFolder:WaitForChild(name)
-    if not IS_STUDIO and not IS_SERVER then -- anti hack
-        handler.Remote.Name = "NO WAY JOSE"
+    handler.Remote = RunService:IsServer() and InstanceUtil.new("RemoteFunction", tostring(name), functionFolder)
+        or functionFolder:WaitForChild(name)
+    if not RunService:IsStudio() and not RunService:IsServer() then -- anti hack
+        handler.Remote.Name = "RemoteFunction"
     end
 
     local callbackIsSet = false
@@ -47,7 +65,22 @@ local function getFunctionHandler(name: string): FunctionHandler
         end
 
         callbackIsSet = true
-        handler.Remote[IS_SERVER and "OnServerInvoke" or "OnClientInvoke"] = callback
+
+        if RunService:IsServer() then
+            handler.Remote.OnServerInvoke = function(player: Player, ...)
+                addRateLimit(player)
+
+                if not isRateLimited(player) then
+                    return callback(player, ...)
+                elseif getRateLimit(player) == RATE_LIMITS_PER_SECOND + 1 then
+                    warn("Starting to rate limit", player)
+                end
+            end
+        elseif RunService:IsClient() then
+            handler.Remote.OnClientInvoke = function(...)
+                callback(...)
+            end
+        end
     end
 
     functionHandlers[name] = handler
@@ -63,9 +96,9 @@ local function getEventHandler(name: string): EventHandler
     end
 
     handler = {}
-    handler.Remote = IS_SERVER and InstanceUtil.new("RemoteEvent", name, eventFolder) or eventFolder:WaitForChild(name)
-    if not IS_STUDIO and not IS_SERVER then -- anti hack
-        handler.Remote.Name = "YOUR MOM"
+    handler.Remote = RunService:IsServer() and InstanceUtil.new("RemoteEvent", name, eventFolder) or eventFolder:WaitForChild(name)
+    if not RunService:IsStudio() and not RunService:IsServer() then -- anti hack
+        handler.Remote.Name = "RemoteEvent"
     end
 
     local callbacks: { EventCallback } = {}
@@ -95,11 +128,31 @@ local function getEventHandler(name: string): EventHandler
         end
     end
 
-    handler.Remote[IS_SERVER and "OnServerEvent" or "OnClientEvent"]:Connect(function(...)
-        table.insert(history, table.pack(...))
-        for _, callback in ipairs(callbacks) do
-            task.spawn(callback, ...)
-        end
+    if RunService:IsServer() then
+        handler.Remote.OnServerEvent:Connect(function(player: Player, ...)
+            addRateLimit(player)
+
+            if not isRateLimited(player) then
+                table.insert(history, table.pack(player, ...))
+                for _, callback in ipairs(callbacks) do
+                    task.spawn(callback, player, ...)
+                end
+            elseif getRateLimit(player) == RATE_LIMITS_PER_SECOND + 1 then
+                warn("Starting to rate limit", player)
+            end
+        end)
+    elseif RunService:IsClient() then
+        handler.Remote.OnClientEvent:Connect(function(...)
+            table.insert(history, table.pack(...))
+            for _, callback in ipairs(callbacks) do
+                task.spawn(callback, ...)
+            end
+        end)
+    end
+
+    --!! Temp
+    handler.registerCallback(function()
+        print(name)
     end)
 
     eventHandlers[name] = handler
@@ -137,7 +190,8 @@ function Remotes.bindEventTemp(name: string, callback: EventCallback)
     return handler.registerCallback(callback, true)
 end
 
-if IS_SERVER then
+-- Setup
+if RunService:IsServer() then
     communicationFolder = InstanceUtil.new("Folder", "Communication", ReplicatedStorage)
     functionFolder = InstanceUtil.new("Folder", "Functions", communicationFolder)
     eventFolder = InstanceUtil.new("Folder", "Events", communicationFolder)
@@ -174,6 +228,14 @@ if IS_SERVER then
     function Remotes.declareEvent(eventName: string)
         getEventHandler(eventName)
     end
+
+    -- Rate Limit Init/ Cleanup
+    Players.PlayerAdded:Connect(function(player)
+        rateLimitsByPlayer[player] = 0
+    end)
+    Players.PlayerRemoving:Connect(function(player)
+        rateLimitsByPlayer[player] = nil
+    end)
 else
     communicationFolder = ReplicatedStorage:WaitForChild("Communication")
     functionFolder = communicationFolder:WaitForChild("Functions")

@@ -15,6 +15,8 @@ local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local Products = require(Paths.Shared.Products.Products)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local ProductController = require(Paths.Client.ProductController)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 type Tab = {
     Name: string,
@@ -49,6 +51,7 @@ function SelectionPanel.new()
 
     local tabs: { Tab } = {}
     local openTabName: string | nil
+    local openTabNameByTabIndex: { [number]: string | nil } = {} -- Memory for when we rotate between tabs
     local sections: { Frame } = {}
 
     local containerMaid = Maid.new()
@@ -95,7 +98,14 @@ function SelectionPanel.new()
     local function updateTabIndex(increaseBy: number)
         tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
 
-        -- Select new tab + draw
+        -- Select last tab
+        local lastOpenTabName = openTabNameByTabIndex[tabsIndex]
+        if lastOpenTabName then
+            selectionPanel:OpenTab(lastOpenTabName)
+            return
+        end
+
+        -- Select new tab
         local tabIndex = ((tabsIndex - 1) * getTabsPerView()) + 1
         selectionPanel:OpenTab(tabs[tabIndex].Name)
     end
@@ -316,6 +326,8 @@ function SelectionPanel.new()
         end
 
         openTabName = tabName
+        openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
+
         draw()
     end
 
@@ -431,7 +443,14 @@ function SelectionPanel.new()
         selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
             local widget = Widget.diverseWidgetFromProduct(product, state)
             widget:Mount(widgetParent)
-            widget.Pressed:Connect(callback)
+            widget.Pressed:Connect(function()
+                local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
+                local doRunCallback = not (state and state.VerifyOwnership) or isOwned
+
+                if doRunCallback then
+                    callback()
+                end
+            end)
 
             maid:GiveTask(widget)
         end)

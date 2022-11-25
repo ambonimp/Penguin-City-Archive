@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Signal = require(Paths.Shared.Signal)
 local PlayerService = require(Paths.Server.PlayerService)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -23,11 +22,11 @@ local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
 
-local DEFAULT_ZONE = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneRoomState)
-
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
+local defaultZone = ZoneUtil.defaultZone()
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+ZoneService.PlayerTeleported = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
@@ -55,7 +54,7 @@ function ZoneService.getPlayerRoom(player: Player)
         end
     end
 
-    return DEFAULT_ZONE
+    return defaultZone
 end
 
 -- Returns Zone
@@ -124,7 +123,7 @@ function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { I
                 if zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
                     ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
                 else
-                    ZoneService.teleportPlayerToZone(player, DEFAULT_ZONE)
+                    ZoneService.teleportPlayerToZone(player, defaultZone)
                 end
             end
         end
@@ -193,6 +192,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
 
             -- Teleport
             CharacterService.standOn(player.Character, spawnpoint, true)
+            ZoneService.PlayerTeleported:Fire(player, oldZone, zone)
 
             -- Wait to re-enable collisions (while we're still on the same request!)
             local zoneSettings = ZoneUtil.getSettings(zone)
@@ -221,7 +221,7 @@ function ZoneService.loadPlayer(player: Player)
 
     -- Setup Zone
     playerZoneStatesByPlayer[player] = {
-        RoomZone = DEFAULT_ZONE,
+        RoomZone = defaultZone,
         TotalTeleports = 0,
     }
 
@@ -267,5 +267,8 @@ do
         end,
     })
 end
+
+-- See Cmdr TeleportServer
+Remotes.declareEvent("CmdrRoomTeleport")
 
 return ZoneService

@@ -1,14 +1,17 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local ZoneService = require(Paths.Server.Zones.ZoneService)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Remotes = require(Paths.Shared.Remotes)
 
 return function(_context, players: { Player }, zoneCategory: string, zoneType: string)
-    local zone = ZoneUtil.zone(zoneCategory, zoneType)
+    -- RETURN: Room Only
+    if zoneType ~= ZoneConstants.ZoneType.Room then
+        return ("Cannot teleport to zonetype %q; %q only!"):format(zoneType, ZoneConstants.ZoneType.Room)
+    end
 
     local output = ""
     for _, player in pairs(players) do
-        task.spawn(ZoneService.teleportPlayerToZone, player, zone)
+        Remotes.fireClient(player, "CmdrRoomTeleport", zoneType)
 
         output ..= (" > %s is off to the %s.%s Zone!\n"):format(player.Name, zoneCategory, zoneType)
     end

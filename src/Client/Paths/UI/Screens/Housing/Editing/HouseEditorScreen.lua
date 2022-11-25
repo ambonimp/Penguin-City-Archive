@@ -12,8 +12,6 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local FurniturePage = require(Paths.Client.UI.Screens.Housing.Editing.FurniturePage)
-local ZoneController = require(Paths.Client.ZoneController)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local DEFAULT_EDIT_CATEGORY = "Furniture"
@@ -65,29 +63,11 @@ end
 -------------------------------------------------------------------------------
 -- Register UIStates
 do
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.House, function(data)
-        if data.CanEdit then
-            editToggleContainer.Visible = true
-            interiorPlot = data.InteriorPlot or interiorPlot
-        end
-    end, function()
-        if not uiStateMachine:HasState(UIConstants.States.House) then
-            interiorPlot = nil
-        elseif uiStateMachine:GetState() ~= UIConstants.States.HouseEditor then
-            editToggleContainer.Visible = false
-        end
-    end)
-
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function()
         ScreenUtil.inDown(editToggleContainer)
-        editToggleContainer.Visible = true
 
         ScreenUtil.inUp(editFrame)
     end, function()
-        if uiStateMachine:GetState() ~= UIConstants.States.House then
-            editToggleContainer.Visible = false
-        end
-
         ScreenUtil.outDown(editFrame)
         ScreenUtil.outUp(editToggleContainer)
     end)
@@ -96,9 +76,7 @@ end
 -- Manipulate UIStates
 do
     local function close()
-        local houseOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
-        local canEdit = houseOwner and ZoneController.hasEditPerms(houseOwner)
-        uiStateMachine:PopTo(UIConstants.States.House, { CanEdit = canEdit, InteriorPlot = interiorPlot })
+        uiStateMachine:Remove(UIConstants.States.HouseEditor)
     end
 
     UIUtil.offsetGuiInset(editToggleContainer)
@@ -114,6 +92,12 @@ do
     end)
     editToggleButton:Mount(editToggleContainer, true)
     ScreenUtil.outUp(editToggleContainer)
+
+    UIController.registerStateCloseCallback(UIConstants.States.HouseEditor, function()
+        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+            close()
+        end
+    end)
 
     local exitButton = ExitButton.new()
     exitButton:Mount(editFrame.ExitButton, true)

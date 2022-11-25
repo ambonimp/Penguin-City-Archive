@@ -60,4 +60,8 @@ setGroupCollideableWhitelist(groups.EtherealCharacters, { groups.Default })
 -- Sled race
 setGroupCollideableWhitelist(groups.SledRaceCollectables, { groups.Default })
 
+-- Pet
+createGroup(groupNames.Pet)
+setGroupCollideableWhitelist(groupNames.Pet, { groupNames.Default })
+
 return CollisionsService

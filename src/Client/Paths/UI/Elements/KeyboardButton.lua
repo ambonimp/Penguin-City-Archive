@@ -263,7 +263,7 @@ function KeyboardButton.new()
 
     -- Makes the button corners as curved as possible. Will make square buttons circular.
     function keyboardButton:RoundOff()
-        self:SetCornerRadius(UDim.new(0.5, 0))
+        self:SetCornerRadius(UDim.new(10, 0))
 
         return self
     end

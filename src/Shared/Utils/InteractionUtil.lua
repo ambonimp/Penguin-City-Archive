@@ -8,7 +8,7 @@ local arePromptsHidden = Toggle.new(false, function(value)
     ProximityPromptService.Enabled = not value
 end)
 
-function InteractionUtil.createInteraction(interactable, props)
+function InteractionUtil.createInteraction(interactable: Instance, props: { [string]: any }?)
     local proximityPrompt = Instance.new("ProximityPrompt")
     proximityPrompt.HoldDuration = 0
     proximityPrompt.MaxActivationDistance = 10
