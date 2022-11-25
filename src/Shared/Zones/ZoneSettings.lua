@@ -29,6 +29,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         CoffeeShop = {
             Music = "CoffeeShop",
         },
+        Town = {},
     },
 
     -- Minigames
