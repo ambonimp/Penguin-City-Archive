@@ -99,6 +99,10 @@ end
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
+Remotes.bindFunctions({
+    MinigamePlayRequested = MinigameService.requestToPlay,
+})
+
 for minigame in pairs(MinigameConstants.Minigames) do
     activeSessions[minigame] = {}
     sessionClasses[minigame] = require(Paths.Server.Minigames[minigame][minigame .. "Session"])

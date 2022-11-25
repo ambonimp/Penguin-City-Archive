@@ -370,8 +370,6 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.AwardShow, function()
-            playerSpawnRandomizer = random:NextInteger(0, #playerSpawns - 1)
-
             for _, participant in pairs(participants) do
                 if not scores[participant] then
                     scores[participant] = defaultScore
@@ -390,6 +388,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             scores = nil
 
             if isMultiplayer and config.Loop then
+                playerSpawnRandomizer = random:NextInteger(0, #playerSpawns - 1)
+
                 minigameSession:CountdownSync(config.AwardShowLength)
                 minigameSession:ChangeState(STATES.Intermission)
             end

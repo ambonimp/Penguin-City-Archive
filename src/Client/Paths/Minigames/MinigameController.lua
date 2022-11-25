@@ -205,13 +205,12 @@ Remotes.bindEvents({
     end,
 
     MinigameExited = function()
-        janitor:Cleanup()
-
         -- Revert
         if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
 
+        janitor:Cleanup()
         uiStateMachine:Pop()
 
         task.defer(function()

@@ -5,8 +5,8 @@ local Remotes = require(Paths.Shared.Remotes)
 
 return function(_context, players: { Player }, zoneCategory: string, zoneType: string)
     -- RETURN: Room Only
-    if zoneType ~= ZoneConstants.ZoneType.Room then
-        return ("Cannot teleport to zonetype %q; %q only!"):format(zoneType, ZoneConstants.ZoneType.Room)
+    if zoneCategory ~= ZoneConstants.ZoneCategory.Room then
+        return ("Cannot teleport to category %q; %q only!"):format(zoneCategory, ZoneConstants.ZoneCategory.Room)
     end
 
     local output = ""

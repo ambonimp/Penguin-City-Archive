@@ -49,7 +49,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
     local coreJanitor = Janitor.new()
-    minigameSession:GetJanitor():AddTask(coreJanitor)
+    minigameSession:GetJanitor():Add(coreJanitor)
 
     local participantData: {
         RecipeTypeOrder: { string },
@@ -96,7 +96,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
         -- Inform client of their recipe order
         minigameSession:RelayToParticipants("PizzaFiascoRecipeTypeOrder", participantData.RecipeTypeOrder)
 
-        coreJanitor:AddTask(
+        coreJanitor:Add(
             Remotes.bindEventTemp("PizzaFiascoPizzaCompleted", function(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
                 -- RETURN: Wrong session
                 if not minigameSession:IsPlayerParticipant(player) then
@@ -120,7 +120,7 @@ function PizzaFiascoSession.new(id: string, participants: { Player }, isMultipla
             end)
         )
 
-        coreJanitor:AddTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
+        coreJanitor:Add(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
             -- RETURN: Wrong session
             if not minigameSession:IsPlayerParticipant(player) then
                 return

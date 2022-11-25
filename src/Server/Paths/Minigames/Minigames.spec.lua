@@ -20,6 +20,10 @@ return function()
                 )
             )
         end
+
+        if minigamePrompt:GetAttribute("Multiplayer") == nil then
+            table.insert(issues, ("%s doesn't have a multiplayer attribute"):format(minigamePrompt:GetFullName()))
+        end
     end
 
     return issues

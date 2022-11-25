@@ -14,8 +14,6 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
-local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
-local ProductController = require(Paths.Client.ProductController)
 
 local WIDGET_RESOLUTION = UDim2.fromOffset(123, 123)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
