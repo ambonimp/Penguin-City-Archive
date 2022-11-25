@@ -15,7 +15,6 @@ local PropertyStack = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
-local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
 type KeyValuePair = { Key: string, Value: any }
 type PropertyState = { DefaultValue: any, KeyData: { [number]: { KeyValuePair } } } -- Keys in KeyData are keyPriority
@@ -96,6 +95,9 @@ local function updateInstance(instance: Instance, propertyName: string?)
 end
 
 local function setupMemory(instance: Instance)
+    -- Circular Dependency
+    local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
+
     local instanceMemory: InstanceMemory = {
         DestroyingConnection = InstanceUtil.onDestroyed(instance, function()
             memory[instance] = nil
@@ -231,6 +233,27 @@ function PropertyStack.clearProperties(instance: Instance, propertyTable: { [str
     for propertyName, _propertyValue in pairs(propertyTable) do
         PropertyStack.clearProperty(instance, propertyName, key)
     end
+end
+
+--[[
+    Returns the original value of `instance[propertyName]` before it was passed over to PropertyStack.
+
+    If it has not been passed over to PropertyStack, will return its current value!
+]]
+function PropertyStack.getDefaultValue(instance: Instance, propertyName: string)
+    -- Get InstanceMemory
+    local instanceMemory = memory[instance]
+    if not instanceMemory then
+        return instance[propertyName]
+    end
+
+    -- Get PropertyState
+    local propertyState = instanceMemory.PropertyStates[propertyName]
+    if not propertyState then
+        return instance[propertyName]
+    end
+
+    return propertyState.DefaultValue
 end
 
 return PropertyStack

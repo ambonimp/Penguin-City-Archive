@@ -139,30 +139,6 @@ function ZoneUtil.getSettings(zone: ZoneConstants.Zone)
     return ZoneSettings[zone.ZoneType][zone.ZoneId] or nil
 end
 
-function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
-    local settings = ZoneUtil.getSettings(zone)
-    if settings then
-        local key = zone.ZoneType .. zone.ZoneId
-
-        -- Lighting
-        if settings.Lighting then
-            PropertyStack.setProperties(Lighting, settings.Lighting, key)
-        end
-    end
-end
-
-function ZoneUtil.revertSettings(zone: ZoneConstants.Zone)
-    local settings = ZoneUtil.getSettings(zone)
-    if settings then
-        local key = zone.ZoneType .. zone.ZoneId
-
-        -- Lighting
-        if settings.Lighting then
-            PropertyStack.clearProperties(Lighting, settings.Lighting, key)
-        end
-    end
-end
-
 -------------------------------------------------------------------------------
 -- Streaming
 -------------------------------------------------------------------------------

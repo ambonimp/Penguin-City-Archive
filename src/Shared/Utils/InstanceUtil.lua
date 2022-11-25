@@ -2,9 +2,11 @@ local InstanceUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 
 local FADE_CLASSNAME_BY_PROPERTY = {
-    Transparency = { "BasePart", "UIStroke", "Decal" },
+    Transparency = { "BasePart", "UIStroke", "Decal", "Texture" },
     BackgroundTransparency = { "GuiObject" },
     TextTransparency = { "TextLabel", "TextButton" },
     TextStrokeTransparency = { "TextLabel", "TextButton" },
@@ -152,6 +154,50 @@ function InstanceUtil.fadeOut(instanceOrInstances: Instance | { Instance }, twee
     end
 
     return tweens
+end
+
+function InstanceUtil.hide(instance: Instance, tweenInfo: TweenInfo?)
+    for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
+        for _, classname in pairs(classNames) do
+            if instance:IsA(classname) then
+                if tweenInfo then
+                    local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
+                    TweenUtil.run(function(alpha)
+                        local alphaValue = MathUtil.lerp(defaultValue, 1, alpha)
+                        PropertyStack.setProperty(instance, fadeProperty, alphaValue, "InstanceUtilHide")
+                    end, tweenInfo)
+                else
+                    PropertyStack.setProperty(instance, fadeProperty, 1, "InstanceUtilHide")
+                end
+
+                break
+            end
+        end
+    end
+end
+
+function InstanceUtil.show(instance: Instance, tweenInfo: TweenInfo?)
+    for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
+        for _, classname in pairs(classNames) do
+            if instance:IsA(classname) then
+                if tweenInfo then
+                    local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
+                    TweenUtil.run(function(alpha)
+                        local alphaValue = MathUtil.lerp(1, defaultValue, alpha)
+                        if alphaValue < 1 then
+                            PropertyStack.setProperty(instance, fadeProperty, alphaValue, "InstanceUtilHide")
+                        else
+                            PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
+                        end
+                    end, tweenInfo)
+                else
+                    PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
+                end
+
+                break
+            end
+        end
+    end
 end
 
 --[[

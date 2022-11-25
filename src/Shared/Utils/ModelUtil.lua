@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
-local ATTRIBUTE_CACHED_TRANSPARENCY = "_ModelUtilCachedTransparency"
 local SCALE_MODEL_RELATIVE_CLASSNAMES = { "Attachment", "Bone" }
 local SCALE_MODEL_WORLD_CLASSNAMES = { "BasePart" }
 
@@ -39,38 +38,14 @@ function ModelUtil.anchor(model: Model)
 end
 
 function ModelUtil.hide(model: Model, tweenInfo: TweenInfo?)
-    for _, descendant: BasePart in pairs(model:GetDescendants()) do
-        if descendant:IsA("BasePart") then
-            local cacheTransparency = descendant.Transparency
-
-            if tweenInfo then
-                TweenUtil.tween(descendant, tweenInfo, { Transparency = 1 })
-            else
-                descendant.Transparency = 1
-            end
-
-            -- Cache transparency (being careful not to overwrite)
-            if not descendant:GetAttribute(ATTRIBUTE_CACHED_TRANSPARENCY) then
-                descendant:SetAttribute(ATTRIBUTE_CACHED_TRANSPARENCY, cacheTransparency)
-            end
-        end
+    for _, descendant in pairs(model:GetDescendants()) do
+        InstanceUtil.hide(descendant, tweenInfo)
     end
 end
 
 function ModelUtil.show(model: Model, tweenInfo: TweenInfo?)
-    for _, descendant: BasePart in pairs(model:GetDescendants()) do
-        if descendant:IsA("BasePart") then
-            local cachedTransparency = descendant:GetAttribute(ATTRIBUTE_CACHED_TRANSPARENCY)
-            if cachedTransparency then
-                if tweenInfo then
-                    TweenUtil.tween(descendant, tweenInfo, { Transparency = cachedTransparency })
-                else
-                    descendant.Transparency = cachedTransparency
-                end
-
-                descendant:SetAttribute(ATTRIBUTE_CACHED_TRANSPARENCY, nil)
-            end
-        end
+    for _, descendant in pairs(model:GetDescendants()) do
+        InstanceUtil.show(descendant, tweenInfo)
     end
 end
 

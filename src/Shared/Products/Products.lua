@@ -79,6 +79,9 @@ local products: { [string]: { [string]: Product } } = {
                 Cost = 99,
                 DeveloperProductId = 1335900877,
             },
+            CoinData = {
+                Cost = 5,
+            },
             Metadata = {
                 PetEggName = "Common",
                 Model = assets.Pets.Eggs.Blue,

@@ -5,7 +5,7 @@ local MusicController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Sound = require(Paths.Shared.Sound)

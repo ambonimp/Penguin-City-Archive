@@ -45,7 +45,7 @@ task.delay(0, function()
         require(client.Minigames.MinigameController),
         require(client.UI.CoreGui),
         require(client.CurrencyController),
-        require(client.ZoneController),
+        require(client.Zones.ZoneController),
         require(client.MusicController),
         require(client.PlayerMenuController),
         require(client.Rewards.RewardsController),
