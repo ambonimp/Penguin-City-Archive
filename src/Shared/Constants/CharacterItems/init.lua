@@ -17,7 +17,8 @@ type Item = {
     Icon: string,
     Color: Color3?, -- FurColor
     LayoutOrder: number?, -- BodyType
-    Height: number?, -- BodyType
+    Height: Vector3?, -- BodyType
+    Items: table?, -- Outfits
 }
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

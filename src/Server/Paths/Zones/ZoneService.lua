@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Signal = require(Paths.Shared.Signal)
 local PlayerService = require(Paths.Server.PlayerService)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -49,7 +48,7 @@ end
 function ZoneService.getPlayerRoom(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if playerZoneState then
-        local zone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, playerZoneState.RoomId)
+        local zone = playerZoneState.RoomZone
         if ZoneUtil.doesZoneExist(zone) then
             return zone
         end
@@ -61,8 +60,8 @@ end
 -- Returns Zone
 function ZoneService.getPlayerMinigame(player: Player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    if playerZoneState and playerZoneState.MinigameId then
-        local zone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, playerZoneState.MinigameId)
+    if playerZoneState then
+        local zone = playerZoneState.MinigameZone
         if ZoneUtil.doesZoneExist(zone) then
             return zone
         end
@@ -72,21 +71,21 @@ function ZoneService.getPlayerMinigame(player: Player)
 end
 
 -- Returns a function to remove this zone cleanly. Returns the zoneModel as a second parameter
-function ZoneService.createZone(zoneType: string, zoneId: string, zoneModelChildren: { Instance }, spawnpoint: BasePart)
-    -- ERROR: Zone already exists
-    local zoneTypeDirectory = ZoneUtil.getZoneTypeDirectory(zoneType)
-    local existingZoneModel = ZoneUtil.getZoneTypeDirectory(zoneType):FindFirstChild(zoneId)
-    if existingZoneModel then
-        error(("Zone %q %s already exists!"):format(zoneType, zoneId))
-    end
+function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { Instance }, spawnpoint: BasePart)
+    local zoneCategory = zone.ZoneCategory
+    local zoneType = zone.ZoneType
 
-    -- Create
-    local zone = ZoneUtil.zone(zoneType, zoneId)
+    -- ERROR: Zone already exists
+    local zoneCategoryDirectory = ZoneUtil.getZoneCategoryDirectory(zoneCategory)
+    local existingZoneModel = ZoneUtil.getZoneCategoryDirectory(zoneCategory):FindFirstChild(zoneType)
+    if existingZoneModel then
+        error(("Zone %q %s already exists!"):format(zoneCategory, zoneType))
+    end
 
     -- Model
     local zoneModel = Instance.new("Model")
-    zoneModel.Name = zoneId
-    zoneModel.Parent = zoneTypeDirectory
+    zoneModel.Name = ZoneUtil.getZoneName(zone)
+    zoneModel.Parent = zoneCategoryDirectory
 
     for _, child in pairs(zoneModelChildren) do
         child.Parent = zoneModel
@@ -121,7 +120,7 @@ function ZoneService.createZone(zoneType: string, zoneId: string, zoneModelChild
             local playerZone = ZoneService.getPlayerZone(player)
             if ZoneUtil.zonesMatch(zone, playerZone) then
                 -- Lets get 'em outta here!
-                if zone.ZoneType == ZoneConstants.ZoneType.Minigame then
+                if zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
                     ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
                 else
                     ZoneService.teleportPlayerToZone(player, defaultZone)
@@ -142,7 +141,7 @@ end
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneType, zone.ZoneId, teleportData)
+    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
 
     teleportData = teleportData or {}
     local invokedServerTime = teleportData.InvokedServerTime or game.Workspace:GetServerTimeNow()
@@ -156,21 +155,21 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- WARN: No zone model!
     local zoneModel = ZoneUtil.getZoneModel(zone)
     if not zoneModel then
-        warn(("No zone model for %s.%s"):format(zone.ZoneType, zone.ZoneId))
+        warn(("No zone model for %s.%s"):format(zone.ZoneCategory, zone.ZoneType))
         return nil
     end
 
     -- Update State
     local oldZone = ZoneService.getPlayerZone(player)
     local playerZoneState = ZoneService.getPlayerZoneState(player)
-    if zone.ZoneType == ZoneConstants.ZoneType.Room then
-        playerZoneState.RoomId = zone.ZoneId
-        playerZoneState.MinigameId = nil
-    elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-        -- Keep existing RoomId
-        playerZoneState.MinigameId = zone.ZoneId
+    if zone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
+        playerZoneState.RoomZone = zone
+        playerZoneState.MinigameZone = nil
+    elseif zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
+        -- Keep existing RoomType
+        playerZoneState.MinigameZone = zone
     else
-        warn(("Unknown zonetype %s"):format(zone.ZoneType))
+        warn(("Unknown zonetype %s"):format(zone.ZoneCategory))
         return nil
     end
     playerZoneState.TotalTeleports += 1
@@ -211,7 +210,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     end)
 
     -- Inform Client
-    Remotes.fireClient(player, "ZoneTeleport", zone.ZoneType, zone.ZoneId, teleportBuffer)
+    Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId, teleportBuffer)
 
     return teleportBuffer
 end
@@ -221,7 +220,10 @@ function ZoneService.loadPlayer(player: Player)
     Output.doDebug(ZoneConstants.DoDebug, "loadPlayer", player)
 
     -- Setup Zone
-    playerZoneStatesByPlayer[player] = TableUtil.deepClone(ZoneConstants.DefaultPlayerZoneState) :: ZoneConstants.PlayerZoneState
+    playerZoneStatesByPlayer[player] = {
+        RoomZone = defaultZone,
+        TotalTeleports = 0,
+    }
 
     -- Send to zone
     ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
@@ -237,19 +239,19 @@ end
 -- Communcation
 do
     Remotes.bindFunctions({
-        RoomZoneTeleportRequest = function(player: Player, dirtyZoneType: any, dirtyZoneId: any, dirtyInvokedServerTime: any)
+        RoomZoneTeleportRequest = function(player: Player, dirtyZoneCategory: any, dirtyZoneType: any, dirtyInvokedServerTime: any)
             -- Clean data
+            local zoneCategory = TypeUtil.toString(dirtyZoneCategory)
             local zoneType = TypeUtil.toString(dirtyZoneType)
-            local zoneId = TypeUtil.toString(dirtyZoneId)
             local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
 
             -- RETURN: Bad data
-            if not (zoneType and zoneId and invokedServerTime) then
+            if not (zoneCategory and zoneType and invokedServerTime) then
                 return
             end
 
             -- RETURN: Bad Zone
-            local zone = ZoneUtil.zone(zoneType, zoneId)
+            local zone = ZoneUtil.zone(zoneCategory, zoneType)
             if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end

@@ -5,17 +5,17 @@ local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 return function(registry)
-    -- We have to create a uniqe zoneId type for each zoneType
-    for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
+    -- We have to create a uniqe zoneType type for each zoneCategory
+    for zoneCategory, zoneTypes in pairs(ZoneConstants.ZoneType) do
         local function stringsGetter()
-            return TableUtil.getKeys(zoneIds)
+            return TableUtil.getKeys(zoneTypes)
         end
 
-        local function stringToObject(zoneId: string)
-            return zoneId
+        local function stringToObject(zoneType: string)
+            return zoneType
         end
 
-        local typeName = ZoneUtil.getZoneIdCmdrTypeName(zoneType)
+        local typeName = ZoneUtil.getZoneTypeCmdrTypeName(zoneCategory)
         registry:RegisterType(typeName, CmdrUtil.createTypeDefinition(typeName, stringsGetter, stringToObject))
     end
 end

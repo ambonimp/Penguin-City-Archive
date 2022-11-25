@@ -2,7 +2,6 @@ local CharacterEditorScreen = {}
 
 -- Dependecies
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
@@ -179,7 +178,7 @@ do
         else
             --Were changes were made to the character's appearance?
             local appearanceChanges = {}
-            local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
+            local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance") :: CharacterItems.Appearance
             for categoryName, category in pairs(categories) do
                 local equipped = category:GetEquipped()
                 if not TableUtil.shallowEquals(currentApperance[categoryName] :: table, equipped) then

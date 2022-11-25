@@ -7,6 +7,7 @@ export type Item = {
     Height: Vector3,
     Price: number,
     Icon: string,
+    Height: Vector3,
     LayoutOrder: number,
 }
 

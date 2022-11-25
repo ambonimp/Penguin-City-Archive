@@ -10,11 +10,11 @@ local blur: BlurEffect = Lighting.Blur
 local tweenableBlur = TweenableValue.new("NumberValue", blur.Size, BLUR_TWEEN_INFO):BindToProperty(blur, "Size")
 
 function LightingUtil.setBlur(size: number, duration: number?)
-    tweenableBlur:Set(size, duration or BLUR_TWEEN_INFO.Time)
+    tweenableBlur:Haste(size, duration or BLUR_TWEEN_INFO.Time)
 end
 
 function LightingUtil.resetBlur(duration: number?)
-    tweenableBlur:Reset(duration or BLUR_TWEEN_INFO.Time)
+    tweenableBlur:HasteReset(duration or BLUR_TWEEN_INFO.Time)
 end
 
 return LightingUtil

@@ -6,7 +6,7 @@ local PantsConstants = require(CharacterItems.PantsConstants)
 
 local OutfitConstants = {}
 
-type contents = {
+export type OutfitConstants = {
     Shirt: { string }?,
     Hat: { string }?,
     Pants: { string }?,
@@ -16,7 +16,7 @@ export type Item = {
     Price: number,
     Icon: string,
     Name: string,
-    Items: contents,
+    Items: OutfitConstants,
 }
 
 local items: { [string]: Item } = {}

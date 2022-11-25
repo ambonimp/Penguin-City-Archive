@@ -17,9 +17,14 @@ return function(target)
         button:SetText(tostring(count))
         button.Pressed:Connect(addButton)
     end
+
+    addButton()
+    addButton()
     addButton()
 
     radialMenu:Mount(frame)
+    radialMenu:Open()
+
     return function()
         frame:Destroy()
         radialMenu:Destroy()
