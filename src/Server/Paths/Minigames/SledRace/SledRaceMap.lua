@@ -50,8 +50,8 @@ function SledRaceMap.loadCollectables(map: Model)
         table.remove(unusedSpawnPoints, spawnIndex)
 
         local template = templates[random:NextInteger(1, #templates)]
-        local deph: number = template:GetExtentsSize().Z
-        local maxZOffset: number = (rowPadding - deph) * (3 / 4)
+        local depth: number = template:GetExtentsSize().Z
+        local maxZOffset: number = (rowPadding - depth) * (3 / 4)
 
         local base: CFrame = ModelUtil.getWorldPivotToCenter(template, mapOrigin:ToWorldSpace(spawnPoint), Vector3.new(0, 0.5, 0))
         if SledRaceUtil.collectableIsA(template, "Coin") then
@@ -64,7 +64,7 @@ function SledRaceMap.loadCollectables(map: Model)
             end
         else
             local collectable = template:Clone()
-            collectable:PivotTo(base * CFrame.new(Vector3.new(0, 0, -(deph / 2) - ((maxZOffset / 6) * random:NextInteger(0, 3)))))
+            collectable:PivotTo(base * CFrame.new(Vector3.new(0, 0, -(depth / 2) - ((maxZOffset / 6) * random:NextInteger(0, 3)))))
             collectable.Parent = collectables
         end
     end

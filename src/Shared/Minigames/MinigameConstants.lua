@@ -29,7 +29,7 @@ export type SessionConfig = {
     Reward: (placement: number, score: number) -> (number)?,
 }
 
-MinigameConstants.MaximumSufficientlyFilledQueueLength = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 1 else 15
+MinigameConstants.MaximumSufficientlyFilledQueueLength = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 5 else 15
 
 MinigameConstants.Minigames = {
     PizzaFiasco = "PizzaFiasco",

@@ -73,8 +73,8 @@ function Confetti.play(count: number?, lengthRange: Range?, layers: number?, col
         end
     end
 
-    local deph: number = CameraUtil.getFitDephX(container.AbsoluteSize, fov, Vector3.new(maxWidth * count, 0, 0))
-    local height: number = deph * math.tan(math.rad(fov / 2))
+    local depth: number = CameraUtil.getFitDepthX(container.AbsoluteSize, fov, Vector3.new(maxWidth * count, 0, 0))
+    local height: number = depth * math.tan(math.rad(fov / 2))
 
     for j = 1, layers do
         for i = 1, count do
@@ -83,7 +83,7 @@ function Confetti.play(count: number?, lengthRange: Range?, layers: number?, col
             local yOffset: number = size.Y
             local displacement: number = height + yOffset
 
-            local start = origin * CFrame.new(-(size.X / 2) + (i - (count / 2)) * size.X + xOffset, displacement, -deph)
+            local start = origin * CFrame.new(-(size.X / 2) + (i - (count / 2)) * size.X + xOffset, displacement, -depth)
             local goalPosition = start * CFrame.new(0, -2 * displacement, 0).Position
             local goalOrientationAddend = Vector3.new(1, 0, 1) * (random:NextInteger(0, 1) == 0 and 1 or -1) * 360
 

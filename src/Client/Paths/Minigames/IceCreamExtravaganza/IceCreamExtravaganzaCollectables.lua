@@ -18,7 +18,7 @@ local CameraController = require(Paths.Client.Minigames.IceCreamExtravaganza.Ice
 local Sound = require(Paths.Shared.Sound)
 
 local SHADOW_TRANSPARENCY = 0.5
-local SHADOW_DEPH = Vector3.new(0, 0.1, 0)
+local SHADOW_DEPTH = Vector3.new(0, 0.1, 0)
 
 local player = Players.LocalPlayer
 local assets: BasePart = Paths.Assets.Minigames.IceCreamExtravaganza
@@ -119,11 +119,11 @@ function IceCreamExtravaganzaCollectables.setup()
 
             -- Shadow
             local shadowTweenInfo = TweenInfo.new(dropLength, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-            local goalShadowSize: Vector3 = Vector3.new(1, 0, 1) * math.max(modelSize.X, modelSize.Z) + SHADOW_DEPH
+            local goalShadowSize: Vector3 = Vector3.new(1, 0, 1) * math.max(modelSize.X, modelSize.Z) + SHADOW_DEPTH
 
             local shadowPart: BasePart = assets.CollectableShadow:Clone()
-            shadowPart.Size = (goalShadowSize - SHADOW_DEPH) * Vector3.new(percentageOfDropUsed, 0, percentageOfDropUsed)
-            shadowPart.Position = dropOriginXZ + Vector3.new(0, (floorHeight - SHADOW_DEPH.Y / 2) + 0.1, 0)
+            shadowPart.Size = (goalShadowSize - SHADOW_DEPTH) * Vector3.new(percentageOfDropUsed, 0, percentageOfDropUsed)
+            shadowPart.Position = dropOriginXZ + Vector3.new(0, (floorHeight - SHADOW_DEPTH.Y / 2) + 0.1, 0)
             shadowPart.Parent = Workspace
 
             local shadowDecal: Decal = shadowPart.Decal

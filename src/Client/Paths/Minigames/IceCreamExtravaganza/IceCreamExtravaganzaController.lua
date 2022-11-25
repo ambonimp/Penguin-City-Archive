@@ -58,6 +58,14 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameJanitor:Add(UserInputService.JumpRequest:Connect(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
+
+    minigameJanitor:Add(function()
+        unanchorCharacter()
+
+        if music then
+            music:Destroy()
+        end
+    end)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.WaitingForPlayers, function()
@@ -102,7 +110,9 @@ end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
     Confetti.play()
+
     Sound.fadeOut(music)
+    music = nil
 
     task.wait(AWARD_SEQUENCE_DELAY)
 
