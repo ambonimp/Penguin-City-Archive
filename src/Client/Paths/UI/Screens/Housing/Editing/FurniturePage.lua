@@ -19,6 +19,10 @@ local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.Furniture
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
+local HousingController = require(Paths.Client.HousingController)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneController = require(Paths.Client.ZoneController)
 
 local ATT_MODEL_INITALIZED = "Initialized"
 
@@ -364,9 +368,15 @@ do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function(data)
         character = player.Character
 
+        -- See if we can get plot
+        local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
+        local thisPlot = HousingController.getPlotFromOwner(zoneOwner, HousingConstants.InteriorType)
+
         -- RETURN: There is nothing to edit off of
-        plot = data.InteriorPlot or plot
+        plot = thisPlot
         if not plot then
+            warn("Had issue with getting plot")
+            UIController.getStateMachine():Remove(UIConstants.States.HouseEditor)
             return
         end
         plotCFrame = CFrame.new(plot:WaitForChild("Origin").Position)

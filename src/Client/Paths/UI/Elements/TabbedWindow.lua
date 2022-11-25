@@ -8,7 +8,6 @@ local TabbedWindow = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Maid = require(Paths.Packages.maid)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Button = require(Paths.Client.UI.Elements.Button)
@@ -28,7 +27,10 @@ local TABS_PER_VIEW = 5
 
 local tabbedWindowScreenGui: ScreenGui = game.StarterGui.TabbedWindow
 
-function TabbedWindow.new()
+--[[
+    - `closeCallbackState`: See `ExitButton`
+]]
+function TabbedWindow.new(closeCallbackState: string?)
     local tabbedWindow = UIElement.new()
 
     -------------------------------------------------------------------------------
@@ -120,7 +122,7 @@ function TabbedWindow.new()
         end
 
         -- Close
-        closeButton = ExitButton.new()
+        closeButton = ExitButton.new(closeCallbackState)
         closeButton:Mount(backgroundFrame.CloseButton, true)
         closeButton.Pressed:Connect(function()
             tabbedWindow.ClosePressed:Fire()

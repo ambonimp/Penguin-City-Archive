@@ -27,6 +27,15 @@ local cachedNextCallback: (() -> nil) | nil
 local openMaid = Maid.new()
 
 function ResultsScreen.Init()
+    local function close()
+        UIController.getStateMachine():Remove(UIConstants.States.Results)
+
+        if cachedNextCallback then
+            cachedNextCallback()
+        end
+        cachedNextCallback = nil
+    end
+
     -- Setup Buttons
     do
         nextButton:SetColor(UIConstants.Colors.Buttons.NextGreen, true)
@@ -34,15 +43,11 @@ function ResultsScreen.Init()
         nextButton:Mount(resultsFrame.NextButton, true)
         nextButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
 
-        nextButton.Pressed:Connect(function()
-            UIController.getStateMachine():Remove(UIConstants.States.Results)
-
-            if cachedNextCallback then
-                cachedNextCallback()
-            end
-            cachedNextCallback = nil
-        end)
+        nextButton.Pressed:Connect(close)
     end
+
+    -- Closing
+    UIController.registerStateCloseCallback(UIConstants.States.Results, close)
 
     -- Register UIState
     do

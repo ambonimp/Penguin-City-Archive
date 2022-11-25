@@ -19,15 +19,20 @@ local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
 
 function GiftPopupScreen.Init()
+    local function close()
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
+    end
+
     -- Buttons
     do
         claimButton:Mount(contents.Buttons.Claim, true)
         claimButton:SetText("Claim Gift")
         claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
-        claimButton.Pressed:Connect(function()
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
-        end)
+        claimButton.Pressed:Connect(close)
     end
+
+    -- Close
+    UIController.registerStateCloseCallback(UIConstants.States.GiftPopup, close)
 
     -- Register UIState
     UIController.registerStateScreenCallbacks(UIConstants.States.GiftPopup, {

@@ -56,5 +56,6 @@ end)
 ZoneController.ZoneChanging:Connect(function(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
     onZoneUpdate(fromZone, toZone, false)
 end)
+onZoneUpdate(ZoneUtil.defaultZone(), ZoneUtil.defaultZone(), true)
 
 return MusicController

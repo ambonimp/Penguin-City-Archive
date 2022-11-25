@@ -8,7 +8,6 @@ local TweenUtil = require(Shared.Utils.TweenUtil)
 local Elements = script.Parent
 local Binder = require(Shared.Binder)
 local Button = require(Elements.Button)
-local UIUtil = require(script.Parent.Parent.Utils.UIUtil)
 
 type ButtonObject = ImageButton | TextButton
 type ButtonAnimation = {

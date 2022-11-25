@@ -30,7 +30,7 @@ function InventoryScreen.Init()
         screenGui.Name = "InventoryScreen"
         screenGui.Parent = Ui
 
-        tabbedWindow = TabbedWindow.new()
+        tabbedWindow = TabbedWindow.new(UIConstants.States.Inventory)
         tabbedWindow:Mount(screenGui)
 
         -- Close

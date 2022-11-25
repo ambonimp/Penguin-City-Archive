@@ -66,7 +66,7 @@ end
     - Will automatically disconnect when the tween is completed
     - You can disconnect at any time yourself!
 ]]
-function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
+function TweenUtil.run(callback: (alpha: number, dt: number, prevAlpha: number?) -> nil, tweenInfo: TweenInfo)
     local startTick = tick() + tweenInfo.DelayTime
     local repeatsLeft = tweenInfo.RepeatCount
 
@@ -75,8 +75,10 @@ function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
         error("Not implemented yet.. sorry developer :c")
     end
 
+    local prevAlpha: number?
+
     local connection: RBXScriptConnection
-    connection = RunService.RenderStepped:Connect(function()
+    connection = RunService.RenderStepped:Connect(function(dt)
         -- RETURN: Delay time stops us from starting yet
         local thisTick = tick()
         if thisTick < startTick then
@@ -98,13 +100,15 @@ function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
                 connection:Disconnect()
             end
 
-            callback(1)
+            callback(1, dt, prevAlpha)
             return
         end
 
         -- Tween
         local tweenAlpha = TweenService:GetValue(timeAlpha, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
-        callback(tweenAlpha)
+        callback(tweenAlpha, dt, prevAlpha)
+
+        prevAlpha = tweenAlpha
     end)
 
     return connection

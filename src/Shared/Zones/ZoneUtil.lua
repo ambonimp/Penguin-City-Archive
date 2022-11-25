@@ -36,6 +36,10 @@ function ZoneUtil.houseInteriorZone(player: Player)
     return ZoneUtil.zone(ZoneConstants.ZoneType.Room, tostring(player.UserId))
 end
 
+function ZoneUtil.defaultZone()
+    return ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+end
+
 -------------------------------------------------------------------------------
 -- Zone Querying
 -------------------------------------------------------------------------------
@@ -77,7 +81,7 @@ function ZoneUtil.getZoneTypeDirectory(zoneType: string)
     end
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone): Model
     return ZoneUtil.getZoneTypeDirectory(zone.ZoneType)[zone.ZoneId]
 end
 

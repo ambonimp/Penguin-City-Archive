@@ -4,7 +4,6 @@ UIConstants.States = {
     Loading = "Loading",
     CharacterEditor = "CharacterEditor",
     PizzaMinigame = "PizzaMinigame",
-    House = "House",
     HouseEditor = "HouseEditor",
     FurniturePlacement = "FurniturePlacement",
     PlotSettings = "PlotSettings",
@@ -29,7 +28,6 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
-        UIConstants.States.House,
         UIConstants.States.Paycheck,
     },
 }
@@ -38,19 +36,13 @@ UIConstants.PseudoStates = {
 UIConstants.InvisibleStates = {}
 
 UIConstants.Keybinds = {
-    PopStateMachine = {
+    StateCloseCallback = {
         Enum.KeyCode.ButtonB,
         Enum.KeyCode.B,
     },
 }
 
-UIConstants.DontPopStatesFromKeybind = {
-    UIConstants.States.Nothing,
-    UIConstants.States.Loading,
-}
-
 UIConstants.EnableCoreGuiInStates = {
-    UIConstants.States.Nothing,
     UIConstants.States.Loading,
     UIConstants.States.HUD,
 }

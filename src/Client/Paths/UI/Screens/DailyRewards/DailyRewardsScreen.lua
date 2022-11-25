@@ -59,6 +59,10 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
     local currentDisplayingDay = 1
     local isAttemptingClaim = false
 
+    local function close()
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+    end
+
     -- Button
     local canClaim = true
     local claimButton = KeyboardButton.new()
@@ -84,9 +88,12 @@ function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new(
             end
             claimAssume:Then(afterClaim):Else(afterClaim)
         elseif isUi then
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+            close()
         end
     end)
+
+    -- Closing
+    UIController.registerStateCloseCallback(UIConstants.States.DailyRewards, close)
 
     -- Text Labels
     local streak: TextLabel = background.Streak
