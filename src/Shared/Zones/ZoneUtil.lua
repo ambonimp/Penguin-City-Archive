@@ -44,6 +44,21 @@ end
 -------------------------------------------------------------------------------
 -- Zone Querying
 -------------------------------------------------------------------------------
+function ZoneUtil.getZoneName(zone: ZoneConstants.Zone): string
+    local name: string = zone.ZoneType
+    local id: string? = zone.ZoneId
+    if id then
+        name = name .. "(" .. id .. ")"
+    end
+    return name
+end
+
+function ZoneUtil.getZoneTypeAndIdFromName(name: string)
+    local zoneType = name:match("%w+")
+    local zoneId = name:gsub(zoneType, ""):match("%w+")
+
+    return zoneType, zoneId
+end
 
 function ZoneUtil.zonesMatch(zone1: ZoneConstants.Zone, zone2: ZoneConstants.Zone)
     return zone1.ZoneType == zone2.ZoneType and zone1.ZoneId == zone2.ZoneId and true or false
@@ -103,10 +118,7 @@ function ZoneUtil.getZoneFromZoneModel(zoneModel: Model)
         or zoneModel.Parent == game.Workspace.Minigames and ZoneConstants.ZoneCategory.Minigame
         or error(("Could not infer ZoneCategory from %q"):format(zoneModel:GetFullName()))
 
-    local name = zoneModel.Name
-    local zoneType = name:match("%w+")
-    local zoneId = name:gsub(zoneType, ""):match("%w+")
-    return ZoneUtil.zone(zoneCategory, zoneType, zoneId)
+    return ZoneUtil.zone(zoneCategory, ZoneUtil.getZoneTypeAndIdFromName(zoneModel.Name))
 end
 
 -------------------------------------------------------------------------------

@@ -28,7 +28,7 @@ export type PlayerZoneState = {
 local function getRoomTypes()
     local roomTypes = setmetatable({}, {
         __index = function(_, index)
-            warn(("Bad RoomId %q"):format(index))
+            warn(("Bad RoomType %q"):format(index))
         end,
     }) :: { [string]: string }
 

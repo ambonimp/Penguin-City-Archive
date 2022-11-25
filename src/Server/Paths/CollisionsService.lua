@@ -61,7 +61,6 @@ setGroupCollideableWhitelist(groups.EtherealCharacters, { groups.Default })
 setGroupCollideableWhitelist(groups.SledRaceCollectables, { groups.Default })
 
 -- Pet
-createGroup(groupNames.Pet)
-setGroupCollideableWhitelist(groupNames.Pet, { groupNames.Default })
+setGroupCollideableWhitelist(groups.Pet, { groups.Default })
 
 return CollisionsService

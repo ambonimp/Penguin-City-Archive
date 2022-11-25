@@ -8,6 +8,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+-- require(Paths.Shared.Zones.ZoneConstants) -- So that getRoomTypes runs
 
 local GRID_PADDING = 128
 local GRID_RAISE_EVERY = 100 -- 10x10
@@ -28,14 +29,14 @@ local collisionDisablers: Folder
 ]]
 local function verifyDirectories()
     for _, roomFolder in pairs(rooms:GetChildren()) do
-        local roomId = roomFolder.Name
-        if not ZoneConstants.ZoneType.Room[roomId] then
+        local roomType = roomFolder.Name
+        if not ZoneConstants.ZoneType.Room[roomType] then
             error(("Room Folder %s has no corresponding Room ZoneType"):format(roomFolder:GetFullName()))
         end
     end
     for _, minigameFolder in pairs(minigames:GetChildren()) do
-        local minigameId = minigameFolder.Name
-        if not ZoneConstants.ZoneType.Minigame[minigameId] then
+        local minigameType = minigameFolder.Name
+        if not ZoneConstants.ZoneType.Minigame[minigameType] then
             error(("Minigame Folder %s has no corresponding Minigame ZoneType"):format(minigameFolder:GetFullName()))
         end
     end
@@ -113,10 +114,8 @@ local function verifyAndCleanModels(someModels: { Model })
                         end
 
                         -- ERROR: Bad zoneid
-                        local someZoneType = child.Name
-                        local isGoodId = ZoneConstants.ZoneType[someZoneCategory][someZoneType] and true or false
-                        if not isGoodId then
-                            warn(("%s does not match any known %s Id!"):format(child:GetFullName(), someZoneCategory))
+                        if not ZoneConstants.ZoneType[someZoneCategory][(ZoneUtil.getZoneTypeAndIdFromName(child.Name))] then
+                            warn(("%s does not match any known %s type!"):format(child:GetFullName(), someZoneCategory))
                         end
                     end
                 end

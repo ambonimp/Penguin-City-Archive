@@ -320,8 +320,8 @@ do
         ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, teleportBuffer: number)
             ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneCategory, zoneType, zoneId), teleportBuffer)
         end,
-        CmdrRoomTeleport = function(roomId: string)
-            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomId)
+        CmdrRoomTeleport = function(roomType: string)
+            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomType)
             ZoneController.teleportToRoomRequest(roomZone)
         end,
     })
