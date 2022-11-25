@@ -34,4 +34,12 @@ function Queue.yield(scope: any)
     end
 end
 
+function Queue.addTask(scope: any, taskCallback: () -> nil)
+    task.spawn(function()
+        local nextQueue = Queue.yield(scope)
+        taskCallback()
+        nextQueue()
+    end)
+end
+
 return Queue

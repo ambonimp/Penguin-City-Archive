@@ -7,14 +7,14 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 --[[
     Returns how far away from it's subject a camera should be positioned so that the subject's full height is in view
 ]]
-function CameraUtil.getFitDephY(fov: number, subjectSize: Vector3): number
+function CameraUtil.getFitDepthY(fov: number, subjectSize: Vector3): number
     return (subjectSize.Y / 2) / math.tan(math.rad(fov / 2)) + (subjectSize.Z / 2)
 end
 
 --[[
     Returns how far away from it's subject a camera should be positioned so that the subject's full width is in view
 ]]
-function CameraUtil.getFitDephX(viewportSize: Vector2, fov: number, subjectSize: Vector3): number
+function CameraUtil.getFitDepthX(viewportSize: Vector2, fov: number, subjectSize: Vector3): number
     local aspectRatio = viewportSize.X / viewportSize.Y
 
     return (subjectSize.X / 2) / math.tan(math.rad(fov * aspectRatio / 2)) + (subjectSize.Z / 2)
@@ -23,8 +23,8 @@ end
 --[[
     Returns how far away from it's subject a camera should be positioned so that the subject is in view
 ]]
-function CameraUtil.getFitDeph(viewportSize: Vector2, fov: number, subjectSize: Vector3): number
-    return math.max(CameraUtil.getFitDephY(fov, subjectSize), CameraUtil.getFitDephX(viewportSize, fov, subjectSize))
+function CameraUtil.getFitDepth(viewportSize: Vector2, fov: number, subjectSize: Vector3): number
+    return math.max(CameraUtil.getFitDepthY(fov, subjectSize), CameraUtil.getFitDepthX(viewportSize, fov, subjectSize))
 end
 
 --[[
@@ -44,16 +44,15 @@ function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame
 end
 
 function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
-    local _, size
-    _, size = model:GetBoundingBox()
-
     local camera = viewport.CurrentCamera or Instance.new("Camera")
     camera.Parent = viewport
     viewport.CurrentCamera = camera
-    local fitDepth = CameraUtil.getFitDeph(camera.ViewportSize, camera.FieldOfView, size) -- +offset
+
+    local _, size = model:GetBoundingBox()
     local clone = model:Clone()
     clone.Parent = viewport
 
+    local fitDepth = CameraUtil.getFitDepth(camera.ViewportSize, camera.FieldOfView, size) -- +offset
     camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
 end
 

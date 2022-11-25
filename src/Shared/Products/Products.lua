@@ -66,6 +66,71 @@ local products: { [string]: { [string]: Product } } = {
         },
     },
     --#endregion
+    --#region Pet Eggs
+    PetEgg = {
+        pet_egg_common = {
+            Id = "pet_egg_common",
+            DisplayName = "Common Egg",
+            Description = "Common Egg",
+            ImageId = Images.Pets.Eggs.Blue,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 99,
+                DeveloperProductId = 1335900877,
+            },
+            Metadata = {
+                PetEggName = "Common",
+                Model = assets.Pets.Eggs.Blue,
+            },
+        },
+        pet_egg_rare = {
+            Id = "pet_egg_rare",
+            DisplayName = "Rare Egg",
+            Description = "Rare Egg",
+            ImageId = Images.Pets.Eggs.Purple,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 149,
+                DeveloperProductId = 1339311091,
+            },
+            Metadata = {
+                PetEggName = "Rare",
+                Model = assets.Pets.Eggs.Purple,
+            },
+        },
+        pet_egg_legendary = {
+            Id = "pet_egg_legendary",
+            DisplayName = "Legendary Egg",
+            Description = "Legendary Egg",
+            ImageId = Images.Pets.Eggs.Gold,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            RobuxData = {
+                Cost = 299,
+                DeveloperProductId = 1339311146,
+            },
+            Metadata = {
+                PetEggName = "Legendary",
+                Model = assets.Pets.Eggs.Gold,
+            },
+        },
+    },
+    --#endregion
+    --#region Misc
+    Misc = {
+        quick_hatch = {
+            Id = "quick_hatch",
+            DisplayName = "Quick Hatch",
+            Description = "Instantly hatches an egg",
+            RobuxData = {
+                Cost = 49,
+                DeveloperProductId = 1337359490,
+            },
+        },
+    },
+    --#endregion
 }
 
 local genericProducts: { GenericProduct } = {

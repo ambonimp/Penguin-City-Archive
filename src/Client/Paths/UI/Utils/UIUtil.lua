@@ -5,6 +5,9 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Promise = require(Paths.Packages.promise)
+local DescendantLooper = require(Paths.Shared.DescendantLooper)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local UDImUtil = require(Paths.Shared.Utils.UDimUtil)
 
 --[[
     If we design a button to be at the top of the screen, it will still be so when we load in (even with the "roblox top bar")
@@ -63,6 +66,66 @@ function UIUtil.waitForHudAndRoomZone()
         end
         resolve()
     end)
+end
+
+--[[
+    Will add `offset` to the ZIndex of any `GuiObject` under `ancestor` (including itself).
+
+    Useful for pushing a whole UI Screen up to the front
+]]
+function UIUtil.offsetZIndex(ancestor: Instance, offset: number, offsetFutureInstances: boolean?)
+    offsetFutureInstances = offsetFutureInstances and true or false
+
+    -- Loop ancestor, offsetting the ZIndex of all present and future GuiObjects
+    local maid = DescendantLooper.add(function(instance)
+        return instance:IsA("GuiObject")
+    end, function(guiObject: GuiObject)
+        guiObject.ZIndex = guiObject.ZIndex + offset
+    end, { ancestor }, not offsetFutureInstances)
+
+    -- Manage Cleanup
+    InstanceUtil.onDestroyed(ancestor, function()
+        maid:Destroy()
+    end)
+end
+
+--[[
+    Converts any UI design by Offset into Scale; useful for BillboardGui.
+
+    - If `resolution` is not passed, will infer it from the passed `guiObject`.
+    - `guiObject` has its size set to `UDim2.fromScale(1, 1)`, and all descendants infer from this.
+]]
+function UIUtil.convertToScale(guiObject: GuiObject, resolution: UDim2?)
+    -- Get Resolution
+    if not resolution then
+        resolution = guiObject.Size
+    end
+
+    -- ERROR: Bad resolution
+    if (resolution.X.Offset == 0) and (resolution.Y.Offset == 0) then
+        error("Resolution has no Offset!")
+    end
+
+    local function recurse(instance: Instance, scaleContext: UDim2)
+        for _, child: GuiObject | UICorner in pairs(instance:GetChildren()) do
+            if child:IsA("GuiObject") then
+                local scaleSize = UDim2.new(
+                    child.Size.X.Scale + (child.Size.X.Offset / resolution.X.Offset) / scaleContext.X.Scale,
+                    0,
+                    child.Size.Y.Scale + (child.Size.Y.Offset / resolution.Y.Offset) / scaleContext.Y.Scale,
+                    0
+                )
+                child.Size = scaleSize
+                recurse(child, UDImUtil.multiplyUDim2s(scaleContext, scaleSize))
+            elseif child:IsA("UICorner") then
+                local scaleCornerRadius = UDim.new(child.Size.Scale + (child.Size.Offset / resolution.X) / scaleContext.X.Scale, 0)
+                child.CornerRadius = scaleCornerRadius
+            end
+        end
+    end
+
+    guiObject.Size = UDim2.fromScale(1, 1)
+    recurse(guiObject, UDim2.fromScale(1, 1))
 end
 
 return UIUtil

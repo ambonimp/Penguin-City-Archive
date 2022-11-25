@@ -154,7 +154,10 @@ function ZoneController.transitionToZone(
             end
 
             -- Wait for zone to load
-            ZoneController.waitForZoneToLoad(toZone)
+            local didLoad = ZoneController.waitForZoneToLoad(toZone)
+            if not didLoad then
+                warn("Zone Loading Timed Out")
+            end
 
             -- Revert character
             if character then
@@ -267,61 +270,12 @@ end
 
 function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
-
-    -- Iterate through all instances, checking if all baseparts are loaded
-    local instances = zoneModel:GetDescendants()
-    table.insert(instances, zoneModel)
-
-    for _, instance in pairs(instances) do
-        local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
-        if totalBaseParts then
-            local countedBaseParts = 0
-            for _, basePart: BasePart in pairs(instance:GetChildren()) do
-                if basePart:IsA("BasePart") then
-                    countedBaseParts += 1
-                end
-            end
-
-            -- RETURN FALSE: Has not got all base parts yet
-            if countedBaseParts < totalBaseParts then
-                return false
-            end
-        end
-    end
-
-    return true
-end
-
-function ZoneController.getTotalUnloadedBaseParts(zone: ZoneConstants.Zone)
-    local zoneModel = ZoneUtil.getZoneModel(zone)
-
-    local totalUnloadedBaseParts = 0
-    local instances = zoneModel:GetDescendants()
-    table.insert(instances, zoneModel)
-
-    for _, instance in pairs(instances) do
-        local totalBaseParts = instance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
-        if totalBaseParts then
-            local countedBaseParts = 0
-            for _, basePart: BasePart in pairs(instance:GetChildren()) do
-                if basePart:IsA("BasePart") then
-                    countedBaseParts += 1
-                end
-            end
-
-            totalUnloadedBaseParts += (totalBaseParts - countedBaseParts)
-        end
-    end
-
-    return totalUnloadedBaseParts
+    return ZoneUtil.areAllBasePartsLoaded(zoneModel)
 end
 
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
-    local startTick = tick()
-    while ZoneController.isZoneLoaded(zone) == false and (tick() - startTick < MAX_YIELD_TIME_ZONE_LOADING) do
-        task.wait(WAIT_FOR_ZONE_TO_LOAD_INTERMISSION)
-    end
-    task.wait() -- Give client threads time to catch up
+    local zoneModel = ZoneUtil.getZoneModel(zone)
+    return ZoneUtil.waitForInstanceToLoad(zoneModel)
 end
 
 -------------------------------------------------------------------------------

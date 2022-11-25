@@ -37,6 +37,7 @@ function TabbedWindow.new()
 
     local tabs: { Tab } = {}
     local openTabName: string | nil
+    local openTabNameByTabIndex: { [number]: string | nil } = {} -- Memory for when we rotate between tabs
 
     local containerMaid = Maid.new()
     local drawMaid = Maid.new()
@@ -74,7 +75,14 @@ function TabbedWindow.new()
     local function updateTabIndex(increaseBy: number)
         tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
 
-        -- Select new tab + draw
+        -- Select last tab
+        local lastOpenTabName = openTabNameByTabIndex[tabsIndex]
+        if lastOpenTabName then
+            tabbedWindow:OpenTab(lastOpenTabName)
+            return
+        end
+
+        -- Select new tab
         local tabIndex = ((tabsIndex - 1) * TABS_PER_VIEW) + 1
         tabbedWindow:OpenTab(tabs[tabIndex].Name)
     end
@@ -247,6 +255,8 @@ function TabbedWindow.new()
         end
 
         openTabName = tabName
+        openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
+
         draw()
     end
 

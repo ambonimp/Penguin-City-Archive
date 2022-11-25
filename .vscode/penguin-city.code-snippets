@@ -127,5 +127,17 @@
       "${1:key} = \"${1:value}\""
     ],
     "description": "Equal Key-Value Pair"
+  },
+  "RegisterUIState": {
+    "prefix": ["register-ui-state"],
+    "body": [
+      "    UIController.registerStateScreenCallbacks(UIConstants.States${1:}, {\r",
+      "        Boot = ${0:$TM_FILENAME_BASE}.boot,\r",
+      "        Shutdown = ${0:$TM_FILENAME_BASE}.shutdown,\r",
+      "        Maximize = ${0:$TM_FILENAME_BASE}.maximize,\r",
+      "        Minimize = ${0:$TM_FILENAME_BASE}.minimize,\r",
+      "    })"
+    ],
+    "description": "Register UI State layout"
   }
 }

@@ -7,6 +7,27 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         Boardwalk = {
             Music = "Boardwalk",
         },
+        SkiHill = {
+            Music = "SkiHill",
+        },
+        SchoolZone = {
+            Music = "SchoolZone",
+        },
+        Stadium = {
+            Music = "Stadium",
+        },
+        ClothingStore = {
+            Music = "ClothingStore",
+        },
+        Hospital = {
+            Music = "Hospital",
+        },
+        NightClub = {
+            Music = "NightClub",
+        },
+        CoffeeShop = {
+            Music = "CoffeeShop",
+        },
     },
 
     -- Minigames

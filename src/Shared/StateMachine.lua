@@ -4,6 +4,9 @@
 local StateMachine = {}
 StateMachine.__index = StateMachine
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+
 type Operation = string
 
 export type StateMachine = typeof(StateMachine.new({}, ""))
@@ -15,6 +18,7 @@ local OPERATION_POP_TO: Operation = "PopTo"
 local OPERATION_POP_TO_AND_PUSH: Operation = "PopToAndPush"
 local OPERATION_CLEAR_AND_PUSH: Operation = "ClearAndPush"
 local OPERATION_REMOVE: Operation = "Remove"
+
 local SHOW_TRACEBACK_IN_DEBUG = false
 local SHOW_DEBUG = false
 
@@ -137,6 +141,7 @@ function StateMachine:_RunOperation(operation, state, data)
 
     -- Get current state
     local oldState = self:GetState()
+    local oldStack = TableUtil.deepClone(self.stateStack) :: { string }
     local oldStackSize = #self.stateStack
 
     -- Asset state is valid
@@ -225,7 +230,8 @@ function StateMachine:_RunOperation(operation, state, data)
 
     -- Fire global callback
     if self.eventGlobal then
-        self.eventGlobal:Fire(oldState, currentState, data)
+        prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
+        self.eventGlobal:Fire(oldState, currentState, data, oldStack)
     end
 end
 
@@ -345,6 +351,29 @@ function StateMachine:GetStateCount(): number
 end
 
 --[[
+    Returns an array of states above this state in the stack.
+
+    Returns false if state not in stack, or on top
+]]
+function StateMachine:GetStatesAbove(state: string)
+    if self:HasState(state) == false or self:GetState() == state then
+        return false
+    end
+
+    local index = table.find(self.stateStack, state)
+    if not index then
+        error("wat")
+    end
+
+    local above: { string } = {}
+    for i = index + 1, self:GetStateCount() do
+        table.insert(above, self.stateStack[i])
+    end
+
+    return above
+end
+
+--[[
     Enables/Disables the debug printing mode where state changes are printed to the output view.
 ]]
 function StateMachine:SetDebugPrintingEnabled(isEnabled: boolean)
@@ -360,7 +389,9 @@ end
 --[[
     Adds a callback function that's called every time this machine changes its state.
 ]]
-function StateMachine:RegisterGlobalCallback(callback: (fromState: string, toState: string, data: table?) -> ()): RBXScriptConnection
+function StateMachine:RegisterGlobalCallback(
+    callback: (fromState: string, toState: string, data: table?, oldStack: { string }) -> ()
+): RBXScriptConnection
     return self.eventGlobal.Event:Connect(callback)
 end
 

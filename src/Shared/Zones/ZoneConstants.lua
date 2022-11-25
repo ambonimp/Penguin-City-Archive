@@ -17,6 +17,34 @@ export type Zone = {
 }
 
 -------------------------------------------------------------------------------
+-- Internal Methods
+-------------------------------------------------------------------------------
+
+-- Gets our constants directly out of studio
+local function getRoomIds()
+    local roomIds = setmetatable({}, {
+        __index = function(_, index)
+            warn(("Bad RoomId %q"):format(index))
+        end,
+    }) :: { [string]: string }
+
+    local function addRoom(roomFolder: Folder)
+        local zoneId = roomFolder.Name
+        if not tonumber(zoneId) then -- Exclude houseInteriorZones
+            roomIds[zoneId] = zoneId
+        end
+    end
+
+    local rooms: Folder = game.Workspace.Rooms
+    for _, child in pairs(rooms:GetChildren()) do
+        addRoom(child)
+    end
+    rooms.ChildAdded:Connect(addRoom)
+
+    return roomIds
+end
+
+-------------------------------------------------------------------------------
 -- Constants
 -------------------------------------------------------------------------------
 
@@ -25,15 +53,7 @@ ZoneConstants.ZoneType = {
     Minigame = "Minigame",
 }
 ZoneConstants.ZoneId = {
-    Room = {
-        Town = "Town",
-        Neighborhood = "Neighborhood",
-        SkiHill = "SkiHill",
-        PizzaPlace = "PizzaPlace",
-        CoffeeShop = "CoffeeShop",
-        IceCreamShop = "IceCreamShop",
-        Boardwalk = "Boardwalk",
-    },
+    Room = getRoomIds(),
     Minigame = {
         Pizza = "Pizza",
     },
@@ -50,7 +70,7 @@ local defaultPlayerZoneState: PlayerZoneState = {
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
-ZoneConstants.StreamingTargetRadius = 2533
+ZoneConstants.StreamingTargetRadius = 3000
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
