@@ -157,18 +157,26 @@ function ZoneWater.new(xzPosition: Vector2, yTop: number)
         do
             local doLoop = true
             local connection: RBXScriptConnection
-            while doLoop do
-                local unitDirection = VectorUtil.getUnit(VectorUtil.getXZComponents(VectorUtil.nextVector3(-1, 1)))
-                connection = TweenUtil.run(function(alpha)
-                    waterTexture.OffsetStudsU = unitDirection.X * alpha * waterTexture.StudsPerTileU * TIDE_MOVEMENT.TEXTURE_OFFSET_PERCENT
-                    waterTexture.OffsetStudsV = unitDirection.Z * alpha * waterTexture.StudsPerTileV * TIDE_MOVEMENT.TEXTURE_OFFSET_PERCENT
-                end, TIDE_MOVEMENT.TWEEN_INFO)
+            task.spawn(function()
+                while doLoop do
+                    local unitDirection = VectorUtil.getUnit(VectorUtil.getXZComponents(VectorUtil.nextVector3(-1, 1)))
+                    connection = TweenUtil.run(function(alpha)
+                        waterTexture.OffsetStudsU = unitDirection.X
+                            * alpha
+                            * waterTexture.StudsPerTileU
+                            * TIDE_MOVEMENT.TEXTURE_OFFSET_PERCENT
+                        waterTexture.OffsetStudsV = unitDirection.Z
+                            * alpha
+                            * waterTexture.StudsPerTileV
+                            * TIDE_MOVEMENT.TEXTURE_OFFSET_PERCENT
+                    end, TIDE_MOVEMENT.TWEEN_INFO)
 
-                task.wait(TIDE_MOVEMENT.TWEEN_INFO.Time * 2) -- Account for reverse
-                if connection then
-                    connection:Disconnect()
+                    task.wait(TIDE_MOVEMENT.TWEEN_INFO.Time * 2) -- Account for reverse
+                    if connection then
+                        connection:Disconnect()
+                    end
                 end
-            end
+            end)
 
             maid:GiveTask(function()
                 doLoop = false
