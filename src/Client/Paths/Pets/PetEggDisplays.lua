@@ -105,30 +105,19 @@ function PetEggDisplays.createDisplay(petEggName: string, displayPart: BasePart)
     model.Parent = displayPart
     model:PivotTo(displayPart:GetPivot())
     updateMaid:GiveTask(model)
-
-    -- Proximity Prompt
-    local proximityPrompt = InteractionUtil.createInteraction(displayPart, { ObjectText = product.DisplayName, ActionText = "Purchase" })
-    proximityPrompt.Triggered:Connect(function()
-        ProductController.prompt(product)
-    end)
-    updateMaid:GiveTask(proximityPrompt)
 end
 
 -- Checks the world for pet eggs, and creates displays if needed
 function PetEggDisplays.update()
     updateMaid:Cleanup()
 
-    for petEggName, _ in pairs(PetConstants.PetEggs) do
-        local displayName = ("%sPetEgg"):format(petEggName)
-        local displayParts: { BasePart } = CollectionService:GetTagged(displayName)
-        for _, displayPart in pairs(displayParts) do
-            -- ERROR: Not a part!
-            if not displayPart:IsA("BasePart") then
-                error(("Got a DisplayInstace (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
-            end
-
-            PetEggDisplays.createDisplay(petEggName, displayPart)
+    for _, displayPart in pairs(CollectionService:GetTagged("PetEgg")) do
+        -- ERROR: Not a part!
+        if not displayPart:IsA("BasePart") then
+            error(("Got a DisplayInstace (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
         end
+
+        PetEggDisplays.createDisplay(displayPart.Name:gsub("Egg", ""), displayPart)
     end
 end
 

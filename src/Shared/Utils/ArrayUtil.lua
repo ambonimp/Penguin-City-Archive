@@ -1,8 +1,5 @@
 local ArrayUtil = {}
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Modules.Utils.TableUtil)
-
 type Array = { any }
 
 --[[
