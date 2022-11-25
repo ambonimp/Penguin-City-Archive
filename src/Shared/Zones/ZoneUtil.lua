@@ -54,8 +54,8 @@ function ZoneUtil.getZoneName(zone: ZoneConstants.Zone): string
 end
 
 function ZoneUtil.getZoneTypeAndIdFromName(name: string)
-    local zoneType = name:match("%w+")
-    local zoneId = name:gsub(zoneType, ""):match("%w+")
+    local zoneType = name:match("[%-]?[%w]+")
+    local zoneId = name:gsub(zoneType, ""):match("[%-]?[%w]+")
 
     return zoneType, zoneId
 end
