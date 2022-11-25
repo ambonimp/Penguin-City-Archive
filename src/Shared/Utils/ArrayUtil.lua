@@ -57,4 +57,14 @@ function ArrayUtil.create(length: number, getValue: (number?) -> ()): Array
     return returning
 end
 
+function ArrayUtil.toDict(tbl: { any })
+    local dict = {}
+
+    for i, v in pairs(tbl) do
+        dict[tostring(i)] = v
+    end
+
+    return dict
+end
+
 return ArrayUtil
