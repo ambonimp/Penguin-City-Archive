@@ -1,5 +1,6 @@
 local MinigameService = {}
 
+local CollectionService = game:GetService("CollectionService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -108,12 +109,17 @@ for minigame in pairs(MinigameConstants.Minigames) do
     sessionClasses[minigame] = require(Paths.Server.Minigames[minigame][minigame .. "Session"])
 end
 
-do
-    Remotes.declareEvent("MinigameJoined")
-    Remotes.declareEvent("MinigameExited")
-    Remotes.declareEvent("MinigameParticipantAdded")
-    Remotes.declareEvent("MinigameParticipantRemoved")
-    Remotes.declareEvent("MinigameStateChanged")
+for _, prompt: BasePart in pairs(CollectionService:GetTagged("MinigamePrompt")) do
+    prompt.Transparency = 1
+    prompt.CanCollide = false
+    prompt.Anchored = true
+    prompt.CastShadow = false
 end
+
+Remotes.declareEvent("MinigameJoined")
+Remotes.declareEvent("MinigameExited")
+Remotes.declareEvent("MinigameParticipantAdded")
+Remotes.declareEvent("MinigameParticipantRemoved")
+Remotes.declareEvent("MinigameStateChanged")
 
 return MinigameService

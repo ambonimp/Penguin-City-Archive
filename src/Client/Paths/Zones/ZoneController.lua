@@ -312,7 +312,7 @@ end
 function ZoneController.applySettings(zone: ZoneConstants.Zone)
     local zoneSettings = ZoneUtil.getSettings(zone)
     if zoneSettings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if zoneSettings.Lighting then
@@ -329,7 +329,7 @@ end
 function ZoneController.revertSettings(zone: ZoneConstants.Zone)
     local zoneSettings = ZoneUtil.getSettings(zone)
     if zoneSettings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if zoneSettings.Lighting then
