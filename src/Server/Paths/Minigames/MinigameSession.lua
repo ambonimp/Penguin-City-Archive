@@ -389,7 +389,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
             -- Cleanup
             scores = nil
 
-            if isMultiplayer then
+            if isMultiplayer and config.Loop then
                 minigameSession:CountdownSync(config.AwardShowLength)
                 minigameSession:ChangeState(STATES.Intermission)
             end

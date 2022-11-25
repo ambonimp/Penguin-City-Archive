@@ -125,7 +125,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         { Title = "Total Coins", Icon = Images.Coins.Coin, Value = SledRaceConstants.SessionConfig.Reward(placement) + coinsCollected },
     })
 
-    if not isMultiplayer then
+    if isMultiplayer then
+        Remotes.fireServer("MinigameExited")
+    else
         task.wait(RESTART_DELAY)
         Remotes.fireServer("MinigameRestarted")
         SharedMinigameScreen.openStartMenu()

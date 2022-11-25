@@ -22,6 +22,7 @@ export type SessionConfig = {
     -- Play types
     SinglePlayer: boolean,
     Multiplayer: boolean,
+    Loop: boolean?,
     --
     HigherScoreWins: boolean?,
     ScoreFormatter: ((number) -> (number | string))?,

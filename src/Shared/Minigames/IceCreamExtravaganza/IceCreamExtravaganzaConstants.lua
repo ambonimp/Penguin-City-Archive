@@ -16,6 +16,7 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     -- Play types
     SinglePlayer = true,
     Multiplayer = true,
+    Loop = true,
     --
     HigherScoreWins = true,
     Reward = function(placement): number
