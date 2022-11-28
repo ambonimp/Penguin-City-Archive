@@ -10,6 +10,8 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
+local PetController = require(Paths.Client.Pets.PetController)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
 
 local DISCO_COLORS = {
     Color3.fromRGB(13, 105, 172),
@@ -91,7 +93,11 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
                 return
             end
 
-            print("dance")
+            -- Pet Animation
+            local clientPet = PetController.getClientPet()
+            if clientPet then
+                clientPet:PlayAnimation(PetConstants.AnimationNames.Trick)
+            end
         end)
         danceFloorHitbox.PlayerLeft:Connect(function(player)
             -- RETURN: Not local player
@@ -99,7 +105,11 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
                 return
             end
 
-            print("stop dance")
+            -- Pet Animation
+            local clientPet = PetController.getClientPet()
+            if clientPet then
+                clientPet:StopAnimation(PetConstants.AnimationNames.Trick)
+            end
         end)
 
         -- Iterate DanceFloors
