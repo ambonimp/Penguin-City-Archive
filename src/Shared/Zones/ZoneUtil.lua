@@ -141,7 +141,6 @@ end
 
 function ZoneUtil.applySettings(zone: ZoneConstants.Zone)
     local settings = ZoneUtil.getSettings(zone)
-    print("apply settings", zone, settings)
     if settings then
         local key = zone.ZoneType .. zone.ZoneId
 

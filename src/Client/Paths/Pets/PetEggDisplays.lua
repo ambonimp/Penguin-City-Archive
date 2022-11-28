@@ -16,6 +16,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local ProductController = require(Paths.Client.ProductController)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 local WIDGET_RESOLUTION = UDim2.fromOffset(123, 123)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
@@ -32,6 +33,9 @@ function PetEggDisplays.createDisplay(petEggName: string, displayPart: BasePart)
         billboardGui.Adornee = displayPart
         billboardGui.Parent = Paths.UI
         updateMaid:GiveTask(billboardGui)
+        updateMaid:GiveTask(function()
+            print("destroy", billboardGui:GetFullName())
+        end)
 
         local petsFrame: Frame = billboardGui.Back.Contents.Pets
         local eggImageLabel: ImageLabel = billboardGui.Back.Contents.Top.EggImage
@@ -118,6 +122,7 @@ end
 function PetEggDisplays.update()
     updateMaid:Cleanup()
 
+    local zoneModel = ZoneUtil.getZoneModel(ZoneController.getCurrentZone())
     for petEggName, _ in pairs(PetConstants.PetEggs) do
         local displayName = ("%sPetEgg"):format(petEggName)
         local displayParts: { BasePart } = CollectionService:GetTagged(displayName)
@@ -127,7 +132,9 @@ function PetEggDisplays.update()
                 error(("Got a DisplayInstace (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
             end
 
-            PetEggDisplays.createDisplay(petEggName, displayPart)
+            if displayPart:IsDescendantOf(zoneModel) then
+                PetEggDisplays.createDisplay(petEggName, displayPart)
+            end
         end
     end
 end
