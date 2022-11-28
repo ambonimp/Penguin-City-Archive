@@ -52,16 +52,26 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
     local totalWeight = 0
     for topping, weightEquation in pairs(PizzaMinigameConstants.IngredientWeightEquations.Toppings) do
         local weight = math.clamp(weightEquation(alpha), 0, 1)
-        totalWeight += weight
-        table.insert(weightTable, {
-            Weight = weight,
-            Value = topping,
-        })
+        if weight > 0 then
+            totalWeight += weight
+            table.insert(weightTable, {
+                Weight = weight,
+                Value = topping,
+            })
+        end
     end
 
     local toppings: { string } = {}
     for _ = 1, toppingsNeeded do
-        if totalWeight > 0 then
+        if TableUtil.isEmpty(weightTable) then
+            -- Empty weight table is bad! Just choose a random topping in this case.
+            for _, toppingName in pairs(PizzaMinigameConstants.Ingredients.Toppings) do
+                if not table.find(toppings, toppingName) then
+                    table.insert(toppings, toppingName)
+                    break
+                end
+            end
+        else
             local selectedTopping: string = MathUtil.weightedChoice(weightTable)
             table.insert(toppings, selectedTopping)
             for index, entry in pairs(weightTable) do
@@ -70,9 +80,6 @@ function PizzaMinigameUtil.rollToppings(pizzaNumber: number, toppingsNeeded: num
                     break
                 end
             end
-        else
-            local _, selectedTopping = TableUtil.getRandom(weightTable)
-            table.insert(toppings, selectedTopping)
         end
     end
 
