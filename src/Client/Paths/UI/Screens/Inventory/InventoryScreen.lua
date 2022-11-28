@@ -63,7 +63,7 @@ function InventoryScreen.Init()
             })
 
             maid:GiveTask(inventoryWindow)
-            inventoryWindow:GetWindowFrame().Parent = parent
+            inventoryWindow:Mount(parent)
         end)
 
         -- Clothing (--!! TEMP)
@@ -74,7 +74,7 @@ function InventoryScreen.Init()
             })
 
             maid:GiveTask(inventoryWindow)
-            inventoryWindow:GetWindowFrame().Parent = parent
+            inventoryWindow:Mount(parent)
         end)
 
         -- Housing (--!! TEMP)
@@ -86,7 +86,7 @@ function InventoryScreen.Init()
             })
 
             maid:GiveTask(inventoryWindow)
-            inventoryWindow:GetWindowFrame().Parent = parent
+            inventoryWindow:Mount(parent)
         end)
 
         -- StampBook (--!! TEMP)
@@ -98,7 +98,7 @@ function InventoryScreen.Init()
             })
 
             maid:GiveTask(inventoryWindow)
-            inventoryWindow:GetWindowFrame().Parent = parent
+            inventoryWindow:Mount(parent)
         end)
 
         -- Pets
@@ -111,7 +111,7 @@ function InventoryScreen.Init()
             })
 
             maid:GiveTask(inventoryWindow)
-            inventoryWindow:GetWindowFrame().Parent = parent
+            inventoryWindow:Mount(parent)
         end)
 
         --TODO

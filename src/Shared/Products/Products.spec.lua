@@ -106,6 +106,24 @@ return function()
         end
     end
 
+    local function testCoinProduct(product: Products.Product)
+        local productName = ("%s.%s"):format("Coin", product.Id)
+        local function addIssue(issue: string)
+            table.insert(issues, ("[%s] %s"):format(productName, issue))
+        end
+
+        -- Needs AddCoins defined
+        local coinData = ProductUtil.getCoinProductData(product)
+        if not coinData.AddCoins then
+            addIssue("No Metadata.AddCoins defined!")
+        end
+
+        -- Must consume immediately!
+        if not (product.IsConsumable and product.ConsumeImmediately) then
+            addIssue("Must consume immediately!")
+        end
+    end
+
     -- ProductType must have key == value
     for key, value in pairs(Products.ProductType) do
         if key ~= value then
@@ -145,6 +163,10 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.PetEgg then
                 testPetEggProduct(product)
+            end
+
+            if productTypeKey == ProductConstants.ProductType.Coin then
+                testCoinProduct(product)
             end
         end
     end
