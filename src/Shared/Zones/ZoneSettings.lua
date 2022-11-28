@@ -35,7 +35,12 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         -- Pizza
         Pizza = {
             Lighting = {
-                Ambient = Color3.fromRGB(130, 120, 113),
+                Ambient = Color3.fromRGB(190, 136, 97),
+                Brightness = 1.6,
+                ColorShift_Top = Color3.fromRGB(0, 0, 0),
+                ClockTime = 11,
+                GeographicLatitude = 149,
+                ExposureCompensation = 0,
             },
             DisableCollisions = true,
             Music = false,
@@ -45,7 +50,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
 
 export type ZoneSettings = {
     Lighting: {
-        Ambient: Color3?,
+        [string]: any,
     }?,
     DisableCollisions: boolean?,
     Music: boolean | string?, -- Set to false to disable music. nil/true for MainTheme.
