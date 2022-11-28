@@ -10,6 +10,7 @@ local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Sound = require(Paths.Shared.Sound)
 
 local windMaid = Maid.new()
 
@@ -69,6 +70,10 @@ local function createAnimatedFlag(markerFlag: BasePart, maid: typeof(Maid.new())
     local idleTrack = animator:LoadAnimation(idleAnimation)
     idleTrack:Play()
     maid:GiveTask(idleTrack)
+
+    -- Sound
+    local sound = Sound.play("Flag", true, flagPart)
+    maid:GiveTask(sound)
 end
 
 function WindController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
