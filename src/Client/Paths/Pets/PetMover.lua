@@ -147,10 +147,19 @@ function PetMover.new(model: Model)
         end
 
         -- Raycast floor
-        local raycastResult = RaycastUtil.raycast(sidePosition + RAYCAST_ORIGIN_OFFSET, VECTOR_DOWN, {
-            FilterDescendantsInstances = { ZoneUtil.getZoneModel(ZoneController.getCurrentZone()) },
-            FilterType = Enum.RaycastFilterType.Whitelist,
-        }, RAYCAST_LENGTH)
+        -- Ignore non-collideable parts!
+        local raycastResult = RaycastUtil.raycast(
+            sidePosition + RAYCAST_ORIGIN_OFFSET,
+            VECTOR_DOWN,
+            {
+                FilterDescendantsInstances = { ZoneUtil.getZoneModel(ZoneController.getCurrentZone()) },
+                FilterType = Enum.RaycastFilterType.Whitelist,
+            },
+            RAYCAST_LENGTH,
+            function(hitInstance: BasePart)
+                return hitInstance.CanCollide
+            end
+        )
 
         return raycastResult and raycastResult.Position or nil
     end

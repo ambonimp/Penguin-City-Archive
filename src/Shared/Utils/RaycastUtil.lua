@@ -7,6 +7,7 @@ local BooleanUtil = require(ReplicatedStorage.Shared.Utils.BooleanUtil)
 local DebugUtil = require(ReplicatedStorage.Shared.Utils.DebugUtil)
 
 local DO_SHOW_RAYCASTS = false
+local OFFSET_RAYCAST_EPSILON = 0.01
 
 local internalRaycastParams = RaycastParams.new()
 
@@ -41,6 +42,7 @@ end
     Quick wrapper for raycasting.
     - Reuses RaycastParams (is performatic)
     - Optional `length` if you don't want to encode the length of the raycast in `direction`
+    - Optional `check`; when we hit an `Instance`, it must be such that `check(instance) == true` - otherwise, we raycast below it.
 ]]
 function RaycastUtil.raycast(
     origin: Vector3,
@@ -51,7 +53,8 @@ function RaycastUtil.raycast(
         FilterType: Enum.RaycastFilterType?,
         IgnoreWater: boolean?,
     }?,
-    length: number?
+    length: number?,
+    check: ((instance: Instance) -> boolean)?
 ): RaycastResult | nil
     raycastParams = raycastParams or {}
 
@@ -68,6 +71,20 @@ function RaycastUtil.raycast(
 
     if DO_SHOW_RAYCASTS then
         DebugUtil.showRaycast(origin, direction, direction.Magnitude, raycastResult)
+    end
+
+    -- Check
+    if check then
+        if raycastResult and check(raycastResult.Instance) == false then
+            -- Raycast below this failed Instance!
+            local offsetLength = raycastResult.Distance + OFFSET_RAYCAST_EPSILON
+            origin = origin + direction.Unit * offsetLength
+            if length then
+                length = math.max(length - offsetLength, 0)
+            end
+
+            return RaycastUtil.raycast(origin, direction, raycastParams, length, check)
+        end
     end
 
     return raycastResult
