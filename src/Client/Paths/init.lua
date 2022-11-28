@@ -46,7 +46,6 @@ task.delay(0, function()
         require(client.UI.CoreGui),
         require(client.CurrencyController),
         require(client.Zones.ZoneController),
-        require(client.MusicController),
         require(client.PlayerMenuController),
         require(client.Rewards.RewardsController),
         require(client.Pets.PetController),

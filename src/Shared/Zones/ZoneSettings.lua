@@ -9,6 +9,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         },
         SkiHill = {
             Music = "SkiHill",
+            Ambience = { "WindAndBirds" },
             IsWindy = true,
         },
         SchoolZone = {
@@ -51,6 +52,7 @@ export type ZoneSettings = {
     }?,
     DisableCollisions: boolean?,
     Music: boolean | string?, -- Set to false to disable music. nil/true for MainTheme.
+    Ambience: { string }?, -- Names of Sounds to play
     IsWindy: boolean?,
 }
 
