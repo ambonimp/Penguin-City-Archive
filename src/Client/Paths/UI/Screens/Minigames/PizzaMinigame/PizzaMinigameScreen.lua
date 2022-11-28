@@ -58,17 +58,12 @@ function PizzaMinigameScreen.Init()
     end
 
     -- Register UIState
-    do
-        local function enter()
-            PizzaMinigameScreen.open()
-        end
-
-        local function exit()
-            PizzaMinigameScreen.close()
-        end
-
-        UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.PizzaMinigame, enter, exit)
-    end
+    UIController.registerStateScreenCallbacks(UIConstants.States.PizzaMinigame, {
+        Boot = nil,
+        Shutdown = nil,
+        Maximize = PizzaMinigameScreen.maximize,
+        Minimize = PizzaMinigameScreen.minimize,
+    })
 
     -- Customise TapToPlayText by device
     menuFrame.TapToPlay.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
@@ -102,11 +97,11 @@ end
 -- Actions
 -------------------------------------------------------------------------------
 
-function PizzaMinigameScreen.open()
+function PizzaMinigameScreen.maximize()
     screenGui.Enabled = true
 end
 
-function PizzaMinigameScreen.close()
+function PizzaMinigameScreen.minimize()
     screenGui.Enabled = false
 end
 
