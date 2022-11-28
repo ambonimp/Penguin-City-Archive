@@ -9,7 +9,6 @@ local UIController = require(Paths.Client.UI.UIController)
 local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local Sound = require(Paths.Shared.Sound)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local BUTTON_PROPERTIES = {
@@ -17,21 +16,13 @@ local BUTTON_PROPERTIES = {
     Size = UDim2.fromScale(0.9, 0.9),
 }
 local UNFURLED_MAP_PROPERTIES = {
-    Position = UDim2.fromScale(0.75, 0.5),
+    Position = UDim2.fromScale(0.25, 0.5),
     Size = UDim2.fromScale(1.5, 0.9),
 }
 
 local uiStateMachine = UIController.getStateMachine()
 
 local screenGui: ScreenGui = Ui.HUD
-local buttons: {
-    Left: { typeof(AnimatedButton.new(Instance.new("ImageButton"))) },
-    Right: { typeof(AnimatedButton.new(Instance.new("ImageButton"))) },
-} =
-    {
-        Left = {},
-        Right = {},
-    }
 local openCallbacks: { () -> () } = {}
 local closeCallbacks: { () -> () } = {}
 
@@ -63,15 +54,6 @@ local function dailyRewards(button: AnimatedButton.AnimatedButton)
 
     button.Pressed:Connect(function()
         UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
-    end)
-end
-
-local function party(button: AnimatedButton.AnimatedButton)
-    button:GetButtonObject().Image = Images.ButtonIcons.Party
-
-    --!!temp
-    button.Pressed:Connect(function()
-        Sound.play("ExtraLife")
     end)
 end
 
@@ -114,7 +96,7 @@ local function inventory(button: AnimatedButton.AnimatedButton)
     end)
 end
 
-local function createAnimatedButton(frame: Frame, _alignment: "Left" | "Right")
+local function createAnimatedButton(frame: Frame)
     local imageButton = Instance.new("ImageButton")
     imageButton.Size = BUTTON_PROPERTIES.Size
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -141,25 +123,18 @@ function HUDScreen.Init()
         end
 
         -- Create Buttons
-        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["1"], "Left"))
-        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["2"], "Left"))
-        table.insert(buttons.Left, createAnimatedButton(screenGui.Left.Buttons["3"], "Left"))
-        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["1"], "Right"))
-        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["2"], "Right"))
-        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["3"], "Right"))
-        table.insert(buttons.Right, createAnimatedButton(screenGui.Right.Buttons["4"], "Right"))
+        local iglooButton = createAnimatedButton(screenGui.Right.Igloo)
+        local clothingButton = createAnimatedButton(screenGui.Right.Clothing)
+        local mapButton = createAnimatedButton(screenGui.Right.Map)
+        local rewardsButton = createAnimatedButton(screenGui.Right.Rewards)
+        local stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
+        inventoryButton = createAnimatedButton(screenGui.Bottom.Inventory)
 
-        -- Setup
-        local mapButton = buttons.Left[3]
-        local iglooButton = buttons.Right[1]
-        inventoryButton = buttons.Right[4]
-
-        dailyRewards(buttons.Left[1])
-        party(buttons.Left[2])
+        dailyRewards(rewardsButton)
         map(mapButton)
         igloo(iglooButton)
-        stampBook(buttons.Right[2])
-        clothing(buttons.Right[3])
+        stampBook(stampBookButton)
+        clothing(clothingButton)
         inventory(inventoryButton)
 
         -- Igloo Button (toggle edit look)
@@ -228,7 +203,7 @@ function HUDScreen.maximize()
         task.spawn(callback)
     end
 
-    ScreenUtil.inRight(screenGui.Left)
+    ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
 end
 
@@ -237,7 +212,7 @@ function HUDScreen.minimize()
         task.spawn(callback)
     end
 
-    ScreenUtil.outLeft(screenGui.Left)
+    ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
 end
 
