@@ -89,9 +89,11 @@ ZoneConstants.Cosmetics = {
         AnimatedFlag = "AnimatedFlag",
         WaterAnimator = "WaterAnimator",
         DiscoBall = "DiscoBall",
+        DanceFloor = "DanceFloor",
     },
     Disco = {
         ColorPartName = "ColorPart",
+        HitboxPartName = "Hitbox",
     },
 }
 

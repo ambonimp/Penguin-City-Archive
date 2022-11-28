@@ -9,6 +9,7 @@ local Maid = require(Paths.Packages.maid)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 
 local DISCO_COLORS = {
     Color3.fromRGB(13, 105, 172),
@@ -25,7 +26,7 @@ local DISCO_BALL_ROTATION_PER_SECOND = 45
 
 local colorParts: { [BasePart]: number } = {} -- Values are index offset
 
-function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
+function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model)
     -- ColorParts
     do
         -- Cache Cleanup
@@ -75,6 +76,40 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Mode
                     end
                 end
             end))
+        end
+    end
+
+    -- Dance Floor dancing
+    do
+        -- Setup detection for being on dancefloor + triggering dancing
+        local danceFloorHitbox = PlayersHitbox.new()
+        maid:GiveTask(danceFloorHitbox)
+
+        danceFloorHitbox.PlayerEntered:Connect(function(player)
+            -- RETURN: Not local player
+            if player ~= Players.LocalPlayer then
+                return
+            end
+
+            print("dance")
+        end)
+        danceFloorHitbox.PlayerLeft:Connect(function(player)
+            -- RETURN: Not local player
+            if player ~= Players.LocalPlayer then
+                return
+            end
+
+            print("stop dance")
+        end)
+
+        -- Iterate DanceFloors
+        local danceFloors: { Model } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.DanceFloor)
+        for _, danceFloor in pairs(danceFloors) do
+            if danceFloor:IsDescendantOf(zoneModel) then
+                -- DanceFloor Detection
+                local hitboxPart: BasePart = danceFloor.Hitbox
+                danceFloorHitbox:AddPart(hitboxPart)
+            end
         end
     end
 end

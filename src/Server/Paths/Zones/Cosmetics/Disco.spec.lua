@@ -31,5 +31,20 @@ return function()
         end
     end
 
+    -- Verify Structure for tagged DanceFloors
+    local danceFloors: { Model } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.DanceFloor)
+    for _, danceFloor in pairs(danceFloors) do
+        -- Must be a Model
+        if not danceFloor:IsA("Model") then
+            table.insert(issues, ("Tagged DanceFloor %s is not a Model!"):format(danceFloor:GetFullName()))
+        end
+
+        -- Must have a hitbox
+        local hitboxPart = danceFloor:FindFirstChild("Hitbox")
+        if not (hitboxPart and hitboxPart:IsA("BasePart")) then
+            table.insert(issues, ("Tagged DanceFloor %s has no Hitbox BasePart"):format(danceFloor:GetFullName()))
+        end
+    end
+
     return issues
 end
