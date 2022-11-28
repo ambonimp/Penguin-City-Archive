@@ -42,7 +42,7 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
             -- Get ColorParts
             local discoBallColorParts: { BasePart } = {}
             for _, descendant in pairs(discoBall:GetDescendants()) do
-                if descendant.Name == ZoneConstants.Cosmetics.Disco.ColorPartName then
+                if string.find(descendant.Name, ZoneConstants.Cosmetics.Disco.ColorPartName) then
                     table.insert(discoBallColorParts, descendant)
                 end
             end

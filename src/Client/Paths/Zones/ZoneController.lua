@@ -91,7 +91,6 @@ function ZoneController.Start()
             if descendant:IsA("ModuleScript") then
                 local onZoneUpdateCallback = require(descendant).onZoneUpdate
                 if onZoneUpdateCallback then
-                    print("onZoneUpdateCallback", descendant)
                     onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
                 end
             end
