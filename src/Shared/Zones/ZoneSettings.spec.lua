@@ -27,12 +27,14 @@ return function()
 
     -- Have good Sounds
     do
-        -- Music
         for zoneType, zoneSettingsByZoneIds in pairs(ZoneSettings) do
             for zoneId, zoneSettings in pairs(zoneSettingsByZoneIds) do
+                -- Music
                 if zoneSettings.Music and not Sound.hasSound(zoneSettings.Music) then
                     table.insert(issues, ("ZoneSettings.%s.%s %q is a bad Music name"):format(zoneType, zoneId, zoneSettings.Music))
                 end
+
+                -- Ambience
                 if zoneSettings.Ambience then
                     for _, ambienceName in pairs(zoneSettings.Ambience) do
                         if not Sound.hasSound(ambienceName) then
@@ -45,9 +47,6 @@ return function()
                 end
             end
         end
-
-        -- Ambience
-        --todo
     end
 
     return issues
