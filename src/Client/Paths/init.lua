@@ -50,7 +50,6 @@ task.delay(0, function()
         require(client.PlayerMenuController),
         require(client.Rewards.RewardsController),
         require(client.Pets.PetController),
-        require(client.Zones.Cosmetics.Disco.DiscoController),
 
         -- UnitTest
         require(client.UnitTestingController),

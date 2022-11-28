@@ -3,7 +3,7 @@
 
     Handles placement, movement, and stretching off to the horizon
 ]]
-local ZoneWater = {}
+local WaterAnimator = {}
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -85,8 +85,8 @@ local function createWaterPart(name: string, useMeshPart: boolean, keepSurfaceAp
     return part
 end
 
-function ZoneWater.new(xzPosition: Vector2, yTop: number)
-    local zoneWater = {}
+function WaterAnimator.new(xzPosition: Vector2, yTop: number)
+    local WaterAnimator = {}
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -191,7 +191,7 @@ function ZoneWater.new(xzPosition: Vector2, yTop: number)
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function zoneWater:Destroy()
+    function WaterAnimator:Destroy()
         if isDestroyed then
             return
         end
@@ -206,34 +206,34 @@ function ZoneWater.new(xzPosition: Vector2, yTop: number)
 
     setupWaveMovement()
 
-    return zoneWater
+    return WaterAnimator
 end
 
 --[[
     If we find a water structure in `zoneModel`, sets it up as a zone water!
 ]]
-function ZoneWater.scanZoneModel(zoneModel: Model)
-    local zoneWaterModel: Model
-    local taggedInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.ZoneWater)
+function WaterAnimator.scanZoneModel(zoneModel: Model)
+    local WaterAnimatorModel: Model
+    local taggedInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.WaterAnimator)
     for _, taggedInstance in pairs(taggedInstances) do
         if taggedInstance:IsDescendantOf(zoneModel) then
-            zoneWaterModel = taggedInstance
+            WaterAnimatorModel = taggedInstance
             break
         end
     end
 
-    if zoneWaterModel then
+    if WaterAnimatorModel then
         -- Read Size/Position
-        local cframe, size = zoneWaterModel:GetBoundingBox()
+        local cframe, size = WaterAnimatorModel:GetBoundingBox()
         local yTop = cframe.Position.Y + size.Y / 2
         local xzPosition = Vector2.new(cframe.Position.X, cframe.Position.Z)
 
         -- Hide
-        ModelUtil.hide(zoneWaterModel)
+        ModelUtil.hide(WaterAnimatorModel)
 
-        -- Create ZoneWater
-        return ZoneWater.new(xzPosition, yTop)
+        -- Create WaterAnimator
+        return WaterAnimator.new(xzPosition, yTop)
     end
 end
 
-return ZoneWater
+return WaterAnimator

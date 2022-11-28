@@ -17,7 +17,6 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local ZoneWater = require(Paths.Client.Zones.Cosmetics.Water.ZoneWater)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 
@@ -34,6 +33,7 @@ local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
+local onZoneUpdateMaid = Maid.new()
 
 ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
@@ -77,6 +77,27 @@ function ZoneController.Start()
             end
         end
     end)
+
+    --[[
+        onZoneUpdate Cosmetics
+
+        Every time we enter a zone, any Cosmetics module that has a `.onZoneUpdate(maid)` method is invoked.
+    ]]
+    local function onZoneUpdate()
+        onZoneUpdateMaid:Cleanup()
+
+        for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
+            if descendant:IsA("ModuleScript") then
+                local onZoneUpdateCallback = require(descendant).onZoneUpdate
+                if onZoneUpdateCallback then
+                    onZoneUpdateCallback(onZoneUpdateMaid, ZoneUtil.getZoneModel(currentZone))
+                end
+            end
+        end
+    end
+
+    ZoneController.ZoneChanged:Connect(onZoneUpdate)
+    onZoneUpdate()
 end
 
 -------------------------------------------------------------------------------
@@ -239,11 +260,6 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     end)
 
     setupTeleporters()
-
-    local zoneWater = ZoneWater.scanZoneModel(ZoneUtil.getZoneModel(currentZone))
-    if zoneWater then
-        zoneMaid:GiveTask(zoneWater)
-    end
 
     -- Inform Client
     ZoneController.ZoneChanged:Fire(oldZone, currentZone)

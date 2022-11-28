@@ -13,7 +13,6 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local windMaid = Maid.new()
-local zoneUpdateMaid = Maid.new()
 
 -------------------------------------------------------------------------------
 -- Wind Emitter
@@ -36,7 +35,7 @@ end
 -- Zones
 -------------------------------------------------------------------------------
 
-local function createAnimatedFlag(markerFlag: BasePart)
+local function createAnimatedFlag(markerFlag: BasePart, maid: typeof(Maid.new()))
     -- Overlay an AnimatedFlag Model over our markerFlag
     local markerAttachment: Attachment = markerFlag:FindFirstChildOfClass("Attachment")
 
@@ -65,27 +64,20 @@ local function createAnimatedFlag(markerFlag: BasePart)
     flagPart.Color = markerFlag.Color
     markerFlag.Transparency = 1
 
-    zoneUpdateMaid:GiveTask(animatedFlag)
+    maid:GiveTask(animatedFlag)
 
     -- Play Animation
     local idleTrack = animator:LoadAnimation(idleAnimation)
     idleTrack:Play()
-    zoneUpdateMaid:GiveTask(idleTrack)
+    maid:GiveTask(idleTrack)
 end
 
-local function onZoneUpdate()
-    zoneUpdateMaid:Cleanup()
-
+function ZoneController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
     -- Flags
     local animatedFlags: { BasePart } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.AnimatedFlag)
     for _, animatedFlag in pairs(animatedFlags) do
-        task.spawn(createAnimatedFlag, animatedFlag)
+        task.spawn(createAnimatedFlag, animatedFlag, maid)
     end
 end
-
-ZoneController.ZoneChanged:Connect(function(_fromZone: ZoneConstants.Zone, _toZone: ZoneConstants.Zone)
-    onZoneUpdate()
-end)
-onZoneUpdate()
 
 return WindController
