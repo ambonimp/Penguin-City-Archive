@@ -18,7 +18,7 @@ return function()
     -- ZoneWater
     do
         -- Must only be models
-        local zoneWaterInstances = CollectionService:GetTagged(ZoneConstants.CollectionTagZoneWater)
+        local zoneWaterInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.ZoneWater)
         for _, zoneWaterInstance in pairs(zoneWaterInstances) do
             if not zoneWaterInstance:IsA("Model") then
                 table.insert(issues, (("ZoneWater Instance %s must be a Model"):format(zoneWaterInstance:GetFullName())))

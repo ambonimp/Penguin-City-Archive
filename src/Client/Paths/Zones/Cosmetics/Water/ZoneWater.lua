@@ -214,7 +214,7 @@ end
 ]]
 function ZoneWater.scanZoneModel(zoneModel: Model)
     local zoneWaterModel: Model
-    local taggedInstances = CollectionService:GetTagged(ZoneConstants.CollectionTagZoneWater)
+    local taggedInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.ZoneWater)
     for _, taggedInstance in pairs(taggedInstances) do
         if taggedInstance:IsDescendantOf(zoneModel) then
             zoneWaterModel = taggedInstance

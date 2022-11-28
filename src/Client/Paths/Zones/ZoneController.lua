@@ -17,9 +17,9 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local ZoneWater = require(Paths.Client.Zones.ZoneWater)
+local ZoneWater = require(Paths.Client.Zones.Cosmetics.Water.ZoneWater)
 local PropertyStack = require(Paths.Shared.PropertyStack)
-local WindController = require(Paths.Client.Wind.WindController)
+local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -40,6 +40,7 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
+    WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
 end
 
 function ZoneController.Start()

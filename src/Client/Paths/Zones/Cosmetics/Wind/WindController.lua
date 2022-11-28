@@ -4,13 +4,37 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local WindEmitter = require(Paths.Client.Wind.WindEmitter)
+local WindEmitter = require(Paths.Client.Zones.Cosmetics.Wind.WindEmitter)
 local Maid = require(Paths.Packages.maid)
 local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local windMaid = Maid.new()
+local zoneUpdateMaid = Maid.new()
+
+-------------------------------------------------------------------------------
+-- Wind Emitter
+-------------------------------------------------------------------------------
+
+function WindController.startWind()
+    windMaid:Cleanup()
+
+    -- Wind Emitter
+    local windEmitter = WindEmitter.new()
+    windEmitter:Start()
+    windMaid:GiveTask(windEmitter)
+end
+
+function WindController.stopWind()
+    windMaid:Cleanup()
+end
+
+-------------------------------------------------------------------------------
+-- Zones
+-------------------------------------------------------------------------------
 
 local function createAnimatedFlag(markerFlag: BasePart)
     -- Overlay an AnimatedFlag Model over our markerFlag
@@ -41,31 +65,27 @@ local function createAnimatedFlag(markerFlag: BasePart)
     flagPart.Color = markerFlag.Color
     markerFlag.Transparency = 1
 
-    windMaid:GiveTask(animatedFlag)
+    zoneUpdateMaid:GiveTask(animatedFlag)
 
     -- Play Animation
     local idleTrack = animator:LoadAnimation(idleAnimation)
     idleTrack:Play()
-    windMaid:GiveTask(idleTrack)
+    zoneUpdateMaid:GiveTask(idleTrack)
 end
 
-function WindController.startWind()
-    windMaid:Cleanup()
-
-    -- Wind Emitter
-    local windEmitter = WindEmitter.new()
-    windEmitter:Start()
-    windMaid:GiveTask(windEmitter)
+local function onZoneUpdate()
+    zoneUpdateMaid:Cleanup()
 
     -- Flags
-    local animatedFlags: { BasePart } = CollectionService:GetTagged("AnimatedFlag")
+    local animatedFlags: { BasePart } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.AnimatedFlag)
     for _, animatedFlag in pairs(animatedFlags) do
         task.spawn(createAnimatedFlag, animatedFlag)
     end
 end
 
-function WindController.stopWind()
-    windMaid:Cleanup()
-end
+ZoneController.ZoneChanged:Connect(function(_fromZone: ZoneConstants.Zone, _toZone: ZoneConstants.Zone)
+    onZoneUpdate()
+end)
+onZoneUpdate()
 
 return WindController
