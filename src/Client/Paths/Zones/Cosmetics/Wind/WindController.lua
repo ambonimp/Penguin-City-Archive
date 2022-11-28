@@ -10,7 +10,6 @@ local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
-local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local windMaid = Maid.new()
 
@@ -72,7 +71,7 @@ local function createAnimatedFlag(markerFlag: BasePart, maid: typeof(Maid.new())
     maid:GiveTask(idleTrack)
 end
 
-function ZoneController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
+function WindController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
     -- Flags
     local animatedFlags: { BasePart } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.AnimatedFlag)
     for _, animatedFlag in pairs(animatedFlags) do

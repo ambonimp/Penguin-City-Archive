@@ -86,11 +86,13 @@ function ZoneController.Start()
     local function onZoneUpdate()
         onZoneUpdateMaid:Cleanup()
 
+        local zoneModel = ZoneUtil.getZoneModel(currentZone)
         for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
             if descendant:IsA("ModuleScript") then
                 local onZoneUpdateCallback = require(descendant).onZoneUpdate
                 if onZoneUpdateCallback then
-                    onZoneUpdateCallback(onZoneUpdateMaid, ZoneUtil.getZoneModel(currentZone))
+                    print("onZoneUpdateCallback", descendant)
+                    onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
                 end
             end
         end

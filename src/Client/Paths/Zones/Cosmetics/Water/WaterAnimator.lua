@@ -86,7 +86,7 @@ local function createWaterPart(name: string, useMeshPart: boolean, keepSurfaceAp
 end
 
 function WaterAnimator.new(xzPosition: Vector2, yTop: number)
-    local WaterAnimator = {}
+    local waterAnimator = {}
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -191,7 +191,7 @@ function WaterAnimator.new(xzPosition: Vector2, yTop: number)
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function WaterAnimator:Destroy()
+    function waterAnimator:Destroy()
         if isDestroyed then
             return
         end
@@ -206,30 +206,30 @@ function WaterAnimator.new(xzPosition: Vector2, yTop: number)
 
     setupWaveMovement()
 
-    return WaterAnimator
+    return waterAnimator
 end
 
 --[[
     If we find a water structure in `zoneModel`, sets it up as a zone water!
 ]]
 function WaterAnimator.scanZoneModel(zoneModel: Model)
-    local WaterAnimatorModel: Model
+    local waterAnimatorModel: Model
     local taggedInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.WaterAnimator)
     for _, taggedInstance in pairs(taggedInstances) do
         if taggedInstance:IsDescendantOf(zoneModel) then
-            WaterAnimatorModel = taggedInstance
+            waterAnimatorModel = taggedInstance
             break
         end
     end
 
-    if WaterAnimatorModel then
+    if waterAnimatorModel then
         -- Read Size/Position
-        local cframe, size = WaterAnimatorModel:GetBoundingBox()
+        local cframe, size = waterAnimatorModel:GetBoundingBox()
         local yTop = cframe.Position.Y + size.Y / 2
         local xzPosition = Vector2.new(cframe.Position.X, cframe.Position.Z)
 
         -- Hide
-        ModelUtil.hide(WaterAnimatorModel)
+        ModelUtil.hide(waterAnimatorModel)
 
         -- Create WaterAnimator
         return WaterAnimator.new(xzPosition, yTop)
