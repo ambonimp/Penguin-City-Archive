@@ -13,6 +13,10 @@ local Sound = require(Paths.Shared.Sound)
 
 local notificationIconsByGuiObject: { [GuiObject]: typeof(NotificationIcon.new()) } = {}
 
+-------------------------------------------------------------------------------
+-- UI State Wrappers
+-------------------------------------------------------------------------------
+
 -- Pulls up the results screen via a uiStateMachine push
 function UIActions.displayResults(
     logoId: string,
@@ -50,6 +54,13 @@ function UIActions.prompt(
             task.wait()
         end
     end)
+end
+
+function UIActions.showStampInfo(stampId: string, progress: number?)
+    UIController.getStateMachine():Push(UIConstants.States.StampInfo, {
+        StampId = stampId,
+        Progress = progress,
+    })
 end
 
 -------------------------------------------------------------------------------

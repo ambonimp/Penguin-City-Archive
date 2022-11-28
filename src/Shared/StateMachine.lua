@@ -4,9 +4,6 @@
 local StateMachine = {}
 StateMachine.__index = StateMachine
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
-
 type Operation = string
 
 export type StateMachine = typeof(StateMachine.new({}, ""))

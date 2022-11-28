@@ -26,7 +26,7 @@ local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local StampController = require(Paths.Client.StampController)
-local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
+local UIActions = require(Paths.Client.UI.UIActions)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Remotes = require(Paths.Shared.Remotes)
 local Widget = require(Paths.Client.UI.Elements.Widget)
@@ -193,7 +193,7 @@ function readStampData()
                     })
                     stampButton:Mount(holder)
                     stampButton.Pressed:Connect(function()
-                        StampInfoScreen.open(stampId, progress)
+                        UIActions.showStampInfo(stampId, progress)
                     end)
 
                     readStampDataMaid:GiveTask(stampButton)
@@ -393,7 +393,7 @@ function StampBookScreen.openCover()
     cover.Visible = true
     inside.Visible = false
     viewMaid:Cleanup()
-    StampInfoScreen.close()
+    UIController.getStateMachine():Remove(UIConstants.States.StampInfo)
 
     -- Buttons
     do
@@ -543,7 +543,7 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
                     Sound.play("Error")
                 end
             else
-                StampInfoScreen.open(stamp.Id, state.Progress)
+                UIActions.showStampInfo(stamp.Id, state.Progress)
             end
         end)
 

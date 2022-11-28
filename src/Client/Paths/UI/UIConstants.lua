@@ -21,6 +21,7 @@ UIConstants.States = {
     PetEditor = "PetEditor",
     PetEggHatching = "PetEggHatching",
     Shop = "Shop",
+    StampInfo = "StampInfo",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -34,7 +35,7 @@ UIConstants.PseudoStates = {
 }
 
 -- If any states in here are on the top of the stack, the next visible state below will *also* be treated as being on top of the stack
-UIConstants.InvisibleStates = {}
+UIConstants.InvisibleStates = { UIConstants.States.StampInfo }
 
 UIConstants.Keybinds = {
     StateCloseCallback = {
