@@ -22,7 +22,7 @@ local DISCO_COLORS = {
     Color3.fromRGB(167, 114, 47),
     Color3.fromRGB(167, 0, 0),
 }
-local FLASH_NEW_DISCO_COLOR_EVERY = 1
+local FLASH_NEW_DISCO_COLOR_EVERY = 1.5
 local FLASH_TWEEN_INFO = TweenInfo.new(0.05)
 local DISCO_BALL_ROTATION_PER_SECOND = 45
 
@@ -49,6 +49,23 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
 
             -- Flash
             for i, colorPart in pairs(discoBallColorParts) do
+                colorParts[colorPart] = i
+            end
+        end
+
+        -- Dance Floors
+        local danceFloors: { Model } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.DanceFloor)
+        for _, danceFloor in pairs(danceFloors) do
+            -- Get ColorParts
+            local danceFloorColorParts: { BasePart } = {}
+            for _, descendant in pairs(danceFloor:GetDescendants()) do
+                if string.find(descendant.Name, ZoneConstants.Cosmetics.Disco.ColorPartName) then
+                    table.insert(danceFloorColorParts, descendant)
+                end
+            end
+
+            -- Flash
+            for i, colorPart in pairs(danceFloorColorParts) do
                 colorParts[colorPart] = i
             end
         end
