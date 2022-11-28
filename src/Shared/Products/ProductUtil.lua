@@ -261,6 +261,25 @@ function ProductUtil.isPetEggProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- Coins
+-------------------------------------------------------------------------------
+
+function ProductUtil.getCoinProductData(product: Products.Product)
+    -- ERROR: Not a Coin product
+    if not ProductUtil.isCoinProduct(product) then
+        error("Passed a non-Coin product")
+    end
+
+    return {
+        AddCoins = product.Metadata.AddCoins :: number,
+    }
+end
+
+function ProductUtil.isCoinProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.Coin
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 
