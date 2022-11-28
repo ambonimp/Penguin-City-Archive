@@ -5,10 +5,6 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
 
---[[
-    data:
-    - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
-]]
 function TitledWindow.new(icon: string, title: string, subtext: string?)
     local titledWindow = UIElement.new()
     local maid = titledWindow:GetMaid()

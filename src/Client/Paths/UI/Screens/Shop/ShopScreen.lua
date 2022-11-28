@@ -9,13 +9,6 @@ local Maid = require(Paths.Packages.maid)
 local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
-local InventoryProductWindow = require(Paths.Client.UI.Screens.Inventory.InventoryProductWindow)
-local InventoryPetsWindow = require(Paths.Client.UI.Screens.Inventory.InventoryPetsWindow)
-local ProductConstants = require(Paths.Shared.Products.ProductConstants)
-local Products = require(Paths.Shared.Products.Products)
-local VehicleController = require(Paths.Client.VehicleController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local PetController = require(Paths.Client.Pets.PetController)
 local CoinsWindow = require(Paths.Client.UI.Screens.Shop.CoinsWindow)
 
 local screenGui: ScreenGui

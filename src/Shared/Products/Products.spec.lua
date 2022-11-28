@@ -107,7 +107,7 @@ return function()
     end
 
     local function testCoinProduct(product: Products.Product)
-        local productName = ("%s.%s"):format("PetEgg", product.Id)
+        local productName = ("%s.%s"):format("Coin", product.Id)
         local function addIssue(issue: string)
             table.insert(issues, ("[%s] %s"):format(productName, issue))
         end
@@ -163,6 +163,10 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.PetEgg then
                 testPetEggProduct(product)
+            end
+
+            if productTypeKey == ProductConstants.ProductType.Coin then
+                testCoinProduct(product)
             end
         end
     end
