@@ -16,10 +16,16 @@ local Products = require(Paths.Shared.Products.Products)
 local VehicleController = require(Paths.Client.VehicleController)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local PetController = require(Paths.Client.Pets.PetController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
 local tabbedWindow: typeof(TabbedWindow.new())
+
+local petShopZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, "PetShop")
+local hoverboardShopZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, "HoverboardShop")
 
 function InventoryScreen.Init()
     -- Setup Tabbed Window
@@ -47,7 +53,8 @@ function InventoryScreen.Init()
             local inventoryWindow = InventoryProductWindow.new(Images.Icons.Hoverboard, "Vehicles", {
                 ProductType = ProductConstants.ProductType.Vehicle,
                 AddCallback = function()
-                    warn("TODO Teleport to hoverboard shop")
+                    UIController.getStateMachine():Remove(UIConstants.States.Inventory)
+                    ZoneController.teleportToRoomRequest(hoverboardShopZone)
                 end,
                 Equipping = {
                     Equip = function(product: Products.Product)
@@ -66,47 +73,13 @@ function InventoryScreen.Init()
             inventoryWindow:Mount(parent)
         end)
 
-        -- Clothing (--!! TEMP)
-        tabbedWindow:AddTab("Clothes", Images.Icons.Shirt)
-        tabbedWindow:SetWindowConstructor("Clothes", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Shirt, "Clothes", {
-                ProductType = ProductConstants.ProductType.CharacterItem,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
-        -- Housing (--!! TEMP)
-        tabbedWindow:AddTab("Housing", Images.Icons.Igloo)
-        tabbedWindow:SetWindowConstructor("Housing", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Igloo, "Housing", {
-                ProductType = ProductConstants.ProductType.HouseObject,
-                ShowTotals = true,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
-        -- StampBook (--!! TEMP)
-        tabbedWindow:AddTab("StampBook", Images.Icons.Stamp)
-        tabbedWindow:SetWindowConstructor("StampBook", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Stamp, "Stamp Book", {
-                ProductType = ProductConstants.ProductType.StampBook,
-                ShowTotals = true,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
         -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:SetWindowConstructor("Pets", function(parent, maid)
             local inventoryWindow = InventoryPetsWindow.new(Images.Icons.Pets, "Pets", {
                 AddCallback = function()
-                    warn("TODO Teleport to pet shop")
+                    UIController.getStateMachine():Remove(UIConstants.States.Inventory)
+                    ZoneController.teleportToRoomRequest(petShopZone)
                 end,
             })
 
@@ -115,9 +88,9 @@ function InventoryScreen.Init()
         end)
 
         --TODO
-        tabbedWindow:AddTab("Food", Images.Icons.Food)
-        tabbedWindow:AddTab("Toys", Images.Icons.Toy)
-        tabbedWindow:AddTab("Roleplay", Images.Icons.Roleplay)
+        -- tabbedWindow:AddTab("Food", Images.Icons.Food)
+        -- tabbedWindow:AddTab("Toys", Images.Icons.Toy)
+        -- tabbedWindow:AddTab("Roleplay", Images.Icons.Roleplay)
     end
 
     -- Register UIState

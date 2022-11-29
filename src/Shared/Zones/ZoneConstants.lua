@@ -87,7 +87,7 @@ ZoneConstants.DoDebug = false
 ZoneConstants.Cosmetics = {
     Tags = {
         AnimatedFlag = "AnimatedFlag",
-        WaterAnimator = "WaterAnimator",
+        WaterAnimator = "AnimateWater",
         DiscoBall = "DiscoBall",
         DanceFloor = "DanceFloor",
     },
