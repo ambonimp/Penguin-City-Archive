@@ -17,24 +17,25 @@ CharacterItemService.ItemEquipped:Connect(function(player: Player, _categoryName
     StampService.addStamp(player, clothingEquipStamp.Id)
 end)
 
--- clothing_twins
-local clothingTwinsStamp = StampUtil.getStampFromId("clothing_twins")
-ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
-    -- RETURN: Not a room
-    if toZone.ZoneType ~= ZoneConstants.ZoneType.Room then
-        return
-    end
+--!! DISABLED for now
+-- -- clothing_twins
+-- local clothingTwinsStamp = StampUtil.getStampFromId("clothing_twins")
+-- ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+--     -- RETURN: Not a room
+--     if toZone.ZoneType ~= ZoneConstants.ZoneType.Room then
+--         return
+--     end
 
-    local playersInToZone = ZoneService.getPlayersInZone(toZone)
-    for _, somePlayer in pairs(playersInToZone) do
-        if somePlayer ~= player then
-            if CharacterItemService.doPlayersHaveMatchingCharacterAppearance(player, somePlayer) then
-                StampService.addStamp(player, clothingTwinsStamp.Id)
-                StampService.addStamp(somePlayer, clothingTwinsStamp.Id)
-            end
-        end
-    end
-end)
+--     local playersInToZone = ZoneService.getPlayersInZone(toZone)
+--     for _, somePlayer in pairs(playersInToZone) do
+--         if somePlayer ~= player then
+--             if CharacterItemService.doPlayersHaveMatchingCharacterAppearance(player, somePlayer) then
+--                 StampService.addStamp(player, clothingTwinsStamp.Id)
+--                 StampService.addStamp(somePlayer, clothingTwinsStamp.Id)
+--             end
+--         end
+--     end
+-- end)
 
 -- clothing_items25, clothing_items100
 local clothingItems25Stamp = StampUtil.getStampFromId("clothing_items25")
