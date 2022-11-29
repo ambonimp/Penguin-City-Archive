@@ -3,7 +3,6 @@ local Wind = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
-local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)

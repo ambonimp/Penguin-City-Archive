@@ -21,10 +21,10 @@ function MinigameQueue.new(minigameName: string, station: Model?)
     local sessionConfig =
         TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(station))
 
-    local participants = {}
+    local participants: { Player } = {}
     local minigameStartThread: thread?
 
-    local statusBoard = QueueStationService.resetStatusBoard(station, sessionConfig)
+    local statusBoard: BasePart? = if station then QueueStationService.resetStatusBoard(station, sessionConfig) else nil
     local countdown: number?
 
     -------------------------------------------------------------------------------
@@ -39,12 +39,12 @@ function MinigameQueue.new(minigameName: string, station: Model?)
 
     local function onParticipantRemoved(player: Player)
         -- RETURN: Player isn't in the queue
-        if not participants[player] then
+        if not table.find(participants, player) then
             return
         end
 
         table.remove(participants, table.find(participants, player))
-        if #participants < sessionConfig.MinParticipants then
+        if #participants == sessionConfig.MinParticipants and minigameStartThread then
             task.cancel(minigameStartThread)
             minigameStartThread = nil
             countdown = nil
@@ -92,13 +92,20 @@ function MinigameQueue.new(minigameName: string, station: Model?)
         return janitor
     end
 
+    function queue:GetStation(): Model
+        return station
+    end
+
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
     janitor:Add(Players.PlayerRemoving:Connect(onParticipantRemoved))
     janitor:Add(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
     janitor:Add(function()
-        Remotes.fireClients(participants, "MinigameQueueExited")
+        for _, participant in pairs(participants) do
+            onParticipantRemoved(participant)
+        end
+
         if statusBoard then
             QueueStationService.resetStatusBoard(station, sessionConfig)
         end

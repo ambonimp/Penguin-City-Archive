@@ -50,6 +50,12 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
 
+    minigameJanitor:Add(function()
+        if music then
+            music:Destroy()
+        end
+    end)
+
     SharedMinigameScreen.openStartMenu()
 end)
 
@@ -89,7 +95,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         startingLine.Transparency = INACTIVE_STARTING_LINE_TRANSPARENCY
     end)
 
-    music = Sound.play(MINIGAME_NAME, false)
+    music = Sound.play(MINIGAME_NAME, true)
 
     -- Goo
     raceJanitor:Add(DrivingController.setup())
@@ -108,6 +114,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     local isMultiplayer = MinigameController.isMultiplayer()
 
     Sound.fadeOut(music)
+    music = nil
 
     task.wait(AWARD_SEQUENCE_DELAY)
 

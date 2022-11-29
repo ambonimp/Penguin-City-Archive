@@ -18,7 +18,7 @@ function DescendantLooper.add(
     checker: (descendant: Instance) -> boolean,
     callback: (descendant: Instance) -> nil,
     instances: { Instance },
-    ignoreAdded: true?
+    ignoreAdded: boolean
 )
     local maid = Maid.new()
     local count = 0

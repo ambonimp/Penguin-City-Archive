@@ -22,8 +22,8 @@ end
 function MinigameUtil.getSessionConfigFromQueueStation(queueStation: Model): table?
     if queueStation then
         return {
-            MinParticipants = queueStation:GetAttribute("MinParticipant"),
-            MaxParticipants = queueStation:GetAttribute("MaxParticipant"),
+            MinParticipants = queueStation:GetAttribute("MinParticipants"),
+            MaxParticipants = queueStation:GetAttribute("MaxParticipants"),
         }
     end
 end

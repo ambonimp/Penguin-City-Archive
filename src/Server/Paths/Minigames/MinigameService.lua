@@ -12,7 +12,7 @@ local Remotes = require(Paths.Shared.Remotes)
 
 local sessionClasses = {}
 
-local activeQueues: { [string]: typeof(MinigameQueue.new("")) } = {}
+local activeQueues: { [string]: { typeof(MinigameQueue.new("")) } } = {}
 local activeSessions: { [string]: { [string]: typeof(MinigameSession.new("", "", {}, true)) } } = {}
 local sessionIdCounter = 0
 
@@ -23,7 +23,7 @@ local function createSession(minigame: string, participants: { Player }, isMulti
     local id = tostring(sessionIdCounter)
     sessionIdCounter += 1
 
-    local session = sessionClasses[minigame].new(id, participants, isMultiplayer, queueStation)
+    local session = sessionClasses[minigame].new(minigame, id, participants, isMultiplayer, queueStation)
     activeSessions[minigame][id] = session
     session:GetJanitor():Add(function()
         activeSessions[minigame][id] = nil
@@ -41,9 +41,11 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
 
     -- RETURN: Player is already in a queue
     if multiplayer then
-        for _, queue in pairs(activeQueues) do
-            if queue:IsParticipant(player) then
-                return
+        for _, queues in pairs(activeQueues) do
+            for _, queue in pairs(queues) do
+                if queue:IsParticipant(player) then
+                    return
+                end
             end
         end
     end
@@ -67,18 +69,30 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         end
 
         if #potentialactiveSessions == 0 then
-            local queue = activeQueues[minigame]
-            if queue then
-                queue:AddParticipant(player)
+            local queueJoining
+            local potentialQueues = activeQueues[minigame]
+
+            if queueStation then
+                for _, queue in pairs(potentialQueues) do
+                    if queue:GetStation() == queueStation then
+                        queueJoining = queue
+                    end
+                end
             else
-                queue = MinigameQueue.new(minigame, queueStation)
-                queue:GetJanitor():Add(function()
-                    activeQueues[minigame] = nil
-                    createSession(minigame, queue:GetParticipants(), true, queueStation)
+                queueJoining = potentialQueues[1]
+            end
+
+            if queueJoining then
+                queueJoining:AddParticipant(player)
+            else
+                queueJoining = MinigameQueue.new(minigame, queueStation)
+                queueJoining:GetJanitor():Add(function()
+                    table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
+                    createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
                 end)
 
-                activeQueues[minigame] = queue
-                queue:AddParticipant(player)
+                table.insert(potentialQueues, queueJoining)
+                queueJoining:AddParticipant(player)
             end
         else
             -- TODO: Prioritize minigames the player has friends in
@@ -105,6 +119,7 @@ Remotes.bindFunctions({
 
 for minigame in pairs(MinigameConstants.Minigames) do
     activeSessions[minigame] = {}
+    activeQueues[minigame] = {}
     sessionClasses[minigame] = require(Paths.Server.Minigames[minigame][minigame .. "Session"])
 end
 

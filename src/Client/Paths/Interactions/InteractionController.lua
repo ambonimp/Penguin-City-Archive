@@ -235,6 +235,21 @@ function InteractionController.detachAllInteractions(instance: PVInstance)
     end
 end
 
+function InteractionController.getAllPromptsOfType(interaction: string): { ProximityPrompt }
+    -- ERROR: Interaction hasn't been registered
+    if not interactions[interaction] then
+        error(("Attempt to get proximity prompts of an unregistered interaction"):format(interaction))
+    end
+
+    local proximityPrompts = {}
+
+    for _, instance in pairs(CollectionService:GetTagged(interaction)) do
+        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+    end
+
+    return proximityPrompts
+end
+
 function InteractionController.Init()
     -- Require handlers
     for _, moduleScript in ipairs(Paths.Client.Interactions.Handlers:GetDescendants()) do

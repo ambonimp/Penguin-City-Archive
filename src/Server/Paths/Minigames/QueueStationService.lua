@@ -15,7 +15,7 @@ function QueueStationService.updateStatus(
 )
     local surfaceGui = statusBoard:FindFirstChild(statusBoardTemplate.Name)
     local countdownLabel: TextLabel = surfaceGui.Info.Countdown
-    local occupancyLabel: TextLabel = surfaceGui.Info.PlayerCount
+    local occupancyLabel: TextLabel = surfaceGui.Info.Occupancy
 
     if participants >= sessionConfig.MinParticipants then
         countdownLabel.Text = ("Minigame starts in: %d"):format(countdown)
@@ -35,10 +35,11 @@ function QueueStationService.resetStatusBoard(station: Model, sessionConfig: Min
     local surfaceGui = statusBoard:FindFirstChild(statusBoardTemplate.Name)
     if not surfaceGui then
         surfaceGui = statusBoardTemplate:Clone()
+        surfaceGui.Parent = statusBoard
     end
 
     surfaceGui.Info.Countdown.Text = ""
-    surfaceGui.Info.Occupancy.Text = "0/" .. if not sessionConfig.Multiplayer then 1 else sessionConfig.MaxParticipants
+    surfaceGui.Info.Occupancy.Text = "0/" .. if not station:GetAttribute("Multiplayer") then 1 else sessionConfig.MaxParticipants
 
     return statusBoard
 end

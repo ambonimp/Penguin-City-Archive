@@ -1,8 +1,8 @@
 local ModelUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 local BasePartUtil = require(ReplicatedStorage.Shared.Utils.BasePartUtil)
+local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 
 local SCALE_MODEL_RELATIVE_CLASSNAMES = { "Attachment", "Bone" }
 local SCALE_MODEL_WORLD_CLASSNAMES = { "BasePart" }
