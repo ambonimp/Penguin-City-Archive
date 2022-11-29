@@ -66,41 +66,6 @@ function InventoryScreen.Init()
             inventoryWindow:Mount(parent)
         end)
 
-        -- Clothing (--!! TEMP)
-        tabbedWindow:AddTab("Clothes", Images.Icons.Shirt)
-        tabbedWindow:SetWindowConstructor("Clothes", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Shirt, "Clothes", {
-                ProductType = ProductConstants.ProductType.CharacterItem,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
-        -- Housing (--!! TEMP)
-        tabbedWindow:AddTab("Housing", Images.Icons.Igloo)
-        tabbedWindow:SetWindowConstructor("Housing", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Igloo, "Housing", {
-                ProductType = ProductConstants.ProductType.HouseObject,
-                ShowTotals = true,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
-        -- StampBook (--!! TEMP)
-        tabbedWindow:AddTab("StampBook", Images.Icons.Stamp)
-        tabbedWindow:SetWindowConstructor("StampBook", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Stamp, "Stamp Book", {
-                ProductType = ProductConstants.ProductType.StampBook,
-                ShowTotals = true,
-            })
-
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
-
         -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:SetWindowConstructor("Pets", function(parent, maid)
@@ -115,9 +80,9 @@ function InventoryScreen.Init()
         end)
 
         --TODO
-        tabbedWindow:AddTab("Food", Images.Icons.Food)
-        tabbedWindow:AddTab("Toys", Images.Icons.Toy)
-        tabbedWindow:AddTab("Roleplay", Images.Icons.Roleplay)
+        -- tabbedWindow:AddTab("Food", Images.Icons.Food)
+        -- tabbedWindow:AddTab("Toys", Images.Icons.Toy)
+        -- tabbedWindow:AddTab("Roleplay", Images.Icons.Roleplay)
     end
 
     -- Register UIState
