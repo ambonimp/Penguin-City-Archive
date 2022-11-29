@@ -1,6 +1,5 @@
 local CharacterItemService = {}
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
@@ -12,6 +11,9 @@ local DataService = require(Paths.Server.Data.DataService)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
+local Signal = require(Paths.Shared.Signal)
+
+CharacterItemService.ItemEquipped = Signal.new() -- { player: Player, categoryName: string, itemName: string }
 
 local assets = ReplicatedStorage.Assets.Character
 
@@ -105,6 +107,11 @@ Remotes.bindFunctions({
                 if allItemsAreValid then
                     DataService.set(client, "CharacterAppearance." .. categoryName, items, "OnCharacterAppareanceChanged_" .. categoryName)
                     CharacterUtil.applyAppearance(character, { [categoryName] = items })
+
+                    -- Inform
+                    for _, itemName in pairs(items) do
+                        CharacterItemService.ItemEquipped:Fire(client, categoryName, itemName)
+                    end
                 end
             end
         end

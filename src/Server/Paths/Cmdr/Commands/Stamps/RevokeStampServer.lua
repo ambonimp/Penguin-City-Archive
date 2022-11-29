@@ -1,6 +1,6 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local StampService = require(Paths.Server.StampService)
+local StampService = require(Paths.Server.Stamps.StampService)
 local Stamps = require(Paths.Shared.Stamps.Stamps)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
