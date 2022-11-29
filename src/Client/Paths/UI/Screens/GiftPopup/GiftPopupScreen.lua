@@ -11,12 +11,15 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
 local Sound = require(Paths.Shared.Sound)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local Maid = require(Paths.Packages.maid)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 
+local maid = Maid.new()
 local screenGui: ScreenGui = Ui.GiftPopup
 local contents: Frame = screenGui.Back.Contents
 local claimButton = KeyboardButton.new()
 local descriptionLabel: TextLabel = contents.Text.Description
-local icon: ImageLabel = contents.Icon
+local container: ImageLabel = contents.Middle.Container
 
 function GiftPopupScreen.Init()
     local function close()
@@ -53,26 +56,22 @@ function GiftPopupScreen.boot(data: table)
         return
     end
 
+    maid:Cleanup()
     Sound.play("OpenGift")
 
     if product then
-        -- Text
         descriptionLabel.Text = product.DisplayName
+        container.Image = ""
 
-        -- Icon
-        if product.ImageId then
-            icon.Image = product.ImageId
-            icon.Visible = true
-        else
-            icon.Visible = false
-        end
-    else
-        -- Text
+        local widget = Widget.diverseWidgetFromProduct(product)
+        widget:Mount(container)
+        maid:GiveTask(widget)
+    elseif coins then
         descriptionLabel.Text = ("%s Coins"):format(StringUtil.commaValue(coins))
-
-        -- Icon
-        icon.Image = Images.Coins.Coin
-        icon.Visible = true
+        container.Image = Images.Coins.Coin
+    else
+        warn("Bad data", data)
+        UIController.getStateMachine():Remove(UIConstants.States.GiftPopup)
     end
 end
 
