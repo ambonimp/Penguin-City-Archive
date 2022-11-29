@@ -38,7 +38,7 @@ function ZoneUtil.houseInteriorZone(player: Player)
 end
 
 function ZoneUtil.defaultZone()
-    return ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.DefaultPlayerZoneRoomState)
+    return ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.PlayerDefaultRoom)
 end
 
 -------------------------------------------------------------------------------

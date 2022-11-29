@@ -26,29 +26,33 @@ return function()
         end
 
         -- Each zoneModel must have 0 or 1 zoneWater instances
-        for zoneType, zoneIds in pairs(ZoneConstants.ZoneId) do
-            for _, zoneId in pairs(zoneIds) do
-                local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.zone(zoneType, zoneId))
+        for _, zoneType in pairs(ZoneConstants.ZoneType.Room) do
+            local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType))
 
-                local foundWaterInstances: { Instance } = {}
-                for _, zoneWaterInstance in pairs(zoneWaterInstances) do
-                    if zoneWaterInstance:IsDescendantOf(zoneModel) then
-                        table.insert(foundWaterInstances, zoneWaterInstance)
-                    end
+            local foundWaterInstances: { Instance } = {}
+            for _, zoneWaterInstance in pairs(zoneWaterInstances) do
+                if zoneWaterInstance:IsDescendantOf(zoneModel) then
+                    table.insert(foundWaterInstances, zoneWaterInstance)
                 end
+            end
 
-                if #foundWaterInstances > 1 then
-                    local foundList = table.concat(
-                        TableUtil.mapValues(foundWaterInstances, function(foundWaterInstance: Instance)
-                            return foundWaterInstance:GetFullName()
-                        end),
-                        ", "
+            if #foundWaterInstances > 1 then
+                local foundList = table.concat(
+                    TableUtil.mapValues(foundWaterInstances, function(foundWaterInstance: Instance)
+                        return foundWaterInstance:GetFullName()
+                    end),
+                    ", "
+                )
+                table.insert(
+                    issues,
+                    (
+                        ("Zone %s %s has more than one tagged ZoneWaterInstance (%s)"):format(
+                            ZoneConstants.ZoneCategory.Room,
+                            zoneType,
+                            foundList
+                        )
                     )
-                    table.insert(
-                        issues,
-                        (("Zone %s %s has more than one tagged ZoneWaterInstance (%s)"):format(zoneType, zoneId, foundList))
-                    )
-                end
+                )
             end
         end
     end
