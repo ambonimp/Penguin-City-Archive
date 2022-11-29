@@ -10,6 +10,15 @@ local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 
+function StampService.Start()
+    -- Init Awarders
+    for _, descendant in pairs(Paths.Server.Stamps.StampAwarders:GetDescendants()) do
+        if descendant:IsA("ModuleScript") then
+            require(descendant)
+        end
+    end
+end
+
 local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)

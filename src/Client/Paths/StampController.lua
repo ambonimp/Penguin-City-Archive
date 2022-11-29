@@ -14,31 +14,45 @@ StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, 
 
 function StampController.Start()
     -- Notifications
-    StampController.StampUpdated:Connect(function(stamp: Stamps.Stamp)
-        local progress = StampController.getProgress(stamp.Id)
-
-        if stamp.IsTiered then
-            local oldTier = StampUtil.getTierFromProgress(stamp, progress - 1)
-            local currentTier = StampUtil.getTierFromProgress(stamp, progress)
-            if oldTier ~= currentTier then
-                -- New Tier
-                UIActions.sendRobloxNotification({
-                    Title = ("%s %s"):format(tostring(currentTier), stamp.DisplayName),
-                    Text = "Stamp Tier Unlocked!",
-                    Icon = stamp.ImageId,
-                })
-            end
-        else
-            if progress == 1 then
-                -- Just Unlocked
-                UIActions.sendRobloxNotification({
-                    Title = stamp.DisplayName,
-                    Text = "Stamp Unlocked!",
-                    Icon = stamp.ImageId,
-                })
-            end
+    do
+        local function openStampBookOnStamp(_stamp: Stamps.Stamp)
+            UIController.getStateMachine():Push(UIConstants.States.StampBook, { Player = Players.LocalPlayer })
         end
-    end)
+
+        StampController.StampUpdated:Connect(function(stamp: Stamps.Stamp)
+            local progress = StampController.getProgress(stamp.Id)
+
+            if stamp.IsTiered then
+                local oldTier = StampUtil.getTierFromProgress(stamp, progress - 1)
+                local currentTier = StampUtil.getTierFromProgress(stamp, progress)
+                if oldTier ~= currentTier then
+                    -- New Tier
+                    UIActions.sendRobloxNotification({
+                        Title = ("%s %s"):format(tostring(currentTier), stamp.DisplayName),
+                        Text = "Stamp Tier Unlocked!",
+                        Icon = stamp.ImageId,
+                        Callback = function()
+                            openStampBookOnStamp(stamp)
+                        end,
+                        Button1 = "Open StampBook",
+                    })
+                end
+            else
+                if progress == 1 then
+                    -- Just Unlocked
+                    UIActions.sendRobloxNotification({
+                        Title = stamp.DisplayName,
+                        Text = "Stamp Unlocked!",
+                        Icon = stamp.ImageId,
+                        Callback = function()
+                            openStampBookOnStamp(stamp)
+                        end,
+                        Button1 = "Open StampBook",
+                    })
+                end
+            end
+        end)
+    end
 end
 
 local function getStamp(stampId: string): Stamps.Stamp
