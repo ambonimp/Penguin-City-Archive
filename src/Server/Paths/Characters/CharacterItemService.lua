@@ -104,7 +104,12 @@ function CharacterItemService.updateCharacterAppearance(player: Player)
 end
 
 function CharacterItemService.getEquippedCharacterItems(player: Player)
-    return DataService.get(player, "CharacterAppearance") :: { [string]: { string } }
+    local characterItems: { [string]: { string } } = {}
+    for categoryName, itemNames in pairs(DataService.get(player, "CharacterAppearance")) do
+        characterItems[categoryName] = TableUtil.toArray(itemNames)
+    end
+
+    return characterItems
 end
 
 --[[
