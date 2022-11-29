@@ -1,5 +1,6 @@
 local ZoneController = {}
 
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -16,6 +17,8 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local PropertyStack = require(Paths.Shared.PropertyStack)
+local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -30,12 +33,14 @@ local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
+local onZoneUpdateMaid = Maid.new()
 
 ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
+    WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
 end
 
 function ZoneController.Start()
@@ -72,6 +77,28 @@ function ZoneController.Start()
             end
         end
     end)
+
+    --[[
+        onZoneUpdate Cosmetics
+
+        Every time we enter a zone, any Cosmetics module that has a `.onZoneUpdate(maid)` method is invoked.
+    ]]
+    local function onZoneUpdate()
+        onZoneUpdateMaid:Cleanup()
+
+        local zoneModel = ZoneUtil.getZoneModel(currentZone)
+        for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
+            if descendant:IsA("ModuleScript") then
+                local onZoneUpdateCallback = require(descendant).onZoneUpdate
+                if onZoneUpdateCallback then
+                    onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
+                end
+            end
+        end
+    end
+
+    ZoneController.ZoneChanged:Connect(onZoneUpdate)
+    onZoneUpdate()
 end
 
 -------------------------------------------------------------------------------
@@ -228,9 +255,9 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     end
 
     -- Zone Settings
-    ZoneUtil.applySettings(zone)
+    ZoneController.applySettings(zone)
     zoneMaid:GiveTask(function()
-        ZoneUtil.revertSettings(zone)
+        ZoneController.revertSettings(zone)
     end)
 
     setupTeleporters()
@@ -301,6 +328,44 @@ function ZoneController.teleportToRandomRoom()
     local zoneId = TableUtil.getRandom(ZoneConstants.ZoneId.Room)
     local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, zoneId)
     ZoneController.teleportToRoomRequest(roomZone)
+end
+
+-------------------------------------------------------------------------------
+-- Settings
+-------------------------------------------------------------------------------
+
+function ZoneController.applySettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.setProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.startWind()
+        end
+    end
+end
+
+function ZoneController.revertSettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.clearProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.stopWind()
+        end
+    end
 end
 
 -------------------------------------------------------------------------------

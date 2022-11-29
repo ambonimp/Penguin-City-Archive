@@ -1,11 +1,16 @@
 local DebugUtil = {}
 
+local RAYCAST_DURATION = 2
+local FLASH_POINT_DURATION = 1
+
 local function getDebugPart()
     local part = Instance.new("Part")
     part.Anchored = true
     part.CanCollide = false
     part.Name = "DebugPart"
     part.Transparency = 0.5
+    part.Size = Vector3.new(1, 1, 1)
+    part.Shape = Enum.PartType.Ball
     part.Parent = game.Workspace
 
     return part
@@ -37,15 +42,25 @@ function DebugUtil.showRaycast(origin: Vector3, direction: Vector3, length: numb
         hitPart.Transparency = 0
         hitPart.Position = raycastResult.Position
 
-        task.delay(2, function()
+        task.delay(RAYCAST_DURATION, function()
             hitPart:Destroy()
         end)
     end
 
-    task.delay(2, function()
+    task.delay(RAYCAST_DURATION, function()
         startPart:Destroy()
         rayPart:Destroy()
         endPart:Destroy()
+    end)
+end
+
+function DebugUtil.flashPoint(position: Vector3, color: Color3?)
+    local part = getDebugPart()
+    part.Color = color or Color3.fromRGB(255, 0, 0)
+    part.Position = position
+
+    task.delay(FLASH_POINT_DURATION, function()
+        part:Destroy()
     end)
 end
 

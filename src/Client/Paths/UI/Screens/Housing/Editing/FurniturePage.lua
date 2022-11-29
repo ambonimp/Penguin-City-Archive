@@ -22,7 +22,7 @@ local Binder = require(Paths.Shared.Binder)
 local HousingController = require(Paths.Client.HousingController)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local ATT_MODEL_INITALIZED = "Initialized"
 

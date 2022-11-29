@@ -64,7 +64,7 @@ ZoneConstants.ZoneInstances = {
 }
 
 local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Neighborhood,
+    RoomId = ZoneConstants.ZoneId.Room.Town,
     TotalTeleports = 0,
 }
 ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
@@ -79,5 +79,22 @@ ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 ZoneConstants.TeleportBuffer = 0.5
 
 ZoneConstants.DoDebug = false
+
+-------------------------------------------------------------------------------
+-- Cosmetics
+-------------------------------------------------------------------------------
+
+ZoneConstants.Cosmetics = {
+    Tags = {
+        AnimatedFlag = "AnimatedFlag",
+        WaterAnimator = "WaterAnimator",
+        DiscoBall = "DiscoBall",
+        DanceFloor = "DanceFloor",
+    },
+    Disco = {
+        ColorPartName = "ColorPart",
+        HitboxPartName = "Hitbox",
+    },
+}
 
 return ZoneConstants
