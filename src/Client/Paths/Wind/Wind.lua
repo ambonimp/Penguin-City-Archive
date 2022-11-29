@@ -54,7 +54,12 @@ function Wind.new()
     end
 
     local function fadeAndDestroyWind(windPart: Part)
-        local trail: Trail = windPart.Trail
+        local trail: Trail = windPart:FindFirstChild("Trail")
+
+        -- RETURN: Proably teleported out of zone with trails
+        if not trail then
+            return
+        end
 
         -- Fade
         TweenUtil.run(function(alpha)
