@@ -14,8 +14,12 @@ local CurrencySevice = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local Signal = require(Paths.Shared.Signal)
 
 local UPDATE_DAILY_REWARD_EVERY = 5 * 60
+
+RewardsService.GavePaycheck = Signal.new() -- { player: Player, paycheckNumber: number }
+RewardsService.ClaimedDailyReward = Signal.new() -- { player: Player, dayNumber: number }
 
 local totalPaychecksByPlayer: { [Player]: number } = {}
 
@@ -67,6 +71,7 @@ function RewardsService.givePaycheck(player: Player)
     CurrencySevice.addCoins(player, paycheckAmount)
 
     -- Inform
+    RewardsService.GavePaycheck:Fire(player, totalPaychecks)
     Remotes.fireClient(player, "PaycheckReceived", paycheckAmount, totalPaychecks)
 
     return true
@@ -164,7 +169,13 @@ do
                 end
             end
 
+            -- RETURN: Empty
+            if TableUtil.isEmpty(unclaimedDays) then
+                return
+            end
+
             -- Hand over stuffs
+            local highestDayNum: number
             for dayNum, amount in pairs(unclaimedDays) do
                 local reward = RewardsUtil.getDailyRewardReward(dayNum)
                 if reward.Gift then
@@ -177,8 +188,16 @@ do
                 end
 
                 RewardsService.giveReward(player, reward, amount)
+
+                if not highestDayNum or dayNum > highestDayNum then
+                    highestDayNum = dayNum
+                end
             end
 
+            -- Inform
+            RewardsService.ClaimedDailyReward:Fire(player, highestDayNum)
+
+            -- Data
             local unclaimedAddress = ("%s.%s"):format(RewardsUtil.getDailyRewardDataAddress(), "Unclaimed")
             DataService.set(player, unclaimedAddress, {}, "DailyRewardUpdated")
 
