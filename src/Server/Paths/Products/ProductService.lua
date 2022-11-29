@@ -26,10 +26,13 @@ local PlayerService = require(Paths.Server.PlayerService)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
+local Signal = require(Paths.Shared.Signal)
 
 local HANDLER_MODULE_NAME_SUFFIX = "Handlers"
 local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
 local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; please rejoin."
+
+ProductService.ProductAdded = Signal.new() -- { player: Player, product: Products.Product, amount: number }
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
@@ -61,6 +64,9 @@ function ProductService.addProduct(player: Player, product: Products.Product, am
     DataService.increment(player, address, amount)
 
     -- Inform Server
+    ProductService.ProductAdded:Fire(player, product, amount)
+
+    -- Inform Client
     Remotes.fireClient(player, "AddProduct", product.Type, product.Id, amount)
 
     -- Run Handler
