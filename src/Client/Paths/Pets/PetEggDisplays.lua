@@ -33,9 +33,6 @@ function PetEggDisplays.createDisplay(petEggName: string, displayPart: BasePart)
         billboardGui.Adornee = displayPart
         billboardGui.Parent = Paths.UI
         updateMaid:GiveTask(billboardGui)
-        updateMaid:GiveTask(function()
-            print("destroy", billboardGui:GetFullName())
-        end)
 
         local petsFrame: Frame = billboardGui.Back.Contents.Pets
         local eggImageLabel: ImageLabel = billboardGui.Back.Contents.Top.EggImage

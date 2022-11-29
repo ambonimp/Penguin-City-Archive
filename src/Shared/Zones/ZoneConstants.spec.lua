@@ -26,11 +26,5 @@ return function()
         end
     end
 
-    -- Cosmetics
-    do
-        -- Tags must be Enum-Like
-        TestUtil.enum(ZoneConstants.Cosmetics.Tags, issues)
-    end
-
     return issues
 end
