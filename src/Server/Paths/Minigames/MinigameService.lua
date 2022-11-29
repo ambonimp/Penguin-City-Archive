@@ -19,11 +19,11 @@ local sessionIdCounter = 0
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
-local function createSession(minigame: string, participants: { Player }, isMultiplayer: boolean)
+local function createSession(minigame: string, participants: { Player }, isMultiplayer: boolean, queueStation: Model?)
     local id = tostring(sessionIdCounter)
     sessionIdCounter += 1
 
-    local session = sessionClasses[minigame].new(id, participants, isMultiplayer)
+    local session = sessionClasses[minigame].new(id, participants, isMultiplayer, queueStation)
     activeSessions[minigame][id] = session
     session:GetJanitor():Add(function()
         activeSessions[minigame][id] = nil
@@ -33,7 +33,7 @@ end
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
-function MinigameService.requestToPlay(player: Player, minigame: string, multiplayer: boolean)
+function MinigameService.requestToPlay(player: Player, minigame: string, multiplayer: boolean, queueStation: Model?)
     -- RETURN: Player is already in a minigame
     if ZoneService.getPlayerMinigame(player) then
         return
@@ -48,11 +48,10 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         end
     end
 
-    local sessionConfigs = MinigameUtil.getSessionConfigs(minigame)
-
+    local sessionConfig = MinigameUtil.getsessionConfig(minigame)
     if multiplayer then
         -- RETURN: No multiplayer support
-        if not sessionConfigs.Multiplayer then
+        if not sessionConfig.Multiplayer then
             warn(("%s minigame doesn't support multiplayer play"):format(minigame))
             return
         end
@@ -72,10 +71,10 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             if queue then
                 queue:AddParticipant(player)
             else
-                queue = MinigameQueue.new(minigame)
+                queue = MinigameQueue.new(minigame, queueStation)
                 queue:GetJanitor():Add(function()
                     activeQueues[minigame] = nil
-                    createSession(minigame, queue:GetParticipants(), true)
+                    createSession(minigame, queue:GetParticipants(), true, queueStation)
                 end)
 
                 activeQueues[minigame] = queue
@@ -88,7 +87,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         end
     else
         -- RETURN: No single player support
-        if not sessionConfigs.SinglePlayer then
+        if not sessionConfig.SinglePlayer then
             warn(("%s minigame doesn't support single player play"):format(minigame))
             return
         end

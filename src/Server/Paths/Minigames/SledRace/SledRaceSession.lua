@@ -1,9 +1,9 @@
 local SledRaceSession = {}
 
-local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
 local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
@@ -14,18 +14,20 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local SledRaceSled = require(Paths.Server.Minigames.SledRace.SledRaceSled)
 local SledRaceMap = require(Paths.Server.Minigames.SledRace.SledRaceMap)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local QueueStationService = require(Paths.Server.Minigames.QueueStationService)
+local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
 
-function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
-    local minigameSession = MinigameSession.new("SledRace", id, participants, isMultiplayer)
+function SledRaceSession.new(...: any)
+    local minigameSession = MinigameSession.new(...)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
     local map = minigameSession:GetMap()
-    local spawnPoints = map.PlayerSpawns:GetChildren()
     local collectables: Folder?
 
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
@@ -124,7 +126,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
         local startTime = os.clock()
         local finished: { Player } = {}
 
-        for _, partipant in pairs(participants) do
+        for _, partipant in pairs(minigameSession:GetParticipants()) do
             SledRaceUtil.unanchorSled(partipant)
         end
 
@@ -174,7 +176,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
                 table.insert(finished, player)
                 minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
 
-                if #finished == #participants then
+                if #finished == #minigameSession:GetParticipants() then
                     if minigameSession:GetState() == MinigameConstants.States.Core then
                         minigameSession:ChangeState(MinigameConstants.States.AwardShow)
                     end
@@ -190,7 +192,7 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
         participantData = {}
     end, function()
         -- Respawn at spawn points
-        for _, participant in pairs(participants) do
+        for _, participant in pairs(minigameSession:GetParticipants()) do
             SledRaceSled.spawnSled(participant, minigameSession:GetPlayerSpawnPoint(participant))
         end
     end)
@@ -199,6 +201,16 @@ function SledRaceSession.new(id: string, participants: { Player }, isMultiplayer
     minigameSession:Start()
 
     return minigameSession
+end
+
+-------------------------------------------------------------------------------
+-- Queue stations
+-------------------------------------------------------------------------------
+for _, station in pairs(Workspace.Rooms.SkiHill.QueueStations:GetChildren()) do
+    QueueStationService.resetStatusBoard(
+        station,
+        TableUtil.merge(MinigameUtil.getsessionConfig("SledRace"), MinigameUtil.getSessionConfigFromQueueStation(station))
+    )
 end
 
 return SledRaceSession

@@ -42,8 +42,8 @@ local MIN_RECIPE_TIMES = {
 }
 local MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS = 5
 
-function PizzaFiascoSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
-    local minigameSession = MinigameSession.new(MINIGAME_NAME, id, participants, isMultiplayer)
+function PizzaFiascoSession.new(...: any)
+    local minigameSession = MinigameSession.new(...)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS

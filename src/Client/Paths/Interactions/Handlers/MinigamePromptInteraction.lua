@@ -12,7 +12,7 @@ InteractionController.registerInteraction("MinigamePrompt", function(instance)
     if not debounce then
         debounce = true
 
-        Remotes.invokeServer("MinigamePlayRequested", instance:GetAttribute("Minigame"), instance:GetAttribute("Multiplayer"))
+        Remotes.invokeServer("MinigamePlayRequested", instance:GetAttribute("Minigame"), instance.Parent)
 
         task.wait(COOLDOWN)
         debounce = nil

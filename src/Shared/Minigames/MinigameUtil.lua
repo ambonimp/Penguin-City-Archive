@@ -10,13 +10,22 @@ for minigame in pairs(MinigameConstants.Minigames) do
     end
 end
 
-function MinigameUtil.getSessionConfigs(minigameName: string): MinigameConstants.SessionConfig
+function MinigameUtil.getsessionConfig(minigameName: string): MinigameConstants.SessionConfig
     return constants[minigameName].SessionConfig
 end
 
 function MinigameUtil.formatScore(minigameName: string, score: number): number | string
-    local formatter = MinigameUtil.getSessionConfigs(minigameName).ScoreFormatter
+    local formatter = MinigameUtil.getsessionConfig(minigameName).ScoreFormatter
     return if formatter then formatter(score) else score
+end
+
+function MinigameUtil.getSessionConfigFromQueueStation(queueStation: Model): table?
+    if queueStation then
+        return {
+            MinParticipants = queueStation:GetAttribute("MinParticipant"),
+            MaxParticipants = queueStation:GetAttribute("MaxParticipant"),
+        }
+    end
 end
 
 return MinigameUtil

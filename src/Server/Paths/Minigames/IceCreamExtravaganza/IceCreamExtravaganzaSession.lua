@@ -48,8 +48,8 @@ local replicatedAssets = ReplicatedStorage.Assets.Minigames[MINIGAME_NAME]
 
 local collectableModels: { [string]: { Model } } = {}
 
-function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, isMultiplayer: boolean)
-    local minigameSession = MinigameSession.new(MINIGAME_NAME, id, participants, isMultiplayer)
+function IceCreamExtravaganzaSession.new(...: any)
+    local minigameSession = MinigameSession.new(...)
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
@@ -124,7 +124,7 @@ function IceCreamExtravaganzaSession.new(id: string, participants: { Player }, i
     -- State handlers
     -------------------------------------------------------------------------------
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.Intermission, function()
-        for _, participant in pairs(participants) do
+        for _, participant in pairs(minigameSession:GetParticipants()) do
             spawnCharacter(participant)
         end
     end)

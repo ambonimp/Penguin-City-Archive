@@ -7,22 +7,22 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 return function()
     local issues: { string } = {}
 
-    for _, minigamePrompt in pairs(CollectionService:GetTagged("MinigamePrompt")) do
-        local minigameName = minigamePrompt:GetAttribute("Minigame")
+    for _, prompt in pairs(CollectionService:GetTagged("MinigamemPrompt")) do
+        local queueStation: Model = prompt.Parent
+
+        local minigameName = queueStation:GetAttribute("Minigame")
         if not minigameName then
-            table.insert(issues, ("%s doesn't have a minigame attribute set"):format(minigamePrompt:GetFullName()))
+            table.insert(issues, ("%s doesn't have a minigame attribute set"):format(prompt:GetFullName()))
         elseif not MinigameConstants.Minigames[minigameName] then
             table.insert(
                 issues,
-                ("%s doesn't have a valid minigame attribute set, %s isn't a minigame name"):format(
-                    minigamePrompt:GetFullName(),
-                    minigameName
-                )
+                ("%s doesn't have a valid minigame attribute set, %s isn't a minigame name"):format(prompt:GetFullName(), minigameName)
             )
         end
 
-        if minigamePrompt:GetAttribute("Multiplayer") == nil then
-            table.insert(issues, ("%s doesn't have a multiplayer attribute"):format(minigamePrompt:GetFullName()))
+        local isMultiplayer = queueStation:GetAttribute("Multiplayer")
+        if isMultiplayer == nil then
+            table.insert(issues, ("%s doesn't have a multiplayer attribute"):format(prompt:GetFullName()))
         end
     end
 

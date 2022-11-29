@@ -98,6 +98,7 @@ Images.Minigames = {
     Countdown2 = "rbxassetid://11468634030",
     Countdown1 = "rbxassetid://11468634160",
     Countdown0 = "rbxassetid://11468633672",
+    Hologram = "rbxassetid://11700324057",
 }
 --#endregion
 --#region PizzaFiasco

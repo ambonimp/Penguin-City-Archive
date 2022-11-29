@@ -23,7 +23,13 @@ type Participants = { Player }
 
 local STATES = MinigameConstants.States
 
-function MinigameSession.new(minigameName: string, id: string, startingParticipants: Participants, isMultiplayer: boolean)
+function MinigameSession.new(
+    minigameName: string,
+    id: string,
+    startingParticipants: Participants,
+    isMultiplayer: boolean,
+    queueStation: Model?
+)
     local minigameSession = {}
 
     -------------------------------------------------------------------------------
@@ -44,7 +50,8 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
     local scores: { [Player]: number }?
     local scoreRange = { Min = 0, Max = math.huge }
 
-    local config: MinigameConstants.SessionConfig = MinigameUtil.getSessionConfigs(minigameName)
+    local config: MinigameConstants.SessionConfig =
+        TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
 
     local defaultScore: number?
     local started: boolean = false
@@ -310,7 +317,7 @@ function MinigameSession.new(minigameName: string, id: string, startingParticipa
                 end
             end))
 
-            janitor:Add(Remotes.bindEventTemp("MinigameRestarted", function(player)
+            janitor:Add(Remotes.bindEventTemp("MinigameRestarted", function()
                 minigameSession:ChangeState(STATES.Nothing)
             end))
         end
