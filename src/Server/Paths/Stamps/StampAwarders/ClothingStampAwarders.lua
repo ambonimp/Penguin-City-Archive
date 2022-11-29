@@ -53,6 +53,7 @@ ProductService.ProductAdded:Connect(function(player: Player, product: Products.P
         end
     end
 
+    -- Award
     if totalClothingItems >= 25 then
         StampService.addStamp(player, clothingItems25Stamp.Id)
     end

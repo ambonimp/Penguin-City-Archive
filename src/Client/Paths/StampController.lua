@@ -8,8 +8,38 @@ local Stamps = require(Paths.Shared.Stamps.Stamps)
 local Signal = require(Paths.Shared.Signal)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIActions = require(Paths.Client.UI.UIActions)
 
 StampController.StampUpdated = Signal.new() -- {Stamp: Stamp, isOwned: boolean, stampTier: Stamps.StampTier | nil}
+
+function StampController.Start()
+    -- Notifications
+    StampController.StampUpdated:Connect(function(stamp: Stamps.Stamp)
+        local progress = StampController.getProgress(stamp.Id)
+
+        if stamp.IsTiered then
+            local oldTier = StampUtil.getTierFromProgress(stamp, progress - 1)
+            local currentTier = StampUtil.getTierFromProgress(stamp, progress)
+            if oldTier ~= currentTier then
+                -- New Tier
+                UIActions.sendRobloxNotification({
+                    Title = ("%s %s"):format(tostring(currentTier), stamp.DisplayName),
+                    Text = "Stamp Tier Unlocked!",
+                    Icon = stamp.ImageId,
+                })
+            end
+        else
+            if progress == 1 then
+                -- Just Unlocked
+                UIActions.sendRobloxNotification({
+                    Title = stamp.DisplayName,
+                    Text = "Stamp Unlocked!",
+                    Icon = stamp.ImageId,
+                })
+            end
+        end
+    end)
+end
 
 local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
@@ -99,8 +129,5 @@ do
         StampController.StampUpdated:Fire(stamp, hasStamp, stampTier)
     end)
 end
-
---!!temp
-StampController.StampUpdated:Connect(print)
 
 return StampController
