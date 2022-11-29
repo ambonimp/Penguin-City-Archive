@@ -10,7 +10,7 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local StampButton = require(Paths.Client.UI.Elements.StampButton)
-local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
+local UIActions = require(Paths.Client.UI.UIActions)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 
 local NEXT_BUTTON_TEXT = "Next"
@@ -167,7 +167,7 @@ function ResultsScreen.open(
                 Progress = progress,
             })
             stampButton.Pressed:Connect(function()
-                StampInfoScreen.open(stamp.Id, progress)
+                UIActions.showStampInfo(stamp.Id, progress)
             end)
             stampButton:Mount(holder, true)
 

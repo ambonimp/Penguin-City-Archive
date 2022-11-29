@@ -23,7 +23,7 @@ function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: 
     local zoneSettings = ZoneUtil.getSettings(currentZone)
 
     -- Music
-    local zoneMusicName = zoneSettings.Music == nil and DEFAULT_MUSIC_NAME or zoneSettings.Music
+    local zoneMusicName = (not zoneSettings or zoneSettings.Music == nil) and DEFAULT_MUSIC_NAME or zoneSettings.Music
     if zoneMusicName ~= currentMusic.Name then
         -- Fade Old
         local oldSound = currentMusic.Sound
@@ -44,7 +44,7 @@ function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: 
     end
 
     -- Ambience
-    local ambienceNames = zoneSettings.Ambience
+    local ambienceNames = zoneSettings and zoneSettings.Ambience
     if ambienceNames then
         for _, ambienceName in pairs(ambienceNames) do
             local sound = Sound.play(ambienceName, true)
