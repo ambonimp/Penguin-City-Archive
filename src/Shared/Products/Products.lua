@@ -193,8 +193,8 @@ local products: { [string]: { [string]: Product } } = {
                 DeveloperProductId = 1337359490,
             },
         },
-        nothing2 = {
-            Id = "nothing2",
+        nothing = {
+            Id = "nothing",
             DisplayName = "Nothing",
             Description = "Nothing",
             RobuxData = {
