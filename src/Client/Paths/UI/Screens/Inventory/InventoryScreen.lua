@@ -47,31 +47,31 @@ function InventoryScreen.Init()
 
     -- Tabs
     do
-        -- Vehicles
-        tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
-        tabbedWindow:SetWindowConstructor("Vehicles", function(parent, maid)
-            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Hoverboard, "Vehicles", {
-                ProductType = ProductConstants.ProductType.Vehicle,
-                AddCallback = function()
-                    UIController.getStateMachine():Remove(UIConstants.States.Inventory)
-                    ZoneController.teleportToRoomRequest(hoverboardShopZone)
-                end,
-                Equipping = {
-                    Equip = function(product: Products.Product)
-                        local vehicleName = ProductUtil.getVehicleProductData(product).VehicleName
-                        VehicleController.mountRequest(vehicleName)
-                    end,
-                    Unequip = function(_product: Products.Product)
-                        VehicleController.dismountRequest()
-                    end,
-                    StartEquipped = VehicleController.getCurrentVehicleName()
-                        and ProductUtil.getVehicleProduct(VehicleController.getCurrentVehicleName()),
-                },
-            })
+        -- -- Vehicles
+        -- tabbedWindow:AddTab("Vehicles", Images.Icons.Hoverboard)
+        -- tabbedWindow:SetWindowConstructor("Vehicles", function(parent, maid)
+        --     local inventoryWindow = InventoryProductWindow.new(Images.Icons.Hoverboard, "Vehicles", {
+        --         ProductType = ProductConstants.ProductType.Vehicle,
+        --         AddCallback = function()
+        --             UIController.getStateMachine():Remove(UIConstants.States.Inventory)
+        --             ZoneController.teleportToRoomRequest(hoverboardShopZone)
+        --         end,
+        --         Equipping = {
+        --             Equip = function(product: Products.Product)
+        --                 local vehicleName = ProductUtil.getVehicleProductData(product).VehicleName
+        --                 VehicleController.mountRequest(vehicleName)
+        --             end,
+        --             Unequip = function(_product: Products.Product)
+        --                 VehicleController.dismountRequest()
+        --             end,
+        --             StartEquipped = VehicleController.getCurrentVehicleName()
+        --                 and ProductUtil.getVehicleProduct(VehicleController.getCurrentVehicleName()),
+        --         },
+        --     })
 
-            maid:GiveTask(inventoryWindow)
-            inventoryWindow:Mount(parent)
-        end)
+        --     maid:GiveTask(inventoryWindow)
+        --     inventoryWindow:Mount(parent)
+        -- end)
 
         -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
