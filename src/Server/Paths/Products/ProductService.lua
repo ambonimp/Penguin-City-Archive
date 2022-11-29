@@ -90,8 +90,10 @@ function ProductService.getOwnedProducts(player: Player)
     local storedProducts = DataService.get(player, ProductConstants.DataAddress)
     for productType, products in pairs(storedProducts) do
         for productId, amount in pairs(products) do
-            local product = ProductUtil.getProduct(productType, productId)
-            ownedProducts[product] = amount
+            local success, product = pcall(ProductUtil.getProduct, productType, productId)
+            if success and product then
+                ownedProducts[product] = amount
+            end
         end
     end
 
@@ -232,54 +234,50 @@ function ProductService.readProducts(player: Player)
         for productId, amount in pairs(products) do
             -- Get State
             local address = ProductUtil.getProductDataAddress(productType, productId)
-            local product = ProductUtil.getProduct(productType, productId)
+            local success, product = pcall(ProductUtil.getProduct, productType, productId)
 
-            -- Run logic off of product
-            -- *If* we run any logic, this will exit readProducts + and start from the beginning (may have changed our data). Performatic recursion :D
-            if product then
-                -- Should we consume?
-                if product.IsConsumable and product.ConsumeImmediately and amount > 0 then
-                    Output.doDebug(
-                        ProductConstants.DoDebug,
-                        "readProducts",
-                        "Immediately Consume",
-                        productType,
-                        productId,
-                        ("x%d"):format(amount)
-                    )
-                    -- If amount > 1, recursion will ensure we consume `amount` of this product!
-                    ProductService.consumeProduct(player, product)
+            if success then
+                -- Run logic off of product
+                -- *If* we run any logic, this will exit readProducts + and start from the beginning (may have changed our data). Performatic recursion :D
+                if product then
+                    -- Should we consume?
+                    if product.IsConsumable and product.ConsumeImmediately and amount > 0 then
+                        Output.doDebug(
+                            ProductConstants.DoDebug,
+                            "readProducts",
+                            "Immediately Consume",
+                            productType,
+                            productId,
+                            ("x%d"):format(amount)
+                        )
+                        -- If amount > 1, recursion will ensure we consume `amount` of this product!
+                        ProductService.consumeProduct(player, product)
 
-                    --!! Recurse
-                    -- consumeProduct calls readProducts (if it was successful)
-                    return
-                end
+                        --!! Recurse
+                        -- consumeProduct calls readProducts (if it was successful)
+                        return
+                    end
 
-                -- Manage data (e.g., remove if product is totally consumed)
-                -- Should not be less than 0, but cover that edge case just in case
-                if amount <= 0 then
-                    Output.doDebug(
-                        ProductConstants.DoDebug,
-                        "readProducts",
-                        "Clear product",
-                        productType,
-                        productId,
-                        ("x%d"):format(amount)
-                    )
-                    DataService.set(player, address, nil)
+                    -- Manage data (e.g., remove if product is totally consumed)
+                    -- Should not be less than 0, but cover that edge case just in case
+                    if amount <= 0 then
+                        Output.doDebug(
+                            ProductConstants.DoDebug,
+                            "readProducts",
+                            "Clear product",
+                            productType,
+                            productId,
+                            ("x%d"):format(amount)
+                        )
+                        DataService.set(player, address, nil)
 
-                    --!! Recurse
-                    ProductService.readProducts(player)
-                    return
+                        --!! Recurse
+                        ProductService.readProducts(player)
+                        return
+                    end
                 end
             else
-                -- WARN: Deprecated product
-                warn(("Found deprecated product '%s.%s' under %s; removing"):format(productType, productId, player.Name))
-                DataService.set(player, address, nil)
-
-                --!! Recurse
-                ProductService.readProducts(player)
-                return
+                warn(("%s has an unknown product %s.%s"):format(player.Name, productType, productId))
             end
         end
     end

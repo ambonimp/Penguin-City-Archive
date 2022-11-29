@@ -193,6 +193,14 @@ local products: { [string]: { [string]: Product } } = {
                 DeveloperProductId = 1337359490,
             },
         },
+        nothing2 = {
+            Id = "nothing2",
+            DisplayName = "Nothing",
+            Description = "Nothing",
+            RobuxData = {
+                Cost = 99,
+            },
+        },
     },
     --#endregion
 }
