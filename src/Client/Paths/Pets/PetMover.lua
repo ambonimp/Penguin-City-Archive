@@ -11,7 +11,7 @@ local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local Maid = require(Paths.Packages.maid)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
@@ -147,10 +147,19 @@ function PetMover.new(model: Model)
         end
 
         -- Raycast floor
-        local raycastResult = RaycastUtil.raycast(sidePosition + RAYCAST_ORIGIN_OFFSET, VECTOR_DOWN, {
-            FilterDescendantsInstances = { ZoneUtil.getZoneModel(ZoneController.getCurrentZone()) },
-            FilterType = Enum.RaycastFilterType.Whitelist,
-        }, RAYCAST_LENGTH)
+        -- Ignore non-collideable parts!
+        local raycastResult = RaycastUtil.raycast(
+            sidePosition + RAYCAST_ORIGIN_OFFSET,
+            VECTOR_DOWN,
+            {
+                FilterDescendantsInstances = { ZoneUtil.getZoneModel(ZoneController.getCurrentZone()) },
+                FilterType = Enum.RaycastFilterType.Whitelist,
+            },
+            RAYCAST_LENGTH,
+            function(hitInstance: BasePart)
+                return hitInstance.CanCollide
+            end
+        )
 
         return raycastResult and raycastResult.Position or nil
     end

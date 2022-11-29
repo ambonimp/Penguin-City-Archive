@@ -70,12 +70,8 @@ function TweenUtil.run(callback: (alpha: number, dt: number, prevAlpha: number?)
     local startTick = tick() + tweenInfo.DelayTime
     local repeatsLeft = tweenInfo.RepeatCount
 
-    -- ERROR: I was too lazy
-    if tweenInfo.Reverses then
-        error("Not implemented yet.. sorry developer :c")
-    end
-
     local prevAlpha: number?
+    local isReversing = false
 
     local connection: RBXScriptConnection
     connection = RunService.RenderStepped:Connect(function(dt)
@@ -88,20 +84,31 @@ function TweenUtil.run(callback: (alpha: number, dt: number, prevAlpha: number?)
         -- Calculate time
         local timeElapsed = thisTick - startTick
         local timeAlpha = math.clamp(timeElapsed / tweenInfo.Time, 0, 1)
+        if isReversing then
+            timeAlpha = 1 - timeAlpha
+        end
 
         -- Times up! What do?
-        if timeAlpha == 1 then
-            repeatsLeft -= 1
-            if repeatsLeft >= 0 then
-                -- Loop back
+        if isReversing and timeAlpha == 0 or timeAlpha == 1 then
+            local doReverse = isReversing == false and tweenInfo.Reverses
+            if doReverse then
+                isReversing = true
                 startTick += tweenInfo.Time
             else
-                -- Exit
-                connection:Disconnect()
-            end
+                isReversing = false
 
-            callback(1, dt, prevAlpha)
-            return
+                repeatsLeft -= 1
+                if repeatsLeft == -1 then
+                    -- Exit
+                    connection:Disconnect()
+                else
+                    -- Loop back
+                    startTick += tweenInfo.Time
+                end
+
+                callback(timeAlpha, dt, prevAlpha)
+                return
+            end
         end
 
         -- Tween

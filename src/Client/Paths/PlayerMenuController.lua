@@ -16,7 +16,7 @@ local StampController = require(Paths.Client.StampController)
 local Sound = require(Paths.Shared.Sound)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {

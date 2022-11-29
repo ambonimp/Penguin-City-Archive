@@ -17,6 +17,10 @@ local function getSound(soundName: string)
     return sound
 end
 
+function Sound.hasSound(soundName: string)
+    return soundsByName[soundName] and true or false
+end
+
 -- Plays sound globally. Plays by using `PlayOnRemove`, or via :Play() and is not removed
 function Sound.play(soundName: string, dontRemove: boolean?, parent: any?): Sound | nil
     local sound = getSound(soundName):Clone()

@@ -139,5 +139,20 @@
       "    })"
     ],
     "description": "Register UI State layout"
+  },
+  "Test": {
+    "prefix": ["test"],
+    "body": [
+      "local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")\r",
+      "local TestUtil = require(ReplicatedStorage.Shared.Utils.TestUtil)\r",
+      "\r",
+      "return function()\r",
+      "    local issues: { string } = {}\r",
+      "\r",
+      "    return issues\r",
+      "end\r",
+      ""
+  ],
+    "description": ".spec file layout"
   }
 }
