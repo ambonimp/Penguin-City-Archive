@@ -49,7 +49,7 @@ ProductService.ProductAdded:Connect(function(player: Player, product: Products.P
     local totalClothingItems = 0
     for someProduct, _ in pairs(ProductService.getOwnedProducts(player)) do
         if ProductUtil.isCharacterItemProduct(someProduct) then
-            totalClothingItems += 0
+            totalClothingItems += 1
         end
     end
 
