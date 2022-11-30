@@ -72,6 +72,8 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             local queueJoining
             local potentialQueues = activeQueues[minigame]
 
+            print(player, potentialQueues)
+
             if queueStation then
                 for _, queue in pairs(potentialQueues) do
                     if queue:GetStation() == queueStation then
@@ -87,8 +89,10 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             else
                 queueJoining = MinigameQueue.new(minigame, queueStation)
                 queueJoining:GetJanitor():Add(function()
-                    table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
-                    createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
+                    task.defer(function()
+                        table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
+                        createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
+                    end)
                 end)
 
                 table.insert(potentialQueues, queueJoining)

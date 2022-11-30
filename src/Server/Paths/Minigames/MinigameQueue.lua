@@ -37,17 +37,19 @@ function MinigameQueue.new(minigameName: string, station: Model?)
         end
     end
 
-    local function onParticipantRemoved(player: Player)
+    local function onParticipantRemoved(player: Player, closing: true?)
         -- RETURN: Player isn't in the queue
         if not table.find(participants, player) then
             return
         end
 
-        table.remove(participants, table.find(participants, player))
-        if #participants == sessionConfig.MinParticipants and minigameStartThread then
-            task.cancel(minigameStartThread)
-            minigameStartThread = nil
-            countdown = nil
+        if not closing then
+            table.remove(participants, table.find(participants, player))
+            if #participants == sessionConfig.MinParticipants and minigameStartThread then
+                task.cancel(minigameStartThread)
+                minigameStartThread = nil
+                countdown = nil
+            end
         end
 
         updateStatusBoard()
@@ -103,7 +105,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
     janitor:Add(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
     janitor:Add(function()
         for _, participant in pairs(participants) do
-            onParticipantRemoved(participant)
+            onParticipantRemoved(participant, true)
         end
 
         if statusBoard then

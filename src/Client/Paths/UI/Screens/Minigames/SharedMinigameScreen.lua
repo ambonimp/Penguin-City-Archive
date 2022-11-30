@@ -182,25 +182,25 @@ end
 function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -> ()?)
     local menu: Frame
 
-    if startMenus.Visible then
-        if MinigameController.isMultiplayer() then
-            getScreenGui().Instructions.Visible = false
-            menu = multiplayerMenu
-        else
-            if not temporary then
-                startMenus.BackgroundTransparency = 1
+    if MinigameController.isMultiplayer() then
+        getScreenGui().Instructions.Visible = false
+        menu = multiplayerMenu
+    else
+        if not temporary then
+            startMenus.BackgroundTransparency = 1
 
-                if getCameraGizmo() then
-                    CameraController.setPlayerControl()
-                    CameraController.alignCharacter()
-                end
-
-                playTween:Cancel()
-                ScreenUtil.closeBlur()
+            if getCameraGizmo() then
+                CameraController.setPlayerControl()
+                CameraController.alignCharacter()
             end
 
-            menu = singlePlayerMenu
+            if playTween then
+                playTween:Cancel()
+            end
+            ScreenUtil.closeBlur()
         end
+
+        menu = singlePlayerMenu
     end
 
     if callback then
@@ -209,6 +209,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
 
     startMenus.Visible = false
     menu.Visible = false
+
     Transitions.closeBlink()
 end
 

@@ -40,19 +40,17 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
                 Ambient = Color3.fromRGB(130, 120, 113),
             },
             DisableCollisions = true,
-            --Music = "PizzaFiasco",
+            Music = false,
         },
         -- IceCreamExtravaganza
         IceCreamExtravaganza = {
             DisableCollisions = false,
             Music = false,
-            --Music = "IceCreamExtravaganza",
         },
-
         -- SledRace
         SledRace = {
             DisableCollisions = true,
-            --Music = "SledRace",
+            Music = false,
         },
     },
 }
