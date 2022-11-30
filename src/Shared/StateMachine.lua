@@ -4,9 +4,6 @@
 local StateMachine = {}
 StateMachine.__index = StateMachine
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
-
 type Operation = string
 
 export type StateMachine = typeof(StateMachine.new({}, ""))
@@ -141,7 +138,6 @@ function StateMachine:_RunOperation(operation, state, data)
 
     -- Get current state
     local oldState = self:GetState()
-    local oldStack = TableUtil.deepClone(self.stateStack) :: { string }
     local oldStackSize = #self.stateStack
 
     -- Asset state is valid
@@ -231,7 +227,7 @@ function StateMachine:_RunOperation(operation, state, data)
     -- Fire global callback
     if self.eventGlobal then
         prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
-        self.eventGlobal:Fire(oldState, currentState, data, oldStack)
+        self.eventGlobal:Fire(oldState, currentState, data)
     end
 end
 

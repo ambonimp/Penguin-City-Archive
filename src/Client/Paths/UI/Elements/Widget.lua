@@ -90,10 +90,12 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
                 ProductController.prompt(product)
             end))
 
-            purchaseMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, _amount: number)
-                if product == addedProduct then
+            purchaseMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, amount: number)
+                local isNowOwned = product == addedProduct and amount > 0
+                if isNowOwned then
                     widget:SetFade(false)
                     widget:SetPrice()
+                    purchaseMaid:Cleanup()
                 end
             end))
         end

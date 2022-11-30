@@ -1,5 +1,6 @@
 local ZoneController = {}
 
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -16,24 +17,88 @@ local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local PropertyStack = require(Paths.Shared.PropertyStack)
+local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 
-local MAX_YIELD_TIME_ZONE_LOADING = 10
-local WAIT_FOR_ZONE_TO_LOAD_INTERMISSION = 1 -- How often to verify if all base parts are loaded
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
+local CHECK_SOS_DISTANCE_EVERY = 1
+local SAVE_SOUL_AFTER_BEING_LOST_FOR = 1
+local MIN_TIME_BETWEEN_SAVING = 5
+local ZERO_VECTOR = Vector3.new(0, 0, 0)
 
 local localPlayer = Players.LocalPlayer
-local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local defaultZone = ZoneUtil.defaultZone()
 local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
 local isPlayingTransition = false
+local onZoneUpdateMaid = Maid.new()
 
 ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
     MinigameController = require(Paths.Client.Minigames.MinigameController)
+    WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
+end
+
+function ZoneController.Start()
+    -- SOS if we go too far from the zone
+    task.spawn(function()
+        local beenLostSinceTick: number | nil
+        local lastSaveAtTick = 0
+        while task.wait(CHECK_SOS_DISTANCE_EVERY) do
+            -- RETURN: No character!
+            local character = localPlayer.Character
+            if not character then
+                return
+            end
+
+            -- RETURN: No zone model?
+            local zoneModel = ZoneUtil.getZoneModel(currentZone)
+            if not zoneModel then
+                return
+            end
+
+            local distance = (character:GetPivot().Position - zoneModel:GetPivot().Position).Magnitude
+            local isLost = distance > ZoneConstants.StreamingTargetRadius
+            if isLost then
+                beenLostSinceTick = beenLostSinceTick or tick()
+                local beenLostFor = tick() - beenLostSinceTick
+                local timeSinceLastSave = tick() - lastSaveAtTick
+                if beenLostFor >= SAVE_SOUL_AFTER_BEING_LOST_FOR and timeSinceLastSave >= MIN_TIME_BETWEEN_SAVING then
+                    -- Save Our Soul!
+                    lastSaveAtTick = tick()
+                    ZoneController.teleportToDefaultZone()
+                end
+            else
+                beenLostSinceTick = nil
+            end
+        end
+    end)
+
+    --[[
+        onZoneUpdate Cosmetics
+
+        Every time we enter a zone, any Cosmetics module that has a `.onZoneUpdate(maid)` method is invoked.
+    ]]
+    local function onZoneUpdate()
+        onZoneUpdateMaid:Cleanup()
+
+        local zoneModel = ZoneUtil.getZoneModel(currentZone)
+        for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
+            if descendant:IsA("ModuleScript") then
+                local onZoneUpdateCallback = require(descendant).onZoneUpdate
+                if onZoneUpdateCallback then
+                    onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
+                end
+            end
+        end
+    end
+
+    ZoneController.ZoneChanged:Connect(onZoneUpdate)
+    onZoneUpdate()
 end
 
 -------------------------------------------------------------------------------
@@ -150,6 +215,7 @@ function ZoneController.transitionToZone(
             -- Init character
             local character = localPlayer.Character
             if character then
+                character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
             end
 
@@ -189,9 +255,9 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     end
 
     -- Zone Settings
-    ZoneUtil.applySettings(zone)
+    ZoneController.applySettings(zone)
     zoneMaid:GiveTask(function()
-        ZoneUtil.revertSettings(zone)
+        ZoneController.revertSettings(zone)
     end)
 
     setupTeleporters()
@@ -265,6 +331,44 @@ function ZoneController.teleportToRandomRoom()
 end
 
 -------------------------------------------------------------------------------
+-- Settings
+-------------------------------------------------------------------------------
+
+function ZoneController.applySettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.setProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.startWind()
+        end
+    end
+end
+
+function ZoneController.revertSettings(zone: ZoneConstants.Zone)
+    local zoneSettings = ZoneUtil.getSettings(zone)
+    if zoneSettings then
+        local key = zone.ZoneType .. zone.ZoneId
+
+        -- Lighting
+        if zoneSettings.Lighting then
+            PropertyStack.clearProperties(Lighting, zoneSettings.Lighting, key)
+        end
+
+        -- Wind
+        if zoneSettings.IsWindy then
+            WindController.stopWind()
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Loading
 -------------------------------------------------------------------------------
 
@@ -287,6 +391,10 @@ do
     Remotes.bindEvents({
         ZoneTeleport = function(zoneType: string, zoneId: string, teleportBuffer: number)
             ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneType, zoneId), teleportBuffer)
+        end,
+        CmdrRoomTeleport = function(roomId: string)
+            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomId)
+            ZoneController.teleportToRoomRequest(roomZone)
         end,
     })
 end

@@ -21,15 +21,16 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local Sound = require(Paths.Shared.Sound)
 local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local StampController = require(Paths.Client.StampController)
-local StampInfoScreen = require(Paths.Client.UI.Screens.StampInfo.StampInfoScreen)
+local UIActions = require(Paths.Client.UI.UIActions)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Remotes = require(Paths.Shared.Remotes)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -48,7 +49,7 @@ local TABS = {
 
 local screenGui: ScreenGui = Ui.StampBook
 local containerFrame: Frame = screenGui.Container
-local closeButton = KeyboardButton.new()
+local closeButton = ExitButton.new()
 local sealButton: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local previousPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
 local nextPage: typeof(AnimatedButton.new(Instance.new("ImageButton")))
@@ -192,7 +193,7 @@ function readStampData()
                     })
                     stampButton:Mount(holder)
                     stampButton.Pressed:Connect(function()
-                        StampInfoScreen.open(stampId, progress)
+                        UIActions.showStampInfo(stampId, progress)
                     end)
 
                     readStampDataMaid:GiveTask(stampButton)
@@ -256,20 +257,26 @@ function readStampData()
 end
 
 function StampBookScreen.Init()
+    local function close()
+        if currentView == "Inside" then
+            Sound.play("CloseBook")
+            StampBookScreen.openCover()
+        else
+            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
+        end
+    end
+
     -- UI Setup
     do
         -- Close
         closeButton:Mount(containerFrame.CloseButton, true)
-        closeButton:SetColor(UIConstants.Colors.Buttons.CloseRed)
-        closeButton:SetIcon(Images.Icons.Close)
-        closeButton:RoundOff()
-        closeButton:Outline(UIConstants.Offsets.ButtonOutlineThickness, Color3.fromRGB(255, 255, 255))
-        closeButton.Pressed:Connect(function()
-            if currentView == "Inside" then
-                Sound.play("CloseBook")
-                StampBookScreen.openCover()
+        closeButton.Pressed:Connect(close)
+
+        UIController.registerStateCloseCallback(UIConstants.States.StampBook, function()
+            if isEditing then
+                toggleEditMode(false)
             else
-                UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
+                close()
             end
         end)
 
@@ -386,7 +393,7 @@ function StampBookScreen.openCover()
     cover.Visible = true
     inside.Visible = false
     viewMaid:Cleanup()
-    StampInfoScreen.close()
+    UIController.getStateMachine():Remove(UIConstants.States.StampInfo)
 
     -- Buttons
     do
@@ -536,7 +543,7 @@ function StampBookScreen.openChapter(chapter: StampConstants.Chapter, pageNumber
                     Sound.play("Error")
                 end
             else
-                StampInfoScreen.open(stamp.Id, state.Progress)
+                UIActions.showStampInfo(stamp.Id, state.Progress)
             end
         end)
 

@@ -30,23 +30,28 @@ local stateScreenData: {
     },
 } =
     {}
+local stateCloseCallbacks: { [string]: { () -> nil } } = {}
 
 -- Init
 do
     stateMachine:SetDebugPrintingEnabled(SHOW_STATE_MACHINE_DEBUG)
 
-    -- Listen to Pop keybinds (e.g., XBOX closing a menu using B)
+    -- Listen to StateCloseCallback (e.g., XBOX closing a menu using B)
     UserInputService.InputEnded:Connect(function(inputObject, gameProcessedEvent)
         -- RETURN: Game Processed
         if gameProcessedEvent then
             return
         end
 
-        -- Should we pop?
-        local isPopKeybind = table.find(UIConstants.Keybinds.PopStateMachine, inputObject.KeyCode)
-        local isIgnoreState = table.find(UIConstants.DontPopStatesFromKeybind, stateMachine:GetState())
-        if isPopKeybind and not isIgnoreState then
-            stateMachine:Pop()
+        -- Should we run a callback?
+        local isStateCloseCallbackKeybind = table.find(UIConstants.Keybinds.StateCloseCallback, inputObject.KeyCode)
+        if isStateCloseCallbackKeybind then
+            local callbacks = stateCloseCallbacks[UIController.getStateMachine():GetState()]
+            if callbacks then
+                for _, callback in pairs(callbacks) do
+                    callback()
+                end
+            end
         end
     end)
 
@@ -63,12 +68,11 @@ do
     end)
 
     -- Manage State Callbacks
-    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string, data: table?, oldStack: { string })
-        -- Iterate each callback
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string, data: table?)
+        -- Iterate screenData
         for someState, screenData in pairs(stateScreenData) do
             -- Check if we are on top or not
-            local isInvisible = table.find(UIConstants.InvisibleStates, someState) and true or false
-            local isOnTop = not isInvisible and (toState == someState or UIUtil.getPseudoState(someState))
+            local isOnTop = (toState == someState or UIUtil.getPseudoState(someState))
 
             -- Custom UIConstants Behaviour
             if not isOnTop then
@@ -167,6 +171,17 @@ function UIController.registerStateScreenCallbacks(
             IsMaximized = false,
         },
     }
+end
+
+--[[
+    Binds a callback to when the user requests a generic "close" when in a UIState.
+
+    This is how we get our XBOX "B" close behaviour!
+]]
+function UIController.registerStateCloseCallback(state: string, callback: () -> nil)
+    stateCloseCallbacks[state] = stateCloseCallbacks[state] or {}
+
+    table.insert(stateCloseCallbacks[state], callback)
 end
 
 function UIController.Start()

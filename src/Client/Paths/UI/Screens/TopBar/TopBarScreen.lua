@@ -8,6 +8,8 @@ local CurrencyController = require(Paths.Client.CurrencyController)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local COINS_DIFF_SCREEN_PERCENTAGE = 1 / 4
 local COINS_DIFF_TWEEN_INFO_POSITION = TweenInfo.new(3.5)
@@ -22,7 +24,7 @@ function TopBarScreen.displayCoinsDiff(addCoins: number)
     -- Get UI Elements + setup initial state
     local coinsLabel: TextLabel = coinImageButton.Coins:Clone()
     coinsLabel.ZIndex = coinsLabel.ZIndex - 1
-    coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "-", StringUtil.commaValue(addCoins))
+    coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "", StringUtil.commaValue(addCoins))
     coinsLabel.Name = "CoinsDiff"
     local whiteLabel: TextLabel = coinImageButton.White:Clone()
     whiteLabel.ZIndex = whiteLabel.ZIndex - 1
@@ -77,7 +79,7 @@ do
 
     local coinButton = AnimatedButton.new(coinImageButton)
     coinButton.Pressed:Connect(function()
-        warn("TODO Prompt Coin Purchases")
+        UIController.getStateMachine():Push(UIConstants.States.Shop, { StartTabName = "Coins" })
     end)
 end
 

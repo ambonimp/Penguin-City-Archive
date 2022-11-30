@@ -50,18 +50,79 @@ local productType: { [string]: string } = ProductConstants.ProductType
 local products: { [string]: { [string]: Product } } = {
     --#region Coin
     Coin = {
-        coin_bundle_1 = {
-            Id = "coin_bundle_1",
-            DisplayName = "Coin Bundle 1",
-            Description = "+20 Coins",
+        coin_pile = {
+            Id = "coin_pile",
+            DisplayName = "Coin Pile",
+            Description = "+650 Coins",
             IsConsumable = true,
             ConsumeImmediately = true,
+            ImageId = "rbxassetid://11152356045",
             RobuxData = {
-                Cost = 49,
+                Cost = 50,
                 DeveloperProductId = 1322070855,
             },
             Metadata = {
-                AddCoins = 20,
+                AddCoins = 650,
+            },
+        },
+        coin_bag = {
+            Id = "coin_bag",
+            DisplayName = "Coin Bag",
+            Description = "+2,100 Coins",
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            ImageId = "rbxassetid://11152355987",
+            RobuxData = {
+                Cost = 125,
+                DeveloperProductId = 1341513203,
+            },
+            Metadata = {
+                AddCoins = 2100,
+            },
+        },
+        coin_stack = {
+            Id = "coin_stack",
+            DisplayName = "Coin Stack",
+            Description = "+4,350 Coins",
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            ImageId = "rbxassetid://11152355907",
+            RobuxData = {
+                Cost = 240,
+                DeveloperProductId = 1341513286,
+            },
+            Metadata = {
+                AddCoins = 4350,
+            },
+        },
+        coin_chest = {
+            Id = "coin_chest",
+            DisplayName = "Coin Chest",
+            Description = "+7,500 Coins",
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            ImageId = "rbxassetid://11152355811",
+            RobuxData = {
+                Cost = 330,
+                DeveloperProductId = 1341513286,
+            },
+            Metadata = {
+                AddCoins = 7500,
+            },
+        },
+        coin_vault = {
+            Id = "coin_vault",
+            DisplayName = "Coin Vault",
+            Description = "+15,000 Coins",
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            ImageId = "rbxassetid://11152355721",
+            RobuxData = {
+                Cost = 500,
+                DeveloperProductId = 1341513438,
+            },
+            Metadata = {
+                AddCoins = 15000,
             },
         },
     },
@@ -78,6 +139,9 @@ local products: { [string]: { [string]: Product } } = {
             RobuxData = {
                 Cost = 99,
                 DeveloperProductId = 1335900877,
+            },
+            CoinData = {
+                Cost = 5,
             },
             Metadata = {
                 PetEggName = "Common",
@@ -127,6 +191,14 @@ local products: { [string]: { [string]: Product } } = {
             RobuxData = {
                 Cost = 49,
                 DeveloperProductId = 1337359490,
+            },
+        },
+        nothing = {
+            Id = "nothing",
+            DisplayName = "Nothing",
+            Description = "Nothing",
+            RobuxData = {
+                Cost = 99,
             },
         },
     },

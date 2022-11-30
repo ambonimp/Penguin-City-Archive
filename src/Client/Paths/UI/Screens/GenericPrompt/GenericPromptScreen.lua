@@ -25,7 +25,7 @@ local backgroundFrame: ImageLabel = screenGui.Background
 
 local leftButton = KeyboardButton.new()
 local rightButton = KeyboardButton.new()
-local closeButton = ExitButton.new()
+local closeButton = ExitButton.new(UIConstants.States.GenericPrompt)
 
 local openMaid = Maid.new()
 

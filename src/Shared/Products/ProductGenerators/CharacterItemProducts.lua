@@ -44,7 +44,7 @@ for categoryName, itemConstants in pairs(CharacterItems) do
             ImageId = item.Icon,
             ImageColor = getImageColor(categoryName, item),
             CoinData = {
-                Cost = math.random(0, 2), --!! Temp
+                Cost = productId:len() % 2, --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,

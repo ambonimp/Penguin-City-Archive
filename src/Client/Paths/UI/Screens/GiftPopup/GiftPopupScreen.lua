@@ -11,23 +11,31 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
 local Sound = require(Paths.Shared.Sound)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local Maid = require(Paths.Packages.maid)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 
+local maid = Maid.new()
 local screenGui: ScreenGui = Ui.GiftPopup
 local contents: Frame = screenGui.Back.Contents
 local claimButton = KeyboardButton.new()
 local descriptionLabel: TextLabel = contents.Text.Description
-local icon: ImageLabel = contents.Icon
+local container: ImageLabel = contents.Middle.Container
 
 function GiftPopupScreen.Init()
+    local function close()
+        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
+    end
+
     -- Buttons
     do
         claimButton:Mount(contents.Buttons.Claim, true)
         claimButton:SetText("Claim Gift")
         claimButton:SetColor(UIConstants.Colors.Buttons.AvailableGreen)
-        claimButton.Pressed:Connect(function()
-            UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.GiftPopup)
-        end)
+        claimButton.Pressed:Connect(close)
     end
+
+    -- Close
+    UIController.registerStateCloseCallback(UIConstants.States.GiftPopup, close)
 
     -- Register UIState
     UIController.registerStateScreenCallbacks(UIConstants.States.GiftPopup, {
@@ -48,26 +56,22 @@ function GiftPopupScreen.boot(data: table)
         return
     end
 
+    maid:Cleanup()
     Sound.play("OpenGift")
 
     if product then
-        -- Text
         descriptionLabel.Text = product.DisplayName
+        container.Image = ""
 
-        -- Icon
-        if product.ImageId then
-            icon.Image = product.ImageId
-            icon.Visible = true
-        else
-            icon.Visible = false
-        end
-    else
-        -- Text
+        local widget = Widget.diverseWidgetFromProduct(product)
+        widget:Mount(container)
+        maid:GiveTask(widget)
+    elseif coins then
         descriptionLabel.Text = ("%s Coins"):format(StringUtil.commaValue(coins))
-
-        -- Icon
-        icon.Image = Images.Coins.Coin
-        icon.Visible = true
+        container.Image = Images.Coins.Coin
+    else
+        warn("Bad data", data)
+        UIController.getStateMachine():Remove(UIConstants.States.GiftPopup)
     end
 end
 

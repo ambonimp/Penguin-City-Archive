@@ -4,7 +4,7 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local StarterGui = game:GetService("StarterGui")
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 
 local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Health,

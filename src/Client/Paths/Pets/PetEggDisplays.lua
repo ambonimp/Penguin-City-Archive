@@ -7,7 +7,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local ZoneController = require(Paths.Client.ZoneController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local Maid = require(Paths.Packages.maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
@@ -16,6 +16,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local ProductController = require(Paths.Client.ProductController)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 local WIDGET_RESOLUTION = UDim2.fromOffset(123, 123)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
@@ -118,6 +119,7 @@ end
 function PetEggDisplays.update()
     updateMaid:Cleanup()
 
+    local zoneModel = ZoneUtil.getZoneModel(ZoneController.getCurrentZone())
     for petEggName, _ in pairs(PetConstants.PetEggs) do
         local displayName = ("%sPetEgg"):format(petEggName)
         local displayParts: { BasePart } = CollectionService:GetTagged(displayName)
@@ -127,7 +129,9 @@ function PetEggDisplays.update()
                 error(("Got a DisplayInstace (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
             end
 
-            PetEggDisplays.createDisplay(petEggName, displayPart)
+            if displayPart:IsDescendantOf(zoneModel) then
+                PetEggDisplays.createDisplay(petEggName, displayPart)
+            end
         end
     end
 end

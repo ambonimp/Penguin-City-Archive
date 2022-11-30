@@ -45,11 +45,11 @@ task.delay(0, function()
         require(client.Minigames.MinigameController),
         require(client.UI.CoreGui),
         require(client.CurrencyController),
-        require(client.ZoneController),
-        require(client.MusicController),
+        require(client.Zones.ZoneController),
         require(client.PlayerMenuController),
         require(client.Rewards.RewardsController),
         require(client.Pets.PetController),
+        require(client.StampController),
 
         -- UnitTest
         require(client.UnitTestingController),

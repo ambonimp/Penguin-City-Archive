@@ -83,13 +83,14 @@ function PetAnimator.playAnimation(petId: number, animationName: string, replica
         local billboardGui = model:FindFirstChildWhichIsA("BillboardGui", true)
         if billboardGui then
             local duration = track.Length
-            local baseOffset = billboardGui.StudsOffset
-            local goalOffset = baseOffset + Vector3.new(0, PetConstants.Following.JumpHeight * JUMP_HEIGHT_OFFSET_MULTIPLIER, 0)
+            local heightAdd = Vector3.new(0, PetConstants.Following.JumpHeight * JUMP_HEIGHT_OFFSET_MULTIPLIER, 0)
 
-            TweenUtil.run(function(jumpProgress)
+            TweenUtil.run(function(jumpProgress, _dt, lastAlpha)
                 local heightAlpha = PetUtils.getHeightAlphaFromPetJumpProgress(jumpProgress)
-                local offset = baseOffset:Lerp(goalOffset, heightAlpha)
-                billboardGui.StudsOffset = offset
+                local lastHeightAlpha = lastAlpha and PetUtils.getHeightAlphaFromPetJumpProgress(lastAlpha) or 0
+
+                local newOffset = billboardGui.StudsOffset + heightAdd * (heightAlpha - lastHeightAlpha)
+                billboardGui.StudsOffset = newOffset
             end, TweenInfo.new(duration, JUMP_HEIGHT_TWEEN_INFO.EasingStyle, JUMP_HEIGHT_TWEEN_INFO.EasingDirection))
         end
     end

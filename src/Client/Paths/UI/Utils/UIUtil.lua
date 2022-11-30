@@ -51,7 +51,7 @@ end
 function UIUtil.waitForHudAndRoomZone()
     -- Grab Dependencies in scope to avoid dependency issues
     local UIController = require(Paths.Client.UI.UIController)
-    local ZoneController = require(Paths.Client.ZoneController)
+    local ZoneController = require(Paths.Client.Zones.ZoneController)
     local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
     return Promise.new(function(resolve, _reject, _onCancel)

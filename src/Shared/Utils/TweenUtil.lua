@@ -66,17 +66,15 @@ end
     - Will automatically disconnect when the tween is completed
     - You can disconnect at any time yourself!
 ]]
-function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
+function TweenUtil.run(callback: (alpha: number, dt: number, prevAlpha: number?) -> nil, tweenInfo: TweenInfo)
     local startTick = tick() + tweenInfo.DelayTime
     local repeatsLeft = tweenInfo.RepeatCount
 
-    -- ERROR: I was too lazy
-    if tweenInfo.Reverses then
-        error("Not implemented yet.. sorry developer :c")
-    end
+    local prevAlpha: number?
+    local isReversing = false
 
     local connection: RBXScriptConnection
-    connection = RunService.RenderStepped:Connect(function()
+    connection = RunService.RenderStepped:Connect(function(dt)
         -- RETURN: Delay time stops us from starting yet
         local thisTick = tick()
         if thisTick < startTick then
@@ -86,25 +84,38 @@ function TweenUtil.run(callback: (alpha: number) -> nil, tweenInfo: TweenInfo)
         -- Calculate time
         local timeElapsed = thisTick - startTick
         local timeAlpha = math.clamp(timeElapsed / tweenInfo.Time, 0, 1)
+        if isReversing then
+            timeAlpha = 1 - timeAlpha
+        end
 
         -- Times up! What do?
-        if timeAlpha == 1 then
-            repeatsLeft -= 1
-            if repeatsLeft >= 0 then
-                -- Loop back
+        if isReversing and timeAlpha == 0 or timeAlpha == 1 then
+            local doReverse = isReversing == false and tweenInfo.Reverses
+            if doReverse then
+                isReversing = true
                 startTick += tweenInfo.Time
             else
-                -- Exit
-                connection:Disconnect()
-            end
+                isReversing = false
 
-            callback(1)
-            return
+                repeatsLeft -= 1
+                if repeatsLeft == -1 then
+                    -- Exit
+                    connection:Disconnect()
+                else
+                    -- Loop back
+                    startTick += tweenInfo.Time
+                end
+
+                callback(timeAlpha, dt, prevAlpha)
+                return
+            end
         end
 
         -- Tween
         local tweenAlpha = TweenService:GetValue(timeAlpha, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
-        callback(tweenAlpha)
+        callback(tweenAlpha, dt, prevAlpha)
+
+        prevAlpha = tweenAlpha
     end)
 
     return connection

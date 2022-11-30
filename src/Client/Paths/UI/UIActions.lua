@@ -13,6 +13,10 @@ local Sound = require(Paths.Shared.Sound)
 
 local notificationIconsByGuiObject: { [GuiObject]: typeof(NotificationIcon.new()) } = {}
 
+-------------------------------------------------------------------------------
+-- UI State Wrappers
+-------------------------------------------------------------------------------
+
 -- Pulls up the results screen via a uiStateMachine push
 function UIActions.displayResults(
     logoId: string,
@@ -52,6 +56,13 @@ function UIActions.prompt(
     end)
 end
 
+function UIActions.showStampInfo(stampId: string, progress: number?)
+    UIController.getStateMachine():Push(UIConstants.States.StampInfo, {
+        StampId = stampId,
+        Progress = progress,
+    })
+end
+
 -------------------------------------------------------------------------------
 -- Notifications
 -------------------------------------------------------------------------------
@@ -61,12 +72,20 @@ function UIActions.sendRobloxNotification(configTable: {
     Text: string?,
     Icon: string?,
     Duration: number?,
-    Callback: BindableFunction?,
+    Callback: (() -> any)?,
     Button1: string?,
     Button2: string?,
 })
     configTable.Title = configTable.Title or "Notification"
     configTable.Text = configTable.Text or ""
+
+    if configTable.Callback then
+        local callbackFunction = configTable.Callback
+        local bindableFunction = Instance.new("BindableFunction")
+        bindableFunction.OnInvoke = callbackFunction
+
+        configTable.Callback = bindableFunction :: nil
+    end
 
     StarterGui:SetCore("SendNotification", configTable)
     Sound.play("Notification")

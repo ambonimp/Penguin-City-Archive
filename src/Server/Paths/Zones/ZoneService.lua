@@ -24,7 +24,7 @@ local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
-local defaultZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, ZoneConstants.DefaultPlayerZoneState.RoomId)
+local defaultZone = ZoneUtil.defaultZone()
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 ZoneService.PlayerTeleported = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
@@ -69,6 +69,18 @@ function ZoneService.getPlayerMinigame(player: Player)
     end
 
     return nil
+end
+
+function ZoneService.getPlayersInZone(zone: ZoneConstants.Zone)
+    local players: { Player } = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        local playerZone = ZoneService.getPlayerZone(player)
+        if ZoneUtil.zonesMatch(zone, playerZone) then
+            table.insert(players, player)
+        end
+    end
+
+    return players
 end
 
 -- Returns a function to remove this zone cleanly. Returns the zoneModel as a second parameter
@@ -265,5 +277,8 @@ do
         end,
     })
 end
+
+-- See Cmdr TeleportServer
+Remotes.declareEvent("CmdrRoomTeleport")
 
 return ZoneService
