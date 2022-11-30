@@ -72,12 +72,20 @@ function UIActions.sendRobloxNotification(configTable: {
     Text: string?,
     Icon: string?,
     Duration: number?,
-    Callback: BindableFunction?,
+    Callback: (() -> any)?,
     Button1: string?,
     Button2: string?,
 })
     configTable.Title = configTable.Title or "Notification"
     configTable.Text = configTable.Text or ""
+
+    if configTable.Callback then
+        local callbackFunction = configTable.Callback
+        local bindableFunction = Instance.new("BindableFunction")
+        bindableFunction.OnInvoke = callbackFunction
+
+        configTable.Callback = bindableFunction :: nil
+    end
 
     StarterGui:SetCore("SendNotification", configTable)
     Sound.play("Notification")
