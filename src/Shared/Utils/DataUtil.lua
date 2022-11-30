@@ -153,6 +153,16 @@ function DataUtil.readAsArray(store: Store): { [string | number]: Data }
     return returning
 end
 
+function DataUtil.serializeTable(value: { Vector3 | Color3 }): { string }
+    local serialized = {}
+
+    for i, str in pairs(value) do
+        table.insert(serialized, DataUtil.serializeValue(str))
+    end
+
+    return serialized
+end
+
 function DataUtil.serializeValue<T>(value: T): string
     local valueType = typeof(value)
     if valueType == "Color3" or "Vector3" then

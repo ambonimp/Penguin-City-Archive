@@ -331,6 +331,10 @@ function SelectionPanel.new()
         draw()
     end
 
+    function selectionPanel:GetOpenTabName()
+        return openTabName
+    end
+
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
         -- RETURN: Not changed
         if newAlignmnet == alignment then

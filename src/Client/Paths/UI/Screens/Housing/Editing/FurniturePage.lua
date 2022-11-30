@@ -18,7 +18,6 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
-local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
@@ -60,11 +59,13 @@ local character: Model?
 local plot: Model?
 local plotCFrame: CFrame?
 
+local colorNameSelected: string
+local colorNum: number
 local name: string
 local position: Vector3
 local normal: Vector3
 local rotationY: number
-local color: Color3
+local color: { Color3? }
 local model: Model
 
 -------------------------------------------------------------------------------
@@ -144,8 +145,8 @@ end
 -------------------------------------------------------------------------------
 local function applyColor()
     for _, part: BasePart in (model:GetDescendants()) do
-        if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == "Color1" then
-            part.Color = color
+        if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == colorNameSelected then
+            part.Color = color[colorNum]
         end
     end
 end
@@ -166,6 +167,9 @@ do
 
         -- Modifiers
         local function calculateCf(oldCf, surfacePos)
+            if normal == nil then
+                normal = Vector3.new(0, 1, 0)
+            end
             return HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
         end
 
@@ -187,10 +191,18 @@ do
             if isNewObject then
                 rotationY = 0
                 name = model.Name
-                --color = FurnitureConstants.Objects[model.Name].DefaultColor
-                print(model.Color1:GetChildren())
-                local part = model.Color1:FindFirstChildOfClass("BasePart") or model.Color1:FindFirstChildOfClass("MeshPart")
-                color = part.Color
+                if color == nil then
+                    color = {}
+                end
+                for i = 1, 10 do
+                    if model:FindFirstChild("Color" .. i) then
+                        local part = model:FindFirstChild("Color" .. i):FindFirstChildOfClass("BasePart")
+                            or model:FindFirstChild("Color" .. i):FindFirstChildOfClass("MeshPart")
+
+                        color[i] = part.Color
+                    end
+                end
+
                 position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0) + heightOffset
 
                 model:PivotTo(CFrame.new(position))
@@ -202,10 +214,16 @@ do
                 placementSession:GiveTask(model)
             else
                 local store = DataController.get("House.Furniture." .. model.Name)
-                color = DataUtil.deserializeValue(store.Color, Color3)
+                if color == nil then
+                    color = {}
+                end
+                for i, color_ in store.Color do
+                    color[i] = DataUtil.deserializeValue(color_, Color3)
+                end
+
                 rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
                 position = model.PrimaryPart.Position
-                normal = DataUtil.deserializeValue(store.Normal, Vector3).Y
+                normal = DataUtil.deserializeValue(store.Normal, Vector3)
             end
         end
 
@@ -344,17 +362,17 @@ do
         -- Cover Color
 
         for i = 1, 10 do
-            if model:FindFirstChild("Color" .. i) then
-                colorPanel:RemoveTab("Color" .. i)
-            end
+            colorPanel:RemoveTab("Color" .. i)
         end
-
         for i = 1, 10 do
             if model:FindFirstChild("Color" .. i) then
                 colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
             end
         end
 
+        colorNameSelected = "Color1"
+        colorNum = 1
+        colorPanel:OpenTab(colorNameSelected)
         ScreenUtil.inLeft(colorPanel:GetContainer())
     end, function()
         placementSession:Cleanup()
@@ -388,7 +406,7 @@ do
             local target = result.Instance
 
             if target and target:IsDescendantOf(plot.Furniture) then
-                if target.Parent.Name == "Color1" then
+                if target.Parent.Name == colorNameSelected then
                     target = target.Parent
                 end
 
@@ -409,7 +427,7 @@ do
         end))
 
         placementSession:GiveTask(function()
-            deselectPaintColor(color) -- Reset colors
+            deselectPaintColor(color[1]) -- Reset colors
         end)
     end, function()
         if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
@@ -432,34 +450,26 @@ do
         end)
         template.Parent = colorPanel:GetContainer()
         -- Initialize colors
-        for _, color in pairs(FurnitureConstants.Colors) do
+        for _, color_ in pairs(FurnitureConstants.Colors) do
             local button = templates.PaintColor:Clone()
-            button.Name = tostring(color)
-            button.ImageColor3 = color
+            button.Name = tostring(color_)
+            button.ImageColor3 = color_
             button.Parent = template.Colors
-            button:SetAttribute("ColorValue", color)
+            button:SetAttribute("ColorValue", color_)
             button.ZIndex = 50
-        end
 
-        -- Color picker
-        do
-            for _, colorButton in pairs(colorPanel:GetContainer():GetChildren()) do
-                if colorButton:IsA("ImageButton") then
-                    local colorName = colorButton.Name
-                    local colorValue = colorButton:GetAttribute("ColorValue")
-                    colorButton.MouseButton1Down:Connect(function()
-                        if color ~= colorName then
-                            deselectPaintColor(color)
-
-                            color = colorValue
-                            selectPaintColor(colorValue)
-                            applyColor()
-                        end
-                    end)
+            local colorName = button.Name
+            local colorValue = color_
+            button.MouseButton1Down:Connect(function()
+                colorNameSelected = colorPanel:GetOpenTabName()
+                colorNum = tonumber(string.sub(colorNameSelected, 6, 6))
+                if color ~= colorName then
+                    deselectPaintColor(color[1])
+                    color[colorNum] = colorValue
+                    selectPaintColor(colorValue)
+                    applyColor()
                 end
-            end
-
-            selectPaintColor(color) -- TODO: Scroll to this position
+            end)
         end
 
         ScreenUtil.outLeft(colorPanel:GetContainer())
