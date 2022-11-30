@@ -11,7 +11,7 @@ function PathsUtil.runInitAndStart(requiredModules: { table })
     -- Run Start
     for _, tbl in pairs(requiredModules) do
         if tbl.Start then
-            task.spawn(tbl.Start)
+            task.delay(nil, tbl.Start)
         end
     end
 end

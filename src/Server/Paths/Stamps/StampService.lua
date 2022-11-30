@@ -10,6 +10,15 @@ local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 
+function StampService.Start()
+    -- Init Awarders
+    for _, descendant in pairs(Paths.Server.Stamps.StampAwarders:GetDescendants()) do
+        if descendant:IsA("ModuleScript") then
+            require(descendant)
+        end
+    end
+end
+
 local function getStamp(stampId: string): Stamps.Stamp
     -- ERROR: Bad StampId
     local stamp = StampUtil.getStampFromId(stampId)
@@ -52,13 +61,15 @@ function StampService.addStamp(player: Player, stampId: string, stampTierOrProgr
     local stamp = getStamp(stampId)
     local stampProgress = stamp.IsTiered and StampUtil.calculateProgressNumber(stamp, stampTierOrProgress) or 1
 
-    DataService.set(
-        player,
-        StampUtil.getStampDataAddress(stampId),
-        stampProgress,
-        "StampUpdated",
-        { StampId = stampId, StampProgress = stampProgress }
-    )
+    if StampService.getProgress(player, stampId) ~= stampProgress then
+        DataService.set(
+            player,
+            StampUtil.getStampDataAddress(stampId),
+            stampProgress,
+            "StampUpdated",
+            { StampId = stampId, StampProgress = stampProgress }
+        )
+    end
 end
 
 --[[
@@ -74,11 +85,8 @@ function StampService.incrementStamp(player: Player, stampId: string, amount: nu
 
     -- Edge Case for non-tiered stamp
     if not stamp.IsTiered then
-        newProgress = 1
-
-        if StampService.getProgress(player, stampId) == newProgress then
-            return
-        end
+        StampService.addStamp(player, stampId)
+        return
     end
 
     DataService.set(
