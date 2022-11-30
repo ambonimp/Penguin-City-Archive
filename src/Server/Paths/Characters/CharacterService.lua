@@ -81,10 +81,13 @@ function CharacterService.loadPlayer(player: Player)
     end))
 
     -- Nametag
+    local aestheticRoleDetails = PlayerService.getAestheticRoleDetails(player)
+    local nametagText = aestheticRoleDetails and ("%s %s  "):format(aestheticRoleDetails.Emoji, player.DisplayName) or player.DisplayName
+
     local nametag = Nametag.new()
     nametag:Mount(character)
     nametag:HideFrom(player)
-    nametag:SetName(player.DisplayName)
+    nametag:SetName(nametagText)
     PlayerService.getPlayerMaid(player):GiveTask(nametag)
 end
 
