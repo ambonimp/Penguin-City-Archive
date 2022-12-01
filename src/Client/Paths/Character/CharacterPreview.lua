@@ -46,7 +46,7 @@ local function lookAtSubject()
 
     local worldDepth = CameraUtil.getFitDepth(viewportSize, fov, subjectSize * Vector3.new(subjectScale, 1, 1))
     local worldWidth: number = aspectRatio * (math.tan(math.rad(fov) / 2) * worldDepth) * 2
-    local screenOffset: number = subjectPosition
+    local screenOffset: number = -subjectPosition
 
     local cameraOffset: CFrame = CFrame.new(worldWidth * screenOffset, 0, worldDepth)
         * CFrame.fromEulerAnglesYXZ(math.rad(rotationalOffset.X), 0, 0)
@@ -75,7 +75,10 @@ local function onRotationToggled(_, inputState)
 end
 
 --[[
-    todo
+    Sets up our camera to look at a clone of our character model that we can do what we want with!
+    - `SubjectScale`: How much of the screen the model takes up
+    - `SubjectPosition`: - to move model to the left, + to move the model to the right
+    - `RotationalOffset`: Camera Angle
 
     Returns { previewCharacter: Model, maid: Maid }. Maid cleans up whole process.
 ]]
@@ -100,6 +103,7 @@ function CharacterPreview.preview(config: {
     end
 
     local previewCharacter = character:Clone()
+    previewCharacter:WaitForChild("HumanoidRootPart").Anchored = true
     previewCharacter.Name = "PreviewCharacter"
     previewCharacter.Parent = Workspace
     previewCharacter.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
