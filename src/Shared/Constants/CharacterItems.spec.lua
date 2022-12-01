@@ -7,7 +7,11 @@ return function()
     for categoryName, itemConstants in pairs(CharacterItems) do
         for itemKey, item in pairs(itemConstants.Items) do
             -- Name
-            if not item.Name then
+            if item.Name then
+                if item.Name ~= itemKey then
+                    table.insert(issues, ("%s.%s .Name must match itemKey (%s)"):format(categoryName, itemKey, itemKey))
+                end
+            else
                 table.insert(issues, ("%s.%s has no .Name!"):format(categoryName, itemKey))
             end
 
