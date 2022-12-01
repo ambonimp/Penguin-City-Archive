@@ -16,6 +16,7 @@ local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local Nametag = require(Paths.Shared.Nametag)
+local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 
 Players.CharacterAutoLoads = false
 
@@ -67,7 +68,8 @@ function CharacterService.loadPlayer(player: Player)
     player.Character = character
 
     -- Apply saved appearance
-    CharacterUtil.applyAppearance(character, DataUtil.readAsArray(DataService.get(player, "CharacterAppearance")))
+    local appearance = DataUtil.readAsArray(DataService.get(player, "CharacterAppearance")) :: CharacterItems.Appearance
+    CharacterUtil.applyAppearance(character, appearance)
 
     -- Setup Humanoid
     local humanoid = character.Humanoid

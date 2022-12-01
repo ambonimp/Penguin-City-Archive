@@ -251,7 +251,7 @@ local animationNames: { [string]: string } = {
 }
 PetConstants.AnimationNames = animationNames
 
-PetConstants.PetEggHatchingDuration = 2
+PetConstants.PetEggHatchingDuration = 2.5
 
 PetConstants.Following = {
     SideDistance = 5,
