@@ -14,8 +14,6 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local COINS_DIFF_SCREEN_PERCENTAGE = 1 / 4
 local COINS_DIFF_TWEEN_INFO_POSITION = TweenInfo.new(3.5)
 local COINS_DIFF_TWEEN_INFO_TRANSPARENCY = TweenInfo.new(0.6)
-local COINS_DIFF_OFFSET_START_POSITION = UDim2.fromOffset(-30, 0) -- So we dont occlude HUD buttons
-local INSTANT_TWEEN_INFO = TweenInfo.new(0)
 local CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET = 48
 
 local container: Frame = Paths.UI.TopBar.Container

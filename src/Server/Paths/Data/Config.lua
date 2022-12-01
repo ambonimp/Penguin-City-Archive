@@ -63,6 +63,7 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
             Eggs = {},
             Pets = {},
         },
+        Tutorial = {},
     } :: DataUtil.Store
 end
 

@@ -47,22 +47,33 @@ function UIUtil.getPseudoState(pseudoState: string)
     return false
 end
 
--- Will return a Promise that is resolved when we are in the HUD UIState and are in a Room Zone
-function UIUtil.waitForHudAndRoomZone()
+--[[
+    Will return a Promise that is resolved when we are in the HUD UIState and are in a Room Zone
+
+    - `timeSeconds`: If passed, will ensure this state has been held for `timeSeconds` before resolving
+]]
+function UIUtil.waitForHudAndRoomZone(timeSeconds: number?)
     -- Grab Dependencies in scope to avoid dependency issues
     local UIController = require(Paths.Client.UI.UIController)
     local ZoneController = require(Paths.Client.Zones.ZoneController)
     local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
     return Promise.new(function(resolve, _reject, _onCancel)
+        local beenAbleToShowSince: number?
+
         while true do
             local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
                 and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
             if canShow then
-                break
+                beenAbleToShowSince = beenAbleToShowSince or tick()
+                if not timeSeconds or (tick() > beenAbleToShowSince + timeSeconds) then
+                    break
+                end
             else
-                task.wait()
+                beenAbleToShowSince = nil
             end
+
+            task.wait()
         end
         resolve()
     end)
