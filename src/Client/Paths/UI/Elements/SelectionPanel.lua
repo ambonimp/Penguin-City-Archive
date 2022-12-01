@@ -62,6 +62,7 @@ function SelectionPanel.new()
     local parent: GuiBase | GuiObject | nil
     local containerFrame: Frame
     local backgroundFrame: Frame
+    local closeButtonFrame: Frame
     local tabsFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
@@ -168,6 +169,7 @@ function SelectionPanel.new()
         end
         containerFrame = containerFrame:Clone()
         backgroundFrame = containerFrame.Background
+        closeButtonFrame = backgroundFrame.Side.CloseButton
         containerMaid:GiveTask(containerFrame)
 
         if parent then
@@ -310,6 +312,18 @@ function SelectionPanel.new()
 
         if hideParent and parent:IsA("GuiObject") then
             parent.BackgroundTransparency = 1
+        end
+
+        -- WARN: Unintended Behaviour
+        local screenGui = newParent:IsA("ScreenGui") and newParent or newParent:FindFirstAncestorOfClass("ScreenGui")
+        if screenGui then
+            if screenGui.ZIndexBehavior ~= Enum.ZIndexBehavior.Global then
+                warn(
+                    ("ScreenGui %q must have ZIndexBehavior Enum.ZIndexBehavior.Global for SelectionPanel to function properly"):format(
+                        screenGui:GetFullName()
+                    )
+                )
+            end
         end
     end
 
@@ -490,6 +504,10 @@ function SelectionPanel.new()
         if openTabName == tabName then
             draw()
         end
+    end
+
+    function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
+        closeButtonFrame.Visible = isVisible
     end
 
     -------------------------------------------------------------------------------

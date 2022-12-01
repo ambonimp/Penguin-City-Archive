@@ -2,31 +2,28 @@ local CharacterEditorScreen = {}
 
 -- Dependecies
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local Promise = require(Paths.Packages.promise)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
-local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
-local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local DataController = require(Paths.Client.DataController)
-local CoreGui = require(Paths.Client.UI.CoreGui)
 local Button = require(Paths.Client.UI.Elements.Button)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Category = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
 local BodyTypeCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorBodyTypeCategory)
-local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
+local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
 
 local STANDUP_TIME = 0.1
-local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 local DEFAULT_CATEGORY = "Shirt"
+local CHARACTER_PREVIEW_CONFIG = {
+    SubjectScale = 9,
+    SubjectPosition = -0.2,
+}
 
 local canOpen: boolean = true
 
@@ -137,35 +134,25 @@ do
             end
         end)
 
-        local proceed = characterIsReady:await()
         -- RETURN: Player no longer wants to open the editor
+        local proceed = characterIsReady:await()
         if not proceed then
             return
         end
-        -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
-        character:WaitForChild("HumanoidRootPart").Anchored = true
 
-        preview = character:Clone()
-        preview.Name = "CharacterEditorPreview"
-        preview.Parent = Workspace
-        preview.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
-        session:GiveTask(preview)
+        -- Character Preview
+        local previewCharacter, previewMaid = CharacterPreview.preview(CHARACTER_PREVIEW_CONFIG)
+        preview = previewCharacter
+        session:GiveTask(previewMaid)
 
         for _, category in pairs(categories) do
             category:SetPreview(preview)
         end
 
-        -- Make camera look at preview character
-        session:GiveTask(CharacterEditorCamera.look(preview))
-
         -- Open menu and hide all other characters
         ScreenUtil.inLeft(menu)
         ScreenUtil.inRight(equippedSlots)
         ScreenUtil.inRight(bodyTypesPage)
-
-        CoreGui.disable()
-        InteractionUtil.hideInteractions(script.Name)
-        CharacterUtil.hideCharacters(script.Name)
     end
 
     local function exitMenu()
@@ -201,10 +188,6 @@ do
             ScreenUtil.out(menu)
             ScreenUtil.out(equippedSlots)
             ScreenUtil.out(bodyTypesPage)
-
-            CharacterUtil.showCharacters(script.Name)
-            CoreGui.enable()
-            InteractionUtil.showInteractions(script.Name)
 
             session:Cleanup()
         end

@@ -118,6 +118,7 @@ function Loader.yieldPlayerGui()
         end
 
         -- Passed
+        print("PlayerGui Loaded")
         return true
     end
 

@@ -114,6 +114,8 @@ function CharacterItemService.getEquippedCharacterItems(player: Player)
 end
 
 --[[
+    Does not check for ownership from `player` of the passed items/products
+
     data: `{ [categoryName]: { itemName } }`
 ]]
 function CharacterItemService.setEquippedCharacterItems(player: Player, data: { [string]: { string } })
