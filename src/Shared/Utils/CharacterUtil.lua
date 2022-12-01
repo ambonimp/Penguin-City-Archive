@@ -271,7 +271,7 @@ function CharacterUtil.applyAppearance(
     end
 
     local hats = appearance.Hat or (isStrict and {})
-    if hats or isStrict then
+    if hats then
         applyAccessoryApperance(character, "Hat", hats)
     end
 
