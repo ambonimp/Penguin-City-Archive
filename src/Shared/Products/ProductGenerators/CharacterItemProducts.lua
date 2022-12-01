@@ -5,10 +5,6 @@ local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConsta
 
 type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Product)
 
-local IGNORE_ITEM_TYPE = {
-    "BodyType",
-}
-
 local products: { [string]: Product } = {}
 local characterAssets: Folder = ReplicatedStorage.Assets.Character
 
@@ -27,11 +23,6 @@ local function getDisplayName(categoryName: string, item: any): string | nil
 end
 
 for categoryName, itemConstants in pairs(CharacterItems) do
-    -- IGNORE: Continue
-    if table.find(IGNORE_ITEM_TYPE, categoryName) then
-        continue
-    end
-
     -- Create Products
     for itemKey, item in pairs(itemConstants.Items) do
         local model: Model? = itemConstants.AssetsPath and characterAssets[itemConstants.AssetsPath][itemKey]
@@ -44,7 +35,7 @@ for categoryName, itemConstants in pairs(CharacterItems) do
             ImageId = item.Icon,
             ImageColor = getImageColor(categoryName, item),
             CoinData = {
-                Cost = productId:len() % 2, --!! Temp
+                Cost = 1, --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,

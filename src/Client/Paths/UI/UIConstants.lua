@@ -22,6 +22,7 @@ UIConstants.States = {
     PetEggHatching = "PetEggHatching",
     Shop = "Shop",
     StampInfo = "StampInfo",
+    StartingAppearance = "StartingAppearance",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)

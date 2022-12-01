@@ -9,6 +9,7 @@ local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 
 function TutorialController.Start()
     -- Tasks
@@ -34,9 +35,20 @@ end
 -- Task Informers
 -------------------------------------------------------------------------------
 
-function TutorialController.setStartingAppearance()
-    --todo appearance details
-    Remotes.fireServer("SetStartingAppearance")
+--[[
+    Indexes refer to TutorialConstants.StartingAppearance tables
+]]
+function TutorialController.setStartingAppearance(colorIndex: number, outfitIndex: number)
+    -- Apply appearance locally
+    do
+        local character = Players.LocalPlayer.Character
+        if character then
+            CharacterUtil.applyAppearance(character, TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(colorIndex, outfitIndex))
+        end
+    end
+
+    -- Inform Server
+    Remotes.fireServer("SetStartingAppearance", colorIndex, outfitIndex)
 end
 
 return TutorialController
