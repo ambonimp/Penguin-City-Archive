@@ -235,7 +235,16 @@ local function applyClothingAppearance(character: Model, type: string, clothingN
     end
 end
 
-function CharacterUtil.applyAppearance(character: Model, appearance: CharacterItems.Appearance): CharacterItems.Appearance
+--[[
+    Adds `appearance` to `character`
+
+    - `isStrict`: Instead of adding `appearance`, it *sets* `appearance` (aka will *remove* other character items)
+]]
+function CharacterUtil.applyAppearance(
+    character: Model,
+    appearance: CharacterItems.Appearance,
+    isStrict: boolean?
+): CharacterItems.Appearance
     local bodyType = appearance.BodyType
     if bodyType then
         bodyType = bodyType[1]
@@ -261,29 +270,29 @@ function CharacterUtil.applyAppearance(character: Model, appearance: CharacterIt
         appearance.Outfit = nil
     end
 
-    local hats = appearance.Hat
-    if hats then
+    local hats = appearance.Hat or (isStrict and {})
+    if hats or isStrict then
         applyAccessoryApperance(character, "Hat", hats)
     end
 
-    local backpacks = appearance.Backpack
+    local backpacks = appearance.Backpack or (isStrict and {})
     if backpacks then
         applyAccessoryApperance(character, "Backpack", backpacks)
     end
 
-    local shirt = appearance.Shirt
+    local shirt = appearance.Shirt or (isStrict and {})
     if shirt then
         shirt = shirt[1]
         applyClothingAppearance(character, "Shirt", shirt)
     end
 
-    local pants = appearance.Pants
+    local pants = appearance.Pants or (isStrict and {})
     if pants then
         pants = pants[1]
         applyClothingAppearance(character, "Pants", pants)
     end
 
-    local shoes = appearance.Shoes
+    local shoes = appearance.Shoes or (isStrict and {})
     if shoes then
         shoes = shoes[1]
         applyClothingAppearance(character, "Shoes", shoes)

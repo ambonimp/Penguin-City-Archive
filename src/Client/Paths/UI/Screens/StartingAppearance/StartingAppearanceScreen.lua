@@ -1,6 +1,7 @@
 local StartingAppearanceScreen = {}
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
 local UIConstants = require(Paths.Client.UI.UIConstants)
@@ -30,26 +31,35 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local TutorialController = require(Paths.Client.TutorialController)
 local UIActions = require(Paths.Client.UI.UIActions)
 local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
+local CoreGui = require(Paths.Client.UI.CoreGui)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
+local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
+
+local CHARACTER_PREVIEW_CONFIG = {}
 
 local screenGui: ScreenGui = Paths.UI.StartingAppearance
 local container: Frame = screenGui.Container
 local leftArrowImageButton: ImageButton = container.Character.Left.Button
 local rightArrowImageButton: ImageButton = container.Character.Right.Button
-local characterViewportFrame: ViewportFrame = container.Character.ViewportFrame
 local confirmButtonFrame: Frame = container.ConfirmButton
 
 local leftArrow: AnimatedButton.AnimatedButton
 local rightArrow: AnimatedButton.AnimatedButton
 local confirmButton: KeyboardButton.KeyboardButton
+local character: Model
 local colorPanel = SelectionPanel.new()
 
+local bootMaid = Maid.new()
 local currentColorIndex = 1
 local currentOutfitIndex = 1
 local hasMadeChange = false
 
 local function updateAppearance()
     local appearance = TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(currentColorIndex, currentOutfitIndex)
-    print("todo apply appearance", appearance)
+    CharacterUtil.applyAppearance(character, appearance, true)
 end
 
 local function updateOutfitIndex(indexAdd: number)
@@ -153,11 +163,15 @@ function StartingAppearanceScreen.boot()
     currentOutfitIndex = 1
     hasMadeChange = false
 
+    local previewCharacter, previewMaid = CharacterPreview.preview(CHARACTER_PREVIEW_CONFIG)
+    character = previewCharacter
+    bootMaid:GiveTask(previewMaid)
+
     updateAppearance()
 end
 
 function StartingAppearanceScreen.shutdown()
-    --todo
+    bootMaid:Cleanup()
 end
 
 function StartingAppearanceScreen.minimize()
