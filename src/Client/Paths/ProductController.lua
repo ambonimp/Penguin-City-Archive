@@ -31,8 +31,10 @@ function ProductController.getOwnedProducts()
     local storedProducts = DataController.get(ProductConstants.DataAddress)
     for productType, products in pairs(storedProducts) do
         for productId, amount in pairs(products) do
-            local product = ProductUtil.getProduct(productType, productId)
-            ownedProducts[product] = amount
+            local success, product = pcall(ProductUtil.getProduct, productType, productId)
+            if success and product then
+                ownedProducts[product] = amount
+            end
         end
     end
 

@@ -1,17 +1,18 @@
-local Wind = {}
+local WindEmitter = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 
-Wind.Defaults = {
-    Direction = Vector3.new(1, 0, 0),
-    Speed = 5,
+WindEmitter.Defaults = {
+    Direction = Vector3.new(-1, 0, 0),
+    Speed = 8,
     Rate = 20,
-    Lifetime = 4,
+    Lifetime = 3,
     Radius = 50,
     SineFrequency = 0.1,
     SineAmplitude = 0.3,
@@ -20,7 +21,7 @@ Wind.Defaults = {
 
 local currentCamera = game.Workspace.CurrentCamera
 
-function Wind.new()
+function WindEmitter.new()
     local wind = {}
 
     -------------------------------------------------------------------------------
@@ -35,14 +36,14 @@ function Wind.new()
     -- Public Members
     -------------------------------------------------------------------------------
 
-    wind.Direction = Wind.Defaults.Direction
-    wind.Speed = Wind.Defaults.Speed
-    wind.Rate = Wind.Defaults.Rate
-    wind.Lifetime = Wind.Defaults.Lifetime
-    wind.Radius = Wind.Defaults.Radius
-    wind.SineFrequency = Wind.Defaults.SineFrequency
-    wind.SineAmplitude = Wind.Defaults.SineAmplitude
-    wind.FadeDuration = Wind.Defaults.FadeDuration
+    wind.Direction = WindEmitter.Defaults.Direction
+    wind.Speed = WindEmitter.Defaults.Speed
+    wind.Rate = WindEmitter.Defaults.Rate
+    wind.Lifetime = WindEmitter.Defaults.Lifetime
+    wind.Radius = WindEmitter.Defaults.Radius
+    wind.SineFrequency = WindEmitter.Defaults.SineFrequency
+    wind.SineAmplitude = WindEmitter.Defaults.SineAmplitude
+    wind.FadeDuration = WindEmitter.Defaults.FadeDuration
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -53,12 +54,12 @@ function Wind.new()
     end
 
     local function fadeAndDestroyWind(windPart: Part)
-        local trail: Trail = windPart:FindFirstChild("Trail")
-
-        -- RETURN: Proably teleported out of zone with trails
-        if not trail then
+        -- RETURN: Already destroyed
+        if not windPart:IsAncestorOf(Workspace) then
             return
         end
+
+        local trail: Trail = windPart.Trail
 
         -- Fade
         TweenUtil.run(function(alpha)
@@ -157,4 +158,4 @@ function Wind.new()
     return wind
 end
 
-return Wind
+return WindEmitter

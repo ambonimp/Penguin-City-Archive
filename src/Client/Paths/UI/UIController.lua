@@ -72,8 +72,7 @@ do
         -- Iterate screenData
         for someState, screenData in pairs(stateScreenData) do
             -- Check if we are on top or not
-            local isInvisible = table.find(UIConstants.InvisibleStates, someState) and true or false
-            local isOnTop = not isInvisible and (toState == someState or UIUtil.getPseudoState(someState))
+            local isOnTop = (toState == someState or UIUtil.getPseudoState(someState))
 
             -- Custom UIConstants Behaviour
             if not isOnTop then

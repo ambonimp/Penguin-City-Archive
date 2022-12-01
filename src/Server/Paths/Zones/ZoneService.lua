@@ -70,6 +70,18 @@ function ZoneService.getPlayerMinigame(player: Player)
     return nil
 end
 
+function ZoneService.getPlayersInZone(zone: ZoneConstants.Zone)
+    local players: { Player } = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        local playerZone = ZoneService.getPlayerZone(player)
+        if ZoneUtil.zonesMatch(zone, playerZone) then
+            table.insert(players, player)
+        end
+    end
+
+    return players
+end
+
 -- Returns a function to remove this zone cleanly. Returns the zoneModel as a second parameter
 function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { Instance }, spawnpoint: BasePart)
     local zoneCategory = zone.ZoneCategory

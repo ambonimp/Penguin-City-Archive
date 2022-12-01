@@ -1,6 +1,6 @@
 --[[
     Useful API for interacting with the Penguin City Roblox Group
-    ]]
+]]
 local GroupUtil = {}
 
 local GROUP_ID = 12843903

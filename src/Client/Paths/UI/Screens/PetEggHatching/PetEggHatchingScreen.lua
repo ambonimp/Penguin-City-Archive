@@ -28,7 +28,7 @@ local viewportFrame = Instance.new("ViewportFrame")
 viewportFrame.Size = UDim2.fromScale(0.7, 0.7)
 viewportFrame.SizeConstraint = Enum.SizeConstraint.RelativeXX
 viewportFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-viewportFrame.Position = UDim2.fromScale(0.55, 0.5)
+viewportFrame.Position = UDim2.fromScale(0.5, 0.5)
 viewportFrame.BackgroundTransparency = 1
 viewportFrame.Parent = screenGui
 
@@ -88,12 +88,12 @@ function PetEggHatchingScreen.boot(data: table)
 
     task.spawn(function()
         -- Tween Egg
+        Sound.play("BuildupReveal")
         local sectionTime = PetConstants.PetEggHatchingDuration / (#cameraCFrames - 1)
         for i = 2, #cameraCFrames do
             TweenUtil.tween(camera, TweenInfo.new(TWEEN_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 CFrame = cameraCFrames[i],
             })
-            Sound.play("Swoosh")
             task.wait(sectionTime)
 
             -- EXIT: Closed
@@ -116,6 +116,7 @@ function PetEggHatchingScreen.boot(data: table)
             return
         end
 
+        -- Prompt
         UIActions.prompt("CONGRATULATIONS", "You just hatched a new pet!", function(parent, maid)
             local petWidget = Widget.diverseWidgetFromPetData(cachedPetData)
             petWidget:Mount(parent, true)
@@ -129,7 +130,11 @@ function PetEggHatchingScreen.boot(data: table)
                 })
             end,
         }, { Image = Images.Pets.Lightburst, DoRotate = true })
+
+        -- Audio Feedback
+        Sound.play("EggHatch")
         Sound.play("Prize")
+        Sound.play("SparkleReveal")
 
         UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
     end)

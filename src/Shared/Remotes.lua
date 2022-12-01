@@ -150,11 +150,6 @@ local function getEventHandler(name: string): EventHandler
         end)
     end
 
-    --!! Temp
-    handler.registerCallback(function()
-        print(name)
-    end)
-
     eventHandlers[name] = handler
     return handler
 end

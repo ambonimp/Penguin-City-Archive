@@ -10,14 +10,14 @@ return {
         Difficulty = "Easy",
         ImageId = Images.Stamps.Icons.Stylish,
     },
-    {
-        Id = "clothing_twins",
-        DisplayName = "Twins!",
-        Description = "Be in the same room as someone with the same outfit + color",
-        Type = "Clothing",
-        Difficulty = "Medium",
-        ImageId = Images.Stamps.Icons.Twins,
-    },
+    -- {
+    --     Id = "clothing_twins",
+    --     DisplayName = "Twins!",
+    --     Description = "Be in the same room as someone with the same outfit + color",
+    --     Type = "Clothing",
+    --     Difficulty = "Medium",
+    --     ImageId = Images.Stamps.Icons.Twins,
+    -- },
     {
         Id = "clothing_items25",
         DisplayName = "Full Closet",

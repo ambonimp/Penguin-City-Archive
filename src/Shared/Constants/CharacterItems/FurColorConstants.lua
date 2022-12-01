@@ -20,25 +20,43 @@ items["Red"] = {
     Name = "Red",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(255, 0, 0),
+    Color = Color3.fromRGB(197, 41, 41),
 }
 items["Blue"] = {
     Name = "Blue",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(0, 0, 255),
+    Color = Color3.fromRGB(44, 44, 185),
 }
 items["Green"] = {
     Name = "Green",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(0, 255, 0),
+    Color = Color3.fromRGB(51, 207, 51),
 }
 items["Yellow"] = {
     Name = "Yellow",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(255, 255, 0),
+    Color = Color3.fromRGB(226, 226, 56),
+}
+items["White"] = {
+    Name = "White",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(235, 235, 235),
+}
+items["Orange"] = {
+    Name = "Orange",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(248, 182, 40),
+}
+items["Pink"] = {
+    Name = "Pink",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(200, 34, 233),
 }
 
 FurColorConstants.TabOrder = 8

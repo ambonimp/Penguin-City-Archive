@@ -15,24 +15,24 @@ return function()
         end
     end
 
-    -- ZoneWater
+    -- WaterAnimator
     do
         -- Must only be models
-        local zoneWaterInstances = CollectionService:GetTagged(ZoneConstants.CollectionTagZoneWater)
-        for _, zoneWaterInstance in pairs(zoneWaterInstances) do
-            if not zoneWaterInstance:IsA("Model") then
-                table.insert(issues, (("ZoneWater Instance %s must be a Model"):format(zoneWaterInstance:GetFullName())))
+        local WaterAnimatorInstances = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.WaterAnimator)
+        for _, WaterAnimatorInstance in pairs(WaterAnimatorInstances) do
+            if not WaterAnimatorInstance:IsA("Model") then
+                table.insert(issues, (("WaterAnimator Instance %s must be a Model"):format(WaterAnimatorInstance:GetFullName())))
             end
         end
 
-        -- Each zoneModel must have 0 or 1 zoneWater instances
+        -- Each zoneModel must have 0 or 1 WaterAnimator instances
         for _, zoneType in pairs(ZoneConstants.ZoneType.Room) do
             local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType))
 
             local foundWaterInstances: { Instance } = {}
-            for _, zoneWaterInstance in pairs(zoneWaterInstances) do
-                if zoneWaterInstance:IsDescendantOf(zoneModel) then
-                    table.insert(foundWaterInstances, zoneWaterInstance)
+            for _, WaterAnimatorInstance in pairs(WaterAnimatorInstances) do
+                if WaterAnimatorInstance:IsDescendantOf(zoneModel) then
+                    table.insert(foundWaterInstances, WaterAnimatorInstance)
                 end
             end
 
@@ -43,6 +43,7 @@ return function()
                     end),
                     ", "
                 )
+
                 table.insert(
                     issues,
                     (
@@ -52,6 +53,11 @@ return function()
                             foundList
                         )
                     )
+                )
+
+                table.insert(
+                    issues,
+                    (("Zone %s %s has more than one tagged WaterAnimatorInstance (%s)"):format(zoneType, zoneType, foundList))
                 )
             end
         end

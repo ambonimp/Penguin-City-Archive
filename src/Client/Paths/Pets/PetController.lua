@@ -157,6 +157,11 @@ function PetController.getPet(petDataIndex: string)
     return petData
 end
 
+-- Returns our current ClientPet (if it exists)
+function PetController.getClientPet()
+    return pet
+end
+
 -- Assumes `petName` has been filtered
 function PetController.requestSetPetName(petName: string, petDataIndex: string)
     local oldName = PetController.getPet(petDataIndex)
