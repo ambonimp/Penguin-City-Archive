@@ -11,11 +11,16 @@ local Products = require(Paths.Shared.Products.Products)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ProductController = require(Paths.Client.ProductController)
+local MathUtil = require(Paths.Shared.Utils.MathUtil)
 
 type CoinsWindowProduct = {
     Title: string,
     ProductId: string,
 }
+
+local function getRandomAmountRotation()
+    return MathUtil.nextNumber(1, 3) * (math.random() > 0.5 and 1 or -1)
+end
 
 local function createBuyButton(buyButtonFrame: Frame, product: Products.Product)
     local buyButton = KeyboardButton.new()
@@ -110,12 +115,13 @@ local function getBottomTemplate(title: string, product: Products.Product)
     amountLabel.BackgroundTransparency = 1
     amountLabel.Position = UDim2.fromScale(0.5, 0.2)
     amountLabel.Size = UDim2.fromScale(1, 0.2)
+    amountLabel.Rotation = getRandomAmountRotation()
     amountLabel.ZIndex = 3
 
     local amountUIStroke = Instance.new("UIStroke")
     amountUIStroke.Name = "amountUIStroke"
     amountUIStroke.Color = Color3.fromRGB(0, 71, 118)
-    amountUIStroke.Thickness = 1.5
+    amountUIStroke.Thickness = 3
     amountUIStroke.Parent = amountLabel
 
     amountLabel.Parent = background
@@ -210,12 +216,13 @@ local function getTopTemplate(title: string, product: Products.Product)
     amountLabel.BackgroundTransparency = 1
     amountLabel.Position = UDim2.fromScale(0.5, 0.55)
     amountLabel.Size = UDim2.fromScale(1, 0.2)
+    amountLabel.Rotation = getRandomAmountRotation()
     amountLabel.ZIndex = 3
 
     local amountUIStroke = Instance.new("UIStroke")
     amountUIStroke.Name = "amountUIStroke"
     amountUIStroke.Color = Color3.fromRGB(0, 71, 118)
-    amountUIStroke.Thickness = 1.5
+    amountUIStroke.Thickness = 3
     amountUIStroke.Parent = amountLabel
 
     amountLabel.Parent = background

@@ -14,36 +14,35 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local COINS_DIFF_SCREEN_PERCENTAGE = 1 / 4
 local COINS_DIFF_TWEEN_INFO_POSITION = TweenInfo.new(3.5)
 local COINS_DIFF_TWEEN_INFO_TRANSPARENCY = TweenInfo.new(0.6)
-local COINS_DIFF_OFFSET_START_POSITION = UDim2.fromOffset(-13, 0) -- Account for the "+" at start of string
+local COINS_DIFF_OFFSET_START_POSITION = UDim2.fromOffset(-30, 0) -- So we dont occlude HUD buttons
 local INSTANT_TWEEN_INFO = TweenInfo.new(0)
+local CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET = 48
 
 local container: Frame = Paths.UI.TopBar.Container
 local coinImageButton: ImageButton = container.Coin
+local coinTextLabel: TextLabel = coinImageButton.Container.Coins
 
 function TopBarScreen.displayCoinsDiff(addCoins: number)
     -- Get UI Elements + setup initial state
-    local coinsLabel: TextLabel = coinImageButton.Coins:Clone()
+    local coinsLabel: TextLabel = coinTextLabel:Clone()
+    coinsLabel.Size = UDim2.new(0, 1000, coinsLabel.Size.Y.Scale, coinsLabel.Size.Y.Offset)
     coinsLabel.ZIndex = coinsLabel.ZIndex - 1
     coinsLabel.Text = ("%s%s"):format(addCoins > 0 and "+" or "", StringUtil.commaValue(addCoins))
     coinsLabel.Name = "CoinsDiff"
-    local whiteLabel: TextLabel = coinImageButton.White:Clone()
-    whiteLabel.ZIndex = whiteLabel.ZIndex - 1
-    whiteLabel.Text = coinsLabel.Text
-    whiteLabel.Name = "CoinsDiff"
+    coinsLabel.Parent = coinImageButton
 
-    local fadeInstances: { Instance } = { coinsLabel, coinsLabel.UIStroke, whiteLabel, whiteLabel.UIStroke }
-    InstanceUtil.fadeOut(fadeInstances, INSTANT_TWEEN_INFO)
+    local fadeInstances: { Instance } = { coinsLabel, coinsLabel.UIStroke }
 
     -- Position
     local yPixels = Workspace.CurrentCamera.ViewportSize.Y * COINS_DIFF_SCREEN_PERCENTAGE
-    local startPosition = coinsLabel.Position + UDim2.fromOffset(0, container.Size.Y.Offset / 2) + COINS_DIFF_OFFSET_START_POSITION
+    local startPosition = coinsLabel.Position
+        + UDim2.fromOffset(0, container.Size.Y.Offset / 2)
+        + UDim2.fromOffset(-coinsLabel.TextBounds.X / 2, 0)
     local goalPosition = startPosition + UDim2.fromOffset(0, yPixels)
 
     coinsLabel.Position = startPosition
-    whiteLabel.Position = startPosition
 
     TweenUtil.tween(coinsLabel, COINS_DIFF_TWEEN_INFO_POSITION, { Position = goalPosition })
-    TweenUtil.tween(whiteLabel, COINS_DIFF_TWEEN_INFO_POSITION, { Position = goalPosition })
 
     -- Transparency
     InstanceUtil.fadeIn(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
@@ -52,21 +51,23 @@ function TopBarScreen.displayCoinsDiff(addCoins: number)
         InstanceUtil.fadeOut(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
     end)
 
-    -- Creation + Destruction
-    coinsLabel.Parent = coinImageButton
-    whiteLabel.Parent = coinImageButton
-
+    -- Cleanup
     task.delay(COINS_DIFF_TWEEN_INFO_POSITION.Time, function()
         coinsLabel:Destroy()
-        whiteLabel:Destroy()
     end)
 end
 
 -- Coin
 do
     local function updateCoins()
-        coinImageButton.Coins.Text = StringUtil.commaValue(CurrencyController.getCoins())
-        coinImageButton.White.Text = coinImageButton.Coins.Text
+        local cachedSize = coinTextLabel.Size
+        coinTextLabel.Size = UDim2.new(0, 1234, 1, 0) -- Make it big for TextBounds to be properly calculated
+        coinTextLabel.Text = StringUtil.commaValue(CurrencyController.getCoins())
+
+        local widthOffset = coinTextLabel.TextBounds.X + CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET
+
+        coinImageButton.Size = UDim2.new(0, widthOffset, 1, 0)
+        coinTextLabel.Size = cachedSize
     end
 
     CurrencyController.CoinsUpdated:Connect(function(_coins: number, addCoins: number)
