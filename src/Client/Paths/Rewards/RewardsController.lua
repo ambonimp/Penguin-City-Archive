@@ -27,6 +27,7 @@ local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local ATTRIBUTE_DAILY_REWARDS_VIEWPORT = "DailyRewardsViewport"
 local COIN_EFFECT_DURATION = 3
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local PROMPT_AFTER = 2
 
 RewardsController.DailyRewardUpdated = Signal.new()
 
@@ -47,8 +48,7 @@ function RewardsController.promptDailyRewards(needsUnclaimedDays: boolean?)
     end
 
     -- Start opening logic
-    UIUtil.waitForHudAndRoomZone():andThen(function()
-        UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.DailyRewards)
+    UIUtil.waitForHudAndRoomZone(PROMPT_AFTER):andThen(function()
         UIController.getStateMachine():Push(UIConstants.States.DailyRewards)
     end)
 end
