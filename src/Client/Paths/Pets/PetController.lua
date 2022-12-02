@@ -27,6 +27,7 @@ local hatchRequestMaid = Maid.new()
 
 local petId: number | nil
 local pet: ClientPet.ClientPet | nil
+local cachedEquippedPetDataIndex: string | nil
 
 PetController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
 PetController.PetUpdated = Signal.new() -- Added/Removed { petDataIndex: string }
@@ -182,19 +183,35 @@ function PetController.requestSetPetName(petName: string, petDataIndex: string)
     return assume
 end
 
--- Returns PetDataIndex (if it exists)
+-- Returns PetDataIndex (if it exists) directly from our data
 function PetController.getEquippedPetDataIndex()
     return DataController.get(EQUIPPED_PET_DATA_ADDRESS)
 end
 
+function PetController.getCachedEquippedPetDataIndex()
+    return cachedEquippedPetDataIndex
+end
+
 -- Returns true if successful. Yields.
 function PetController.equipPetRequest(petDataIndex: string)
-    return Remotes.invokeServer("EquipRequest", petDataIndex)
+    local assume = Assume.new(function()
+        return Remotes.invokeServer("EquipRequest", petDataIndex)
+    end)
+    assume:Check(function(returnValue)
+        return returnValue == true
+    end)
+    assume:Run(function()
+        cachedEquippedPetDataIndex = petDataIndex
+    end)
+    assume:Else(function()
+        cachedEquippedPetDataIndex = nil
+    end)
 end
 
 -- Returns true if successful. Yields.
 function PetController.unequipPetRequest()
-    return Remotes.invokeServer("EquipRequest", nil)
+    task.spawn(Remotes.invokeServer, "EquipRequest", nil)
+    cachedEquippedPetDataIndex = nil
 end
 
 -------------------------------------------------------------------------------
@@ -264,5 +281,11 @@ function PetController.getTotalHatchableEggs()
 
     return total
 end
+
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
+
+cachedEquippedPetDataIndex = PetController.getEquippedPetDataIndex()
 
 return PetController
