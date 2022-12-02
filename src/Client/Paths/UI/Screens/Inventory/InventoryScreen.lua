@@ -19,6 +19,8 @@ local PetController = require(Paths.Client.Pets.PetController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ToolController = require(Paths.Client.ToolController)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -78,17 +80,19 @@ function InventoryScreen.Init()
         tabbedWindow:SetWindowConstructor("Tools", function(parent, maid)
             local inventoryWindow = InventoryProductWindow.new(Images.Icons.Toy, "Tools", {
                 ProductType = ProductConstants.ProductType.Tool,
-                -- Equipping = {
-                --     Equip = function(product: Products.Product)
-                --         local vehicleName = ProductUtil.getVehicleProductData(product).VehicleName
-                --         VehicleController.mountRequest(vehicleName)
-                --     end,
-                --     Unequip = function(_product: Products.Product)
-                --         VehicleController.dismountRequest()
-                --     end,
-                --     StartEquipped = VehicleController.getCurrentVehicleName()
-                --         and ProductUtil.getVehicleProduct(VehicleController.getCurrentVehicleName()),
-                -- },
+                Equipping = {
+                    Equip = function(product: Products.Product)
+                        local toolData = ProductUtil.getToolProductData(product)
+                        ToolController.holster(ToolUtil.tool(toolData.CategoryName, toolData.ToolName))
+                    end,
+                    Unequip = function(product: Products.Product)
+                        local toolData = ProductUtil.getToolProductData(product)
+                        ToolController.unholster(ToolUtil.tool(toolData.CategoryName, toolData.ToolName))
+                    end,
+                    GetEquipped = function()
+                        return ToolController.getHolsteredProducts()
+                    end,
+                },
             })
 
             maid:GiveTask(inventoryWindow)

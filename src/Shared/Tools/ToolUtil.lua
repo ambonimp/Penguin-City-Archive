@@ -9,6 +9,11 @@ export type Tool = {
 }
 
 local HAND_BONE_NAME = "Hand.R"
+local TOOL_METATABLE = {
+    __eq = function(tool1, tool2)
+        return ToolUtil.toolsMatch(tool1, tool2)
+    end,
+}
 
 function ToolUtil.tool(categoryName: string, toolName: string)
     -- ERROR: Bad categoryName/toolName
@@ -16,10 +21,11 @@ function ToolUtil.tool(categoryName: string, toolName: string)
         error(("Bad categoryName/toolName combo %q %q"):format(categoryName, toolName))
     end
 
-    local tool: Tool = {
+    local tool = setmetatable({
         CategoryName = categoryName,
         ToolName = toolName,
-    }
+    }, TOOL_METATABLE) :: Tool
+
     return tool
 end
 

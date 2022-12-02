@@ -8,6 +8,8 @@ local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local Assume = require(Paths.Shared.Assume)
 local Remotes = require(Paths.Shared.Remotes)
 local Scope = require(Paths.Shared.Scope)
+local Products = require(Paths.Shared.Products.Products)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 ToolController.ToolEquipped = Signal.new() -- { tool: ToolUtil.Tool }
 ToolController.ToolUnequipped = Signal.new() -- { tool: ToolUtil.Tool }
@@ -40,6 +42,20 @@ end
 
 function ToolController.getEquipped()
     return equippedTool
+end
+
+function ToolController.getHolsteredTools()
+    return holsteredTools
+end
+
+function ToolController.getHolsteredProducts()
+    local products: { Products.Product } = {}
+    for _, holsteredTool in pairs(holsteredTools) do
+        local product = ProductUtil.getToolProduct(holsteredTool.CategoryName, holsteredTool.ToolName)
+        table.insert(products, product)
+    end
+
+    return products
 end
 
 -------------------------------------------------------------------------------
@@ -77,6 +93,11 @@ function ToolController.unholster(tool: ToolUtil.Tool)
         end
     end
     ToolController.ToolUnholstered:Fire(tool)
+
+    -- Unequip?
+    if ToolController.isEquipped(tool) then
+        ToolController.unequipRequest(tool)
+    end
 end
 
 -- Has the player hold the tool
@@ -156,6 +177,9 @@ function ToolController.unequipRequest(tool: ToolUtil.Tool | nil)
         equippedToolModel:Destroy()
         equippedToolModel = nil
     end
+
+    -- Unholster
+    ToolController.unholster(tool)
 
     -- Inform Client
     ToolController.ToolUnequipped:Fire(tool)
