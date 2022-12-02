@@ -124,6 +124,19 @@ return function()
         end
     end
 
+    local function testToolProduct(product: Products.Product)
+        local productName = ("%s.%s"):format("Tool", product.Id)
+        local function addIssue(issue: string)
+            table.insert(issues, ("[%s] %s"):format(productName, issue))
+        end
+
+        -- Product Id must match ProductUtil getter
+        local toolData = ProductUtil.getToolProductData(product)
+        if product.Id ~= ProductUtil.getToolProductId(toolData.CategoryName, toolData.ToolName) then
+            addIssue("ProductId does not match return value for ProductUtil.getToolProductData")
+        end
+    end
+
     -- ProductType must have key == value
     for key, value in pairs(Products.ProductType) do
         if key ~= value then
@@ -167,6 +180,10 @@ return function()
 
             if productTypeKey == ProductConstants.ProductType.Coin then
                 testCoinProduct(product)
+            end
+
+            if productTypeKey == ProductConstants.ProductType.Tool then
+                testToolProduct(product)
             end
         end
     end

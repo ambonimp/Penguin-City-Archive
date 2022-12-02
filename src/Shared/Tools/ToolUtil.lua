@@ -3,21 +3,31 @@ local ToolUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ToolConstants = require(ReplicatedStorage.Shared.Tools.ToolConstants)
 
+export type Tool = {
+    CategoryName: string,
+    ToolName: string,
+}
+
 local HAND_BONE_NAME = "Hand.R"
 
-local function verifyToolName(toolName: string)
-    if not ToolConstants.ToolNames[toolName] then
-        error(("Bad ToolName %q"):format(toolName))
+function ToolUtil.tool(categoryName: string, toolName: string)
+    -- ERROR: Bad categoryName/toolName
+    if not (ToolConstants.ToolNames[categoryName] and ToolConstants.ToolNames[categoryName][toolName]) then
+        error(("Bad categoryName/toolName combo %q %q"):format(categoryName, toolName))
     end
+
+    local tool: Tool = {
+        CategoryName = categoryName,
+        ToolName = toolName,
+    }
+    return tool
 end
 
 --[[
     Returns direct reference. Use :Clone() !
 ]]
-function ToolUtil.getModel(toolName: string): Model
-    verifyToolName(toolName)
-
-    return ReplicatedStorage.Assets.Tools[toolName]
+function ToolUtil.getModel(tool: Tool): Model
+    return ReplicatedStorage.Assets.Tools[tool.CategoryName][tool.ToolName]
 end
 
 --[[
@@ -25,14 +35,14 @@ end
 
     Returns the model.
 ]]
-function ToolUtil.hold(character: Model, toolName: string): Model
+function ToolUtil.hold(character: Model, tool: Tool): Model
     -- ERROR: No hand bone found!
     local handBone = character:FindFirstChild(HAND_BONE_NAME, true)
     if not (handBone and handBone:IsA("Bone")) then
         error(("Could not find HandBone %q in character %s (%s)"):format(HAND_BONE_NAME, character:GetFullName(), tostring(handBone)))
     end
 
-    local toolModel = ToolUtil.getModel(toolName):Clone()
+    local toolModel = ToolUtil.getModel(tool):Clone()
     local toolAttachment = toolModel.PrimaryPart:FindFirstChildOfClass("Attachment")
 
     local rigidConstraint = Instance.new("RigidConstraint")

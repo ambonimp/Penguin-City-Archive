@@ -245,4 +245,17 @@ function TableUtil.mapValues(tbl: table, map: (value: any) -> any)
     return mappedTbl
 end
 
+--[[
+    Returns a table such that indexing `key` returns `key`, where `keys` are derived from `tbl`
+]]
+function TableUtil.enumFromKeys(tbl: table)
+    local enumTbl = {}
+
+    for key, _ in pairs(tbl) do
+        enumTbl[key] = key
+    end
+
+    return enumTbl
+end
+
 return TableUtil
