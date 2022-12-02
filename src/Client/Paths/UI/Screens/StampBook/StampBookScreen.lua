@@ -202,7 +202,7 @@ function readStampData()
                     local tier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress) or "Bronze"
                     local imageId = stamp.IsTiered and stamp.ImageId[tier] or stamp.ImageId
 
-                    editPanel:AddWidgetConstructor(TABS.Stamps, stampId, function(parent, maid)
+                    editPanel:AddWidgetConstructor(TABS.Stamps, stampId, false, function(parent, maid)
                         local widget = Widget.diverseWidget()
                         widget:SetIcon(imageId)
                         widget.Pressed:Connect(function()
@@ -216,7 +216,7 @@ function readStampData()
             end
         end
 
-        editPanel:AddWidgetConstructor(TABS.Stamps, "Add", function(parent, maid)
+        editPanel:AddWidgetConstructor(TABS.Stamps, "Add", false, function(parent, maid)
             local widget = Widget.addWidget()
             widget.Pressed:Connect(function()
                 StampBookScreen.openInside()
@@ -313,7 +313,7 @@ function StampBookScreen.Init()
         editPanel:AddTab(TABS.CoverColor, Images.Icons.PaintBucket)
         for colorName, _color in pairs(StampConstants.StampBook.CoverColor) do
             local product = ProductUtil.getStampBookProduct("CoverColor", colorName)
-            editPanel:AddWidgetFromProduct(TABS.CoverColor, product.Id, product, { VerifyOwnership = true }, function()
+            editPanel:AddWidgetFromProduct(TABS.CoverColor, product.Id, false, product, { VerifyOwnership = true }, function()
                 currentStampData.StampBook.CoverColor = colorName
                 updatedStampBookData.CoverColor = colorName
                 readStampData()
@@ -324,7 +324,7 @@ function StampBookScreen.Init()
         editPanel:AddTab(TABS.TextColor, Images.Icons.Text)
         for colorName, _color in pairs(StampConstants.StampBook.TextColor) do
             local product = ProductUtil.getStampBookProduct("TextColor", colorName)
-            editPanel:AddWidgetFromProduct(TABS.TextColor, product.Id, product, { VerifyOwnership = true }, function()
+            editPanel:AddWidgetFromProduct(TABS.TextColor, product.Id, false, product, { VerifyOwnership = true }, function()
                 currentStampData.StampBook.TextColor = colorName
                 updatedStampBookData.TextColor = colorName
                 readStampData()
@@ -338,7 +338,7 @@ function StampBookScreen.Init()
         editPanel:AddTab(TABS.Seal, Images.Icons.Seal)
         for sealName, _sealInfo in pairs(StampConstants.StampBook.Seal) do
             local product = ProductUtil.getStampBookProduct("Seal", sealName)
-            editPanel:AddWidgetFromProduct(TABS.Seal, product.Id, product, { VerifyOwnership = true }, function()
+            editPanel:AddWidgetFromProduct(TABS.Seal, product.Id, false, product, { VerifyOwnership = true }, function()
                 currentStampData.StampBook.Seal = sealName
                 updatedStampBookData.Seal = sealName
                 readStampData()
@@ -349,7 +349,7 @@ function StampBookScreen.Init()
         editPanel:AddTab(TABS.Pattern, Images.Icons.Book)
         for patternName, _imageId in pairs(StampConstants.StampBook.CoverPattern) do
             local product = ProductUtil.getStampBookProduct("CoverPattern", patternName)
-            editPanel:AddWidgetFromProduct(TABS.Pattern, product.Id, product, { VerifyOwnership = true }, function()
+            editPanel:AddWidgetFromProduct(TABS.Pattern, product.Id, false, product, { VerifyOwnership = true }, function()
                 currentStampData.StampBook.CoverPattern = patternName
                 updatedStampBookData.CoverPattern = patternName
                 readStampData()

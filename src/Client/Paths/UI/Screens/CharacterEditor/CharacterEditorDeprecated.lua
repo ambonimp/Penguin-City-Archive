@@ -155,6 +155,8 @@ do
         ScreenUtil.inRight(bodyTypesPage)
     end
 
+    -- ScreenUtil.inLeft(menu)
+
     local function exitMenu()
         local characterStatus = characterIsReady:getStatus()
 

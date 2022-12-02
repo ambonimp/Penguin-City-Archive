@@ -119,7 +119,7 @@ function StartingAppearanceScreen.Init()
         colorPanel:AddTab("Color", Images.Icons.PaintBucket)
         for colorIndex, colorName in pairs(TutorialConstants.StartingAppearance.Colors) do
             local product = ProductUtil.getCharacterItemProduct("FurColor", colorName)
-            colorPanel:AddWidgetFromProduct("Color", colorName, product, nil, function()
+            colorPanel:AddWidgetFromProduct("Color", colorName, false, product, nil, function()
                 currentColorIndex = colorIndex
                 hasMadeChange = true
                 updateAppearance()
