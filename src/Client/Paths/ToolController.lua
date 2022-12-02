@@ -163,7 +163,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     end)
 end
 
-function ToolController.unequipRequest(tool: ToolUtil.Tool | nil)
+function ToolController.unequip(tool: ToolUtil.Tool | nil)
     tool = tool or equippedTool
 
     -- RETURN: Not equipped

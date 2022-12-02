@@ -19,6 +19,8 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 
 export type DiverseWidget = typeof(Widget.diverseWidget())
 
@@ -66,6 +68,26 @@ function Widget.addWidget()
     widget:GetButtonObject().Size = ADD_BUTTON_SIZE
 
     return widget
+end
+
+-------------------------------------------------------------------------------
+-- Tool Widgets
+-------------------------------------------------------------------------------
+
+--[[
+    Returns widget: Widget, closeButton: ExitButton
+]]
+function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
+    local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolName)
+    local widget = Widget.diverseWidgetFromProduct(toolProduct)
+
+    local closeButton = ExitButton.new()
+
+    widget:SetText()
+    widget:SetCornerRadius(UDim.new(100, 0))
+    widget:SetCornerButton(closeButton)
+
+    return widget, closeButton
 end
 
 -------------------------------------------------------------------------------
@@ -315,6 +337,7 @@ function Widget.diverseWidget()
     local priceUIStroke: UIStroke | nil
 
     local cornerMaid = Maid.new()
+    widget:GetMaid():GiveTask(cornerMaid)
     local cornerFade: (() -> nil) | nil
 
     local transparency = 0
@@ -530,7 +553,7 @@ function Widget.diverseWidget()
             cornerButtonFrame.BackgroundTransparency = 1
             cornerButtonFrame.Position = UDim2.fromScale(1, 0)
             cornerButtonFrame.Size = UDim2.fromOffset(50, 50)
-            cornerButtonFrame.ZIndex = 2
+            cornerButtonFrame.ZIndex = 10
 
             cornerButtonFrame.Parent = imageButton
             --#endregion
@@ -543,6 +566,10 @@ function Widget.diverseWidget()
                 button:Destroy()
             end)
         end
+    end
+
+    function widget:SetCornerRadius(cornerRadius: UDim)
+        uICorner.CornerRadius = cornerRadius
     end
 
     function widget:GetGuiObject()
