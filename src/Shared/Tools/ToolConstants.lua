@@ -1,48 +1,34 @@
 local ToolConstants = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
--------------------------------------------------------------------------------
--- Internal Methods
--------------------------------------------------------------------------------
+export type ToolItem = {
+    Name: string,
+    Price: number,
+}
 
--- Gets our constants directly out of studio
-local function getTools()
-    local tools = setmetatable({}, {
-        __index = function(_, index)
-            warn(("Bad RoomId %q"):format(index))
-        end,
-    }) :: { [string]: { [string]: string } }
+local categoryNames: { [string]: string } = {}
+local tools: { [string]: { [string]: ToolItem } } = {}
 
-    local toolsFolder: Folder = game.ReplicatedStorage.Assets.Tools
-    for _, categoryFolder in pairs(toolsFolder:GetChildren()) do
-        local categoryName = categoryFolder.Name
-        if tools[categoryName] then
-            error(("Duplicate tool category name %q"):format(categoryName))
-        end
-        tools[categoryName] = {}
-
-        for _, toolModel in pairs(categoryFolder:GetChildren()) do
-            local toolName = toolModel.Name
-            if tools[categoryName][toolName] then
-                error(("Duplicate tool name %q"):format(toolName))
-            end
-            tools[categoryName][toolName] = toolName
-        end
+for _, categoryModuleScript in pairs(ReplicatedStorage.Shared.Tools.Categories:GetChildren()) do
+    local categoryName = StringUtil.chopEnd(categoryModuleScript.Name, "ToolConstants")
+    if not categoryName then
+        error(("%s has a bad name"):format(categoryModuleScript:GetFullName()))
     end
 
-    return tools
+    local module: {
+        Items: {
+            [string]: { Name: string, Price: number },
+        },
+    } =
+        require(categoryModuleScript)
+
+    categoryNames[categoryName] = categoryName
+    tools[categoryName] = module.Items
 end
 
--------------------------------------------------------------------------------
--- Constants
--------------------------------------------------------------------------------
-
--- { [categoryName]: { [toolName]: toolName } }
-ToolConstants.ToolNames = getTools()
-
--- { [categoryName]: categoryName }
-ToolConstants.CategoryNames = TableUtil.enumFromKeys(ToolConstants.ToolNames) :: { [string]: string }
+ToolConstants.Tools = tools
+ToolConstants.CategoryNames = categoryNames
 
 return ToolConstants

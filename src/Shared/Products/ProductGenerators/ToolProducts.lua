@@ -8,20 +8,20 @@ type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Produc
 
 local products: { [string]: Product } = {}
 
-for categoryName, toolNames in pairs(ToolConstants.ToolNames) do
-    for _, toolName in pairs(toolNames) do
-        local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(toolName))
+for categoryName, tools in pairs(ToolConstants.Tools) do
+    for _, tool in pairs(tools) do
+        local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(tool.Name))
         local product: Product = {
             Id = productId,
             Type = ProductConstants.ProductType.Tool,
-            DisplayName = StringUtil.getFriendlyString(("%s %s"):format(toolName, categoryName)),
+            DisplayName = StringUtil.getFriendlyString(("%s %s"):format(tool.Name, categoryName)),
             CoinData = {
-                Cost = productId:len() % 2, --!! Temp
+                Cost = tool.Price, --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,
-                ToolName = toolName,
-                Model = ToolUtil.getModel(ToolUtil.tool(categoryName, toolName)),
+                ToolName = tool.Name,
+                Model = ToolUtil.getModel(ToolUtil.tool(categoryName, tool.Name)),
             },
         }
 

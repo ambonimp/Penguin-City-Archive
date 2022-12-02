@@ -12,7 +12,7 @@ local HAND_BONE_NAME = "Hand.R"
 
 function ToolUtil.tool(categoryName: string, toolName: string)
     -- ERROR: Bad categoryName/toolName
-    if not (ToolConstants.ToolNames[categoryName] and ToolConstants.ToolNames[categoryName][toolName]) then
+    if not (ToolConstants.Tools[categoryName] and ToolConstants.Tools[categoryName][toolName]) then
         error(("Bad categoryName/toolName combo %q %q"):format(categoryName, toolName))
     end
 

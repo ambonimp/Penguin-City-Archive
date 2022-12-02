@@ -73,6 +73,28 @@ function InventoryScreen.Init()
         --     inventoryWindow:Mount(parent)
         -- end)
 
+        -- Tools
+        tabbedWindow:AddTab("Tools", Images.Icons.Toy)
+        tabbedWindow:SetWindowConstructor("Tools", function(parent, maid)
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Toy, "Tools", {
+                ProductType = ProductConstants.ProductType.Tool,
+                -- Equipping = {
+                --     Equip = function(product: Products.Product)
+                --         local vehicleName = ProductUtil.getVehicleProductData(product).VehicleName
+                --         VehicleController.mountRequest(vehicleName)
+                --     end,
+                --     Unequip = function(_product: Products.Product)
+                --         VehicleController.dismountRequest()
+                --     end,
+                --     StartEquipped = VehicleController.getCurrentVehicleName()
+                --         and ProductUtil.getVehicleProduct(VehicleController.getCurrentVehicleName()),
+                -- },
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:Mount(parent)
+        end)
+
         -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:SetWindowConstructor("Pets", function(parent, maid)
@@ -109,9 +131,10 @@ function InventoryScreen.boot()
     -- Custom open tab depending on state
     if PetController.getTotalHatchableEggs() > 0 then
         tabbedWindow:OpenTab("Pets")
-    else
-        tabbedWindow:OpenTab("Vehicles")
+        return
     end
+
+    tabbedWindow:OpenTab("Tools")
 end
 
 function InventoryScreen.minimize()
