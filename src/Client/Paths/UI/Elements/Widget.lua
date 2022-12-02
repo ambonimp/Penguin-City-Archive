@@ -20,6 +20,8 @@ local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 
+export type DiverseWidget = typeof(Widget.diverseWidget())
+
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
 local ICON_PROPERTIES = {
@@ -53,6 +55,10 @@ Widget.Defaults = {
     ImageColor = Color3.fromRGB(255, 255, 255),
 }
 
+-------------------------------------------------------------------------------
+-- Misc Widgets
+-------------------------------------------------------------------------------
+
 function Widget.addWidget()
     local widget = Widget.diverseWidget()
 
@@ -61,6 +67,10 @@ function Widget.addWidget()
 
     return widget
 end
+
+-------------------------------------------------------------------------------
+-- Product Widgets
+-------------------------------------------------------------------------------
 
 function Widget.diverseWidgetFromProduct(product: Products.Product, state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?)
     local widget = Widget.diverseWidget()
@@ -125,6 +135,10 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
 
     return widget
 end
+
+-------------------------------------------------------------------------------
+-- Pet / PetEgg Widgets
+-------------------------------------------------------------------------------
 
 --[[
     `hatchTime` must be straight from data
@@ -213,6 +227,10 @@ function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
 
     return widget
 end
+
+-------------------------------------------------------------------------------
+-- Diverse Widget
+-------------------------------------------------------------------------------
 
 function Widget.diverseWidget()
     local widget = AnimatedButton.new(Instance.new("ImageButton"))
