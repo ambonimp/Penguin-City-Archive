@@ -10,12 +10,12 @@ export type Item = {
 
 local items: { [string]: Item } = {}
 items["Angel_Wings"] = {
-    Name = "Angel Wings",
+    Name = "Angel_Wings",
     Price = 0,
     Icon = Images.Backpacks["Angel_Wings"],
 }
 items["Brown_Backpack"] = {
-    Name = "Brown Backpack",
+    Name = "Brown_Backpack",
     Price = 0,
     Icon = Images.Backpacks["Brown_Backpack"],
 }

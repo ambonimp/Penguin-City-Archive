@@ -11,6 +11,7 @@ local Button = require(Paths.Client.UI.Elements.Button)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductController = require(Paths.Client.ProductController)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 
 export type EquippedItems = { string }
 export type ItemInfo = { Name: string, Icon: string, Color: Color3? }
@@ -100,20 +101,6 @@ function CharacterEditorCategory.new(categoryName: string)
         category.Changed:Fire(CharacterUtil.applyAppearance(preview, { [categoryName] = psuedoEquippedItems or equippedItems }))
     end
 
-    local function isItemOwned(itemName: string)
-        local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-        return ProductUtil.isFree(product) or ProductController.hasProduct(product)
-    end
-
-    local function onItemOwned(itemName: string)
-        local itemInfo = constants.Items[itemName]
-
-        local itemButton: Frame = page[itemName]
-        itemButton.LayoutOrder = itemInfo.LayoutOrder and -(itemCount - itemInfo.LayoutOrder) or 0
-        itemButton.BackgroundTransparency = OWNED_ITEM.BackgroundTransparency
-        itemButton.Icon.ImageTransparency = OWNED_ITEM.ImageTransparency
-    end
-
     local function unequipItem(itemName: string, doNotUpdateAppearance: boolean?)
         page[itemName].BackgroundColor3 = Color3.fromRGB(235, 244, 255)
         if multiEquip then
@@ -200,7 +187,7 @@ function CharacterEditorCategory.new(categoryName: string)
         page.Visible = true
 
         selectedTab.Visible = true
-        selectedTab.Icon.Image = tab.Icon.Image
+        selectedTab.Inside.Icon.Image = tab.Icon.Image
         selectedTab.LayoutOrder = tab.LayoutOrder
 
         if multiEquip then
@@ -219,21 +206,17 @@ function CharacterEditorCategory.new(categoryName: string)
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------
-
     -- Create UI
-    for itemName, itemConstants in pairs(constants.Items) do
-        local button = CharacterEditorCategory.createItemButton(itemName, itemConstants, categoryName)
-        button:Mount(page)
-
-        if isItemOwned(itemName) then
-            onItemOwned(itemName)
-        else
-            button:GetButtonObject().LayoutOrder = itemConstants.LayoutOrder or itemCount
-        end
-
+    for itemName in pairs(constants.Items) do
         local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-        button.InternalPress:Connect(function()
-            if isItemOwned(itemName) then
+
+        local widget = Widget.diverseWidgetFromProduct(product, {
+            VerifyOwnership = true,
+            HideText = true,
+        }, function(self)
+            self:GetButtonObject().LayoutOrder = 0
+            self:GetButtonObject().Name = itemName
+            self.Pressed:Connect(function()
                 if not canEquip then
                     updateAppearance({ itemName })
                     return
@@ -245,27 +228,17 @@ function CharacterEditorCategory.new(categoryName: string)
                 elseif not isEquipped then
                     equipItem(itemName)
                 end
-            else
-                ProductController.prompt(product)
-            end
+            end)
         end)
+
+        widget:Mount(page)
     end
-
-    -- Listen for added products
-    ProductController.ProductAdded:Connect(function(addedProduct, _amount)
-        if ProductUtil.isCharacterItemProduct(addedProduct) then
-            local data = ProductUtil.getCharacterItemProductData(addedProduct)
-            if data.CategoryName == categoryName then
-                onItemOwned(data.ItemKey)
-            end
-        end
-    end)
-
+    --[[
     if canEquip then
         equippedItems = {}
         category:Equip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
     end
-
+ *]]
     return category
 end
 

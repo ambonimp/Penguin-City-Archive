@@ -245,4 +245,21 @@ function TableUtil.mapValues(tbl: table, map: (value: any) -> any)
     return mappedTbl
 end
 
+function TableUtil.sortFromProperty<T>(tbl: T, property: any, comp: ((any, any) -> (boolean))?)
+    local sorted: { { Key: any, Value: any } } = {}
+
+    for k, v in pairs(tbl) do
+        table.insert(sorted, { Key = k, Value = v })
+    end
+
+    table.sort(sorted, function(a, b)
+        local aValue = a.Value[property]
+        local bValue = b.Value[property]
+
+        return if comp then comp(aValue, bValue) else aValue < bValue
+    end)
+
+    return sorted
+end
+
 return TableUtil

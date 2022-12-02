@@ -1,15 +1,16 @@
 local CharacterItems: {
-    [string]: {
-        AssetsPath: string,
-        TabOrder: number,
-        TabIcon: string,
-        SortOrder: Enum.SortOrder,
-        MaxEquippables: number,
-        CanUnequip: boolean,
-        Items: { [string]: Item },
-    },
-} =
-    {}
+    [string]: Category,
+} = {}
+
+export type Category = {
+    AssetsPath: string,
+    TabOrder: number,
+    TabIcon: string,
+    SortOrder: Enum.SortOrder,
+    MaxEquippables: number,
+    CanUnequip: boolean,
+    Items: { [string]: Item },
+}
 
 type Item = {
     Name: string,

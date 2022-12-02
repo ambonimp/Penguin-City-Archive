@@ -15,7 +15,7 @@ items["Backwards_Cap"] = {
     Icon = Images.Hats["Backwards_Cap"],
 }
 items["Bird_Hat"] = {
-    Name = "Bird Hat",
+    Name = "Bird_Hat",
     Price = 0,
     Icon = Images.Hats["Bird_Hat"],
 }
@@ -25,9 +25,9 @@ items["Boot_Hat"] = {
     Icon = Images.Hats["Boot_Hat"],
 }
 items["Detectives_Hat"] = {
-    Name = "Detective's_Hat",
+    Name = "Detectives_Hat",
     Price = 1000,
-    Icon = Images.Hats["Detective's_Hat"],
+    Icon = Images.Hats["Detectives_Hat"],
 }
 items["100k_Glasses"] = {
     Name = "100k_Glasses",
