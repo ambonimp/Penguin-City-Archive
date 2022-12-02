@@ -39,6 +39,7 @@ function ToolService.equip(player: Player, tool: ToolUtil.Tool)
     end
 
     local model = ToolUtil.hold(character, tool)
+    --todo network ownership
 
     equippedData.Model = model
     equippedData.Tool = tool

@@ -19,7 +19,7 @@ local PetController = require(Paths.Client.Pets.PetController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
-local ToolController = require(Paths.Client.ToolController)
+local ToolController = require(Paths.Client.Tools.ToolController)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 local screenGui: ScreenGui
