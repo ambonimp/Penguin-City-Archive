@@ -23,6 +23,10 @@ function ToolUtil.tool(categoryName: string, toolName: string)
     return tool
 end
 
+function ToolUtil.toolsMatch(tool1: Tool, tool2: Tool)
+    return tool1.CategoryName == tool2.CategoryName and tool1.ToolName == tool2.ToolName
+end
+
 --[[
     Returns direct reference. Use :Clone() !
 ]]

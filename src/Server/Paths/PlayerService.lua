@@ -26,6 +26,7 @@ function PlayerService.Start()
     local SessionService = require(Paths.Server.SessionService)
     local PetService = require(Paths.Server.Pets.PetService)
     local PlayerChatService = require(Paths.Server.PlayerChatService)
+    local ToolService = require(Paths.Server.ToolService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -48,6 +49,7 @@ function PlayerService.Start()
         RewardsService.loadPlayer(player)
         PetService.loadPlayer(player)
         PlayerChatService.loadPlayer(player)
+        ToolService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)
