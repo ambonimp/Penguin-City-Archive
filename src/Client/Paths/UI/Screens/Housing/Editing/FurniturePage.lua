@@ -332,17 +332,24 @@ do
                     return
                 end
 
-                local metadata = {
-                    Name = name,
-                    Position = plotCFrame:PointToObjectSpace(position),
-                    Rotation = Vector3.new(0, rotationY, 0),
-                    Color = color,
-                    Normal = normal,
-                }
-
                 if isNewObject then
+                    local metadata = {
+                        Name = name,
+                        Position = plotCFrame:PointToObjectSpace(position),
+                        Rotation = Vector3.new(0, rotationY, 0),
+                        Color = color,
+                        Normal = normal,
+                    }
                     Remotes.fireServer("PlaceHouseObject", "Furniture", metadata)
                 else
+                    local name_ = DataController.get("House.Furniture." .. model.Name).Name
+                    local metadata = {
+                        Name = name_,
+                        Position = plotCFrame:PointToObjectSpace(position),
+                        Rotation = Vector3.new(0, rotationY, 0),
+                        Color = color,
+                        Normal = normal,
+                    }
                     Remotes.fireServer("UpdateFurniture", model.Name, metadata)
                 end
 
@@ -360,13 +367,17 @@ do
         end
 
         -- Cover Color
-
-        for i = 1, 10 do
-            colorPanel:RemoveTab("Color" .. i)
-        end
-        for i = 1, 10 do
-            if model:FindFirstChild("Color" .. i) then
-                colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
+        for i = 2, 7 do
+            if model:FindFirstChild("Color" .. i) == nil then
+                if i > 5 then
+                    colorPanel:HideForwardArrow()
+                end
+                colorPanel:HideTab("Color" .. i)
+            else
+                if i > 5 then
+                    colorPanel:ShowForwardArrow()
+                end
+                colorPanel:ShowTab("Color" .. i)
             end
         end
 
@@ -406,7 +417,7 @@ do
             local target = result.Instance
 
             if target and target:IsDescendantOf(plot.Furniture) then
-                if target.Parent.Name == colorNameSelected then
+                if string.find(target.Parent.Name, "Color") then
                     target = target.Parent
                 end
 
@@ -444,9 +455,13 @@ do
 
         colorPanel:SetAlignment("Left")
         colorPanel:SetSize(1)
+        for i = 1, 7 do
+            colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
+        end
 
+        colorPanel:OpenTab("Color1")
         colorPanel.ClosePressed:Connect(function()
-            -- toggleEditMode(false)
+            ScreenUtil.outLeft(colorPanel:GetContainer())
         end)
         template.Parent = colorPanel:GetContainer()
         -- Initialize colors

@@ -14,7 +14,7 @@ local GameUtil = require(Paths.Shared.Utils.GameUtil)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 
 DataConfig.DataKey = GameUtil.getDataKey()
-print(DataConfig.DataKey)
+
 --#region Default constants
 local defaultHouse = {
     Blueprint = "Default",
@@ -22,10 +22,10 @@ local defaultHouse = {
     Furniture = {
         ["1"] = {
             Name = "Floor_Lamp_01",
-            Color = { "239,184,56" },
-            Rotation = "0,0,0",
-            Position = "6.01904296875, 4.8195648193359375, -15.5107421875",
-            Normal = "0,1,0",
+            Color = { ".85, .42, .07", ".92, .72, .21" },
+            Rotation = "0, 0, 0",
+            Position = "6.019, 4.819, -15.510",
+            Normal = "0, 1, 0",
         },
     },
 }

@@ -93,26 +93,21 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
     local colors = metadata.Color
     local normal = metadata.Normal
 
-    if position.Magnitude < 150 then -- TODO: swap to InBounds method
-        local cf = houseCFrame * calculateCf(CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0), position, normal)
-        print("object cf", cf)
-        object:PivotTo(cf)
-        object.Parent = plot.Furniture
+    local cf = houseCFrame * calculateCf(CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0), position, normal)
+    object:PivotTo(cf)
+    object.Parent = plot.Furniture
 
-        for id, color in colors do
-            if object:FindFirstChild("Color" .. id) then
-                for _, part: BasePart in pairs(object:FindFirstChild("Color" .. id):GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.Color = color
-                    end
+    for id, color in colors do
+        if object:FindFirstChild("Color" .. id) then
+            for _, part: BasePart in pairs(object:FindFirstChild("Color" .. id):GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Color = color
                 end
             end
         end
-
-        return true
-    else
-        return false
     end
+
+    return true
 end
 
 local function updateFurniture(player, object: Model, metadata: FurnitureMetadata): DataUtil.Store?
@@ -121,10 +116,13 @@ local function updateFurniture(player, object: Model, metadata: FurnitureMetadat
             Name = metadata.Name,
             Position = DataUtil.serializeValue(metadata.Position),
             Rotation = DataUtil.serializeValue(metadata.Rotation),
-            Color = DataUtil.serializeTable(metadata.Color),
+            Color = {},
             Normal = DataUtil.serializeValue(metadata.Normal),
         }
 
+        for _, color in metadata.Color do
+            table.insert(data.Color, DataUtil.serializeValue(color))
+        end
         return data
     end
 end
@@ -155,17 +153,15 @@ local function loadHouse(player: Player, plot: Model, type: string)
             if objectTemplate then
                 local object = objectTemplate:Clone()
                 object.Name = id
-                local normal = string.split(store.Normal, ",")
-                normal = Vector3.new(tonumber(normal[1]), tonumber(normal[2]), tonumber(normal[3]))
                 local data = {
                     Name = store.Name,
                     Position = DataUtil.deserializeValue(store.Position, Vector3),
                     Rotation = DataUtil.deserializeValue(store.Rotation, Vector3),
-                    Color = store.Color,
-                    Normal = normal, --DataUtil.deserializeValue(store.Normal, Vector3),
+                    Color = {},
+                    Normal = DataUtil.deserializeValue(store.Normal, Vector3),
                 }
-                for i, color in pairs(data.Color) do
-                    data.Color[i] = DataUtil.deserializeValue(color, Color3)
+                for _, color in pairs(store.Color) do
+                    table.insert(data.Color, DataUtil.deserializeValue(color, Color3))
                 end
                 placeFurniture(player, object, data)
             else
@@ -308,7 +304,7 @@ Remotes.bindEvents({
         local store = DataService.get(player, "House.Furniture")
 
         -- RETURN: Object does not exist
-        if not store[id] then
+        if store[id] then
             local object = plot.Furniture[id]
 
             local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement

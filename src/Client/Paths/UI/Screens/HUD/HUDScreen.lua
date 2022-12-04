@@ -204,7 +204,7 @@ function HUDScreen.maximize()
     end
 
     ScreenUtil.inUp(screenGui.Bottom)
-    ScreenUtil.inLeft(screenGui.Right)
+    ScreenUtil.inRight(screenGui.Right)
 end
 
 function HUDScreen.minimize()
