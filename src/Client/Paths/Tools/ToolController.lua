@@ -190,7 +190,7 @@ function ToolController.unholster(tool: ToolUtil.Tool)
 
     -- Unequip?
     if ToolController.isEquipped(tool) then
-        ToolController.unequipRequest(tool)
+        ToolController.unequip(tool)
     end
 end
 
@@ -287,9 +287,6 @@ function ToolController.unequip(tool: ToolUtil.Tool | nil)
         equippedToolModel:Destroy()
         equippedToolModel = nil
     end
-
-    -- Unholster
-    ToolController.unholster(tool)
 
     -- Inform Client
     ToolController.ToolUnequipped:Fire(tool)
