@@ -13,6 +13,7 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ToolController = require(Paths.Client.Tools.ToolController)
 local Maid = require(Paths.Packages.maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 local BUTTON_PROPERTIES = {
     Position = UDim2.fromScale(0.5, 0.5),
@@ -140,7 +141,16 @@ local function updateToolbar()
         local toolWidget, closeButton = Widget.diverseWidgetFromTool(tool)
         toolWidget:Mount(holder)
         toolWidget.Pressed:Connect(function()
-            print("equip", tool.ToolName, tool.CategoryName)
+            -- Unequip
+            local equippedTool = ToolController.getEquipped()
+            if equippedTool then
+                ToolController.unequip()
+            end
+
+            -- Equip
+            if not (equippedTool and ToolUtil.toolsMatch(equippedTool, tool)) then
+                ToolController.equipRequest(tool)
+            end
         end)
         toolbarMaid:GiveTask(toolWidget)
 
