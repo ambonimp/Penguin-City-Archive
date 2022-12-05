@@ -12,15 +12,19 @@ local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InputController = require(Paths.Client.Input.InputController)
 local Maid = require(Paths.Packages.maid)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
-    activatedLocally: ((tool: ToolUtil.Tool, model: Model) -> any),
-    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, modelGetter: () -> Model?, data: table?) -> any),
+    activatedLocally: ((tool: ToolUtil.Tool, modelGetter: () -> Model?) -> any),
+    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, model: Model?, data: table?) -> any),
 }
 
 local DESTROY_LOCAL_TOOL_MODEL_AFTER = 3
+local INITIAL_TOOLBAR: { ToolUtil.Tool } = {
+    ToolUtil.tool("Snowball", "Default"),
+}
 
 ToolController.ToolEquipped = Signal.new() -- { tool: ToolUtil.Tool }
 ToolController.ToolUnequipped = Signal.new() -- { tool: ToolUtil.Tool }
@@ -100,6 +104,15 @@ function ToolController.Start()
                 activatedRemotely(player, tool, toolModel, data)
             end,
         })
+    end
+
+    -- Start with some default tools
+    do
+        UIUtil.waitForHudAndRoomZone():andThen(function()
+            for _, tool in pairs(INITIAL_TOOLBAR) do
+                ToolController.holster(tool)
+            end
+        end)
     end
 end
 

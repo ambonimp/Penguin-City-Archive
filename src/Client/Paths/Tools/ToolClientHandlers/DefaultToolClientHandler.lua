@@ -23,11 +23,11 @@ function DefaultToolClientHandler.unequipped(_tool: ToolUtil.Tool)
     --
 end
 
-function DefaultToolClientHandler.activatedLocally(_tool: ToolUtil.Tool, _model: Model)
+function DefaultToolClientHandler.activatedLocally(_tool: ToolUtil.Tool, _modelGetter: () -> Model?)
     --
 end
 
-function DefaultToolClientHandler.activatedRemotely(_player: Player, _tool: ToolUtil.Tool, _modelGetter: () -> Model?, _data: table?)
+function DefaultToolClientHandler.activatedRemotely(_player: Player, _tool: ToolUtil.Tool, _model: Model?, _data: table?)
     --
 end
 
