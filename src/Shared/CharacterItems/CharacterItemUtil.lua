@@ -3,6 +3,7 @@ local CharacterItemUtil = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 local CharacterItemConstants = require(Shared.CharacterItems.CharacterItemConstants)
+local TableUtil = require(Shared.Utils.TableUtil)
 
 local characterAssets = ReplicatedStorage.Assets.Character
 
@@ -87,9 +88,11 @@ function CharacterItemUtil.applyAppearance(
     local outfit = appearance.Outfit
     if outfit then
         outfit = outfit[1]
+
         for itemType, items in pairs(CharacterItemConstants.Outfit.Items[outfit].Items) do
-            appearance[itemType] = items
+            appearance[itemType] = TableUtil.deepClone(items)
         end
+
         appearance.Outfit = nil
     end
 

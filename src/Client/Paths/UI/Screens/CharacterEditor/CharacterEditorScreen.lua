@@ -110,8 +110,18 @@ for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItemConstants, 
                     elseif not isEquipped then
                         equipItem(itemName)
                     end
-                else
-                    equippedItems = updateAppearance({ [categoryName] = { itemName } })
+                elseif categoryName == "Outfit" then
+                    local changedItems = updateAppearance({ [categoryName] = { itemName } })
+                    for category, items in pairs(changedItems) do
+                        for _, item in pairs(equippedItems[category]) do
+                            panel:SetWidgetSelected(category, item, false)
+                        end
+                        for _, item in pairs(items) do
+                            panel:SetWidgetSelected(category, item, true)
+                        end
+                    end
+
+                    TableUtil.merge(equippedItems, changedItems)
                 end
             end, function(widget)
                 if canMultiEquip then

@@ -1,6 +1,6 @@
 local TableUtil = {}
 
-function TableUtil.deepClone(tbl: table)
+function TableUtil.deepClone<T>(tbl: T): T
     local clone = {}
 
     for i, v in pairs(tbl) do
