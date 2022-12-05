@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
-local CharacterItems = ReplicatedStorage.Shared.Constants.CharacterItems
-local ShirtConstants = require(CharacterItems.ShirtConstants)
-local PantsConstants = require(CharacterItems.PantsConstants)
+local CharacterItemConstants = ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants
+local ShirtConstants = require(CharacterItemConstants.ShirtConstants)
+local PantsConstants = require(CharacterItemConstants.PantsConstants)
 
 local OutfitConstants = {}
 

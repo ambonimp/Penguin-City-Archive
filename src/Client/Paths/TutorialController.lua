@@ -9,7 +9,7 @@ local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 
 function TutorialController.Start()
     -- Tasks
@@ -43,7 +43,7 @@ function TutorialController.setStartingAppearance(colorIndex: number, outfitInde
     do
         local character = Players.LocalPlayer.Character
         if character then
-            CharacterUtil.applyAppearance(character, TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(colorIndex, outfitIndex))
+            CharacterItemUtil.applyAppearance(character, TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(colorIndex, outfitIndex))
         end
     end
 

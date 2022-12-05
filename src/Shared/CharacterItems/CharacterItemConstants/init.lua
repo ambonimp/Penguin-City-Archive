@@ -1,4 +1,4 @@
-local CharacterItems: {
+local CharacterItemConstants: {
     [string]: Category,
 } = {}
 
@@ -28,7 +28,7 @@ local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 export type Appearance = { [string]: { string }? }
 
 for _, module in pairs(script:GetChildren()) do
-    CharacterItems[StringUtil.chopEnd(module.Name, "Constants")] = require(module)
+    CharacterItemConstants[StringUtil.chopEnd(module.Name, "Constants")] = require(module)
 end
 
-return CharacterItems
+return CharacterItemConstants

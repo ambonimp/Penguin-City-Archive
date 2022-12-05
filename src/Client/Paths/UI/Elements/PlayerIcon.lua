@@ -7,8 +7,8 @@ local UIElement = require(Paths.Client.UI.Elements.UIElement)
 local Promise = require(Paths.Packages.promise)
 local DataController = require(Paths.Client.DataController)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 
 local CHARACTER_HIDE_POSITION = Vector3.new(0, 50000, 0)
 local CAMERA_POSITION_OFFSET = Vector3.new(0, 2, -3)
@@ -50,11 +50,11 @@ function PlayerIcon.new(playerOrUserId: Player | number)
         local dataPromise = Promise.new(function(resolve, _reject, _onCancel)
             local characterAppearance = DataUtil.readAsArray(DataController.getPlayer(player, "CharacterAppearance"))
             resolve(characterAppearance)
-        end):andThen(function(characterAppearance: CharacterItems.Appearance)
+        end):andThen(function(characterAppearance: CharacterItemConstants.Appearance)
             -- Apply to a clone character that we can place in workspace so RigidConstraints in `applyAppearance` will work
             local prettyCharacter: Model = character:Clone()
             prettyCharacter.Parent = game.Workspace
-            CharacterUtil.applyAppearance(prettyCharacter, characterAppearance)
+            CharacterItemUtil.applyAppearance(prettyCharacter, characterAppearance)
             task.wait() -- Wait a frame for RigidConstraints to work
             prettyCharacter.Parent = viewportFrame
             character:Destroy()

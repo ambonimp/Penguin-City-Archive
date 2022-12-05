@@ -1,9 +1,9 @@
 local CharacterItemService = {}
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 local Remotes = require(Paths.Shared.Remotes)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
@@ -14,14 +14,20 @@ local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 local Signal = require(Paths.Shared.Signal)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
+local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 CharacterItemService.ItemEquipped = Signal.new() -- { player: Player, categoryName: string, itemName: string }
 
 local assets = ReplicatedStorage.Assets.Character
 
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
 function CharacterItemService.Init()
     local function initAccessoryModels(type: string)
-        for _, model: Model in pairs(assets[CharacterItems[type].AssetsPath]:GetChildren()) do
+        for _, model: Model in pairs(assets[CharacterItemConstants[type].AssetsPath]:GetChildren()) do
             model:SetAttribute("AccessoryType", type)
 
             local handle: BasePart = model:FindFirstChild("Handle")
@@ -47,7 +53,7 @@ function CharacterItemService.Init()
     end
 
     local function initClothingModels(type: string)
-        for _, model: Model in pairs(assets[CharacterItems[type].AssetsPath]:GetChildren()) do
+        for _, model: Model in pairs(assets[CharacterItemConstants[type].AssetsPath]:GetChildren()) do
             for _, piece in pairs(model:GetChildren()) do
                 piece:SetAttribute("ClothingType", type)
                 if piece:IsA("BasePart") then
@@ -122,7 +128,7 @@ function CharacterItemService.setEquippedCharacterItems(player: Player, data: { 
     -- Update stored data, verifying data at each stage
     for categoryName, itemNames in pairs(data) do
         -- ERROR: Bad categoryName
-        local itemConstants = CharacterItems[categoryName]
+        local itemConstants = CharacterItemConstants[categoryName]
         if not itemConstants then
             error(("Passed a bad CategoryName %q"):format(categoryName))
         end
@@ -150,6 +156,16 @@ function CharacterItemService.setEquippedCharacterItems(player: Player, data: { 
     CharacterItemService.updateCharacterAppearance(player)
 end
 
+function CharacterItemService.loadCharacter(character: Model)
+    -- Apply saved appearance
+    local appearance =
+        DataUtil.readAsArray(DataService.get(Players:GetPlayerFromCharacter(character), "CharacterAppearance")) :: CharacterItemConstants.Appearance
+    CharacterItemUtil.applyAppearance(character, appearance)
+end
+
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
 -- Communication
 Remotes.bindFunctions({
     -- changes: `{ [categoryName]: { itemName } }`
@@ -174,7 +190,7 @@ Remotes.bindFunctions({
         -- Verify that every item that's being changed into is owned or free
         local allItemsAreValid = true
         for categoryName, items in pairs(changes) do
-            local itemConstants = CharacterItems[categoryName]
+            local itemConstants = CharacterItemConstants[categoryName]
             if itemConstants and #items <= itemConstants.MaxEquippables then
                 for _, itemKey in pairs(items) do
                     local product = ProductUtil.getCharacterItemProduct(categoryName, itemKey)

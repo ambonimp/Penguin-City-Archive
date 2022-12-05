@@ -1,12 +1,13 @@
-local CharacterItemsUtil = {}
+local CharacterItemUtil = {}
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
-local CharacterItems = require(Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(Shared.CharacterItems.CharacterItemConstants)
 
 local characterAssets = ReplicatedStorage.Assets.Character
 
 local function applyAccessoryApperance(character: Model, type: string, accessories: { string })
-    local categoryConstant = CharacterItems[type]
+    local categoryConstant = CharacterItemConstants[type]
 
     local alreadyEquippedAccessories: { [string]: true } = {}
     for _, accessory in pairs(character:GetChildren()) do
@@ -43,7 +44,7 @@ local function applyClothingAppearance(character: Model, type: string, clothingN
     if clothingName then
         local body = character.Body
         local bodyPosition = body.Position
-        for _, pieceTemplate in pairs(characterAssets[CharacterItems[type].AssetsPath][clothingName]:GetChildren()) do
+        for _, pieceTemplate in pairs(characterAssets[CharacterItemConstants[type].AssetsPath][clothingName]:GetChildren()) do
             local piece = pieceTemplate:Clone()
             piece.Position = bodyPosition
             piece.Parent = character
@@ -61,22 +62,23 @@ end
 
     - `isStrict`: Instead of adding `appearance`, it *sets* `appearance` (aka will *remove* other character items)
 ]]
-function CharacterItemsUtil.applyAppearance(
+function CharacterItemUtil.applyAppearance(
     character: Model,
-    appearance: CharacterItems.Appearance,
+    appearance: CharacterItemConstants.Appearance,
     isStrict: boolean?
-): CharacterItems.Appearance
+): CharacterItemConstants.Appearance
     local bodyType = appearance.BodyType
     if bodyType then
         bodyType = bodyType[1]
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.Items[bodyType].Height
+        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0)
+            + CharacterItemConstants.BodyType.Items[bodyType].Height
     end
 
     local furColor = appearance.FurColor
     if furColor then
         furColor = furColor[1]
 
-        local color = CharacterItems.FurColor.Items[furColor].Color
+        local color = CharacterItemConstants.FurColor.Items[furColor].Color
         character.Body.Color = color
         character.Arms.Color = color
         character.EyeLids.Color = color
@@ -85,7 +87,7 @@ function CharacterItemsUtil.applyAppearance(
     local outfit = appearance.Outfit
     if outfit then
         outfit = outfit[1]
-        for itemType, items in pairs(CharacterItems.Outfit.Items[outfit].Items) do
+        for itemType, items in pairs(CharacterItemConstants.Outfit.Items[outfit].Items) do
             appearance[itemType] = items
         end
         appearance.Outfit = nil
@@ -122,4 +124,4 @@ function CharacterItemsUtil.applyAppearance(
     return appearance
 end
 
-return CharacterItemsUtil
+return CharacterItemUtil

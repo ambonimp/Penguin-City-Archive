@@ -2,13 +2,13 @@ local CharacterEditorScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Janitor = require(Paths.Packages.janitor)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
 local DataController = require(Paths.Client.DataController)
-local CharacterItemsUtil = require(Paths.Shared.CharacterItems.CharacterItemsUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Widget = require(Paths.Client.UI.Elements.Widget)
@@ -20,6 +20,9 @@ local CHARACTER_PREVIEW_CONFIG = {
     SubjectPosition = -0.2,
 }
 
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
 local screen: ScreenGui = Paths.UI.CharacterEditor
 local panel = SelectionPanel.new()
 panel:SetAlignment("Right")
@@ -33,13 +36,16 @@ local tabJanitor = Janitor.new()
 local previewCharacter, previewMaid
 local equippedItems: { [string]: EquippedItems } = {}
 
-local function updateAppearance(changes: { [string]: EquippedItems }): CharacterItems.Appearance
-    return CharacterItemsUtil.applyAppearance(previewCharacter, changes)
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function updateAppearance(changes: { [string]: EquippedItems }): CharacterItemConstants.Appearance
+    return CharacterItemUtil.applyAppearance(previewCharacter, changes)
 end
 
-for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItems, "TabOrder")) do
+for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItemConstants, "TabOrder")) do
     local categoryName: string = keyValuePair.Key
-    local categoryConstants: CharacterItems.Category = keyValuePair.Value
+    local categoryConstants: CharacterItemConstants.Category = keyValuePair.Value
 
     if categoryName ~= "BodyType" then
         local canEquip: boolean = categoryConstants.MaxEquippables ~= 0
@@ -51,7 +57,6 @@ for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItems, "TabOrde
         -- Equipping
         -------------------------------------------------------------------------------
         local function unequipItem(itemName: string, doNotUpdateAppearance: true?)
-            -- TODO: SLots
             table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemName))
             if not doNotUpdateAppearance then
                 updateAppearance({ [categoryName] = equippedItems[categoryName] })
@@ -63,7 +68,6 @@ for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItems, "TabOrde
         local function equipItem(itemName: string, doNotUpdateAppearance: true?)
             if canMultiEquip then
                 if #equippedItems[categoryName] == maxEquippables then
-                    -- TODO: Snackbar
                     return
                 end
             else
@@ -112,7 +116,6 @@ for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItems, "TabOrde
             end, function(widget)
                 if canMultiEquip then
                     local slotTask = itemName .. "Slot"
-
                     widget.SelectedChanged:Connect(function(selected)
                         if selected then
                             local unequipButton = ExitButton.new()
@@ -143,6 +146,9 @@ for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItems, "TabOrde
     end
 end
 
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
 panel.TabChanged:Connect(function()
     tabJanitor:Cleanup()
 end)
