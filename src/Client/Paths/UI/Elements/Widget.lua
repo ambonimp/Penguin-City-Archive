@@ -21,6 +21,8 @@ local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local ToolController = require(Paths.Client.Tools.ToolController)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 export type DiverseWidget = typeof(Widget.diverseWidget())
 
@@ -50,6 +52,7 @@ local PET_EGG_HSV_RANGE = {
 }
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
@@ -86,6 +89,25 @@ function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
     widget:SetText()
     widget:SetCornerRadius(UDim.new(100, 0))
     widget:SetCornerButton(closeButton)
+
+    -- Manage equipped feedback
+    do
+        local function update(isEquipped: boolean)
+            widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+        end
+
+        ToolController.ToolEquipped:Connect(function(equippedTool)
+            if ToolUtil.toolsMatch(equippedTool, tool) then
+                update(true)
+            end
+        end)
+        ToolController.ToolUnequipped:Connect(function(unequippedTool)
+            if ToolUtil.toolsMatch(unequippedTool, tool) then
+                update(false)
+            end
+        end)
+        update(ToolController.isEquipped(tool))
+    end
 
     return widget, closeButton
 end
