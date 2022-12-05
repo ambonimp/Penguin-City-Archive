@@ -424,7 +424,12 @@ function KeyboardButton.new()
         if textLabel then
             textLabel.ZIndex = imageButton.ZIndex + 1
         end
+
         back.ZIndex = imageButton.ZIndex - 1
+        if buttonOutline then
+            buttonOutline.ZIndex = back.ZIndex - 1
+            backOutline.ZIndex = back.ZIndex - 1
+        end
 
         adjustIconAndText()
     end)
