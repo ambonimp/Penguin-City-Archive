@@ -23,14 +23,16 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 
 local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
-local ANIMATION_EVENT_PICKUP_SNOWBALL = "PickupSnowball"
-local ANIMATION_EVENT_RELEASE_SNOWBALL = "ReleaseSnowball"
+local ANIMATION_THROW_EVENTS = {
+    PickupSnowball = 9 / 30,
+    ReleaseSnowball = 28 / 30,
+}
 local THROW_HEIGHT_PER_UNIT_DISTANCE = 0.2
 local THROW_SPEED = 90
 local MOUSE_RAYCAST_DISTANCE = 1000
 local DESTROY_SNOWBALLS_AFTER = 15
 local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
-local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Linear)
+local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
 local MAX_SNOWBALL_MODELS = 40
 
 local isThrowingSnowball = false
@@ -52,61 +54,84 @@ end
     and it's height is X units above the highest point of the start/end positions. X is calculated as a positive, additive function of the distance between
     the start and end position.
 ]]
-local function throwSnowball(player: Player, goalPosition: Vector3, snowballModel: Model, snowballTool: ToolUtil.Tool)
-    -- Calculate the maths innit
-    local startPosition = snowballModel:GetPivot().Position
-    local directionVector = goalPosition - startPosition
+local function throwSnowball(player: Player, goalPosition: Vector3, snowballModelGetter: () -> Model?, snowballTool: ToolUtil.Tool)
+    -- Create function for animating the thrown snowball
+    local function throwSnowballInArc(snowballModel: Model)
+        -- Calculate the maths innit
+        local startPosition = snowballModel:GetPivot().Position
+        local directionVector = goalPosition - startPosition
 
-    local length = directionVector.Magnitude
-    local midpoint = VectorUtil.getXZComponents(startPosition + directionVector / 2)
-        + Vector3.new(0, math.max(startPosition.Y, goalPosition.Y) + THROW_HEIGHT_PER_UNIT_DISTANCE * length, 0)
+        local length = directionVector.Magnitude
+        local midpoint = VectorUtil.getXZComponents(startPosition + directionVector / 2)
+            + Vector3.new(0, math.max(startPosition.Y, goalPosition.Y) + THROW_HEIGHT_PER_UNIT_DISTANCE * length, 0)
 
-    -- We very badly estimate the length of the bezier curve to get the rough magnitude of its length to help us calculate speed / tween time
-    -- Calculating the actual length of a bezier curve.. we don't need to be that accurate and I couldn't be bothered.
-    local inaccurateBezierCurveLength = (midpoint - goalPosition).Magnitude + (midpoint - startPosition).Magnitude
+        -- We very badly estimate the length of the bezier curve to get the rough magnitude of its length to help us calculate speed / tween time
+        -- Calculating the actual length of a bezier curve.. we don't need to be that accurate and I couldn't be bothered.
+        local inaccurateBezierCurveLength = (midpoint - goalPosition).Magnitude + (midpoint - startPosition).Magnitude
 
-    -- Setup Model
-    local ourSnowballModel = ToolUtil.getModel(snowballTool):Clone()
-    ourSnowballModel.Name = "Snowball"
-    ourSnowballModel.Parent = game.Workspace
-    ModelUtil.anchor(ourSnowballModel)
+        -- Setup Model
+        local ourSnowballModel = ToolUtil.getModel(snowballTool):Clone()
+        ourSnowballModel.Name = "Snowball"
+        ourSnowballModel.Parent = game.Workspace
+        ModelUtil.anchor(ourSnowballModel)
 
-    -- Manage Snowball Models
-    table.insert(snowballModels, ourSnowballModel)
-    for i = #snowballModels, MAX_SNOWBALL_MODELS, -1 do
-        local someSnowballModel = snowballModels[i]
-        table.remove(snowballModels, i)
-        removeSnowball(someSnowballModel)
-    end
-
-    -- Highlight local snowball
-    local highlight: Highlight
-    if player == Players.LocalPlayer then
-        highlight = SnowballToolUtil.highlight(ourSnowballModel)
-    end
-
-    -- To infinity and beyond!
-    TweenUtil.run(function(alpha)
-        local alphaPosition = MathUtil.getQuadraticBezierPoint(alpha, startPosition, midpoint, goalPosition)
-        ourSnowballModel:PivotTo(CFrame.new(alphaPosition))
-
-        local isFinished = alpha == 1
-        if isFinished then
-            -- Remove Highlight
-            if highlight then
-                highlight:Destroy()
-            end
-
-            -- Remove snowball model after a time
-            task.delay(DESTROY_SNOWBALLS_AFTER, function()
-                local index = table.find(snowballModels, ourSnowballModel)
-                if index then
-                    table.remove(snowballModels, index)
-                    removeSnowball(ourSnowballModel)
-                end
-            end)
+        -- Manage Snowball Models
+        table.insert(snowballModels, ourSnowballModel)
+        for i = #snowballModels, MAX_SNOWBALL_MODELS, -1 do
+            local someSnowballModel = snowballModels[i]
+            table.remove(snowballModels, i)
+            removeSnowball(someSnowballModel)
         end
-    end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))
+
+        -- Highlight local snowball
+        local highlight: Highlight
+        if player == Players.LocalPlayer then
+            highlight = SnowballToolUtil.highlight(ourSnowballModel)
+        end
+
+        -- To infinity and beyond!
+        TweenUtil.run(function(alpha)
+            local alphaPosition = MathUtil.getQuadraticBezierPoint(alpha, startPosition, midpoint, goalPosition)
+            ourSnowballModel:PivotTo(CFrame.new(alphaPosition))
+
+            local isFinished = alpha == 1
+            if isFinished then
+                -- Remove Highlight
+                if highlight then
+                    highlight:Destroy()
+                end
+
+                -- Remove snowball model after a time
+                task.delay(DESTROY_SNOWBALLS_AFTER, function()
+                    local index = table.find(snowballModels, ourSnowballModel)
+                    if index then
+                        table.remove(snowballModels, index)
+                        removeSnowball(ourSnowballModel)
+                    end
+                end)
+            end
+        end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))
+    end
+
+    -- TASK: Pickup Snowball
+    task.delay(ANIMATION_THROW_EVENTS.PickupSnowball, function()
+        -- Show snowball
+        local model = snowballModelGetter()
+        if model then
+            SnowballToolUtil.showSnowball(model)
+        end
+    end)
+
+    -- TASK: Release Snowball
+    task.delay(ANIMATION_THROW_EVENTS.ReleaseSnowball, function()
+        -- Hide snowball
+        local model = snowballModelGetter()
+        if model then
+            SnowballToolUtil.hideSnowball(model)
+
+            throwSnowballInArc(model)
+        end
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -123,10 +148,6 @@ function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: S
             SnowballToolUtil.matchSnowball(snowballModel, oldLocalSnowballModel)
         end
     end))
-end
-
-function SnowballToolClientHandler.unequipped(tool: ToolUtil.Tool)
-    print("unequipped", tool)
 end
 
 function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGetter: () -> Model?)
@@ -166,33 +187,13 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
         local throwTrack = animator:LoadAnimation(ANIMATION_THROW_SNOWBALL)
         throwTrack:Play()
 
-        -- Pickup Snowball
-        throwTrack:GetMarkerReachedSignal(ANIMATION_EVENT_PICKUP_SNOWBALL):Connect(function()
-            -- Show snowball
-            local model = modelGetter()
-            if model then
-                SnowballToolUtil.showSnowball(model)
-            end
-        end)
+        -- Throw
+        throwSnowball(Players.LocalPlayer, mouseRaycastResult.Position, modelGetter, tool)
 
-        -- Release Snowball
-        throwTrack:GetMarkerReachedSignal(ANIMATION_EVENT_RELEASE_SNOWBALL):Connect(function()
-            local model = modelGetter()
-            if model then
-                -- Throw
-                do
-                    throwSnowball(Players.LocalPlayer, mouseRaycastResult.Position, model, tool)
-
-                    -- Inform Server
-                    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolId, {
-                        Position = mouseRaycastResult.Position,
-                    })
-                end
-
-                -- Hide snowball
-                SnowballToolUtil.hideSnowball(model)
-            end
-        end)
+        -- Inform Server
+        Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolId, {
+            Position = mouseRaycastResult.Position,
+        })
 
         -- Finished
         task.delay(throwTrack.Length, function()
@@ -217,7 +218,9 @@ function SnowballToolClientHandler.activatedRemotely(player: Player, tool: ToolU
         return
     end
 
-    throwSnowball(player, position, model, tool)
+    throwSnowball(player, position, function()
+        return model
+    end, tool)
 end
 
 return SnowballToolClientHandler
