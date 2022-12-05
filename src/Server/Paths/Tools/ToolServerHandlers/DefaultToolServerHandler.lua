@@ -23,7 +23,7 @@ function DefaultToolServerHandler.unequipped(_player: Player, _tool: ToolUtil.To
     --
 end
 
-function DefaultToolServerHandler.activated(_player: Player, _tool: ToolUtil.Tool, _model: Model)
+function DefaultToolServerHandler.activated(_player: Player, _tool: ToolUtil.Tool, _model: Model, _dirtyData: table)
     --
 end
 

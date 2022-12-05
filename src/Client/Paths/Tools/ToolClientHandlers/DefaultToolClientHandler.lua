@@ -27,7 +27,7 @@ function DefaultToolClientHandler.activatedLocally(_tool: ToolUtil.Tool, _model:
     --
 end
 
-function DefaultToolClientHandler.activatedRemotely(_player: Player, _tool: ToolUtil.Tool, _data: table?)
+function DefaultToolClientHandler.activatedRemotely(_player: Player, _tool: ToolUtil.Tool, _model: Model?, _data: table?)
     --
 end
 

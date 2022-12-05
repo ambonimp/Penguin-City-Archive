@@ -17,8 +17,10 @@ type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
     activatedLocally: ((tool: ToolUtil.Tool, model: Model) -> any),
-    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, data: table?) -> any),
+    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, model: Model?, data: table?) -> any),
 }
+
+local DESTROY_LOCAL_TOOL_MODEL_AFTER = 3
 
 ToolController.ToolEquipped = Signal.new() -- { tool: ToolUtil.Tool }
 ToolController.ToolUnequipped = Signal.new() -- { tool: ToolUtil.Tool }
@@ -31,6 +33,28 @@ local equipMaid = Maid.new()
 local holsteredTools: { ToolUtil.Tool } = {}
 local equippedTool: ToolUtil.Tool | nil
 local equippedToolModel: Model | nil
+
+-------------------------------------------------------------------------------
+-- Tool Handlers
+-------------------------------------------------------------------------------
+
+local function getDefaultToolClientHandler(): ToolClientHandler
+    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler)
+end
+
+local function getToolClientHandler(tool: ToolUtil.Tool): ToolClientHandler | {}
+    local toolClientHandlerName = ("%sToolClientHandler"):format(tool.CategoryName)
+    local toolClientHandler = Paths.Client.Tools.ToolClientHandlers:FindFirstChild(toolClientHandlerName)
+    if toolClientHandler then
+        return require(toolClientHandler)
+    end
+
+    return {}
+end
+
+-------------------------------------------------------------------------------
+-- Start
+-------------------------------------------------------------------------------
 
 function ToolController.Start()
     -- Track activation of tools
@@ -52,30 +76,29 @@ function ToolController.Start()
                 return
             end
 
-            print("Activate", equippedTool.ToolName, equippedTool.CategoryName)
+            local toolClientHandler = getToolClientHandler(equippedTool)
+            local activatedLocally = toolClientHandler and toolClientHandler.activatedLocally
+                or getDefaultToolClientHandler().activatedLocally
+            activatedLocally(equippedTool, equippedToolModel)
         end)
 
         -- Remote
-        --todo
+        Remotes.bindEvents({
+            ToolActivatedRemotely = function(player: Player, categoryName: string, toolName: string, data: table?)
+                -- Get Tool
+                local tool = ToolUtil.tool(categoryName, toolName)
+
+                -- Get Model
+                local character = player.Character
+                local toolModel = character and ToolUtil.getModelFromCharacter(tool, character)
+
+                local toolClientHandler = getToolClientHandler(tool)
+                local activatedRemotely = toolClientHandler and toolClientHandler.activatedRemotely
+                    or getDefaultToolClientHandler().activatedRemotely
+                activatedRemotely(player, tool, toolModel, data)
+            end,
+        })
     end
-end
-
--------------------------------------------------------------------------------
--- Tool Handlers
--------------------------------------------------------------------------------
-
-local function getDefaultToolClientHandler(): ToolClientHandler
-    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler)
-end
-
-local function getToolClientHandler(tool: ToolUtil.Tool): ToolClientHandler | {}
-    local toolClientHandlerName = ("%sToolClientHandler"):format(tool.CategoryName)
-    local toolClientHandler = Paths.Client.Tools.ToolClientHandlers:FindFirstChild(toolClientHandlerName)
-    if toolClientHandler then
-        return require(toolClientHandler)
-    end
-
-    return {}
 end
 
 -------------------------------------------------------------------------------
@@ -211,15 +234,19 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     assume:Then(function(serverToolModel: Model)
         -- Destroy Local version
         local oldLocalEquippedToolModel = equippedToolModel
-        if equippedToolModel then
-            equippedToolModel:Destroy()
-            equippedToolModel = nil
+        if oldLocalEquippedToolModel then
+            oldLocalEquippedToolModel.Parent = nil :: Instance
+            task.delay(DESTROY_LOCAL_TOOL_MODEL_AFTER, function()
+                oldLocalEquippedToolModel:Destroy()
+            end)
         end
 
         -- Write server version if still in scope
         if thisEquipScopeId == equipScope:GetId() then
             equippedToolModel = serverToolModel
             modelSignal:Fire(serverToolModel, oldLocalEquippedToolModel)
+        else
+            equippedToolModel = nil
         end
     end)
     assume:Else(function()

@@ -13,6 +13,21 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Packages.maid)
 local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
+local MouseUtil = require(Paths.Client.Utils.MouseUtil)
+local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
+
+-------------------------------------------------------------------------------
+-- Snowball Logic
+-------------------------------------------------------------------------------
+
+local function throwSnowball(position: Vector3, snowballModel: Model)
+    --!! temp
+    DebugUtil.flashPoint(position, snowballModel.PrimaryPart.Color)
+end
+
+-------------------------------------------------------------------------------
+-- API
+-------------------------------------------------------------------------------
 
 function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
     -- Hide snowball by default
@@ -31,11 +46,36 @@ function SnowballToolClientHandler.unequipped(tool: ToolUtil.Tool)
 end
 
 function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, model: Model)
-    print("activated locally", tool, model)
+    -- RETURN: Bad raycast
+    local mouseRaycastResult = MouseUtil.getMouseTarget()
+    if not mouseRaycastResult then
+        return
+    end
+
+    print("THROW LOCAL")
+    throwSnowball(mouseRaycastResult.Position, model)
+
+    -- Inform Server
+    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolName, {
+        Position = mouseRaycastResult.Position,
+    })
 end
 
-function SnowballToolClientHandler.activatedRemotely(player: Player, tool: ToolUtil.Tool, data: table?)
-    print("activated remotely", player, tool, data)
+function SnowballToolClientHandler.activatedRemotely(player: Player, tool: ToolUtil.Tool, model: Model?, data: table?)
+    -- RETURN: No model
+    if not model then
+        return
+    end
+
+    -- RETURN: Bad data
+    local position = data and data.Position
+    if not position then
+        warn("Bad data passed", data)
+        return
+    end
+
+    print("THROW REMOTE")
+    throwSnowball(position, model)
 end
 
 return SnowballToolClientHandler

@@ -15,6 +15,18 @@ local TOOL_METATABLE = {
     end,
 }
 
+-------------------------------------------------------------------------------
+-- Private Methods
+-------------------------------------------------------------------------------
+
+local function getToolModelName(tool: Tool)
+    return ("%s_%s"):format(tool.CategoryName, tool.ToolName)
+end
+
+-------------------------------------------------------------------------------
+-- Public Methods
+-------------------------------------------------------------------------------
+
 function ToolUtil.tool(categoryName: string, toolName: string)
     -- ERROR: Bad categoryName/toolName
     if not (ToolConstants.Tools[categoryName] and ToolConstants.Tools[categoryName][toolName]) then
@@ -40,6 +52,10 @@ function ToolUtil.getModel(tool: Tool): Model
     return ReplicatedStorage.Assets.Tools[tool.CategoryName][tool.ToolName]
 end
 
+function ToolUtil.getModelFromCharacter(tool: Tool, character: Model): Model | nil
+    return character:FindFirstChild(getToolModelName(tool))
+end
+
 --[[
     Has `character` hold a `toolName` model
 
@@ -53,6 +69,8 @@ function ToolUtil.hold(character: Model, tool: Tool): Model
     end
 
     local toolModel = ToolUtil.getModel(tool):Clone()
+    toolModel.Name = getToolModelName(tool)
+
     local toolAttachment = toolModel.PrimaryPart:FindFirstChildOfClass("Attachment")
 
     local rigidConstraint = Instance.new("RigidConstraint")

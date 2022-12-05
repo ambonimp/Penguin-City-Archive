@@ -17,7 +17,7 @@ type EquippedData = {
 type ToolServerHandler = {
     equipped: ((player: Player, tool: ToolUtil.Tool, model: Model, equipMaid: typeof(Maid.new())) -> any),
     unequipped: ((player: Player, tool: ToolUtil.Tool) -> any),
-    activated: ((player: Player, tool: ToolUtil.Tool, model: Model) -> any),
+    activated: ((player: Player, tool: ToolUtil.Tool, model: Model, dirtyData: table) -> any),
 }
 
 local equippedDataByPlayer: { [Player]: EquippedData } = {}
@@ -45,7 +45,7 @@ end
 
 local function getToolServerHandler(tool: ToolUtil.Tool): ToolServerHandler | {}
     local toolClientHandlerName = ("%sToolServerHandler"):format(tool.CategoryName)
-    local toolClientHandler = Paths.Client.Tools.ToolServerHandlers:FindFirstChild(toolClientHandlerName)
+    local toolClientHandler = Paths.Server.Tools.ToolServerHandlers:FindFirstChild(toolClientHandlerName)
     if toolClientHandler then
         return require(toolClientHandler)
     end
@@ -126,6 +126,28 @@ Remotes.bindEvents({
     ToolUnequip = function(player: Player)
         ToolService.unequip(player)
     end,
+    ToolActivated = function(player: Player, dirtyCategoryName: any, dirtyToolName: any, dirtyData: any)
+        -- Clean Data
+        local success, tool = pcall(ToolUtil.tool, tostring(dirtyCategoryName), tostring(dirtyToolName))
+        if not success then
+            return
+        end
+
+        if typeof(dirtyData) ~= "table" then
+            return
+        end
+
+        -- RETURN: Not equipped / no model
+        local equippedData = equippedDataByPlayer[player]
+        if not (equippedData.Tool and ToolUtil.toolsMatch(equippedData.Tool, tool) and equippedData.Model) then
+            return
+        end
+
+        local toolServerHandler = getToolServerHandler(tool)
+        local activated = toolServerHandler and toolServerHandler.activated or getDefaultToolServerHandler().activated
+        activated(player, equippedData.Tool, equippedData.Model, dirtyData)
+    end,
 })
+Remotes.declareEvent("ToolActivatedRemotely")
 
 return ToolService
