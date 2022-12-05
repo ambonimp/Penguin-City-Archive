@@ -1,4 +1,4 @@
-local SnowballToolHandler = {}
+local SnowballToolClientHandler = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -13,22 +13,22 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Packages.maid)
 
-function SnowballToolHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
+function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
     equipMaid:GiveTask(modelSignal:Connect(function(snowballModel: Model)
         InstanceUtil.hide(snowballModel:GetDescendants())
     end))
 end
 
-function SnowballToolHandler.unequipped(tool: ToolUtil.Tool)
+function SnowballToolClientHandler.unequipped(tool: ToolUtil.Tool)
     print("unequipped", tool)
 end
 
-function SnowballToolHandler.activatedLocally(tool: ToolUtil.Tool, model: Model)
+function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, model: Model)
     print("activated locally", tool, model)
 end
 
-function SnowballToolHandler.activatedRemotely(player: Player, tool: ToolUtil.Tool, data: table?)
+function SnowballToolClientHandler.activatedRemotely(player: Player, tool: ToolUtil.Tool, data: table?)
     print("activated remotely", player, tool, data)
 end
 
-return SnowballToolHandler
+return SnowballToolClientHandler

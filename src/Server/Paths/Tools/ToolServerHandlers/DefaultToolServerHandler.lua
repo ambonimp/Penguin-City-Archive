@@ -1,7 +1,7 @@
-local DefaultToolClientHandler = {}
+local DefaultToolServerHandler = {}
 
-local Players = game:GetService("Players")
-local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local ServerScriptService = game:GetService("ServerScriptService")
+local Paths = require(ServerScriptService.Paths)
 local Signal = require(Paths.Shared.Signal)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
@@ -15,20 +15,16 @@ local Maid = require(Paths.Packages.maid)
 --[[
     `modelSignal` is fired twice; once with our locally created model and once with the server created model
 ]]
-function DefaultToolClientHandler.equipped(_tool: ToolUtil.Tool, _modelSignal: Signal.Signal, _equipMaid: typeof(Maid.new()))
+function DefaultToolServerHandler.equipped(_player: Player, _tool: ToolUtil.Tool, _model: Model, _equipMaid: typeof(Maid.new()))
     --
 end
 
-function DefaultToolClientHandler.unequipped(_tool: ToolUtil.Tool)
+function DefaultToolServerHandler.unequipped(_player: Player, _tool: ToolUtil.Tool)
     --
 end
 
-function DefaultToolClientHandler.activatedLocally(_tool: ToolUtil.Tool, _model: Model)
+function DefaultToolServerHandler.activated(_player: Player, _tool: ToolUtil.Tool, _model: Model)
     --
 end
 
-function DefaultToolClientHandler.activatedRemotely(_player: Player, _tool: ToolUtil.Tool, _data: table?)
-    --
-end
-
-return DefaultToolClientHandler
+return DefaultToolServerHandler
