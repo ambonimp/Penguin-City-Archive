@@ -17,7 +17,7 @@ type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
     activatedLocally: ((tool: ToolUtil.Tool, model: Model) -> any),
-    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, model: Model?, data: table?) -> any),
+    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, modelGetter: () -> Model?, data: table?) -> any),
 }
 
 local DESTROY_LOCAL_TOOL_MODEL_AFTER = 3
@@ -79,7 +79,9 @@ function ToolController.Start()
             local toolClientHandler = getToolClientHandler(equippedTool)
             local activatedLocally = toolClientHandler and toolClientHandler.activatedLocally
                 or getDefaultToolClientHandler().activatedLocally
-            activatedLocally(equippedTool, equippedToolModel)
+            activatedLocally(equippedTool, function()
+                return equippedToolModel
+            end)
         end)
 
         -- Remote

@@ -15,6 +15,14 @@ local Maid = require(Paths.Packages.maid)
 local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
+local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+
+local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
+local ANIMATION_EVENT_PICKUP_SNOWBALL = "PickupSnowball"
+local ANIMATION_EVENT_RELEASE_SNOWBALL = "ReleaseSnowball"
+
+local isThrowingSnowball = false
 
 -------------------------------------------------------------------------------
 -- Snowball Logic
@@ -45,20 +53,77 @@ function SnowballToolClientHandler.unequipped(tool: ToolUtil.Tool)
     print("unequipped", tool)
 end
 
-function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, model: Model)
+function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGetter: () -> Model?)
+    -- RETURN: Already throwing a snowball!
+    if isThrowingSnowball then
+        return
+    end
+
     -- RETURN: Bad raycast
     local mouseRaycastResult = MouseUtil.getMouseTarget()
     if not mouseRaycastResult then
         return
     end
 
-    print("THROW LOCAL")
-    throwSnowball(mouseRaycastResult.Position, model)
+    -- RETURN: No character!
+    local character = Players.LocalPlayer.Character
+    if not character then
+        return
+    end
 
-    -- Inform Server
-    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolName, {
-        Position = mouseRaycastResult.Position,
-    })
+    -- RETURN: No animator!
+    local animator = character.Humanoid:FindFirstChildOfClass("Animator")
+    if not animator then
+        return
+    end
+
+    -- Throw Snowball!
+    do
+        isThrowingSnowball = true
+
+        -- Anchor
+        CharacterUtil.anchor(character)
+
+        -- Play animation
+        local throwTrack = animator:LoadAnimation(ANIMATION_THROW_SNOWBALL)
+        throwTrack:Play()
+
+        -- Pickup Snowball
+        throwTrack:GetMarkerReachedSignal(ANIMATION_EVENT_PICKUP_SNOWBALL):Connect(function()
+            -- Show snowball
+            local model = modelGetter()
+            if model then
+                SnowballToolUtil.showSnowball(model)
+            end
+        end)
+
+        -- Release Snowball
+        throwTrack:GetMarkerReachedSignal(ANIMATION_EVENT_RELEASE_SNOWBALL):Connect(function()
+            local model = modelGetter()
+            if model then
+                -- Throw
+                do
+                    throwSnowball(mouseRaycastResult.Position, model)
+
+                    -- Inform Server
+                    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolName, {
+                        Position = mouseRaycastResult.Position,
+                    })
+                end
+
+                -- Hide snowball
+                SnowballToolUtil.hideSnowball(model)
+            end
+        end)
+
+        -- Finished
+        task.delay(throwTrack.Length, function()
+            -- Unanchor
+            CharacterUtil.unanchor(character)
+
+            isThrowingSnowball = false
+        end)
+    end
 end
 
 function SnowballToolClientHandler.activatedRemotely(player: Player, tool: ToolUtil.Tool, model: Model?, data: table?)
