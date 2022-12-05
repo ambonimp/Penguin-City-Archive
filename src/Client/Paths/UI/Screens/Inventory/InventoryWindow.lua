@@ -160,6 +160,7 @@ function InventoryWindow.new(
 
         -- Widgets
         local equippedValues = equipping and equipping.GetEquipped()
+        local usedEquippedValues = {}
         for i, entry in pairs(visibleEntries) do
             local holder = getHolderFrame(i)
             drawMaid:GiveTask(holder)
@@ -172,14 +173,37 @@ function InventoryWindow.new(
                 end
             end)
 
-            if equipping then
-                if entry.EquipValue ~= nil and table.find(equippedValues, entry.EquipValue) then
+            if equipping and entry.EquipValue ~= nil then
+                -- Gauge if this is currently equipped
+                local isEquipped = false
+                for _, equippedValue in pairs(equippedValues) do
+                    if equippedValue == entry.EquipValue then
+                        isEquipped = true
+                        table.insert(usedEquippedValues, equippedValue)
+                        break
+                    end
+                end
+
+                if isEquipped then
                     widget:SetOutline(EQUIPPED_COLOR)
                     holder.LayoutOrder = 0 -- Near the top
                 end
             end
 
             drawMaid:GiveTask(widget)
+        end
+
+        if equipping and #usedEquippedValues ~= equippedValues then
+            local unusedEquippedValues = {}
+            for _, equippedValue in pairs(equippedValues) do
+                if not table.find(usedEquippedValues, equippedValue) then
+                    table.insert(unusedEquippedValues, equippedValue)
+                end
+            end
+
+            if #unusedEquippedValues > 0 then
+                warn("Some of our passed equipped values were not found in our widgets!", unusedEquippedValues)
+            end
         end
 
         -- Pages
