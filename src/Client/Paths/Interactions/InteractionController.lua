@@ -276,7 +276,11 @@ ProximityPromptService.PromptShown:Connect(function(proximityPrompt)
 
     local promptButton: ImageButton = promptBillboard.Button
     local label: TextLabel = promptButton.Label
-    label.Text = (if #attachedInteractions == 1 then interactions[attachedInteractions[1]].Label else nil) or ""
+    label.Text = (
+        if #attachedInteractions == 1
+            then (instance:GetAttribute("InteractionLabel") or interactions[attachedInteractions[1]].Label or "")
+            else nil
+    ) or ""
     label.Visible = false
 
     promptButton.MouseButton1Down:Connect(function()

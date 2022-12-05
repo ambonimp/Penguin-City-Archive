@@ -21,7 +21,7 @@ export type EquippedItems = { string }
 
 local STANDUP_TIME = 0.1
 local CHARACTER_PREVIEW_CONFIG = {
-    SubjectScale = 9,
+    SubjectScale = 7,
     SubjectPosition = -0.2,
 }
 
@@ -290,7 +290,5 @@ do
         uiStateMachine:Pop()
     end)
 end
-
--- open()
 
 return CharacterEditorScreen

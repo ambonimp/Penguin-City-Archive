@@ -5,7 +5,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
@@ -106,7 +105,7 @@ end
 function CharacterItemService.updateCharacterAppearance(player: Player)
     local character = player.Character
     if character then
-        CharacterUtil.applyAppearance(character, CharacterItemService.getEquippedCharacterItems(player))
+        CharacterItemUtil.applyAppearance(character, CharacterItemService.getEquippedCharacterItems(player))
     end
 end
 
