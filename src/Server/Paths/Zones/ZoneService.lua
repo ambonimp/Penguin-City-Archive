@@ -204,7 +204,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 
             -- Teleport
-            CharacterService.standOn(player.Character, spawnpoint, true)
+            CharacterUtil.standOn(player.Character, spawnpoint, true)
             ZoneService.PlayerTeleported:Fire(player, oldZone, zone)
 
             -- Wait to re-enable collisions (while we're still on the same request!)

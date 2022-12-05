@@ -409,6 +409,10 @@ end
 
 --[[
     https://developer.roblox.com/en-us/articles/Bezier-curves
+
+    - `v0`: Start Position
+    - `v1`: Intermediate Position
+    - `v2`: End Position
 ]]
 function MathUtil.getQuadraticBezierPoint(alpha: number, v0: Vector3, v1: Vector3, v2: Vector3)
     alpha = math.clamp(alpha, 0, 1)
