@@ -13,7 +13,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Packages.maid)
 local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
-local MouseUtil = require(Paths.Client.Utils.MouseUtil)
+local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
@@ -22,6 +22,7 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local Particles = require(Paths.Shared.Particles)
+local Sound = require(Paths.Shared.Sound)
 
 local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
 local ANIMATION_THROW_EVENTS = {
@@ -86,10 +87,15 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
         end
 
         -- Highlight local snowball
+        local isLocalPlayer = player == Players.LocalPlayer
         local highlight: Highlight
-        if player == Players.LocalPlayer then
+        if isLocalPlayer then
             highlight = SnowballToolUtil.highlight(ourSnowballModel)
         end
+
+        -- Throw Sound
+        local soundParent = not isLocalPlayer and ourSnowballModel
+        Sound.play("SnowballThrow", nil, soundParent)
 
         -- To infinity and beyond!
         TweenUtil.run(function(alpha)
@@ -102,6 +108,10 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
                 if highlight then
                     highlight:Destroy()
                 end
+
+                -- Land Sound
+                local landSoundName = ("SnowballHit%d"):format(math.random(1, 4))
+                Sound.play(landSoundName, nil, soundParent)
 
                 -- Remove snowball model after a time
                 task.delay(DESTROY_SNOWBALLS_AFTER, function()
@@ -134,14 +144,35 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
 
     -- TASK: Release Snowball
     task.delay(ANIMATION_THROW_EVENTS.ReleaseSnowball, function()
-        -- Hide snowball
         local model = snowballModelGetter()
         if model then
+            -- Hide
             SnowballToolUtil.hideSnowball(model)
 
+            -- Throw
             throwSnowballInArc(model)
         end
     end)
+end
+
+local function mouseRaycastCheck(instance: BasePart)
+    -- FALSE: Not collideable
+    if not instance.CanCollide then
+        return false
+    end
+
+    -- FALSE: Is invisible
+    if instance.Transparency == 1 then
+        return false
+    end
+
+    -- FALSE: Is a character!
+    local potentialCharacter = instance:FindFirstAncestorOfClass("Model")
+    if potentialCharacter and Players:GetPlayerFromCharacter(potentialCharacter) then
+        return false
+    end
+
+    return true
 end
 
 -------------------------------------------------------------------------------
@@ -167,7 +198,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
     end
 
     -- RETURN: Bad raycast
-    local mouseRaycastResult = MouseUtil.getMouseTarget(nil, nil, MOUSE_RAYCAST_DISTANCE)
+    local mouseRaycastResult = RaycastUtil.raycastMouse(nil, MOUSE_RAYCAST_DISTANCE, mouseRaycastCheck)
     if not mouseRaycastResult then
         return
     end
