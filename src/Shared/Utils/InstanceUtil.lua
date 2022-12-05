@@ -98,103 +98,53 @@ function InstanceUtil.convert(instance: Instance, toClassName: string)
     return newInstance
 end
 
-local function fade(instance: Instance, fadeProperty: string, visible: boolean, tweenInfo: TweenInfo?)
-    tweenInfo = tweenInfo or FADE_TWEEN_INFO
-
-    -- Cache
-    local attributeName = ATTRIBUTE_FADE_FORMAT:format(fadeProperty)
-    local cachedValue = instance:GetAttribute(attributeName)
-    if not cachedValue then
-        cachedValue = instance[fadeProperty]
-        instance:SetAttribute(attributeName, cachedValue)
-    end
-
-    if visible then
-        instance[fadeProperty] = 1
-        return TweenUtil.tween(instance, tweenInfo, { [fadeProperty] = cachedValue })
-    else
-        instance[fadeProperty] = cachedValue
-        return TweenUtil.tween(instance, tweenInfo, { [fadeProperty] = 1 })
-    end
-end
-
--- Will fade in the passed instance(s) based on an internal table of properties
-function InstanceUtil.fadeIn(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
-    local tweens: { Tween } = {}
-
+function InstanceUtil.hide(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
     local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
-    for _, instance in pairs(instances) do
-        for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
-            for _, classname in pairs(classNames) do
-                if instance:IsA(classname) then
-                    table.insert(tweens, fade(instance, fadeProperty, true, tweenInfo))
-                    break
-                end
-            end
-        end
-    end
 
-    return tweens
-end
-
--- Will fade out the passed instance(s) based on an internal table of properties
-function InstanceUtil.fadeOut(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
-    local tweens: { Tween } = {}
-
-    local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
-    for _, instance in pairs(instances) do
-        for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
-            for _, classname in pairs(classNames) do
-                if instance:IsA(classname) then
-                    table.insert(tweens, fade(instance, fadeProperty, false, tweenInfo))
-                    break
-                end
-            end
-        end
-    end
-
-    return tweens
-end
-
-function InstanceUtil.hide(instance: Instance, tweenInfo: TweenInfo?)
     for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
         for _, classname in pairs(classNames) do
-            if instance:IsA(classname) then
-                if tweenInfo then
-                    local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
-                    TweenUtil.run(function(alpha)
-                        local alphaValue = MathUtil.lerp(defaultValue, 1, alpha)
-                        PropertyStack.setProperty(instance, fadeProperty, alphaValue, "InstanceUtilHide")
-                    end, tweenInfo)
-                else
-                    PropertyStack.setProperty(instance, fadeProperty, 1, "InstanceUtilHide")
-                end
-
-                break
-            end
-        end
-    end
-end
-
-function InstanceUtil.show(instance: Instance, tweenInfo: TweenInfo?)
-    for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
-        for _, classname in pairs(classNames) do
-            if instance:IsA(classname) then
-                if tweenInfo then
-                    local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
-                    TweenUtil.run(function(alpha)
-                        local alphaValue = MathUtil.lerp(1, defaultValue, alpha)
-                        if alphaValue < 1 then
+            for _, instance in pairs(instances) do
+                if instance:IsA(classname) then
+                    if tweenInfo then
+                        local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
+                        TweenUtil.run(function(alpha)
+                            local alphaValue = MathUtil.lerp(defaultValue, 1, alpha)
                             PropertyStack.setProperty(instance, fadeProperty, alphaValue, "InstanceUtilHide")
-                        else
-                            PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
-                        end
-                    end, tweenInfo)
-                else
-                    PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
-                end
+                        end, tweenInfo)
+                    else
+                        PropertyStack.setProperty(instance, fadeProperty, 1, "InstanceUtilHide")
+                    end
 
-                break
+                    break
+                end
+            end
+        end
+    end
+end
+
+function InstanceUtil.show(instanceOrInstances: Instance | { Instance }, tweenInfo: TweenInfo?)
+    local instances: { Instance } = typeof(instanceOrInstances) == "table" and instanceOrInstances or { instanceOrInstances }
+
+    for fadeProperty, classNames in pairs(FADE_CLASSNAME_BY_PROPERTY) do
+        for _, classname in pairs(classNames) do
+            for _, instance in pairs(instances) do
+                if instance:IsA(classname) then
+                    if tweenInfo then
+                        local defaultValue = PropertyStack.getDefaultValue(instance, fadeProperty)
+                        TweenUtil.run(function(alpha)
+                            local alphaValue = MathUtil.lerp(1, defaultValue, alpha)
+                            if alphaValue < 1 then
+                                PropertyStack.setProperty(instance, fadeProperty, alphaValue, "InstanceUtilHide")
+                            else
+                                PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
+                            end
+                        end, tweenInfo)
+                    else
+                        PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
+                    end
+
+                    break
+                end
             end
         end
     end

@@ -139,7 +139,7 @@ function PetEggHatchingScreen.boot(data: table)
         UIController.getStateMachine():Remove(UIConstants.States.PetEggHatching)
     end)
 
-    InstanceUtil.fadeIn(viewportFrame, TweenInfo.new(0))
+    InstanceUtil.show(viewportFrame, TweenInfo.new(0))
     screenGui.Enabled = true
 end
 
@@ -148,7 +148,7 @@ function PetEggHatchingScreen.shutdown()
     petDataIndex = nil
     openScope:NewScope()
 
-    InstanceUtil.fadeOut(viewportFrame, TweenInfo.new(TWEEN_TIME))
+    InstanceUtil.hide(viewportFrame, TweenInfo.new(TWEEN_TIME))
     task.delay(TWEEN_TIME, function()
         screenGui.Enabled = false
     end)

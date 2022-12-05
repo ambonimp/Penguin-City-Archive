@@ -16,7 +16,7 @@ local Maid = require(Paths.Packages.maid)
 function SnowballToolHandler.equipped(tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
     equipMaid:GiveTask(modelSignal:Connect(function(snowballModel: Model)
         print("snowball", snowballModel)
-        InstanceUtil.hide(snowballModel)
+        InstanceUtil.hide(snowballModel:GetDescendants())
     end))
 end
 
