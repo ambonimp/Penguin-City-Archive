@@ -21,6 +21,7 @@ local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
+local Particles = require(Paths.Shared.Particles)
 
 local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
 local ANIMATION_THROW_EVENTS = {
@@ -34,6 +35,7 @@ local DESTROY_SNOWBALLS_AFTER = 15
 local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
 local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
 local MAX_SNOWBALL_MODELS = 40
+local PLAY_LANDING_PARTICLE_FOR = 0.1
 
 local isThrowingSnowball = false
 local snowballModels: { Model } = {}
@@ -94,8 +96,8 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
             local alphaPosition = MathUtil.getQuadraticBezierPoint(alpha, startPosition, midpoint, goalPosition)
             ourSnowballModel:PivotTo(CFrame.new(alphaPosition))
 
-            local isFinished = alpha == 1
-            if isFinished then
+            local hasLanded = alpha == 1
+            if hasLanded then
                 -- Remove Highlight
                 if highlight then
                     highlight:Destroy()
@@ -108,6 +110,14 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
                         table.remove(snowballModels, index)
                         removeSnowball(ourSnowballModel)
                     end
+                end)
+
+                -- Play landing animation
+                local particle = SnowballToolUtil.landingParticle(ourSnowballModel)
+                task.delay(PLAY_LANDING_PARTICLE_FOR, function()
+                    particle.Enabled = false
+                    task.wait(particle.Lifetime.Max)
+                    particle:Destroy()
                 end)
             end
         end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))

@@ -1,5 +1,8 @@
 local SnowballToolUtil = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Particles = require(ReplicatedStorage.Shared.Particles)
+
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
 
 function SnowballToolUtil.hideSnowball(snowballModel: Model)
@@ -23,6 +26,12 @@ function SnowballToolUtil.highlight(snowballModel: Model)
     highlight.Parent = snowballModel.PrimaryPart
 
     return highlight
+end
+
+function SnowballToolUtil.landingParticle(snowballModel: Model)
+    local particle = Particles.play("SnowballLanding", snowballModel.PrimaryPart)
+    particle.Color = ColorSequence.new(snowballModel.PrimaryPart.Color)
+    return particle
 end
 
 return SnowballToolUtil
