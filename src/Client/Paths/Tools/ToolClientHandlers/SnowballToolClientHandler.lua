@@ -30,7 +30,7 @@ local THROW_SPEED = 90
 local MOUSE_RAYCAST_DISTANCE = 1000
 local DESTROY_SNOWBALLS_AFTER = 15
 local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
-local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(1, Enum.EasingStyle.Linear)
+local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Linear)
 
 local isThrowingSnowball = false
 
