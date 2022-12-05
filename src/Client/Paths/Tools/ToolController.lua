@@ -10,6 +10,15 @@ local Remotes = require(Paths.Shared.Remotes)
 local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local InputController = require(Paths.Client.Input.InputController)
+local Maid = require(Paths.Packages.maid)
+
+type ToolHandler = {
+    equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
+    unequipped: ((tool: ToolUtil.Tool) -> any),
+    activatedLocally: ((tool: ToolUtil.Tool, model: Model) -> any),
+    activatedRemotely: ((player: Player, tool: ToolUtil.Tool, data: table?) -> any),
+}
 
 ToolController.ToolEquipped = Signal.new() -- { tool: ToolUtil.Tool }
 ToolController.ToolUnequipped = Signal.new() -- { tool: ToolUtil.Tool }
@@ -17,10 +26,57 @@ ToolController.ToolHolstered = Signal.new() -- { tool: ToolUtil.Tool }
 ToolController.ToolUnholstered = Signal.new() -- { tool: ToolUtil.Tool }
 
 local equipScope = Scope.new()
+local equipMaid = Maid.new()
 
 local holsteredTools: { ToolUtil.Tool } = {}
 local equippedTool: ToolUtil.Tool | nil
 local equippedToolModel: Model | nil
+
+function ToolController.Start()
+    -- Track activation of tools
+    do
+        local wasCursorDownAGameProcessedEvent: boolean
+        InputController.CursorDown:Connect(function(gameProcessedEvent)
+            wasCursorDownAGameProcessedEvent = gameProcessedEvent
+        end)
+
+        -- Local
+        InputController.CursorUp:Connect(function(gameProcessedEvent)
+            -- RETURN: Game processed event
+            if wasCursorDownAGameProcessedEvent or gameProcessedEvent then
+                return
+            end
+
+            -- RETURN: No equipped tool!
+            if not equippedTool then
+                return
+            end
+
+            print("Activate", equippedTool.ToolName, equippedTool.CategoryName)
+        end)
+
+        -- Remote
+        --todo
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Tool Handlers
+-------------------------------------------------------------------------------
+
+local function getDefaultToolHandler(): ToolHandler
+    return require(Paths.Client.Tools.ToolHandlers.DefaultToolHandler)
+end
+
+local function getToolHandler(tool: ToolUtil.Tool): ToolHandler | {}
+    local toolHandlerName = ("%sToolHandler"):format(tool.CategoryName)
+    local toolHandler = Paths.Client.Tools.ToolHandlers:FindFirstChild(toolHandlerName)
+    if toolHandler then
+        return require(toolHandler)
+    end
+
+    return {}
+end
 
 -------------------------------------------------------------------------------
 -- Querying
@@ -107,8 +163,8 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
         return
     end
 
-    -- RETURN: Too many holstered tools!
-    if #holsteredTools >= ToolConstants.MaxHolsteredTools then
+    -- RETURN: Not already holstered and too many holstered tools!
+    if not ToolController.isHolstered(tool) and #holsteredTools >= ToolConstants.MaxHolsteredTools then
         warn("Max holstered tools")
         return
     end
@@ -121,9 +177,10 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     end
 
     local thisEquipScopeId = equipScope:NewScope()
+    equipMaid:Cleanup()
 
     -- Unequip old tool + update cache
-    ToolController.unequipRequest()
+    ToolController.unequip()
     equippedTool = tool
 
     -- Holster
@@ -131,6 +188,14 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
 
     -- Inform Client
     ToolController.ToolEquipped:Fire(tool)
+
+    -- Inform Handler
+    local modelSignal = Signal.new()
+    equipMaid:GiveTask(modelSignal)
+
+    local toolHandler = getToolHandler(tool)
+    local equipped = toolHandler and toolHandler.equipped or getDefaultToolHandler().equipped
+    equipped(tool, modelSignal, equipMaid)
 
     -- Request Server
     local assume = Assume.new(function()
@@ -141,6 +206,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     end)
     assume:Run(function()
         equippedToolModel = ToolUtil.hold(character, tool)
+        modelSignal:Fire(equippedToolModel)
     end)
     assume:Then(function(serverToolModel: Model)
         -- Destroy Local version
@@ -152,6 +218,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
         -- Write server version if still in scope
         if thisEquipScopeId == equipScope:GetId() then
             equippedToolModel = serverToolModel
+            modelSignal:Fire(serverToolModel)
         end
     end)
     assume:Else(function()
@@ -183,6 +250,13 @@ function ToolController.unequip(tool: ToolUtil.Tool | nil)
 
     -- Inform Client
     ToolController.ToolUnequipped:Fire(tool)
+
+    -- Inform Handler
+    do
+        local toolHandler = getToolHandler(tool)
+        local unequipped = toolHandler and toolHandler.unequipped or getDefaultToolHandler().unequipped
+        unequipped(tool)
+    end
 
     -- Inform Server
     Remotes.fireServer("ToolUnequip")
