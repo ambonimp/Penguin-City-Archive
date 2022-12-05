@@ -418,7 +418,7 @@ end
 
 function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)
     local startCFrame = character:GetPivot()
-    local goalCFrame = CFrameUtil.setPosition(CFrame.new(VectorUtil.getXZComponents(direction)), startCFrame.Position)
+    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + VectorUtil.getXZComponents(direction))
 
     if tweenInfo then
         TweenUtil.run(function(alpha)
