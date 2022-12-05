@@ -9,9 +9,9 @@ return function()
     do
         for categoryName, tools in pairs(ToolConstants.Tools) do
             for toolKey, tool in pairs(tools) do
-                -- Name much match key
-                if toolKey ~= tool.Name then
-                    table.insert(issues, ("%s.%s toolKey does not match .Name (%s)"):format(categoryName, toolKey, tool.Name))
+                -- Name much match id
+                if toolKey ~= tool.Id then
+                    table.insert(issues, ("%s.%s toolKey does not match .Name (%s)"):format(categoryName, toolKey, tool.Id))
                 end
             end
 
@@ -26,7 +26,7 @@ return function()
     do
         for categoryName, tools in pairs(ToolConstants.Tools) do
             for _, tool in pairs(tools) do
-                local success, model = pcall(ToolUtil.getModel, ToolUtil.tool(categoryName, tool.Name))
+                local success, model = pcall(ToolUtil.getModel, ToolUtil.tool(categoryName, tool.Id))
                 if success then
                     -- need PrimaryPart with Attachment
                     if model.PrimaryPart then
@@ -45,7 +45,7 @@ return function()
                         end
                     end
                 else
-                    table.insert(issues, ("Tool %s.%s has not model"):format(categoryName, tool.Name))
+                    table.insert(issues, ("Tool %s.%s has not model"):format(categoryName, tool.Id))
                 end
             end
         end

@@ -5,7 +5,7 @@ local ToolConstants = require(ReplicatedStorage.Shared.Tools.ToolConstants)
 
 export type Tool = {
     CategoryName: string,
-    ToolName: string,
+    ToolId: string,
 }
 
 local HAND_BONE_NAME = "Hand.R"
@@ -20,7 +20,7 @@ local TOOL_METATABLE = {
 -------------------------------------------------------------------------------
 
 local function getToolModelName(tool: Tool)
-    return ("%s_%s"):format(tool.CategoryName, tool.ToolName)
+    return ("%s_%s"):format(tool.CategoryName, tool.ToolId)
 end
 
 -------------------------------------------------------------------------------
@@ -35,21 +35,21 @@ function ToolUtil.tool(categoryName: string, toolName: string)
 
     local tool = setmetatable({
         CategoryName = categoryName,
-        ToolName = toolName,
+        ToolId = toolName,
     }, TOOL_METATABLE) :: Tool
 
     return tool
 end
 
 function ToolUtil.toolsMatch(tool1: Tool, tool2: Tool)
-    return tool1.CategoryName == tool2.CategoryName and tool1.ToolName == tool2.ToolName
+    return tool1.CategoryName == tool2.CategoryName and tool1.ToolId == tool2.ToolId
 end
 
 --[[
     Returns direct reference. Use :Clone() !
 ]]
 function ToolUtil.getModel(tool: Tool): Model
-    return ReplicatedStorage.Assets.Tools[tool.CategoryName][tool.ToolName]
+    return ReplicatedStorage.Assets.Tools[tool.CategoryName][tool.ToolId]
 end
 
 function ToolUtil.getModelFromCharacter(tool: Tool, character: Model): Model | nil

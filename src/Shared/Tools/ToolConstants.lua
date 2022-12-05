@@ -4,7 +4,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 
 export type ToolItem = {
-    Name: string,
+    Id: string,
+    DisplayName: string,
     Price: number,
 }
 
@@ -19,10 +20,9 @@ for _, categoryModuleScript in pairs(ReplicatedStorage.Shared.Tools.Categories:G
 
     local module: {
         Items: {
-            [string]: { Name: string, Price: number },
+            [string]: ToolItem,
         },
-    } =
-        require(categoryModuleScript)
+    } = require(categoryModuleScript)
 
     categoryNames[categoryName] = categoryName
     tools[categoryName] = module.Items

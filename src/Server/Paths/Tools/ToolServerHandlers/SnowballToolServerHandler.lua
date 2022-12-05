@@ -35,7 +35,7 @@ function SnowballToolServerHandler.activated(player: Player, tool: ToolUtil.Tool
     local otherPlayers = ZoneService.getPlayersInZone(ZoneService.getPlayerZone(player))
     for _, somePlayer in pairs(otherPlayers) do
         if somePlayer ~= player then
-            Remotes.fireClient(somePlayer, "ToolActivatedRemotely", player, tool.CategoryName, tool.ToolName, {
+            Remotes.fireClient(somePlayer, "ToolActivatedRemotely", player, tool.CategoryName, tool.ToolId, {
                 Position = position,
             })
         end

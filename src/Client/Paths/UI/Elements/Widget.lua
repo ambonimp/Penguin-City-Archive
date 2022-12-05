@@ -81,7 +81,7 @@ end
     Returns widget: Widget, closeButton: ExitButton
 ]]
 function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
-    local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolName)
+    local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
     local widget = Widget.diverseWidgetFromProduct(toolProduct)
 
     local closeButton = ExitButton.new()

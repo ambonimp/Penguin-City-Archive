@@ -145,7 +145,7 @@ end
 function ToolController.getHolsteredProducts()
     local products: { Products.Product } = {}
     for _, holsteredTool in pairs(holsteredTools) do
-        local product = ProductUtil.getToolProduct(holsteredTool.CategoryName, holsteredTool.ToolName)
+        local product = ProductUtil.getToolProduct(holsteredTool.CategoryName, holsteredTool.ToolId)
         table.insert(products, product)
     end
 
@@ -237,7 +237,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
 
     -- Request Server
     local assume = Assume.new(function()
-        return Remotes.invokeServer("ToolEquipRequest", tool.CategoryName, tool.ToolName)
+        return Remotes.invokeServer("ToolEquipRequest", tool.CategoryName, tool.ToolId)
     end)
     assume:Check(function(result: Model | nil)
         return result and typeof(result) == "Instance" and result:IsA("Model")

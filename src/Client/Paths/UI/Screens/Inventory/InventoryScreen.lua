@@ -83,11 +83,11 @@ function InventoryScreen.Init()
                 Equipping = {
                     Equip = function(product: Products.Product)
                         local toolData = ProductUtil.getToolProductData(product)
-                        ToolController.holster(ToolUtil.tool(toolData.CategoryName, toolData.ToolName))
+                        ToolController.holster(ToolUtil.tool(toolData.CategoryName, toolData.ToolId))
                     end,
                     Unequip = function(product: Products.Product)
                         local toolData = ProductUtil.getToolProductData(product)
-                        ToolController.unholster(ToolUtil.tool(toolData.CategoryName, toolData.ToolName))
+                        ToolController.unholster(ToolUtil.tool(toolData.CategoryName, toolData.ToolId))
                     end,
                     GetEquipped = function()
                         return ToolController.getHolsteredProducts()

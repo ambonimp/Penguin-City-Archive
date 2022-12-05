@@ -1,33 +1,39 @@
 local SnowballToolConstants = {}
-
 export type ToolItem = {
-    Name: string,
+    Id: string,
+    DisplayName: string,
     Price: number,
 }
 
 local items: { [string]: ToolItem } = {}
 items.Default = {
-    Name = "Default",
+    Id = "Default",
+    DisplayName = "Snowball",
     Price = 0,
 }
 items.red = {
-    Name = "red",
+    Id = "red",
+    DisplayName = "Red Snowball",
     Price = 1,
 }
 items.black = {
-    Name = "black",
+    Id = "black",
+    DisplayName = "Black Snowball",
     Price = 1,
 }
 items.green = {
-    Name = "green",
+    Id = "green",
+    DisplayName = "Green Snowball",
     Price = 1,
 }
 items.yellow = {
-    Name = "yellow",
+    Id = "yellow",
+    DisplayName = "Yellow Snowball",
     Price = 1,
 }
 items.blue = {
-    Name = "blue",
+    Id = "blue",
+    DisplayName = "Blue Snowball",
     Price = 1,
 }
 

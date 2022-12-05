@@ -132,7 +132,7 @@ return function()
 
         -- Product Id must match ProductUtil getter
         local toolData = ProductUtil.getToolProductData(product)
-        if product.Id ~= ProductUtil.getToolProductId(toolData.CategoryName, toolData.ToolName) then
+        if product.Id ~= ProductUtil.getToolProductId(toolData.CategoryName, toolData.ToolId) then
             addIssue("ProductId does not match return value for ProductUtil.getToolProductData")
         end
     end

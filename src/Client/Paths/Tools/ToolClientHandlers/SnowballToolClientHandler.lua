@@ -184,7 +184,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
                     throwSnowball(Players.LocalPlayer, mouseRaycastResult.Position, model, tool)
 
                     -- Inform Server
-                    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolName, {
+                    Remotes.fireServer("ToolActivated", tool.CategoryName, tool.ToolId, {
                         Position = mouseRaycastResult.Position,
                     })
                 end

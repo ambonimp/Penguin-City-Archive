@@ -112,9 +112,9 @@ end
 
 -- Communication
 Remotes.bindFunctions({
-    ToolEquipRequest = function(player: Player, dirtyCategoryName: any, dirtyToolName: any)
+    ToolEquipRequest = function(player: Player, dirtyCategoryName: any, dirtyToolId: any)
         -- Clean Data
-        local success, tool = pcall(ToolUtil.tool, tostring(dirtyCategoryName), tostring(dirtyToolName))
+        local success, tool = pcall(ToolUtil.tool, tostring(dirtyCategoryName), tostring(dirtyToolId))
         if not success then
             return
         end
@@ -126,9 +126,9 @@ Remotes.bindEvents({
     ToolUnequip = function(player: Player)
         ToolService.unequip(player)
     end,
-    ToolActivated = function(player: Player, dirtyCategoryName: any, dirtyToolName: any, dirtyData: any)
+    ToolActivated = function(player: Player, dirtyCategoryName: any, dirtyToolId: any, dirtyData: any)
         -- Clean Data
-        local success, tool = pcall(ToolUtil.tool, tostring(dirtyCategoryName), tostring(dirtyToolName))
+        local success, tool = pcall(ToolUtil.tool, tostring(dirtyCategoryName), tostring(dirtyToolId))
         if not success then
             return
         end

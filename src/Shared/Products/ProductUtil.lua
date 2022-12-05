@@ -304,7 +304,7 @@ function ProductUtil.getToolProductData(product: Products.Product)
 
     return {
         CategoryName = product.Metadata.CategoryName :: string,
-        ToolName = product.Metadata.ToolName :: string,
+        ToolId = product.Metadata.ToolId :: string,
     }
 end
 

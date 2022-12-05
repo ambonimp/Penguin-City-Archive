@@ -10,18 +10,18 @@ local products: { [string]: Product } = {}
 
 for categoryName, tools in pairs(ToolConstants.Tools) do
     for _, tool in pairs(tools) do
-        local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(tool.Name))
+        local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(tool.Id))
         local product: Product = {
             Id = productId,
             Type = ProductConstants.ProductType.Tool,
-            DisplayName = StringUtil.getFriendlyString(("%s %s"):format(tool.Name, categoryName)),
+            DisplayName = tool.DisplayName,
             CoinData = {
                 Cost = tool.Price, --!! Temp
             },
             Metadata = {
                 CategoryName = categoryName,
-                ToolName = tool.Name,
-                Model = ToolUtil.getModel(ToolUtil.tool(categoryName, tool.Name)),
+                ToolId = tool.Id,
+                Model = ToolUtil.getModel(ToolUtil.tool(categoryName, tool.Id)),
             },
         }
 

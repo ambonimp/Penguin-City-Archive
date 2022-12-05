@@ -131,7 +131,7 @@ local function updateToolbar()
     for i, tool in pairs(holsteredTools) do
         -- Holder
         local holder = itemHolderTemplate:Clone()
-        holder.Name = tool.ToolName
+        holder.Name = tool.ToolId
         holder.LayoutOrder = i
         holder.Parent = screenGui.Bottom
         holder.Visible = true
