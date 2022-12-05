@@ -11,12 +11,11 @@ local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Maid = require(Paths.Packages.maid)
+local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 
---[[
-    `modelSignal` is fired twice; once with our locally created model and once with the server created model
-]]
-function SnowballToolServerHandler.equipped(player: Player, tool: ToolUtil.Tool, model: Model, equipMaid: typeof(Maid.new()))
-    --
+function SnowballToolServerHandler.equipped(player: Player, tool: ToolUtil.Tool, snowballModel: Model, equipMaid: typeof(Maid.new()))
+    -- Hide snowball by default
+    SnowballToolUtil.hideSnowball(snowballModel)
 end
 
 function SnowballToolServerHandler.unequipped(player: Player, tool: ToolUtil.Tool)

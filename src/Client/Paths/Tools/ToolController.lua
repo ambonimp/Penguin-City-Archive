@@ -210,6 +210,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     end)
     assume:Then(function(serverToolModel: Model)
         -- Destroy Local version
+        local oldLocalEquippedToolModel = equippedToolModel
         if equippedToolModel then
             equippedToolModel:Destroy()
             equippedToolModel = nil
@@ -218,7 +219,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
         -- Write server version if still in scope
         if thisEquipScopeId == equipScope:GetId() then
             equippedToolModel = serverToolModel
-            modelSignal:Fire(serverToolModel)
+            modelSignal:Fire(serverToolModel, oldLocalEquippedToolModel)
         end
     end)
     assume:Else(function()

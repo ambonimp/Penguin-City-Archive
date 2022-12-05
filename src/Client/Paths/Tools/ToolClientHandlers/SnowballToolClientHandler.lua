@@ -12,10 +12,17 @@ local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Packages.maid)
+local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 
 function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
-    equipMaid:GiveTask(modelSignal:Connect(function(snowballModel: Model)
-        InstanceUtil.hide(snowballModel:GetDescendants())
+    -- Hide snowball by default
+    equipMaid:GiveTask(modelSignal:Connect(function(snowballModel: Model, oldLocalSnowballModel: Model?)
+        SnowballToolUtil.hideSnowball(snowballModel)
+
+        -- We have just got the new server model - but what if we were already throwing our local version and it was visible?
+        if oldLocalSnowballModel then
+            SnowballToolUtil.matchSnowball(snowballModel, oldLocalSnowballModel)
+        end
     end))
 end
 
