@@ -13,16 +13,16 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 return function()
     local issues: { string } = {}
 
-    -- ToolHandlers must be well named
-    for _, toolHandlerModuleScript: ModuleScript in pairs(Paths.Client.Tools.ToolHandlers:GetChildren()) do
+    -- ToolClientHandlers must be well named
+    for _, toolHandlerModuleScript: ModuleScript in pairs(Paths.Client.Tools.ToolClientHandlers:GetChildren()) do
         if toolHandlerModuleScript:IsA("ModuleScript") then
-            local toolCategoryName = StringUtil.chopEnd(toolHandlerModuleScript.Name, "ToolHandler")
+            local toolCategoryName = StringUtil.chopEnd(toolHandlerModuleScript.Name, "ToolClientHandler")
             if toolCategoryName then
                 if not ToolConstants.CategoryNames[toolCategoryName] and toolCategoryName ~= "Default" then
-                    table.insert(issues, "ToolHandler %s is prefixed with an invalid tool category name")
+                    table.insert(issues, "ToolClientHandler %s is prefixed with an invalid tool category name")
                 end
             else
-                table.insert(issues, "ToolHandler %s is badly named. <TOOL_CATEGORY>ToolHandler")
+                table.insert(issues, "ToolClientHandler %s is badly named. <TOOL_CATEGORY>ToolClientHandler")
             end
         end
     end

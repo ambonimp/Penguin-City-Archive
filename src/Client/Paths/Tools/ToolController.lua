@@ -13,7 +13,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InputController = require(Paths.Client.Input.InputController)
 local Maid = require(Paths.Packages.maid)
 
-type ToolHandler = {
+type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
     activatedLocally: ((tool: ToolUtil.Tool, model: Model) -> any),
@@ -64,15 +64,15 @@ end
 -- Tool Handlers
 -------------------------------------------------------------------------------
 
-local function getDefaultToolHandler(): ToolHandler
-    return require(Paths.Client.Tools.ToolHandlers.DefaultToolHandler)
+local function getDefaultToolClientHandler(): ToolClientHandler
+    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler)
 end
 
-local function getToolHandler(tool: ToolUtil.Tool): ToolHandler | {}
-    local toolHandlerName = ("%sToolHandler"):format(tool.CategoryName)
-    local toolHandler = Paths.Client.Tools.ToolHandlers:FindFirstChild(toolHandlerName)
-    if toolHandler then
-        return require(toolHandler)
+local function getToolClientHandler(tool: ToolUtil.Tool): ToolClientHandler | {}
+    local toolClientHandlerName = ("%sToolClientHandler"):format(tool.CategoryName)
+    local toolClientHandler = Paths.Client.Tools.ToolClientHandlers:FindFirstChild(toolClientHandlerName)
+    if toolClientHandler then
+        return require(toolClientHandler)
     end
 
     return {}
@@ -193,8 +193,8 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
     local modelSignal = Signal.new()
     equipMaid:GiveTask(modelSignal)
 
-    local toolHandler = getToolHandler(tool)
-    local equipped = toolHandler and toolHandler.equipped or getDefaultToolHandler().equipped
+    local toolClientHandler = getToolClientHandler(tool)
+    local equipped = toolClientHandler and toolClientHandler.equipped or getDefaultToolClientHandler().equipped
     equipped(tool, modelSignal, equipMaid)
 
     -- Request Server
@@ -253,8 +253,8 @@ function ToolController.unequip(tool: ToolUtil.Tool | nil)
 
     -- Inform Handler
     do
-        local toolHandler = getToolHandler(tool)
-        local unequipped = toolHandler and toolHandler.unequipped or getDefaultToolHandler().unequipped
+        local toolClientHandler = getToolClientHandler(tool)
+        local unequipped = toolClientHandler and toolClientHandler.unequipped or getDefaultToolClientHandler().unequipped
         unequipped(tool)
     end
 
