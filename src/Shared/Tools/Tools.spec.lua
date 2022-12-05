@@ -14,6 +14,11 @@ return function()
                     table.insert(issues, ("%s.%s toolKey does not match .Name (%s)"):format(categoryName, toolKey, tool.Name))
                 end
             end
+
+            -- Banned names
+            if categoryName == "Default" then
+                table.insert(issues, "'Default' is a banned tool category name!")
+            end
         end
     end
 

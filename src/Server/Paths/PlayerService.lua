@@ -26,7 +26,7 @@ function PlayerService.Start()
     local SessionService = require(Paths.Server.SessionService)
     local PetService = require(Paths.Server.Pets.PetService)
     local PlayerChatService = require(Paths.Server.PlayerChatService)
-    local ToolService = require(Paths.Server.ToolService)
+    local ToolService = require(Paths.Server.Tools.ToolService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
