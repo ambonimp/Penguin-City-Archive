@@ -31,12 +31,21 @@ local MOUSE_RAYCAST_DISTANCE = 1000
 local DESTROY_SNOWBALLS_AFTER = 15
 local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
 local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Linear)
+local MAX_SNOWBALL_MODELS = 40
 
 local isThrowingSnowball = false
+local snowballModels: { Model } = {}
 
 -------------------------------------------------------------------------------
 -- Snowball Logic
 -------------------------------------------------------------------------------
+
+local function removeSnowball(snowballModel: Model)
+    InstanceUtil.hide(snowballModel:GetDescendants(), DESTROY_SNOWBALL_TWEEN_INFO)
+    task.delay(DESTROY_SNOWBALL_TWEEN_INFO.Time, function()
+        snowballModel:Destroy()
+    end)
+end
 
 --[[
     We throw the snowball along a bezier curve, where the intermediate point is the X/Z midpoint between the start and end position,
@@ -62,6 +71,14 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
     ourSnowballModel.Parent = game.Workspace
     ModelUtil.anchor(ourSnowballModel)
 
+    -- Manage Snowball Models
+    table.insert(snowballModels, ourSnowballModel)
+    for i = #snowballModels, MAX_SNOWBALL_MODELS, -1 do
+        local someSnowballModel = snowballModels[i]
+        table.remove(snowballModels, i)
+        removeSnowball(someSnowballModel)
+    end
+
     -- Highlight local snowball
     local highlight: Highlight
     if player == Players.LocalPlayer then
@@ -82,10 +99,11 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
 
             -- Remove snowball model after a time
             task.delay(DESTROY_SNOWBALLS_AFTER, function()
-                InstanceUtil.hide(ourSnowballModel:GetDescendants(), DESTROY_SNOWBALL_TWEEN_INFO)
-                task.delay(DESTROY_SNOWBALL_TWEEN_INFO.Time, function()
-                    ourSnowballModel:Destroy()
-                end)
+                local index = table.find(snowballModels, ourSnowballModel)
+                if index then
+                    table.remove(snowballModels, index)
+                    removeSnowball(ourSnowballModel)
+                end
             end)
         end
     end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))
