@@ -41,7 +41,6 @@ local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = 
 local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
 local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.EtherealCharacters)
 local isCollidingWithOtherCharacterOverlapParams = OverlapParams.new()
-local characterAssets = ReplicatedStorage.Assets.Character
 
 -------------------------------------------------------------------------------
 -- Ethereal

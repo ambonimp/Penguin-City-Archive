@@ -437,7 +437,7 @@ function SelectionPanel.new()
         tabName: string,
         widgetName: string,
         selected: boolean,
-        constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget
+        constructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget)
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
