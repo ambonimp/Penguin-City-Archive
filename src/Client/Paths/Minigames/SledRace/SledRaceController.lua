@@ -16,7 +16,6 @@ local CollectableController = require(Paths.Client.Minigames.SledRace.SledRaceCo
 local ProgressLineController = require(Paths.Client.Minigames.SledRace.SledRaceProgressLine)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
-local Sound = require(Paths.Shared.Sound)
 
 local MINIGAME_NAME = "SledRace"
 local INACTIVE_STARTING_LINE_TRANSPARENCY = 0.2
@@ -33,8 +32,6 @@ local raceJanitor = Janitor.new()
 local minigameJanitor = MinigameController.getMinigameJanitor()
 minigameJanitor:Add(raceJanitor, "Cleanup")
 
-local music: Sound?
-
 -------------------------------------------------------------------------------
 -- State handler
 -------------------------------------------------------------------------------
@@ -50,21 +47,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
 
-    minigameJanitor:Add(function()
-        if music then
-            music:Destroy()
-        end
-    end)
-
+    MinigameController.playMusic("Intermission")
     SharedMinigameScreen.openStartMenu()
-end)
-
-MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.WaitingForPlayers, function()
-    if MinigameController.isMultiplayer() then
-        SharedMinigameScreen.setStatusText("Waiting for more players")
-    end
-end, function()
-    SharedMinigameScreen.hideStatus()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
@@ -80,8 +64,8 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
+    MinigameController.stopMusic("Intermission")
     raceJanitor:Add(CollectableController.setup())
-    raceJanitor:Add(ProgressLineController.setup())
 
     --[[
         Client tells itself when to give player control of driving
@@ -95,14 +79,16 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         startingLine.Transparency = INACTIVE_STARTING_LINE_TRANSPARENCY
     end)
 
-    music = Sound.play(MINIGAME_NAME, true)
-
     -- Goo
     raceJanitor:Add(DrivingController.setup())
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
+    MinigameController.playMusic("Core")
+
+    raceJanitor:Add(ProgressLineController.setup())
     SharedMinigameScreen.setStatusText("Race to the bottom")
+
     MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
     SharedMinigameScreen.hideStatus()
@@ -110,11 +96,11 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
+    MinigameController.stopMusic("Core")
+    MinigameController.playMusic("Intermission")
+
     local scores: MinigameConstants.SortedScores = data.Scores
     local isMultiplayer = MinigameController.isMultiplayer()
-
-    Sound.fadeOut(music)
-    music = nil
 
     task.wait(AWARD_SEQUENCE_DELAY)
 

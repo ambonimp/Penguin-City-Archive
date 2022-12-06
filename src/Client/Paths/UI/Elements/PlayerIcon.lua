@@ -14,7 +14,7 @@ local CHARACTER_HIDE_POSITION = Vector3.new(0, 50000, 0)
 local CAMERA_POSITION_OFFSET = Vector3.new(0, 2, -3)
 local CAMERA_LOOK_OFFSET = Vector3.new(0, 2, 0)
 
-function PlayerIcon.new(playerOrUserId: Player | number)
+function PlayerIcon.new(playerOrUserId: Player | number, cornerRadius: UDim?)
     local playerIcon = UIElement.new()
 
     -------------------------------------------------------------------------------
@@ -29,11 +29,18 @@ function PlayerIcon.new(playerOrUserId: Player | number)
     -- Private Methods
     -------------------------------------------------------------------------------
 
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = cornerRadius or UDim2.new()
+
     local function viewport(player: Player)
         local viewportFrame = Instance.new("ViewportFrame")
+        viewportFrame.Name = "Icon"
+        viewportFrame.Ambient = Color3.fromRGB(255, 255, 255)
         viewportFrame.BackgroundTransparency = 1
         viewportFrame.Size = UDim2.fromScale(1, 1)
         viewportFrame.Parent = frame
+
+        uiCorner.Parent = viewportFrame
 
         local camera = Instance.new("Camera")
         viewportFrame.CurrentCamera = camera
@@ -69,10 +76,13 @@ function PlayerIcon.new(playerOrUserId: Player | number)
 
     local function thumbnail(userId: number)
         local imageLabel = Instance.new("ImageLabel")
+        imageLabel.Name = "Icon"
         imageLabel.BackgroundTransparency = 1
         imageLabel.Size = UDim2.fromScale(1, 1)
         imageLabel.Image = ""
         imageLabel.Parent = frame
+
+        uiCorner.Parent = imageLabel
 
         task.spawn(function()
             imageLabel.Image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
@@ -85,10 +95,15 @@ function PlayerIcon.new(playerOrUserId: Player | number)
 
     function playerIcon:Mount(parent: GuiObject, hideParent: boolean?)
         frame.Parent = parent
+        frame.Icon.ZIndex = parent.ZIndex + 1
 
         if hideParent then
             parent.BackgroundTransparency = 1
         end
+    end
+
+    function playerIcon:GetGuiObject()
+        return frame
     end
 
     -------------------------------------------------------------------------------

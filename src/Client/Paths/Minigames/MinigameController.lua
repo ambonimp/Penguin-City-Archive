@@ -15,14 +15,16 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
+local Sound = require(Paths.Shared.Sound)
 
+type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
 type State = { Name: string, Data: StateData? }
 type StateCallback = (StateData) -> ()
 type Participants = { Player }
 
-local INITIALIZATION_STATE = { Name = MinigameConstants.States.Nothing }
-
+local STATES = MinigameConstants.States
+local INITIALIZATION_STATE = { Name = STATES.Nothing }
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
 -------------------------------------------------------------------------------
@@ -34,11 +36,12 @@ local currentZone: ZoneConstans.Zone?
 local currentParticipants: Participants?
 local currentIsMultiplayer: boolean?
 
-local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = { Template = {} }
+local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = {}
 
 local janitor = Janitor.new()
-
 local uiStateMachine = UIController.getStateMachine()
+
+local music: { [string]: Sound } = {}
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBES
@@ -49,11 +52,26 @@ MinigameController.ParticipantRemoved = Signal.new()
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
+function MinigameController.playMusic(name: Music)
+    -- RETURN: Music already playing
+    if music[name] then
+        return
+    end
+
+    music[name] = Sound.play(if name == "Intermission" then "MinigameIntermission" else currentMinigame, true)
+end
+
+function MinigameController.stopMusic(name: Music)
+    local sound = music[name]
+    if sound then
+        Sound.fadeOut(music[name])
+        music[name] = nil
+    end
+end
+
 local function setState(newState: State)
     local newName: string = newState.Name
     local newData: StateData = newState.Data
-
-    local templateCallbacks = stateCallbacks.Template[newName]
 
     local lastState = currentState
     currentState = newState
@@ -66,20 +84,12 @@ local function setState(newState: State)
 
         if callbacks and callbacks.Close then
             callbacks.Close(newData)
-        elseif templateCallbacks and not callbacks.Open then
-            -- If there is no open callback, we can assumed it was opened with an template callback so lets close with one too
-            if templateCallbacks.Close then
-                templateCallbacks.Close(newData)
-            end
         end
     end
 
     local callbacks = stateCallbacks[currentMinigame][newName]
-
     if callbacks and callbacks.Open then
         callbacks.Open(newData)
-    elseif templateCallbacks and templateCallbacks.Open then
-        templateCallbacks.Open(newData)
     end
 end
 
@@ -87,6 +97,9 @@ local function assertActiveMinigame()
     assert(currentMinigame, "There is no active minigame")
 end
 
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
 function MinigameController.Start()
     for _, minigame in pairs(MinigameConstants.Minigames) do
         local controller: ModuleScript? = Paths.Client.Minigames[minigame]:FindFirstChild(minigame .. "Controller")
@@ -96,9 +109,6 @@ function MinigameController.Start()
     end
 end
 
--------------------------------------------------------------------------------
--- PUBLIC METHODS
--------------------------------------------------------------------------------
 function MinigameController.registerStateCallback(minigame: string, state: string, onOpen: StateCallback?, onClose: StateCallback?)
     local minigameCallbacks = stateCallbacks[minigame]
     if not minigameCallbacks then
@@ -205,7 +215,10 @@ Remotes.bindEvents({
     end,
 
     MinigameExited = function()
-        -- Revert
+        -- Music
+        MinigameController.stopMusic("Core")
+        MinigameController.stopMusic("Intermission")
+
         if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end

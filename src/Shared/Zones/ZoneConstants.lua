@@ -65,7 +65,7 @@ ZoneConstants.ZoneInstances = {
     FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
 }
 
-ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.ClothingStore
+ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.SkiHill
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
 ZoneConstants.StreamingTargetRadius = 5300
