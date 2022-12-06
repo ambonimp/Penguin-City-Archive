@@ -3,7 +3,6 @@ local Transitions = {}
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CameraController = require(Paths.Client.CameraController)
 
 export type BlinkOptions = {
     TweenInfo: TweenInfo?,
@@ -36,6 +35,7 @@ function Transitions.blink(onHalfPoint: (...any) -> nil, blinkOptions: BlinkOpti
 
     onHalfPoint()
     if doAlignCamera then
+        local CameraController = require(Paths.Client.CameraController)
         CameraController.alignCharacter()
     end
 
