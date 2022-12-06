@@ -7,16 +7,6 @@ local Ui = Paths.UI
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local Maid = require(Paths.Packages.maid)
-local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
-local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
-local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
-local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
-local Sound = require(Paths.Shared.Sound)
-local Effects = require(Paths.Shared.Effects)
-local Scope = require(Paths.Shared.Scope)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Button = require(Paths.Client.UI.Elements.Button)
 local Images = require(Paths.Shared.Images.Images)
@@ -46,26 +36,14 @@ local zoneImageLabel: ImageLabel = mapFrame.Zone
 local pinsFrame: Frame = screenGui.Pins
 
 local closeButton = ExitButton.new(UIConstants.States.Map)
--- local container: Frame = screenGui.Container
--- local uiScale: UIScale = container.UIScale
--- local cashoutButton = KeyboardButton.new()
--- local closeScope = Scope.new()
-
--- local openMaid = Maid.new()
-
--- local stackedPaychecks: Frame = container.StackedPaychecks
--- local fields: Frame = container.Paycheck.Fields
--- local contextDescription: TextLabel = fields.ContextDescription
--- local contextTitle: TextLabel = fields.ContextTitle
--- local nextPaycheck: TextLabel = fields.NextPaycheck
--- local numberValue: TextLabel = fields.NumberValue
--- local playerName: TextLabel = fields.PlayerName
--- local stringValue: TextLabel = fields.StringValue
 
 function MapScreen.Init()
     -- Buttons
     do
         closeButton:Mount(closeButtonFrame, true)
+        closeButton.Pressed:Connect(function()
+            UIController.getStateMachine():Remove(UIConstants.States.Map)
+        end)
     end
 
     -- Populate Pins
