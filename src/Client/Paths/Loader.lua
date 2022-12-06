@@ -45,16 +45,16 @@ local function close()
     end)
 end
 
-function Loader.giveTask(scope: string, name: string, task: () -> nil)
-    -- ERROR: Cannot give tasks once loading has started
+function Loader.giveTask(scope: string, name: string, taskCallback: () -> nil)
     if hasStartedLoading then
-        error("Cannot give task once loading has started - tasks should be given when a script is required.")
+        task.delay(nil, taskCallback)
+        return
     end
 
     local newTask: Task = {
         Scope = scope,
         Name = name,
-        Task = task,
+        Task = taskCallback,
     }
     table.insert(taskQueue, newTask)
 end
