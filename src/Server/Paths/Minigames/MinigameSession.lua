@@ -23,6 +23,8 @@ type Participants = { Player }
 
 local STATES = MinigameConstants.States
 
+local assets = ServerStorage.Minigames
+
 function MinigameSession.new(
     minigameName: string,
     id: string,
@@ -40,7 +42,7 @@ function MinigameSession.new(
     janitor:Add(stateMachine)
 
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigameName], id)
-    local map: Model = ServerStorage.Minigames[minigameName].Map:Clone()
+    local map: Model = assets[minigameName].Map:Clone()
     janitor:Add((ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone())))
 
     local playerSpawns: { BasePart }? = if map:FindFirstChild("PlayerSpawns") then map.PlayerSpawns:GetChildren() else nil
@@ -419,6 +421,17 @@ function MinigameSession.new(
     end
 
     return minigameSession
+end
+
+for _, minigame in pairs(assets:GetChildren()) do
+    local cameras = minigame.Map:FindFirstChild("Cameras")
+    if cameras then
+        for _, basePart in pairs(cameras:GetDescendants()) do
+            if basePart:IsA("BasePart") then
+                basePart.Transparency = 1
+            end
+        end
+    end
 end
 
 return MinigameSession
