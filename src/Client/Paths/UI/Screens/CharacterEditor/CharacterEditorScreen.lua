@@ -179,7 +179,7 @@ do
     local characterIsReady
     local canOpen = true
 
-    local function open(data)
+    local function boot(data)
         -- RETURN: Menu is already open
         if not canOpen then
             return
@@ -239,12 +239,19 @@ do
         if data.Tab then
             panel:OpenTab(data.Tab)
         end
+    end
 
+    local function maximize()
         ScreenUtil.inLeft(panel:GetContainer())
         ScreenUtil.inUp(equipSlots)
     end
 
-    local function exit()
+    local function minimize()
+        ScreenUtil.out(panel:GetContainer())
+        ScreenUtil.out(equipSlots)
+    end
+
+    local function shutdown()
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
@@ -273,15 +280,17 @@ do
             end
 
             previewMaid:Destroy()
-
-            ScreenUtil.out(panel:GetContainer())
-            ScreenUtil.out(equipSlots)
         end
 
         canOpen = true
     end
 
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.CharacterEditor, open, exit)
+    UIController.registerStateScreenCallbacks(UIConstants.States.CharacterEditor, {
+        Boot = boot,
+        Shutdown = shutdown,
+        Maximize = maximize,
+        Minimize = minimize,
+    })
 end
 
 -- Manipulate UIState
