@@ -172,9 +172,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         return nil
     end
 
+    -- WARN: No player zone state!
+    local playerZoneState = ZoneService.getPlayerZoneState(player)
+    if not playerZoneState then
+        warn(("No player zone state for %q"):format(player.Name))
+        return
+    end
+
     -- Update State
     local oldZone = ZoneService.getPlayerZone(player)
-    local playerZoneState = ZoneService.getPlayerZoneState(player)
     if zone.ZoneType == ZoneConstants.ZoneType.Room then
         playerZoneState.RoomId = zone.ZoneId
         playerZoneState.MinigameId = nil

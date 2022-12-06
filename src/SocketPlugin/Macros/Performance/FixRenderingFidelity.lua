@@ -1,4 +1,3 @@
-local Workspace = game:GetService("Workspace")
 local ServerStorage = game:GetService("ServerStorage")
 local Selection = game:GetService("Selection")
 local Utils = ServerStorage.SocketPlugin:FindFirstChild("Utils")
