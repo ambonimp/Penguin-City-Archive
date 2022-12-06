@@ -47,9 +47,9 @@ end
 
 local function map(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.FoldedMap
-
-    --!!temp
-    button.Pressed:Connect(ZoneController.teleportToRandomRoom)
+    button.Pressed:Connect(function()
+        UIController.getStateMachine():Push(UIConstants.States.Map)
+    end)
 end
 
 local function dailyRewards(button: AnimatedButton.AnimatedButton)
