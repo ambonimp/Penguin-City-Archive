@@ -39,6 +39,7 @@ task.delay(0, function()
         require(server.Pets.PetService),
         require(server.Stamps.StampService),
         require(server.TutorialService),
+        require(server.Tools.ToolService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

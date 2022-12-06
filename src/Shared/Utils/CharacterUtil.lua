@@ -13,6 +13,10 @@ local CharacterItems = require(Shared.Constants.CharacterItems)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
+local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 
 export type CharacterAppearance = {
     BodyType: string,
@@ -384,6 +388,46 @@ end
 
 function CharacterUtil.getHumanoidRootPart(player: Player)
     return player.Character and player.Character:FindFirstChild("HumanoidRootPart") or nil
+end
+
+-------------------------------------------------------------------------------
+-- Pivoting
+-------------------------------------------------------------------------------
+
+-- Moves a character so that they're standing above a part, usefull for spawning
+function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPosition: boolean?)
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    character.WorldPivot = humanoidRootPart.CFrame
+
+    local pivotCFrame: CFrame
+    if useRandomPosition then
+        pivotCFrame = platform.CFrame:ToWorldSpace(
+            CFrame.new(
+                MathUtil.nextNumber(-platform.Size.X / 2, platform.Size.X / 2),
+                character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2,
+                MathUtil.nextNumber(-platform.Size.Z / 2, platform.Size.Z / 2)
+            )
+        )
+    else
+        pivotCFrame =
+            platform.CFrame:ToWorldSpace(CFrame.new(0, character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2, 0))
+    end
+    character:PivotTo(pivotCFrame)
+end
+
+function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)
+    local startCFrame = character:GetPivot()
+    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + VectorUtil.getXZComponents(direction))
+
+    if tweenInfo then
+        TweenUtil.run(function(alpha)
+            local alphaCFrame = startCFrame:Lerp(goalCFrame, alpha)
+            character:PivotTo(alphaCFrame)
+        end, tweenInfo)
+    else
+        character:PivotTo(goalCFrame)
+    end
 end
 
 -------------------------------------------------------------------------------

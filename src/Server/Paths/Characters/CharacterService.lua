@@ -10,7 +10,6 @@ local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PlayerService = require(Paths.Server.PlayerService)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local PropertyStack = require(Paths.Shared.PropertyStack)
@@ -19,28 +18,6 @@ local Nametag = require(Paths.Shared.Nametag)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
 
 Players.CharacterAutoLoads = false
-
--- Moves a character so that they're standing above a part, usefull for spawning
-function CharacterService.standOn(character: Model, platform: BasePart, useRandomPosition: boolean?)
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-    character.WorldPivot = humanoidRootPart.CFrame
-
-    local pivotCFrame: CFrame
-    if useRandomPosition then
-        pivotCFrame = platform.CFrame:ToWorldSpace(
-            CFrame.new(
-                MathUtil.nextNumber(-platform.Size.X / 2, platform.Size.X / 2),
-                character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2,
-                MathUtil.nextNumber(-platform.Size.Z / 2, platform.Size.Z / 2)
-            )
-        )
-    else
-        pivotCFrame =
-            platform.CFrame:ToWorldSpace(CFrame.new(0, character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2, 0))
-    end
-    character:PivotTo(pivotCFrame)
-end
 
 local function setupCharacter(character: Model)
     -- Setup Collisions

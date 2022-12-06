@@ -16,6 +16,7 @@ end
 
 function Particles.play(particleName: string, adornee: Instance)
     local particle = Particles.get(particleName)
+    particle.Enabled = true
     particle.Parent = adornee
 
     return particle

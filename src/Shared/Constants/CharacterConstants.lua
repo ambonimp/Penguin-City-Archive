@@ -13,6 +13,8 @@ CharacterConstants.Animations = {
     Fall = { { Id = "http://www.roblox.com/asset/?id=507767968", Weight = 10 } },
     Climb = { { Id = "http://www.roblox.com/asset/?id=507765644", Weight = 10 } },
     Sit = { { Id = "http://www.roblox.com/asset/?id=2506281703", Weight = 10 } },
+    GenericTool = { { Id = "rbxassetid://11713443688", Weight = 15 } },
+    SnowballTool = { { Id = "rbxassetid://11713444981", Weight = 15 } },
 }
 
 return CharacterConstants

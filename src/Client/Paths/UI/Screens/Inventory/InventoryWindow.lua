@@ -14,7 +14,12 @@ local EQUIPPED_COLOR = Color3.fromRGB(0, 165, 0)
 
 --[[
     data:
-    - AddCallback: If passed, will create an "Add" button that will invoke AddCallback
+    - `AddCallback`: If passed, will create an "Add" button that will invoke AddCallback
+
+    Equipping
+    - `Equip`: Called with `EquipValue` when we press a non-equipped widget. Must immediately update the return value of `GetEquipped`
+    - `Unequip`: Called with `EquipValue` when we press an equipped wiget. Must immediately update the return value of `GetEquipped`
+    - `GetEquipped`: Returns an array of `EquipValue` - this is how we gauge if a widget is equipped or not
 ]]
 function InventoryWindow.new(
     icon: string,
@@ -23,8 +28,8 @@ function InventoryWindow.new(
         AddCallback: (() -> nil)?,
         Equipping: {
             Equip: (value: any) -> nil,
-            Unequip: ((value: any) -> nil)?,
-            StartEquipped: any?,
+            Unequip: ((value: any) -> nil),
+            GetEquipped: () -> { any },
         }?,
     }
 )
@@ -104,13 +109,11 @@ function InventoryWindow.new(
         EquipValue: any | nil,
     } } =
         {}
-    local widgetsByEquipValue: { [any]: typeof(Widget.diverseWidget()) } = {}
 
     local addCallback = data.AddCallback
     local equipping = data.Equipping
 
     local totalWidgetsPerPage = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
-    local equippedValue: any | nil
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -156,7 +159,8 @@ function InventoryWindow.new(
         end
 
         -- Widgets
-        widgetsByEquipValue = {}
+        local equippedValues = equipping and equipping.GetEquipped()
+        local usedEquippedValues = {}
         for i, entry in pairs(visibleEntries) do
             local holder = getHolderFrame(i)
             drawMaid:GiveTask(holder)
@@ -164,24 +168,42 @@ function InventoryWindow.new(
             local widget = entry.WidgetConstructor()
             widget:Mount(holder)
             widget.Pressed:Connect(function()
-                if equipping then
-                    if entry.EquipValue == equippedValue then
-                        inventoryWindow:Equip(nil)
-                    elseif entry.EquipValue ~= nil then
-                        inventoryWindow:Equip(entry.EquipValue)
-                    end
+                if equipping and entry.EquipValue ~= nil then
+                    inventoryWindow:EquipToggle(entry.EquipValue)
                 end
             end)
 
-            if entry.EquipValue ~= nil then
-                if entry.EquipValue == equippedValue then
+            if equipping and entry.EquipValue ~= nil then
+                -- Gauge if this is currently equipped
+                local isEquipped = false
+                for _, equippedValue in pairs(equippedValues) do
+                    if equippedValue == entry.EquipValue then
+                        isEquipped = true
+                        table.insert(usedEquippedValues, equippedValue)
+                        break
+                    end
+                end
+
+                if isEquipped then
                     widget:SetOutline(EQUIPPED_COLOR)
                     holder.LayoutOrder = 0 -- Near the top
                 end
-
-                widgetsByEquipValue[entry.EquipValue] = widget
             end
+
             drawMaid:GiveTask(widget)
+        end
+
+        if equipping and #usedEquippedValues ~= equippedValues then
+            local unusedEquippedValues = {}
+            for _, equippedValue in pairs(equippedValues) do
+                if not table.find(usedEquippedValues, equippedValue) then
+                    table.insert(unusedEquippedValues, equippedValue)
+                end
+            end
+
+            if #unusedEquippedValues > 0 then
+                warn("Some of our passed equipped values were not found in our widgets!", unusedEquippedValues)
+            end
         end
 
         -- Pages
@@ -200,37 +222,45 @@ function InventoryWindow.new(
         WidgetConstructor: () -> typeof(Widget.diverseWidget()),
         EquipValue: any | nil,
     } })
-        -- Ensure unique EquipValue
-        local equipValues: { [any]: true } = {}
-        local startEquippedIndex: number | nil
-        for i, entry in pairs(populateData) do
-            if entry.EquipValue ~= nil then
-                if equipValues[entry.EquipValue] then
-                    warn(("Duplicate equip value %q"):format(tostring(entry.EquipValue)))
-                end
-                if equipping and equipping.StartEquipped == entry.EquipValue then
-                    startEquippedIndex = i
-                end
+        -- Ensure unique EquipValue (if equipping is enabled)
+        if equipping then
+            local equipValuesCache: { [any]: true } = {}
+            local startingEquippedValues = equipping.GetEquipped()
+            local startingEquippedIndexes: { number } = {}
+            for i, entry in pairs(populateData) do
+                if entry.EquipValue ~= nil then
+                    if equipValuesCache[entry.EquipValue] then
+                        warn(("Duplicate equip value %q"):format(tostring(entry.EquipValue)))
+                    end
+                    if equipping and table.find(startingEquippedValues, entry.EquipValue) then
+                        table.insert(startingEquippedIndexes, i)
+                    end
 
-                equipValues[entry.EquipValue] = true
+                    equipValuesCache[entry.EquipValue] = true
+                end
             end
-        end
 
-        -- Move equipped data to the front
-        if startEquippedIndex then
-            local equippedEntry = populateData[startEquippedIndex]
-            table.remove(populateData, startEquippedIndex)
-            table.insert(populateData, 1, equippedEntry)
+            -- Move equipped data to the front
+            do
+                -- Remove in reverse order from populateData to ensyure indexes don't shift
+                local equippedEntries: { typeof(populateData[1]) } = {}
+                for j = #startingEquippedIndexes, 1, -1 do
+                    local index = startingEquippedIndexes[j]
+                    local entry = populateData[index]
+                    table.remove(populateData, index)
+                    table.insert(equippedEntries, entry)
+                end
+
+                -- Reinsert back at beginning
+                for _, entry in pairs(equippedEntries) do
+                    table.insert(populateData, 1, entry)
+                end
+            end
         end
 
         -- Init data + page
         currentPopulateData = populateData
         pageNumber = 1
-
-        -- Start Equipped
-        if equipping and equipping.StartEquipped then
-            equippedValue = equipping.StartEquipped
-        end
 
         -- Draw
         draw()
@@ -239,29 +269,21 @@ function InventoryWindow.new(
     --[[
         If `isExternal=true`, this is a call informing this UI the equipped value has been changed externally (e.g., `mountHoverboard` command).
     ]]
-    function inventoryWindow:Equip(newEquipValue: any | nil, isExternal: boolean?)
+    function inventoryWindow:EquipToggle(equipValue: any)
         -- WARN: No equipping!
         if not equipping then
             warn("No equipping data")
             return
         end
 
-        -- RETURN: No Change
-        if equippedValue == newEquipValue then
-            return
+        local equippedValues = equipping.GetEquipped()
+        local isEquipped = table.find(equippedValues, equipValue) and true or false
+
+        if isEquipped then
+            equipping.Unequip(equipValue)
+        else
+            equipping.Equip(equipValue)
         end
-
-        if not isExternal then
-            if equippedValue ~= nil and equipping.Unequip then
-                task.spawn(equipping.Unequip, equippedValue)
-            end
-
-            if newEquipValue ~= nil then
-                task.spawn(equipping.Equip, newEquipValue)
-            end
-        end
-
-        equippedValue = newEquipValue
 
         draw()
     end

@@ -19,6 +19,8 @@ local PetController = require(Paths.Client.Pets.PetController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ToolController = require(Paths.Client.Tools.ToolController)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 local screenGui: ScreenGui
 local openMaid = Maid.new()
@@ -73,6 +75,30 @@ function InventoryScreen.Init()
         --     inventoryWindow:Mount(parent)
         -- end)
 
+        -- Tools
+        tabbedWindow:AddTab("Tools", Images.Icons.Toy)
+        tabbedWindow:SetWindowConstructor("Tools", function(parent, maid)
+            local inventoryWindow = InventoryProductWindow.new(Images.Icons.Toy, "Tools", {
+                ProductType = ProductConstants.ProductType.Tool,
+                Equipping = {
+                    Equip = function(product: Products.Product)
+                        local toolData = ProductUtil.getToolProductData(product)
+                        ToolController.holster(ToolUtil.tool(toolData.CategoryName, toolData.ToolId))
+                    end,
+                    Unequip = function(product: Products.Product)
+                        local toolData = ProductUtil.getToolProductData(product)
+                        ToolController.unholster(ToolUtil.tool(toolData.CategoryName, toolData.ToolId))
+                    end,
+                    GetEquipped = function()
+                        return ToolController.getHolsteredProducts()
+                    end,
+                },
+            })
+
+            maid:GiveTask(inventoryWindow)
+            inventoryWindow:Mount(parent)
+        end)
+
         -- Pets
         tabbedWindow:AddTab("Pets", Images.Icons.Pets)
         tabbedWindow:SetWindowConstructor("Pets", function(parent, maid)
@@ -109,9 +135,10 @@ function InventoryScreen.boot()
     -- Custom open tab depending on state
     if PetController.getTotalHatchableEggs() > 0 then
         tabbedWindow:OpenTab("Pets")
-    else
-        tabbedWindow:OpenTab("Vehicles")
+        return
     end
+
+    tabbedWindow:OpenTab("Tools")
 end
 
 function InventoryScreen.minimize()

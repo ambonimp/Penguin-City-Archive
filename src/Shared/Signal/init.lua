@@ -3,6 +3,7 @@ local Connection = require(script.Connection)
 -- Signal
 local Signal = {}
 export type Connection = typeof(Connection.new(function() end, {}))
+export type Signal = typeof(Signal.new())
 
 function Signal.new()
     local signal = {}
