@@ -10,6 +10,8 @@ HousingConstants.HouseSpawn = "HouseSpawn"
 
 HousingConstants.ModelId = "Id"
 
+HousingConstants.MaxColors = 7
+
 function HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
     local oldUpVec = oldCf.UpVector
     local oldRot = oldCf - oldCf.Position

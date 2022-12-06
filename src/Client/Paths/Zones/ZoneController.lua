@@ -243,7 +243,6 @@ end
 
 function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     Output.doDebug(ZoneConstants.DoDebug, "arrivedAtZone", zone.ZoneType, zone.ZoneId)
-
     -- Clean up old zone
     zoneMaid:Cleanup()
 

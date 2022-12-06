@@ -15,9 +15,12 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
+local ProductController = require(Paths.Client.ProductController)
 local PartUtil = require(Paths.Shared.Utils.PartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
@@ -67,6 +70,8 @@ local normal: Vector3
 local rotationY: number
 local color: { Color3? }
 local model: Model
+local uiColorSelected: { SetSelected: any? }
+local colorToWidget: {}
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -153,9 +158,9 @@ end
 
 -- Register UIStates
 do
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.FurniturePlacement, function(data)
+    local function enterState(data)
         model = data.Object
-        local heightOffset: Vector3 = Vector3.new(0, model:GetExtentsSize().Y / 2, 0)
+        local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0) * CFrame.new(0, 0.05, 0)
 
         local isNewObject = data.IsNewObject
 
@@ -174,7 +179,7 @@ do
         end
 
         local function applyCFrame()
-            local cf = calculateCf(CFrame.new(position) * CFrame.Angles(0, rotationY, 0), position)
+            local cf = calculateCf(CFrame.new(position) * CFrame.Angles(0, rotationY, 0), position) * heightOffset
             TweenUtil.tween(model.PrimaryPart, CFRAME_TWEEN_INFO, {
                 CFrame = cf,
             })
@@ -189,6 +194,7 @@ do
         -- Initialize info
         do
             if isNewObject then
+                normal = Vector3.new(0, 1, 0)
                 rotationY = 0
                 name = model.Name
                 if color == nil then
@@ -203,7 +209,7 @@ do
                     end
                 end
 
-                position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0) + heightOffset
+                position = character:GetPivot().Position - Vector3.new(0, character:GetExtentsSize().Y / 2, 0)
 
                 model:PivotTo(CFrame.new(position))
                 model.Parent = plot.Furniture
@@ -212,6 +218,8 @@ do
                 applyCFrame() -- Just for the selection box
 
                 placementSession:GiveTask(model)
+
+                selectionBox.Color3 = INVALID_PLACEMENT_COLOR
             else
                 local store = DataController.get("House.Furniture." .. model.Name)
                 if color == nil then
@@ -222,7 +230,7 @@ do
                 end
 
                 rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
-                position = model.PrimaryPart.Position
+                position = model.PrimaryPart.Position - heightOffset.Position
                 normal = DataUtil.deserializeValue(store.Normal, Vector3)
             end
         end
@@ -299,20 +307,18 @@ do
                 UserInputService.MouseIconEnabled = false
                 placementControls.Others.Visible = false
 
-                local ignore = { model, player.Character }
+                local ignore = { model, player.Character, plot:FindFirstChildOfClass("Model").NoPlace }
                 for _, otherFurniture: Model in pairs(plot.Furniture:GetChildren()) do
                     if otherFurniture:IsA("Model") then
                         table.insert(ignore, otherFurniture.PrimaryPart)
                     end
                 end
 
-                -- ty joel
-                local offset = position - (MouseUtil.getMouseTarget(ignore, true).Position + heightOffset)
                 RunService:BindToRenderStep("MoveObject", Enum.RenderPriority.First.Value, function()
                     local result = MouseUtil.getMouseTarget(ignore, true)
                     local target, newPosition = result.Instance, result.Position
                     if target and target:IsDescendantOf(plot) and newPosition then
-                        position = newPosition + heightOffset + offset
+                        position = newPosition
                         normal = result.Normal
                         applyCFrame()
                     end
@@ -335,7 +341,7 @@ do
                 if isNewObject then
                     local metadata = {
                         Name = name,
-                        Position = plotCFrame:PointToObjectSpace(position),
+                        Position = plotCFrame:PointToObjectSpace(model.PrimaryPart.Position),
                         Rotation = Vector3.new(0, rotationY, 0),
                         Color = color,
                         Normal = normal,
@@ -345,7 +351,7 @@ do
                     local name_ = DataController.get("House.Furniture." .. model.Name).Name
                     local metadata = {
                         Name = name_,
-                        Position = plotCFrame:PointToObjectSpace(position),
+                        Position = plotCFrame:PointToObjectSpace(model.PrimaryPart.Position),
                         Rotation = Vector3.new(0, rotationY, 0),
                         Color = color,
                         Normal = normal,
@@ -367,28 +373,59 @@ do
         end
 
         -- Cover Color
-        for i = 2, 7 do
+        --hide or show tabs depending on if the model has "Color"..i
+        for i = 2, HousingConstants.MaxColors do
             if model:FindFirstChild("Color" .. i) == nil then
-                if i > 5 then
+                if i > 5 then --TODO: make this dynamic in SelectionPanel element. If shown tabs is > 5 then 't show forwardarrow
                     colorPanel:HideForwardArrow()
                 end
                 colorPanel:HideTab("Color" .. i)
             else
-                if i > 5 then
+                if i > 5 then --TODO: make this dynamic in SelectionPanel element. If shown tabs is <= 5 then don't show forwardarrow
                     colorPanel:ShowForwardArrow()
                 end
                 colorPanel:ShowTab("Color" .. i)
             end
         end
 
+        local colorpicked = color[1]
+
+        if uiColorSelected then
+            uiColorSelected:SetSelected(false)
+        end
+
+        if colorToWidget[tostring(colorpicked)] then
+            uiColorSelected = colorToWidget[tostring(colorpicked)]
+            uiColorSelected:SetSelected(true)
+        end
+
         colorNameSelected = "Color1"
         colorNum = 1
         colorPanel:OpenTab(colorNameSelected)
         ScreenUtil.inLeft(colorPanel:GetContainer())
-    end, function()
+    end
+
+    local function closeState()
         placementSession:Cleanup()
         ScreenUtil.outLeft(colorPanel:GetContainer())
-    end)
+    end
+
+    local function minState()
+        ScreenUtil.outLeft(colorPanel:GetContainer())
+        placementControls.Enabled = false
+    end
+
+    local function openState()
+        ScreenUtil.inLeft(colorPanel:GetContainer())
+        placementControls.Enabled = true
+    end
+
+    UIController.registerStateScreenCallbacks(UIConstants.States.FurniturePlacement, {
+        Boot = enterState,
+        Shutdown = closeState,
+        Maximize = openState,
+        Minimize = minState,
+    })
 
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function(data)
         character = player.Character
@@ -396,7 +433,7 @@ do
         -- See if we can get plot
         local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
         local thisPlot = HousingController.getPlotFromOwner(zoneOwner, HousingConstants.InteriorType)
-
+        thisPlot:FindFirstChildOfClass("Model").NoPlace.Transparency = 0.5
         -- RETURN: There is nothing to edit off of
         plot = thisPlot
         if not plot then
@@ -442,6 +479,7 @@ do
         end)
     end, function()
         if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+            plot:FindFirstChildOfClass("Model").NoPlace.Transparency = 1
             plot = nil
             character = nil
             editingSession:Cleanup()
@@ -455,7 +493,7 @@ do
 
         colorPanel:SetAlignment("Left")
         colorPanel:SetSize(1)
-        for i = 1, 7 do
+        for i = 1, HousingConstants.MaxColors do
             colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
         end
 
@@ -465,27 +503,54 @@ do
         end)
         template.Parent = colorPanel:GetContainer()
         -- Initialize colors
-        for _, color_ in pairs(FurnitureConstants.Colors) do
-            local button = templates.PaintColor:Clone()
-            button.Name = tostring(color_)
-            button.ImageColor3 = color_
-            button.Parent = template.Colors
-            button:SetAttribute("ColorValue", color_)
-            button.ZIndex = 50
+        --TODO: Convert colors to products
 
-            local colorName = button.Name
-            local colorValue = color_
+        colorToWidget = {}
+
+        for colorName, colorData in pairs(FurnitureConstants.Colors) do
+            local product = ProductUtil.getHouseColorProduct(colorName, colorData.ImageColor)
+            local ColorWidget = Widget.diverseWidgetFromHouseColor(colorName, colorData.ImageColor)
+            local ui = ColorWidget:GetGuiObject()
+            ui.Name = colorName
+            ui.Parent = template.Colors
+            ui:SetAttribute("ColorValue", colorData.ImageColor)
+
+            colorToWidget[tostring(colorData.ImageColor)] = ColorWidget
+
+            local button = ui.imageButton
+            local colorValue = colorData.ImageColor
             button.MouseButton1Down:Connect(function()
-                colorNameSelected = colorPanel:GetOpenTabName()
-                colorNum = tonumber(string.sub(colorNameSelected, 6, 6))
-                if color ~= colorName then
-                    deselectPaintColor(color[1])
-                    color[colorNum] = colorValue
-                    selectPaintColor(colorValue)
-                    applyColor()
+                local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
+                if isOwned then
+                    colorNameSelected = colorPanel:GetOpenTabName()
+                    colorNum = tonumber(string.sub(colorNameSelected, 6, 6))
+                    if color ~= colorName then
+                        if uiColorSelected then
+                            uiColorSelected:SetSelected(false)
+                        end
+                        uiColorSelected = ColorWidget
+                        uiColorSelected:SetSelected(true)
+                        deselectPaintColor(color[1])
+                        color[colorNum] = colorValue
+                        selectPaintColor(colorValue)
+                        applyColor()
+                    end
                 end
             end)
         end
+
+        colorPanel.TabChanged:Connect(function(tabName: string)
+            local colorId = tonumber(string.sub(tabName, 6, 6))
+            local colorpicked = color[colorId]
+            if uiColorSelected then
+                uiColorSelected:SetSelected(false)
+            end
+
+            if colorToWidget[tostring(colorpicked)] then
+                uiColorSelected = colorToWidget[tostring(colorpicked)]
+                uiColorSelected:SetSelected(true)
+            end
+        end)
 
         ScreenUtil.outLeft(colorPanel:GetContainer())
     end

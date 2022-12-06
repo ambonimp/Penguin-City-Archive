@@ -93,7 +93,12 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
     local colors = metadata.Color
     local normal = metadata.Normal
 
-    local cf = houseCFrame * calculateCf(CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0), position, normal)
+    local cf = houseCFrame
+        * calculateCf(
+            CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0),
+            position,
+            normal
+        )
     object:PivotTo(cf)
     object.Parent = plot.Furniture
 

@@ -79,6 +79,7 @@ function SelectionPanel.new()
     -- Public Members
     -------------------------------------------------------------------------------
 
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel.ClosePressed = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
 
@@ -333,7 +334,7 @@ function SelectionPanel.new()
             warn(("No tab %q exits"):format(tabName))
             return
         end
-
+        selectionPanel.TabChanged:Fire(tabName)
         openTabName = tabName
         openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
 
@@ -390,7 +391,7 @@ function SelectionPanel.new()
     end
 
     function selectionPanel:HideTab(tabName: string)
-        if table.find(hiddenTabs, tabName) then
+        if table.find(hiddenTabs, tabName) then --already hidden
             return
         end
         table.insert(hiddenTabs, tabName)
@@ -399,7 +400,7 @@ function SelectionPanel.new()
     end
 
     function selectionPanel:ShowTab(tabName: string)
-        if table.find(hiddenTabs, tabName) then
+        if table.find(hiddenTabs, tabName) then --is hidden
             table.remove(hiddenTabs, table.find(hiddenTabs, tabName))
 
             draw()
@@ -443,6 +444,8 @@ function SelectionPanel.new()
                 return
             end
         end
+
+        selectionPanel:OpenTab()
     end
 
     function selectionPanel:AddWidgetConstructor(

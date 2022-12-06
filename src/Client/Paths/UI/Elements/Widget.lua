@@ -53,6 +53,8 @@ Widget.Defaults = {
     ImageColor = Color3.fromRGB(255, 255, 255),
 }
 
+local templates: Folder = Paths.Templates
+
 function Widget.addWidget()
     local widget = Widget.diverseWidget()
 
@@ -198,6 +200,28 @@ function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
     return widget
 end
 
+function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3)
+    local product = ProductUtil.getHouseColorProduct(colorName, color)
+    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = false })
+
+    local ui = widget:GetGuiObject()
+    ui.ZIndex = 50
+
+    widget:SetIconColor(color)
+
+    local selected = templates.Housing.ColorSelected:Clone()
+    selected.Parent = ui.imageButton.icon.iconImageLabel
+
+    ui.imageButton.icon.iconImageLabel.ZIndex += 1
+    selected.ZIndex = ui.imageButton.icon.iconImageLabel.ZIndex - 1
+
+    function widget:SetSelected(on: boolean)
+        selected.Visible = on or false
+    end
+
+    return widget
+end
+
 function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
     -- Circular Dependencies
     local PetController = require(Paths.Client.Pets.PetController)
@@ -334,6 +358,10 @@ function Widget.diverseWidget()
         viewportFrame.Visible = false
 
         iconImageLabel.Image = image or ""
+        iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
+    end
+
+    function widget:SetIconColor(imageColor: Color3?)
         iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
     end
 

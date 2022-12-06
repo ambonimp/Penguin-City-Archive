@@ -2,6 +2,7 @@ local HousingScreen = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Button = require(Paths.Client.UI.Elements.Button)
@@ -19,6 +20,7 @@ local DEFAULT_EDIT_CATEGORY = "Furniture"
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
+local localPlayer = Players.LocalPlayer
 local uiStateMachine = UIController.getStateMachine()
 
 local templates: Folder = Paths.Templates.Housing
@@ -102,6 +104,14 @@ do
     local exitButton = ExitButton.new()
     exitButton:Mount(editFrame.ExitButton, true)
     exitButton.Pressed:Connect(close)
+
+    ZoneController.ZoneChanged:Connect(function(old, new)
+        if tostring(old.ZoneId) == tostring(localPlayer.UserId) and tostring(new.ZoneId) ~= tostring(localPlayer.UserId) then --TODO: not sure where else to do this
+            if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
+                close()
+            end
+        end
+    end)
 end
 
 -- Categories

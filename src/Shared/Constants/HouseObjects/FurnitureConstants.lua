@@ -22,13 +22,21 @@ FurnitureConstants.Types = {
     Light = "Lighting",
 }
 FurnitureConstants.Colors = {
-    Orange = Color3.fromRGB(165, 55, 71),
-    DullPink = Color3.fromRGB(171, 63, 115),
-    Blue = Color3.fromRGB(16, 42, 220),
-    Yellow = Color3.fromRGB(226, 155, 64),
-    Green = Color3.fromRGB(58, 125, 21),
-    Teal = Color3.fromRGB(18, 238, 212),
-    DullBrown = Color3.fromRGB(99, 95, 98),
+    Red = { ImageColor = Color3.fromRGB(199, 10, 42), Price = 0 },
+    Purple = { ImageColor = Color3.fromRGB(123, 10, 199), Price = 0 },
+    Blue = { ImageColor = Color3.fromRGB(0, 153, 255), Price = 0 },
+    Yellow = { ImageColor = Color3.fromRGB(226, 188, 64), Price = 0 },
+    Orange = { ImageColor = Color3.fromRGB(211, 96, 30), Price = 0 },
+    Brown = { ImageColor = Color3.fromRGB(128, 65, 6), Price = 0 },
+    Green = { ImageColor = Color3.fromRGB(58, 125, 21), Price = 0 },
+    Black = { ImageColor = Color3.fromRGB(20, 20, 20), Price = 0 },
+    White = { ImageColor = Color3.fromRGB(231, 231, 231), Price = 0 },
+    Teal = { ImageColor = Color3.fromRGB(18, 238, 212), Price = 15 },
+    LimeGreen = { ImageColor = Color3.fromRGB(73, 206, 2), Price = 15 },
+    Gray = { ImageColor = Color3.fromRGB(127, 127, 127), Price = 15 },
+    Pink = { ImageColor = Color3.fromRGB(255, 119, 226), Price = 15 },
+    HotRed = { ImageColor = Color3.fromRGB(255, 0, 0), Price = 15 },
+    DarkBlue = { ImageColor = Color3.fromRGB(16, 42, 220), Price = 15 },
 }
 
 local objects: { [string]: Object } = {}

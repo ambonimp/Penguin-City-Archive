@@ -7,6 +7,7 @@ ProductConstants.ProductType = {
     Coin = "Coin",
     CharacterItem = "CharacterItem",
     HouseObject = "HouseObject",
+    HouseColor = "HouseColor",
     StampBook = "StampBook",
     Vehicle = "Vehicle",
     PetEgg = "PetEgg",
