@@ -16,6 +16,8 @@ local PropertyStack = require(Paths.Shared.PropertyStack)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local Nametag = require(Paths.Shared.Nametag)
 local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 Players.CharacterAutoLoads = false
 
@@ -42,6 +44,12 @@ function CharacterService.loadPlayer(player: Player)
     local character = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
     character.Name = player.Name
     player.Character = character
+
+    -- Position
+    local spawnpoint = ZoneUtil.getZoneInstances(ZoneUtil.defaultZone()).Spawnpoint
+    CharacterUtil.standOn(character, spawnpoint, true)
+
+    -- Parent
     character.Parent = Workspace
 
     -- Apply saved appearance
