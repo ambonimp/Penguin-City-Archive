@@ -232,7 +232,7 @@ function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScor
     end
 
     standingsFrame.Logo.Image = getLogo()
-    standingsFrame.Placement.Text = "You placed " .. MinigameController.getOwnPlacement(scores)
+    standingsFrame.Placement.Text = "You placed #" .. MinigameController.getOwnPlacement(scores)
 
     ScreenUtil.inUp(standingsFrame, true)
     standingsClose.InternalRelease:Wait()
