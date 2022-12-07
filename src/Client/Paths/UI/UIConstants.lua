@@ -36,6 +36,8 @@ UIConstants.PseudoStates = {
     },
 }
 
+UIConstants.InteractionPermissiveStates = { [UIConstants.States.HUD] = true }
+
 -- If any states in here are on the top of the stack, the next visible state below will *also* be treated as being on top of the stack
 UIConstants.InvisibleStates = { UIConstants.States.StampInfo }
 

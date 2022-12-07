@@ -13,6 +13,9 @@ local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 local RadialMenu = require(Paths.Client.UI.Elements.RadialMenu)
 local Button = require(Paths.Client.UI.Elements.Button)
 local InputConstants = require(Paths.Client.Input.InputConstants)
+local Toggle = require(Paths.Shared.Toggle)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local MAX_PROMPTS_VISIBLE = 5
 local GAMEPAD_KEY_CODE = Enum.KeyCode.ButtonX
@@ -41,6 +44,13 @@ screenGui.Parent = player.PlayerGui
 
 local interactions: { [string]: { Handler: InteractionHandler, Label: string? } } = {}
 local activePrompts: { [ProximityPrompt]: BillboardGui } = {}
+
+local lastActive = os.clock()
+local active = Toggle.new(false, function(value)
+    if not value then
+        lastActive = os.clock()
+    end
+end)
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
@@ -120,6 +130,8 @@ local function onPromptTriggered(proximityPrompt: ProximityPrompt)
             radialMenu:Close():await()
             radialMenu:Destroy()
             menuBillboard:Destroy()
+
+            active:Set(false, "Menu")
         end
 
         local longestInteraction = ""
@@ -171,6 +183,7 @@ local function onPromptTriggered(proximityPrompt: ProximityPrompt)
 
         container.MouseButton1Down:Connect(close)
 
+        maid:GiveTask(ProximityPromptService:GetPropertyChangedSignal("Enabled"):Connect(close))
         maid:GiveTask(InteractionController.InternalPromptTriggered:Connect(function()
             close()
         end))
@@ -185,6 +198,7 @@ local function onPromptTriggered(proximityPrompt: ProximityPrompt)
             end))
         end
 
+        active:Set(true, "Menu")
         proximityPrompt.Enabled = false
         radialMenu:Mount(container)
         radialMenu:Open()
@@ -194,6 +208,16 @@ end
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
+-- Is the mouse hovering over a prompt or is a menu open
+function InteractionController.isActive(): (boolean, number)
+    return active:Get(), lastActive
+end
+
+-- Are prompts being shown
+function InteractionController.isEnabled(): boolean
+    return ProximityPromptService.Enabled
+end
+
 function InteractionController.registerInteraction(interaction: string, handler: InteractionHandler, label: string?)
     -- ERROR: Interaction has already been registered
     if interactions[interaction] then
@@ -235,11 +259,40 @@ function InteractionController.detachAllInteractions(instance: PVInstance)
     end
 end
 
+function InteractionController.getAllPromptsOfType(interaction: string): { ProximityPrompt }
+    -- ERROR: Interaction hasn't been registered
+    if not interactions[interaction] then
+        error(("Attempt to get proximity prompts of an unregistered interaction"):format(interaction))
+    end
+
+    local proximityPrompts = {}
+
+    for _, instance in pairs(CollectionService:GetTagged(interaction)) do
+        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+    end
+
+    return proximityPrompts
+end
+
+-------------------------------------------------------------------------------
+-- INITIALIZATION
+-------------------------------------------------------------------------------
 function InteractionController.Init()
     -- Require handlers
     for _, moduleScript in ipairs(Paths.Client.Interactions.Handlers:GetDescendants()) do
         require(moduleScript)
     end
+
+    -- Disable interactions for certain ui states
+    local PlayerMenuController = require(Paths.Client.PlayerMenuController)
+    UIController.getStateMachine():RegisterGlobalCallback(function(_, toState)
+        if UIConstants.InteractionPermissiveStates[toState] then
+            ProximityPromptService.Enabled = true
+            PlayerMenuController.close()
+        else
+            ProximityPromptService.Enabled = false
+        end
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -261,7 +314,11 @@ ProximityPromptService.PromptShown:Connect(function(proximityPrompt)
 
     local promptButton: ImageButton = promptBillboard.Button
     local label: TextLabel = promptButton.Label
-    label.Text = (if #attachedInteractions == 1 then interactions[attachedInteractions[1]].Label else nil) or ""
+    label.Text = (
+        if #attachedInteractions == 1
+            then (instance:GetAttribute("InteractionLabel") or interactions[attachedInteractions[1]].Label or "")
+            else nil
+    ) or ""
     label.Visible = false
 
     promptButton.MouseButton1Down:Connect(function()
@@ -269,10 +326,12 @@ ProximityPromptService.PromptShown:Connect(function(proximityPrompt)
     end)
 
     promptButton.MouseEnter:Connect(function()
+        active:Set(true, proximityPrompt)
         label.Visible = true
     end)
 
     promptButton.MouseLeave:Connect(function()
+        active:Set(false, proximityPrompt)
         label.Visible = false
     end)
 
@@ -283,6 +342,8 @@ ProximityPromptService.PromptHidden:Connect(function(proximityPrompt)
     activePrompts[proximityPrompt]:Destroy()
     activePrompts[proximityPrompt] = nil
     shownProximityPrompts[proximityPrompt] = nil
+
+    active:RemoveJob(proximityPrompt)
 end)
 
 ProximityPromptService.PromptTriggered:Connect(function(proximityPrompt)
