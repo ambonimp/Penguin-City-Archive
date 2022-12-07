@@ -49,7 +49,7 @@ function MinigameSession.new(
     local playerSpawnRandomizer: number = 0
 
     local participants: Participants = {}
-    local scores: { [Player]: number }?
+    local scores: { [Player]: number? }?
     local scoreRange = { Min = 0, Max = math.huge }
 
     local config: MinigameConstants.SessionConfig =
@@ -191,6 +191,10 @@ function MinigameSession.new(
         local stillInGame: boolean = player.Character ~= nil
         table.remove(participants, table.find(participants, player))
 
+        if scores then
+            scores[player] = nil
+        end
+
         -- Player didn't leave the game
         if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
@@ -210,7 +214,7 @@ function MinigameSession.new(
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
                 if state == STATES.Core or state == STATES.CoreCountdown then
-                    minigameSession:ChangeState(STATES.Intermission) -- This will then go to WaitingForPlayers
+                    minigameSession:ChangeState(STATES.AwardShow) -- This will then go to WaitingForPlayers
                 end
             end
         end

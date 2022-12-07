@@ -72,8 +72,6 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             local queueJoining
             local potentialQueues = activeQueues[minigame]
 
-            print(player, potentialQueues)
-
             if queueStation then
                 for _, queue in pairs(potentialQueues) do
                     if queue:GetStation() == queueStation then
