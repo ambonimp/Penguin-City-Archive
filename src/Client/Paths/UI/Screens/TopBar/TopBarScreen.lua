@@ -43,10 +43,10 @@ function TopBarScreen.displayCoinsDiff(addCoins: number)
     TweenUtil.tween(coinsLabel, COINS_DIFF_TWEEN_INFO_POSITION, { Position = goalPosition })
 
     -- Transparency
-    InstanceUtil.fadeIn(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
+    InstanceUtil.show(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
 
     task.delay(COINS_DIFF_TWEEN_INFO_POSITION.Time - COINS_DIFF_TWEEN_INFO_TRANSPARENCY.Time * 2, function()
-        InstanceUtil.fadeOut(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
+        InstanceUtil.hide(fadeInstances, COINS_DIFF_TWEEN_INFO_TRANSPARENCY)
     end)
 
     -- Cleanup

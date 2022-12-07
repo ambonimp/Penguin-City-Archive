@@ -21,9 +21,9 @@ function InventoryProductWindow.new(
         AddCallback: (() -> nil)?,
         ShowTotals: boolean?,
         Equipping: {
-            Equip: (product: Products.Product) -> nil,
-            Unequip: (product: Products.Product) -> nil,
-            StartEquipped: Products.Product?,
+            Equip: (value: any) -> nil,
+            Unequip: ((value: any) -> nil),
+            GetEquipped: () -> { any },
         }?,
     }
 )
@@ -53,9 +53,10 @@ function InventoryProductWindow.new(
 
     -- Sorts products based on ownership
     local function sortProducts()
+        local equippedProducts = data.Equipping and data.Equipping.GetEquipped()
         table.sort(products, function(product0: Products.Product, product1: Products.Product)
-            local equipped0 = data.Equipping and data.Equipping.StartEquipped == product0
-            local equipped1 = data.Equipping and data.Equipping.StartEquipped == product1
+            local equipped0 = equippedProducts and table.find(equippedProducts, product0) and true or false
+            local equipped1 = equippedProducts and table.find(equippedProducts, product1) and true or false
 
             if equipped0 ~= equipped1 then
                 return equipped0

@@ -7,7 +7,6 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Signal = require(Paths.Shared.Signal)
 local PlayerService = require(Paths.Server.PlayerService)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
-local CharacterService = require(Paths.Server.Characters.CharacterService)
 local Remotes = require(Paths.Shared.Remotes)
 local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
@@ -171,9 +170,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         return nil
     end
 
+    -- WARN: No player zone state!
+    local playerZoneState = ZoneService.getPlayerZoneState(player)
+    if not playerZoneState then
+        warn(("No player zone state for %q"):format(player.Name))
+        return
+    end
+
     -- Update State
     local oldZone = ZoneService.getPlayerZone(player)
-    local playerZoneState = ZoneService.getPlayerZoneState(player)
     if zone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
         playerZoneState.RoomZone = zone
         playerZoneState.MinigameZone = nil
@@ -203,7 +208,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 
             -- Teleport
-            CharacterService.standOn(player.Character, spawnpoint, true)
+            CharacterUtil.standOn(player.Character, spawnpoint, true)
             ZoneService.PlayerTeleported:Fire(player, oldZone, zone)
 
             -- Wait to re-enable collisions (while we're still on the same request!)

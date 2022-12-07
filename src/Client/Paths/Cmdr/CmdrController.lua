@@ -10,10 +10,16 @@ local Permissions = require(Paths.Shared.Permissions)
 local GameUtil = require(Paths.Shared.Utils.GameUtil)
 local CmdrClient = require(ReplicatedStorage:WaitForChild("CmdrClient"))
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local CLIENT_SUFFIX = "Client"
 local ACTIVATION_KEYS = { Enum.KeyCode.Semicolon, Enum.KeyCode.ButtonY }
 local ACTION_NAME = "CMDR"
+local MOBILE_BUTTON_PROPERTIES = {
+    AnchorPoint = Vector2.new(1, 1),
+    Position = UDim2.new(0.55, 0, 0.5, 0),
+    Size = UDim2.new(0.25, 0, 0.25, 0),
+}
 
 local commandNameToInvokeCallback: { [string]: (...any) -> nil } = {}
 
@@ -59,14 +65,13 @@ do
                 CmdrClient:Show()
             end, true)
             ContextActionService:SetTitle(ACTION_NAME, "Cmdr")
-            local button = ContextActionService:GetButton(ACTION_NAME) ---@type ImageButton
+
+            local mobileButton = ContextActionService:GetButton(ACTION_NAME)
+            InstanceUtil.setProperties(mobileButton, MOBILE_BUTTON_PROPERTIES)
 
             -- Configure appearance
-            local uiAspectRatio = Instance.new("UIAspectRatioConstraint") -- Make the button square
-            uiAspectRatio.Parent = button
-            button.AnchorPoint = Vector2.new(1, 1) -- Reposition
-            button.Position = UDim2.new(0.98, 0, 0.5, 0) -- Reposition
-            button.Size = UDim2.new(0.25, 0, 0.25, 0) -- Resize
+            local uiAspectRatio = Instance.new("UIAspectRatioConstraint") -- Make the button circular
+            uiAspectRatio.Parent = mobileButton
         end
     else
         CmdrClient:SetEnabled(false)

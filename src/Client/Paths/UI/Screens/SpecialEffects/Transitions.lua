@@ -3,8 +3,8 @@ local Transitions = {}
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CameraController = require(Paths.Client.CameraController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local CameraController = require(Paths.Client.CameraController)
 
 export type BlinkOptions = {
     TweenInfo: TweenInfo?,

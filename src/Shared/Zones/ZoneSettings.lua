@@ -12,11 +12,11 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
             Ambience = { "WindAndBirds" },
             IsWindy = true,
         },
-        SchoolZone = {
-            Music = "SchoolZone",
+        School = {
+            Music = "School",
         },
-        Stadium = {
-            Music = "Stadium",
+        HockeyStadium = {
+            Music = "HockeyStadium",
         },
         ClothingStore = {
             Music = "ClothingStore",

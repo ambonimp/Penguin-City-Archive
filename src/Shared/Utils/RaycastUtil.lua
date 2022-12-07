@@ -14,7 +14,7 @@ local internalRaycastParams = RaycastParams.new()
 local Defaults = {
     CollisionGroup = "Default",
     FilterDescendantsInstances = {},
-    FilterType = Enum.RaycastFilterType.Whitelist,
+    FilterType = Enum.RaycastFilterType.Blacklist,
     IgnoreWater = false,
 }
 
@@ -25,7 +25,8 @@ function RaycastUtil.raycastMouse(
         FilterType: Enum.RaycastFilterType?,
         IgnoreWater: boolean?,
     }?,
-    length: number?
+    length: number?,
+    check: ((instance: BasePart) -> boolean)?
 ): RaycastResult | nil
     -- RETURN: Client method
     if not RunService:IsClient() then
@@ -35,7 +36,7 @@ function RaycastUtil.raycastMouse(
     local mouseLocation = UserInputService:GetMouseLocation()
     local ray = game.Workspace.CurrentCamera:ViewportPointToRay(mouseLocation.X, mouseLocation.Y)
 
-    return RaycastUtil.raycast(ray.Origin, ray.Direction, raycastParams, length)
+    return RaycastUtil.raycast(ray.Origin, ray.Direction, raycastParams, length, check)
 end
 
 --[[
@@ -54,7 +55,7 @@ function RaycastUtil.raycast(
         IgnoreWater: boolean?,
     }?,
     length: number?,
-    check: ((instance: Instance) -> boolean)?
+    check: ((instance: BasePart) -> boolean)?
 ): RaycastResult | nil
     raycastParams = raycastParams or {}
 

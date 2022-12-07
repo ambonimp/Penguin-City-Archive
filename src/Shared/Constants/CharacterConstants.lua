@@ -17,6 +17,10 @@ CharacterConstants.Animations = {
     Point = { { Id = "rbxassetid://11713380446", Weight = 11 } },
     Wave = { { Id = "rbxassetid://11713385442", Weight = 11 } },
     Cheer = { { Id = "rbxassetid://11713393646", Weight = 11 }, { Id = "rbxassetid://11713414336", Weight = 11 } },
+    -- Tools
+    HoldGenericTool = { { Id = "rbxassetid://11762343672", Weight = 14 } },
+    UseGenericTool = { { Id = "rbxassetid://11713443688", Weight = 15 } },
+    UseSnowballTool = { { Id = "rbxassetid://11713444981", Weight = 15 } },
 }
 
 return CharacterConstants

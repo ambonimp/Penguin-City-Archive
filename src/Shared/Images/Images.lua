@@ -226,6 +226,7 @@ Images.Rewards = {
     DailyRewards = "rbxassetid://11374896618",
     Paycheck = "rbxassetid://11374896889",
 }
+--#endregion
 --#region Stamps
 Images.Stamps = {
     Types = {
@@ -306,8 +307,6 @@ Images.Stamps = {
     },
 }
 --#endregion
-
---#endregion
 --#region Pets
 Images.Pets = {
     Eggs = {
@@ -321,6 +320,22 @@ Images.Pets = {
     Lightburst = "rbxassetid://11563573407",
 }
 --#endregion
+--#region
+Images.Map = {
+    Map = "rbxassetid://11755898708",
+    Background = "rbxassetid://11755898791",
+    Pin = "rbxassetid://11755918608",
+    ZoneLabel = "rbxassetid://11755918655",
+    Zones = {
+        Town = "rbxassetid://11755898846",
+        SkiHill = "rbxassetid://11755898918",
+        School = "rbxassetid://11755899073",
+        Neighborhood = "rbxassetid://11755899184",
+        Boardwalk = "rbxassetid://11755899257",
+    },
+}
+--#endregion
+
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
 return Images

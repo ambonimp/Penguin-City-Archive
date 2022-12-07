@@ -8,8 +8,8 @@ local InputConstants = require(Paths.Client.Input.InputConstants)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 
 -- Generic Events that are compatible across PC/Mobile/XBox
-InputController.CursorDown = Signal.new()
-InputController.CursorUp = Signal.new()
+InputController.CursorDown = Signal.new() -- { gameProcessedEvent: boolean }
+InputController.CursorUp = Signal.new() -- { gameProcessedEvent: boolean }
 
 -- Listen to Input
 do
