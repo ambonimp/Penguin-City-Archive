@@ -114,6 +114,7 @@ function InventoryWindow.new(
     local equipping = data.Equipping
 
     local totalWidgetsPerPage = GRID_SIZE.X * GRID_SIZE.Y - (addCallback and 1 or 0) -- -1 for add widget
+    local widgetsByEquipValue: { [any]: Widget.DiverseWidget } = {}
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -131,6 +132,21 @@ function InventoryWindow.new(
         return holder
     end
 
+    -- Updates widgets to show their equipped/non-equipped status
+    local function drawEquippedStatus()
+        -- RETURN: No equipping!
+        if not equipping then
+            return
+        end
+
+        local equippedValues = equipping.GetEquipped()
+        for equipValue, widget in pairs(widgetsByEquipValue) do
+            local isEquipped = table.find(equippedValues, equipValue)
+            widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+        end
+    end
+
+    -- Redraws the whole window
     local function draw()
         drawMaid:Cleanup()
 
@@ -159,6 +175,8 @@ function InventoryWindow.new(
         end
 
         -- Widgets
+        widgetsByEquipValue = {}
+
         local equippedValues = equipping and equipping.GetEquipped()
         local usedEquippedValues = {}
         for i, entry in pairs(visibleEntries) do
@@ -185,13 +203,16 @@ function InventoryWindow.new(
                 end
 
                 if isEquipped then
-                    widget:SetOutline(EQUIPPED_COLOR)
                     holder.LayoutOrder = 0 -- Near the top
                 end
+
+                widgetsByEquipValue[entry.EquipValue] = widget
             end
 
             drawMaid:GiveTask(widget)
         end
+
+        drawEquippedStatus()
 
         if equipping and #usedEquippedValues ~= equippedValues then
             local unusedEquippedValues = {}
@@ -285,7 +306,7 @@ function InventoryWindow.new(
             equipping.Equip(equipValue)
         end
 
-        draw()
+        drawEquippedStatus()
     end
 
     function inventoryWindow:GetWindowFrame()
