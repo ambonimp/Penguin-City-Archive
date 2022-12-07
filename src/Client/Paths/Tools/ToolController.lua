@@ -37,6 +37,7 @@ local equipMaid = Maid.new()
 local holsteredTools: { ToolUtil.Tool } = {}
 local equippedTool: ToolUtil.Tool | nil
 local equippedToolModel: Model | nil
+local unequipCallback: (() -> any) | nil
 
 -------------------------------------------------------------------------------
 -- Tool Handlers
@@ -233,7 +234,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
 
     local toolClientHandler = getToolClientHandler(tool)
     local equipped = toolClientHandler and toolClientHandler.equipped or getDefaultToolClientHandler().equipped
-    equipped(tool, modelSignal, equipMaid)
+    unequipCallback = equipped(tool, modelSignal, equipMaid)
 
     -- Request Server
     local assume = Assume.new(function()
@@ -265,11 +266,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
         end
     end)
     assume:Else(function()
-        -- Destroy Local version
-        if equippedToolModel then
-            equippedToolModel:Destroy()
-            equippedToolModel = nil
-        end
+        ToolController.unequip(tool)
     end)
 end
 
@@ -286,6 +283,11 @@ function ToolController.unequip(tool: ToolUtil.Tool | nil)
     if equippedToolModel then
         equippedToolModel:Destroy()
         equippedToolModel = nil
+    end
+
+    if unequipCallback then
+        unequipCallback()
+        unequipCallback = nil
     end
 
     -- Inform Client

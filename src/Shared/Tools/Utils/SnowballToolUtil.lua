@@ -29,9 +29,11 @@ function SnowballToolUtil.highlight(snowballModel: Model)
 end
 
 function SnowballToolUtil.landingParticle(snowballModel: Model)
-    local particle = Particles.play("SnowballLanding", snowballModel.PrimaryPart)
-    particle.Color = ColorSequence.new(snowballModel.PrimaryPart.Color)
-    return particle
+    local particles = Particles.play("SnowballLanding", snowballModel.PrimaryPart)
+    for _, particle in pairs(particles) do
+        particle.Color = ColorSequence.new(snowballModel.PrimaryPart.Color)
+    end
+    return particles
 end
 
 return SnowballToolUtil

@@ -15,7 +15,7 @@ function Effects.getCharacterAdornee(player: Player): Part
 end
 
 function Effects.coins(adornee: Instance, duration: number?)
-    local particle = Particles.play("Coins", adornee)
+    local particles = Particles.play("Coins", adornee)
     local sound = Sound.play("Coins", true, adornee)
 
     local isCleaning = false
@@ -25,7 +25,7 @@ function Effects.coins(adornee: Instance, duration: number?)
         end
         isCleaning = true
 
-        Particles.remove(particle)
+        Particles.remove(particles)
         Sound.fadeOut(sound)
     end
 

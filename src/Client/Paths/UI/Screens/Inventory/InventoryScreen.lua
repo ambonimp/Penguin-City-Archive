@@ -120,7 +120,6 @@ function InventoryScreen.Init()
     end
 
     -- Register UIState
-
     UIController.registerStateScreenCallbacks(UIConstants.States.Inventory, {
         Boot = InventoryScreen.boot,
         Shutdown = nil,

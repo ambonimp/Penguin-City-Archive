@@ -1,6 +1,8 @@
 local SnowballToolClientHandler = {}
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Signal = require(Paths.Shared.Signal)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
@@ -24,7 +26,7 @@ local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local Particles = require(Paths.Shared.Particles)
 local Sound = require(Paths.Shared.Sound)
 
-local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
+local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.UseSnowballTool[1].Id })
 local ANIMATION_THROW_EVENTS = {
     PickupSnowball = 9 / 30,
     ReleaseSnowball = 28 / 30,
@@ -37,9 +39,12 @@ local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
 local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
 local MAX_SNOWBALL_MODELS = 40
 local PLAY_LANDING_PARTICLE_FOR = 0.1
+local CROSSHAIR_EPSILON = 0.2
 
 local isThrowingSnowball = false
 local snowballModels: { Model } = {}
+local lastCrosshairPosition: Vector3?
+local currentCrosshairModel: Model?
 
 -------------------------------------------------------------------------------
 -- Snowball Logic
@@ -123,12 +128,8 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
                 end)
 
                 -- Play landing animation
-                local particle = SnowballToolUtil.landingParticle(ourSnowballModel)
-                task.delay(PLAY_LANDING_PARTICLE_FOR, function()
-                    particle.Enabled = false
-                    task.wait(particle.Lifetime.Max)
-                    particle:Destroy()
-                end)
+                local particles = SnowballToolUtil.landingParticle(ourSnowballModel)
+                task.delay(PLAY_LANDING_PARTICLE_FOR, Particles.remove, particles)
             end
         end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))
     end
@@ -172,6 +173,11 @@ local function mouseRaycastCheck(instance: BasePart)
         return false
     end
 
+    -- FALSE: Is our crosshair!
+    if currentCrosshairModel and instance:IsDescendantOf(currentCrosshairModel) then
+        return false
+    end
+
     return true
 end
 
@@ -189,6 +195,39 @@ function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: S
             SnowballToolUtil.matchSnowball(snowballModel, oldLocalSnowballModel)
         end
     end))
+
+    -- Crosshair
+    local crosshairModel: Model = ReplicatedStorage.Assets.Misc.Crosshair:Clone()
+    crosshairModel.Parent = game.Workspace
+
+    currentCrosshairModel = crosshairModel
+
+    local stepped = RunService.RenderStepped:Connect(function()
+        -- RETURN: Hide crosshair (bad raycast)
+        local mouseRaycastResult = RaycastUtil.raycastMouse(nil, MOUSE_RAYCAST_DISTANCE, mouseRaycastCheck)
+        if not mouseRaycastResult then
+            crosshairModel.Crosshair.Transparency = 1
+            return
+        end
+
+        -- Show
+        crosshairModel.Crosshair.Transparency = 0
+
+        -- Update Position
+        if not lastCrosshairPosition or (lastCrosshairPosition - mouseRaycastResult.Position).Magnitude > CROSSHAIR_EPSILON then
+            lastCrosshairPosition = mouseRaycastResult.Position
+            crosshairModel:PivotTo(CFrame.new(mouseRaycastResult.Position, mouseRaycastResult.Position + mouseRaycastResult.Normal))
+        end
+    end)
+
+    return function()
+        crosshairModel:Destroy()
+        stepped:Disconnect()
+
+        if currentCrosshairModel == crosshairModel then
+            currentCrosshairModel = nil
+        end
+    end
 end
 
 function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGetter: () -> Model?)

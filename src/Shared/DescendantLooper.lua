@@ -23,22 +23,26 @@ local function getInstanceCheckerCallbackPairs(instance: Instance, maid: typeof(
         end)
 
         local count = 0
-        maid:GiveTask(instance.DescendantAdded:Connect(function(descendant)
+        local descendantAddedConnection = instance.DescendantAdded:Connect(function(descendant)
             -- Throttle
             if count % THROTTLE_EVERY == 0 then
                 task.wait()
             end
             count += 1
 
-            for checker, callback in pairs(instanceCheckerCallbackPairs[instance]) do
-                if checker(descendant) then
-                    task.spawn(callback, descendant)
+            if instanceCheckerCallbackPairs[instance] then
+                for checker, callback in pairs(instanceCheckerCallbackPairs[instance]) do
+                    if checker(descendant) then
+                        task.spawn(callback, descendant)
+                    end
                 end
             end
-        end))
+        end)
+        maid:GiveTask(descendantAddedConnection)
 
         -- Cleanup cache
         InstanceUtil.onDestroyed(instance, function()
+            descendantAddedConnection:Disconnect()
             instanceCheckerCallbackPairs[instance] = nil
         end)
     end

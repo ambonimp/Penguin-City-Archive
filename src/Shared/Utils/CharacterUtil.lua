@@ -17,6 +17,7 @@ local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
 local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
+local BodyTypeConstants = require(Shared.Constants.CharacterItems.BodyTypeConstants)
 
 export type CharacterAppearance = {
     BodyType: string,
@@ -252,7 +253,9 @@ function CharacterUtil.applyAppearance(
     local bodyType = appearance.BodyType
     if bodyType then
         bodyType = bodyType[1]
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.Items[bodyType].Height
+
+        local height = BodyTypeConstants.Items[bodyType] and BodyTypeConstants.Items[bodyType].Height or BodyTypeConstants.Items.Teen.Height
+        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + height
     end
 
     local furColor = appearance.FurColor

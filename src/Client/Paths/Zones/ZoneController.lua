@@ -1,5 +1,6 @@
 local ZoneController = {}
 
+local ContentProvider = game:GetService("ContentProvider")
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -19,6 +20,7 @@ local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
+local Loader = require(Paths.Client.Loader)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -398,5 +400,10 @@ do
         end,
     })
 end
+
+-- Load Default Zone
+Loader.giveTask("Zones", "DefaultZone", function()
+    ContentProvider:PreloadAsync({ ZoneUtil.getZoneModel(ZoneUtil.defaultZone()) })
+end)
 
 return ZoneController
