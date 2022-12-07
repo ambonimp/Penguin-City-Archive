@@ -4,6 +4,7 @@
 local Widget = {}
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
@@ -200,6 +201,18 @@ function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
     return widget
 end
 
+function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string)
+    local product = ProductUtil.getHouseObjectProduct(category, objectKey)
+    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = true })
+    local assets = ReplicatedStorage.Assets.Housing
+    local model = assets.Furniture[objectKey]:Clone()
+
+    widget:GetGuiObject().Size = UDim2.new(0, 250, 1, 0)
+    widget:SetViewport(model)
+
+    return widget
+end
+
 function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3)
     local product = ProductUtil.getHouseColorProduct(colorName, color)
     local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = false })
@@ -359,6 +372,18 @@ function Widget.diverseWidget()
 
         iconImageLabel.Image = image or ""
         iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
+    end
+
+    function widget:DisableIcon()
+        textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+        textLabel.Position = UDim2.fromScale(0.5, 0.5)
+        iconImageLabel.Visible = false
+    end
+
+    function widget:EnableIcon()
+        iconImageLabel.Visible = true
+        textLabel.AnchorPoint = Vector2.new(0.5, 1)
+        textLabel.Position = UDim2.fromScale(0.5, 1)
     end
 
     function widget:SetIconColor(imageColor: Color3?)

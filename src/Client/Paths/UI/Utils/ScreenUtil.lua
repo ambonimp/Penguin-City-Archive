@@ -1,7 +1,3 @@
---[[
-    Utility that handles animating frames in and off of screens
-]]
-
 local ScreenUtil = {}
 
 local Lighting = game:GetService("Lighting")
@@ -122,7 +118,7 @@ end
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
 function ScreenUtil.inRight(frame: GuiObject, cosmetics: boolean?)
-    inn(UDim2.fromScale(1, 0), frame, cosmetics)
+    inn(UDim2.fromScale(-1, 0), frame, cosmetics)
 end
 
 function ScreenUtil.outRight(frame: GuiObject, cosmetics: boolean?)
@@ -133,7 +129,7 @@ end
     Tweens a frame into view from the left side of the screen to it's initial position
 ]]
 function ScreenUtil.inLeft(frame: GuiObject, cosmetics: boolean?)
-    inn(UDim2.fromScale(-1, 0), frame, cosmetics)
+    inn(UDim2.fromScale(1, 0), frame, cosmetics)
 end
 function ScreenUtil.outLeft(frame: GuiObject, cosmetics: boolean?)
     outt(UDim2.fromScale(-1, 0), frame, cosmetics)

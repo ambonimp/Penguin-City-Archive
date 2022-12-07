@@ -27,9 +27,6 @@ local templates: Folder = Paths.Templates.Housing
 local assets: Folder = Paths.Assets.Housing
 
 local screenGui: ScreenGui = Paths.UI.Housing
-local editFrame: Frame = screenGui.Edit
-local editCategoryTabs: Frame = editFrame.Tabs
-local editCategoryPages: Frame = editFrame.Center
 
 local editToggleContainer: Frame = screenGui.EditToggle
 local editToggleButton: typeof(KeyboardButton.new())
@@ -39,7 +36,7 @@ local interiorPlot: Model?
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
 local function defaultCategoryPage(categoryName: string, models: Folder, pressCallback: () -> ()?)
-    local page: ScrollingFrame = editCategoryPages[categoryName]
+    --[[ local page: ScrollingFrame = editCategoryPages[categoryName]
 
     for objectName, objectInfo in pairs(HouseObjects[categoryName].Objects) do
         local objectButtonObject: ImageButton = templates.Object:Clone()
@@ -57,7 +54,7 @@ local function defaultCategoryPage(categoryName: string, models: Folder, pressCa
             end
         end)
         objectButton:Mount(page)
-    end
+    end]]
 end
 
 -----------------------------------------------------------------------
@@ -67,10 +64,7 @@ end
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function()
         ScreenUtil.inDown(editToggleContainer)
-
-        ScreenUtil.inUp(editFrame)
     end, function()
-        ScreenUtil.outDown(editFrame)
         ScreenUtil.outUp(editToggleContainer)
     end)
 end
@@ -101,10 +95,6 @@ do
         end
     end)
 
-    local exitButton = ExitButton.new()
-    exitButton:Mount(editFrame.ExitButton, true)
-    exitButton.Pressed:Connect(close)
-
     ZoneController.ZoneChanged:Connect(function(old, new)
         if tostring(old.ZoneId) == tostring(localPlayer.UserId) and tostring(new.ZoneId) ~= tostring(localPlayer.UserId) then --TODO: not sure where else to do this
             if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
@@ -114,63 +104,6 @@ do
     end)
 end
 
--- Categories
-do
-    local currentCategory: string?
-    local selectedBackground: Frame = editCategoryTabs.SelectedTab
-
-    local function openCategory(newCategory: string)
-        -- RETURN: Category is already active
-        if newCategory == currentCategory then
-            return
-        end
-
-        if currentCategory then
-            editCategoryTabs[currentCategory].Visible = true
-            editCategoryPages[currentCategory].Visible = false
-        end
-
-        currentCategory = newCategory
-
-        local tabButton = editCategoryTabs[newCategory]
-        tabButton.Visible = false
-        selectedBackground.Icon.Image = tabButton.Icon.Image
-        selectedBackground.LayoutOrder = tabButton.LayoutOrder
-
-        editCategoryPages[newCategory].Visible = true
-    end
-
-    for categoryName, categoryConstants in pairs(HouseObjects) do
-        -- Tab
-        local tabButtonObject: TextButton = templates.EditCategoryTab:Clone()
-        tabButtonObject.Icon.Image = categoryConstants.TabIcon
-        tabButtonObject.Name = categoryName
-        tabButtonObject.LayoutOrder = categoryConstants.TabOrder
-
-        local tabButton = Button.new(tabButtonObject)
-        tabButton.Pressed:Connect(function()
-            openCategory(categoryName)
-        end)
-        tabButton:Mount(editCategoryTabs)
-
-        -- Page
-        local page = templates.EditCategoryPage:Clone()
-        page.Name = categoryName
-        page.Visible = false
-        page.Parent = editCategoryPages
-
-        -- Load objects
-        if categoryName == "Furniture" then
-            FurniturePage.loadItems()
-        elseif categoryName == "Blueprint" then
-            defaultCategoryPage("Blueprint", assets.Exteriors, function()
-                print("Hello World2")
-            end)
-        end
-    end
-
-    openCategory(DEFAULT_EDIT_CATEGORY)
-end
 -- Setup UI
 do
     -- Show

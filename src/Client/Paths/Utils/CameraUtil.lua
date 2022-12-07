@@ -31,7 +31,7 @@ end
     Locks the camera and pans over to the subject
 ]]
 function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame, tweenInfo: TweenInfo?): (Tween, CFrame)
-    camera.CameraType = Enum.CameraType.Scriptable
+    CameraUtil.setCametaType(camera, Enum.CameraType.Scriptable)
 
     offset = offset or Vector3.new(0, 0, 10)
     tweenInfo = tweenInfo or TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
@@ -41,6 +41,10 @@ function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame
     local tween = TweenUtil.tween(camera, tweenInfo, { CFrame = goal })
 
     return tween, goal
+end
+
+function CameraUtil.setCametaType(camera: Camera, cameraType: Enum.CameraType)
+    camera.CameraType = cameraType
 end
 
 function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)

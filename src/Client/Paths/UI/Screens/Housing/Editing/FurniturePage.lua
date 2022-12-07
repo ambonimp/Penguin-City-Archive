@@ -9,11 +9,12 @@ local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local Button = require(Paths.Client.UI.Elements.Button)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
@@ -40,6 +41,7 @@ local INVALID_PLACEMENT_COLOR = Color3.fromRGB(255, 0, 0)
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
 local colorPanel = SelectionPanel.new()
+local furniturePanel = SelectionPanel.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local templates: Folder = Paths.Templates.Housing
@@ -117,35 +119,6 @@ local function deselectPaintColor(color: Color3 | string)
 end
 
 -------------------------------------------------------------------------------
--- PUBLIC METHODS
--------------------------------------------------------------------------------
-function FurnitureEditingPage.loadItems()
-    for objectName, objectInfo in pairs(FurnitureConstants.Objects) do
-        local modelTemplate = models[objectName]
-
-        local objectButtonObject: ImageButton = templates.Object:Clone()
-        objectButtonObject.Name = objectName
-
-        local price = objectInfo.Price
-        objectButtonObject.Price.Text = "$" .. price
-
-        -- Temporary
-        CameraUtil.lookAtModelInViewport(objectButtonObject.ViewportFrame, modelTemplate:Clone())
-
-        local objectButton = Button.new(objectButtonObject)
-        objectButton.Pressed:Connect(function()
-            -- Validate
-            uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
-                Object = modelTemplate:Clone(),
-                IsNewObject = true,
-            })
-        end)
-
-        objectButton:Mount(screenGui.Edit.Center.Furniture)
-    end
-end
-
--------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
 local function applyColor()
@@ -158,6 +131,7 @@ end
 
 -- Register UIStates
 do
+    --Edit State
     local function enterState(data)
         model = data.Object
         local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0) * CFrame.new(0, 0.05, 0)
@@ -289,6 +263,9 @@ do
                 if not moving then
                     return
                 end
+                if DeviceUtil.isConsole() or DeviceUtil.isMobile then
+                    CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Custom)
+                end
 
                 moving = false
 
@@ -303,6 +280,9 @@ do
 
             placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
                 moving = true
+                if DeviceUtil.isConsole() or DeviceUtil.isMobile then
+                    CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Scriptable)
+                end
 
                 UserInputService.MouseIconEnabled = false
                 placementControls.Others.Visible = false
@@ -402,7 +382,7 @@ do
         colorNameSelected = "Color1"
         colorNum = 1
         colorPanel:OpenTab(colorNameSelected)
-        ScreenUtil.inLeft(colorPanel:GetContainer())
+        ScreenUtil.inRight(colorPanel:GetContainer())
     end
 
     local function closeState()
@@ -416,7 +396,7 @@ do
     end
 
     local function openState()
-        ScreenUtil.inLeft(colorPanel:GetContainer())
+        ScreenUtil.inRight(colorPanel:GetContainer())
         placementControls.Enabled = true
     end
 
@@ -427,7 +407,8 @@ do
         Minimize = minState,
     })
 
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseEditor, function(data)
+    --HouseEditor UI state
+    local function enterHouseEdit(data)
         character = player.Character
 
         -- See if we can get plot
@@ -477,15 +458,145 @@ do
         placementSession:GiveTask(function()
             deselectPaintColor(color[1]) -- Reset colors
         end)
-    end, function()
-        if not uiStateMachine:HasState(UIConstants.States.HouseEditor) then
-            plot:FindFirstChildOfClass("Model").NoPlace.Transparency = 1
-            plot = nil
-            character = nil
-            editingSession:Cleanup()
-        end
-    end)
+    end
 
+    local function exitHouseEdit()
+        plot:FindFirstChildOfClass("Model").NoPlace.Transparency = 1
+        plot = nil
+        character = nil
+        editingSession:Cleanup()
+        ScreenUtil.outDown(furniturePanel:GetContainer())
+    end
+
+    local function maximizeHouseEdit()
+        ScreenUtil.inUp(furniturePanel:GetContainer())
+    end
+
+    local function minimizeHouseEdit()
+        ScreenUtil.outDown(furniturePanel:GetContainer())
+    end
+
+    UIController.registerStateScreenCallbacks(UIConstants.States.HouseEditor, {
+        Boot = enterHouseEdit,
+        Shutdown = exitHouseEdit,
+        Maximize = maximizeHouseEdit,
+        Minimize = minimizeHouseEdit,
+    })
+
+    --furniture panel
+    do
+        furniturePanel:Mount(screenGui)
+
+        furniturePanel:SetAlignment("Bottom")
+        furniturePanel:SetSize(1)
+        furniturePanel.ClosePressed:Connect(function()
+            uiStateMachine:Remove(UIConstants.States.HouseEditor)
+        end)
+
+        local button: Frame = templates.BackButton:Clone()
+        button.Parent = furniturePanel:GetContainer().Background
+
+        local BackButton = KeyboardButton.new()
+        local ObjectsFrame: ScrollingFrame = templates.ObjectFrame:Clone()
+
+        BackButton:Mount(button, true)
+        BackButton:SetIcon(Images.Icons.LeftArrow)
+        BackButton:GetButtonObject().Parent.Visible = false
+        BackButton:GetButtonObject().Parent.Size = furniturePanel:GetContainer().Background.Side.ForwardArrow.Size
+
+        furniturePanel:HideForwardArrow()
+        ObjectsFrame.Parent = furniturePanel:GetContainer().Background.Back
+
+        local function setCategoryVisible(on: boolean)
+            ObjectsFrame.Visible = on
+            BackButton:GetButtonObject().Parent.Visible = on
+            furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
+        end
+
+        local function getTotalPlaced(objectKey: string)
+            local data = DataController.get("House.Furniture")
+            local placed = 0
+
+            for _, object in data do
+                if object.Name == objectKey and object.FromDefault == nil then
+                    placed += 1
+                end
+            end
+
+            return placed
+        end
+
+        local function loadNewItems(tag: string)
+            for i, v in pairs(ObjectsFrame:GetChildren()) do
+                if not v:IsA("UIListLayout") then
+                    v:Destroy()
+                end
+            end
+            local objects = FurnitureConstants.GetObjectsFromTag(tag)
+            for objectKey, objectInfo in objects do
+                local modelTemplate = models[objectKey]
+                local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
+                local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
+
+                objectWidget:GetGuiObject().Parent = ObjectsFrame
+
+                objectWidget.Pressed:Connect(function()
+                    local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
+                    local count = ProductController.getProductCount(product)
+                    local total = getTotalPlaced(objectKey)
+                    if isOwned and count - total > 0 then
+                        uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
+                            Object = modelTemplate:Clone(),
+                            IsNewObject = true,
+                        })
+                    else
+                        ProductController.prompt(product)
+                    end
+                end)
+            end
+            setCategoryVisible(true)
+        end
+
+        furniturePanel.TabChanged:Connect(function()
+            setCategoryVisible(false)
+        end)
+
+        furniturePanel:GetContainer().Background.Back.ScrollingFrame.UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+        local function addWidget(tabName: string, tag: string)
+            furniturePanel:AddWidgetConstructor(tabName, tag, function(parent, maid)
+                local widget = Widget.diverseWidget()
+                widget:DisableIcon()
+                widget:SetText(tag)
+
+                widget.Pressed:Connect(function()
+                    loadNewItems(tag)
+                end)
+
+                widget:Mount(parent)
+                maid:GiveTask(widget)
+            end)
+        end
+
+        furniturePanel:AddTab("All", Images.Icons.Igloo)
+        for _, tag in FurnitureConstants.Tags do
+            addWidget("All", tag)
+        end
+        for tabName, info in FurnitureConstants.MainTabs do
+            local icon = info.Icon
+            local subtabs = info.SubTabs
+            furniturePanel:AddTab(tabName, icon)
+            for _, tag in subtabs do
+                addWidget(tabName, tag)
+            end
+        end
+
+        BackButton.Pressed:Connect(function()
+            setCategoryVisible(false)
+        end)
+
+        setCategoryVisible(false)
+    end
     -- Color Panel Setup
     do
         local template = templates.PaintTemplate:Clone()
@@ -499,11 +610,9 @@ do
 
         colorPanel:OpenTab("Color1")
         colorPanel.ClosePressed:Connect(function()
-            ScreenUtil.outLeft(colorPanel:GetContainer())
+            UIController:Remove(UIConstants.States.FurniturePlacement)
         end)
         template.Parent = colorPanel:GetContainer()
-        -- Initialize colors
-        --TODO: Convert colors to products
 
         colorToWidget = {}
 
@@ -553,6 +662,7 @@ do
         end)
 
         ScreenUtil.outLeft(colorPanel:GetContainer())
+        ScreenUtil.outDown(furniturePanel:GetContainer())
     end
 end
 

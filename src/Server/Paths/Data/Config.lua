@@ -25,6 +25,7 @@ local defaultHouse = {
             Rotation = "0, 0, 0",
             Position = "6.019, 4.819, -15.510",
             Normal = "0, 1, 0",
+            FromDefault = true,
         },
     },
 }
