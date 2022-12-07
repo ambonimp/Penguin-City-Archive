@@ -1,6 +1,8 @@
 local SnowballToolClientHandler = {}
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Signal = require(Paths.Shared.Signal)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
@@ -37,9 +39,11 @@ local DESTROY_SNOWBALL_TWEEN_INFO = TweenInfo.new(1)
 local ROTATE_CHARACTER_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
 local MAX_SNOWBALL_MODELS = 40
 local PLAY_LANDING_PARTICLE_FOR = 0.1
+local CROSSHAIR_EPSILON = 0.2
 
 local isThrowingSnowball = false
 local snowballModels: { Model } = {}
+local lastCrosshairPosition: Vector3?
 
 -------------------------------------------------------------------------------
 -- Snowball Logic
@@ -189,6 +193,33 @@ function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: S
             SnowballToolUtil.matchSnowball(snowballModel, oldLocalSnowballModel)
         end
     end))
+
+    -- Crosshair
+    local crosshairModel: Model = ReplicatedStorage.Assets.Misc.Crosshair:Clone()
+    crosshairModel.Parent = game.Workspace
+
+    local stepped = RunService.RenderStepped:Connect(function()
+        -- RETURN: Hide crosshair (bad raycast)
+        local mouseRaycastResult = RaycastUtil.raycastMouse(nil, MOUSE_RAYCAST_DISTANCE, mouseRaycastCheck)
+        if not mouseRaycastResult then
+            crosshairModel.Crosshair.Transparency = 1
+            return
+        end
+
+        -- Show
+        crosshairModel.Crosshair.Transparency = 0
+
+        -- Update Position
+        if not lastCrosshairPosition or (lastCrosshairPosition - mouseRaycastResult.Position).Magnitude > CROSSHAIR_EPSILON then
+            lastCrosshairPosition = mouseRaycastResult.Position
+            crosshairModel:PivotTo(CFrame.new(mouseRaycastResult.Position, mouseRaycastResult.Position + mouseRaycastResult.Normal))
+        end
+    end)
+
+    return function()
+        crosshairModel:Destroy()
+        stepped:Disconnect()
+    end
 end
 
 function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGetter: () -> Model?)

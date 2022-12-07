@@ -29,9 +29,11 @@ local ANIMATION_USE = InstanceUtil.tree("Animation", { AnimationId = CharacterCo
 local ANIMATION_HOLD = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.HoldGenericTool[1].Id })
 
 --[[
-    `modelSignal` is fired twice; once with our locally created model and once with the server created model
+    `modelSignal` is fired twice; once with our locally created model and once with the server created model.
+
+    Returns a function that will be invoked when this tool gets unequipped
 ]]
-function DefaultToolClientHandler.equipped(tool: ToolUtil.Tool, _modelSignal: Signal.Signal, _equipMaid: typeof(Maid.new()))
+function DefaultToolClientHandler.equipped(_tool: ToolUtil.Tool, _modelSignal: Signal.Signal, _equipMaid: typeof(Maid.new()))
     -- RETURN: No character!
     local character = Players.LocalPlayer.Character
     if not character then
@@ -47,14 +49,10 @@ function DefaultToolClientHandler.equipped(tool: ToolUtil.Tool, _modelSignal: Si
     local holdTrack = animator:LoadAnimation(ANIMATION_HOLD)
     holdTrack:Play()
 
-    local unequippedConnection
-    unequippedConnection = ToolController.ToolUnequipped:Connect(function(equippedTool: ToolUtil.Tool)
-        if ToolUtil.toolsMatch(tool, equippedTool) then
-            holdTrack:Stop()
-            holdTrack:Destroy()
-            unequippedConnection:Disconnect()
-        end
-    end)
+    return function()
+        holdTrack:Stop()
+        holdTrack:Destroy()
+    end
 end
 
 function DefaultToolClientHandler.unequipped(_tool: ToolUtil.Tool)
