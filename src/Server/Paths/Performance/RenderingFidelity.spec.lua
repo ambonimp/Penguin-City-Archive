@@ -1,5 +1,4 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TestUtil = require(ReplicatedStorage.Shared.Utils.TestUtil)
 local DescendantLooper = require(ReplicatedStorage.Shared.DescendantLooper)
 
 return function()

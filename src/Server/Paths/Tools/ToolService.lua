@@ -137,8 +137,14 @@ Remotes.bindEvents({
             return
         end
 
-        -- RETURN: Not equipped / no model
+        -- WARN: No equipped data?
         local equippedData = equippedDataByPlayer[player]
+        if not equippedData then
+            warn("No equipped data for", player.Name)
+            return
+        end
+
+        -- RETURN: Not equipped / no model
         if not (equippedData.Tool and ToolUtil.toolsMatch(equippedData.Tool, tool) and equippedData.Model) then
             return
         end
