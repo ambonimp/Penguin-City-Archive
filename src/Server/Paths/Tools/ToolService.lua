@@ -40,7 +40,7 @@ end
 -------------------------------------------------------------------------------
 
 local function getDefaultToolServerHandler(): ToolServerHandler
-    return require(Paths.Client.Tools.ToolServerHandlers.DefaultToolServerHandler)
+    return require(Paths.Server.Tools.ToolServerHandlers.DefaultToolServerHandler)
 end
 
 local function getToolServerHandler(tool: ToolUtil.Tool): ToolServerHandler | {}

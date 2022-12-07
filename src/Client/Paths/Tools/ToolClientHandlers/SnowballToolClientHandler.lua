@@ -24,7 +24,7 @@ local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local Particles = require(Paths.Shared.Particles)
 local Sound = require(Paths.Shared.Sound)
 
-local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.SnowballTool[1].Id })
+local ANIMATION_THROW_SNOWBALL = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.UseSnowballTool[1].Id })
 local ANIMATION_THROW_EVENTS = {
     PickupSnowball = 9 / 30,
     ReleaseSnowball = 28 / 30,

@@ -31,6 +31,6 @@ end
 ToolConstants.Tools = tools
 ToolConstants.CategoryNames = categoryNames
 
-ToolConstants.MaxHolsteredTools = 3
+ToolConstants.MaxHolsteredTools = 4
 
 return ToolConstants
