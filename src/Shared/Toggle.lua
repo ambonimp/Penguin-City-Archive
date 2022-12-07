@@ -59,6 +59,12 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
         end
     end
 
+    function toggle:RemoveJob(job: any)
+        if table.find(jobs, job) then
+            toggle:Set(not value, job)
+        end
+    end
+
     function toggle:ForceSet(newValue)
         if onToggled then
             onToggled(newValue)

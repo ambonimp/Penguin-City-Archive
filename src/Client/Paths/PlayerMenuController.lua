@@ -17,6 +17,8 @@ local Sound = require(Paths.Shared.Sound)
 local ButtonUtil = require(Paths.Client.UI.Utils.ButtonUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local InteractionController = require(Paths.Client.Interactions.InteractionController)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
@@ -43,7 +45,7 @@ end
 
 local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.new()))
     -- Stamps
-    local stampsButton = radialMenu:AddButton()
+    local stampsButton = radialMenu:AddButton() :: KeyboardButton.KeyboardButton
     stampsButton:RoundOff()
     ButtonUtil.paintStamps(stampsButton)
     stampsButton.Pressed:Connect(function()
@@ -51,16 +53,16 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     end)
 
     -- Igloo
-    local iglooButton = radialMenu:AddButton()
+    local iglooButton = radialMenu:AddButton() :: KeyboardButton.KeyboardButton
     iglooButton:RoundOff()
     ButtonUtil.paintIgloo(iglooButton)
     iglooButton.Pressed:Connect(function()
-        local houseZone = ZoneUtil.houseZone(player)
+        local houseZone = ZoneUtil.houseInteriorZone(player)
         ZoneController.teleportToRoomRequest(houseZone)
     end)
 
     -- Close
-    local closeButton = radialMenu:AddButton()
+    local closeButton = radialMenu:AddButton() :: KeyboardButton.KeyboardButton
     closeButton:RoundOff()
     closeButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
     closeButton:SetIcon(Images.Icons.Close)
@@ -126,7 +128,23 @@ local function onCursorDown()
     cursorDownPlayer = raycastResult and CharacterUtil.getPlayerFromCharacterPart(raycastResult.Instance)
 end
 
-local function onCursorUp()
+local function onCursorUp(gameProcessedEvent)
+    -- RETURN: Doing something else
+    if gameProcessedEvent then
+        return
+    end
+
+    -- RETURN: WorldUI are disabled
+    if not InteractionController.isEnabled() then
+        return
+    end
+
+    -- RETURN: Clicked on an interaction
+    local interactionIsActive, interactionLastActiveAt = InteractionController.isActive()
+    if interactionIsActive or os.clock() - interactionLastActiveAt < 0.2 then
+        return
+    end
+
     local raycastResult = RaycastUtil.raycastMouse(RAYCAST_PARAMS, RAYCAST_LENGTH)
     local player = raycastResult and CharacterUtil.getPlayerFromCharacterPart(raycastResult.Instance)
 
