@@ -152,7 +152,7 @@ do
 
                                 tabJanitor:Add(function()
                                     slot:Destroy()
-                                    unequipButton:Destroy()
+                                    unequipButton:GetMaid():Cleanup()
                                 end, nil, slotTask)
                             else
                                 tabJanitor:Remove(slotTask)

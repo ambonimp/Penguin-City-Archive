@@ -14,6 +14,7 @@ local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFia
 local Output = require(Paths.Shared.Output)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -274,7 +275,7 @@ function PizzaFiascoIngredient.new(runner: PizzaFiascoRunner, ingredientType: st
             end
 
             -- Throw asset
-            local angularVelocity = VectorUtil.nextVector3(-1, 1).Unit * THROW_ASSET_POWER.ANGULAR
+            local angularVelocity = Vector3Util.nextVector(-1, 1).Unit * THROW_ASSET_POWER.ANGULAR
             local linearVelocity = Vector3.new(MathUtil.nextNumber(-1, 1), 8, MathUtil.nextNumber(-1, 1)).Unit * THROW_ASSET_POWER.LINEAR
 
             asset.PrimaryPart.AssemblyAngularVelocity = angularVelocity

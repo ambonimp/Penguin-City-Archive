@@ -15,7 +15,6 @@ local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
 local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
-local BodyTypeConstants = require(Shared.Constants.CharacterItems.BodyTypeConstants)
 
 export type CharacterAppearance = {
     BodyType: string,

@@ -114,10 +114,12 @@ end
     Returns `Value`
 ]]
 function MathUtil.weightedChoice(
-    tbl: { {
-        Weight: number,
-        Value: any,
-    } },
+    tbl: {
+        {
+            Weight: number,
+            Value: any,
+        }
+    },
     random: Random?
 )
     local sum = 0
@@ -312,16 +314,6 @@ end
 ]]
 function MathUtil.nextVariation(value: number, variation: number)
     return value + variation * MathUtil.nextNumber(-1, 1)
-end
-
---[[
-    Returns a Vector3 with internalRandom numbers in all axes.
-]]
-function MathUtil.nextVector3(min: number, max: number)
-    local x = MathUtil.nextNumber(min, max)
-    local y = MathUtil.nextNumber(min, max)
-    local z = MathUtil.nextNumber(min, max)
-    return Vector3.new(x, y, z)
 end
 
 --[[

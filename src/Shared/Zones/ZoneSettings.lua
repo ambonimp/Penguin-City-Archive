@@ -50,6 +50,9 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
         },
         -- IceCreamExtravaganza
         IceCreamExtravaganza = {
+            Lighting = {
+                Ambient = Color3.fromRGB(255, 128, 130),
+            },
             DisableCollisions = false,
             Music = false,
         },

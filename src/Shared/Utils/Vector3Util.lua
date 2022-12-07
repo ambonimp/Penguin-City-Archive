@@ -42,4 +42,14 @@ function Vector3Util.getXZComponents(vector3: Vector3)
     return Vector3.new(vector3.X, 0, vector3.Z)
 end
 
+--[[
+    Returns a Vector3 with internalRandom numbers in all axes.
+]]
+function Vector3Util.nextVector(min: number, max: number)
+    local x = MathUtil.nextNumber(min, max)
+    local y = MathUtil.nextNumber(min, max)
+    local z = MathUtil.nextNumber(min, max)
+    return Vector3.new(x, y, z)
+end
+
 return Vector3Util

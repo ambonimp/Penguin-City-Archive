@@ -282,6 +282,7 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
         error("Not passed a room zone!")
     end
 
+    print(debug.traceback())
     local requestAssume = Assume.new(function()
         local teleportBuffer: number? =
             Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, game.Workspace:GetServerTimeNow())

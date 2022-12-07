@@ -26,7 +26,7 @@ local ZONES = {
     Neighborhood = "Neighborhood",
     SkiHill = "Ski Hill",
     Town = "Town",
-} -- Keys are ZoneIds, values are display names
+} -- Keys are ZoneTypes, values are display names
 
 local screenGui: ScreenGui = Ui.Map
 local closeButtonFrame: Frame = screenGui.CloseButton
@@ -49,30 +49,30 @@ function MapScreen.Init()
     -- Populate Pins
     do
         local pinTemplate: ImageButton = pinsFrame.pinTemplate
-        for zoneId, zoneDisplayName in pairs(ZONES) do
+        for zoneType, zoneDisplayName in pairs(ZONES) do
             -- ERROR: No pin position frame
-            local pinPositionFrame: Frame = pinsFrame:FindFirstChild(zoneId)
+            local pinPositionFrame: Frame = pinsFrame:FindFirstChild(zoneType)
             if not pinPositionFrame then
-                error(("Could not find pin position frame %q in %s"):format(zoneId, pinPositionFrame:GetFullName()))
+                error(("Could not find pin position frame %q in %s"):format(zoneType, pinPositionFrame:GetFullName()))
             end
 
             -- ERROR: No image
-            local zoneImage = Images.Map.Zones[zoneId]
+            local zoneImage = Images.Map.Zones[zoneType]
             if not zoneImage then
-                error(("No map zone image %q"):format(zoneId))
+                error(("No map zone image %q"):format(zoneType))
             end
 
             -- ERROR: Bad zone!
-            local zone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, zoneId)
+            local zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType)
             if not ZoneUtil.doesZoneExist(zone) then
-                error(("Bad zoneId %q; zone does not exist!"):format(zoneId))
+                error(("Bad zoneType %q; zone does not exist!"):format(zoneType))
             end
 
             local pin = pinTemplate:Clone()
             pin.Visible = true
             pin.ZoneLabel.TextLabel.Text = zoneDisplayName
             pin.Position = pinPositionFrame.Position
-            pin.Name = zoneId
+            pin.Name = zoneType
             pin.Parent = pinsFrame
 
             pinPositionFrame:Destroy()

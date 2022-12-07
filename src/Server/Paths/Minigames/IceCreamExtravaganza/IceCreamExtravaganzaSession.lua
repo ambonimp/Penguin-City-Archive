@@ -10,7 +10,6 @@ local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local IceCreamExtravaganzaConstants = require(Paths.Shared.Minigames.IceCreamExtravaganza.IceCreamExtravaganzaConstants)
 local PropertyStack = require(Paths.Shared.PropertyStack)
-local CharacterController = require(Paths.Server.Characters.CharacterService)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
@@ -83,7 +82,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         local character: Model = participant.Character
         local humanoidRootPart = character.HumanoidRootPart
 
-        CharacterController.standOn(character, minigameSession:GetPlayerSpawnPoint(participant))
+        CharacterUtil.standOn(character, minigameSession:GetPlayerSpawnPoint(participant))
 
         clearCone(participant)
 

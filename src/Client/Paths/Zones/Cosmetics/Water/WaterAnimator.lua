@@ -14,7 +14,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
-
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local HORIZON_WIDTH = 100000
 local PART_PROPERTIES = {
     SURFACE = {
@@ -159,7 +159,7 @@ function WaterAnimator.new(xzPosition: Vector2, yTop: number)
             local connection: RBXScriptConnection
             task.spawn(function()
                 while doLoop do
-                    local unitDirection = VectorUtil.getUnit(VectorUtil.getXZComponents(VectorUtil.nextVector3(-1, 1)))
+                    local unitDirection = VectorUtil.getUnit(Vector3Util.getXZComponents(Vector3Util.nextVector(-1, 1)))
                     connection = TweenUtil.run(function(alpha)
                         waterTexture.OffsetStudsU = unitDirection.X
                             * alpha

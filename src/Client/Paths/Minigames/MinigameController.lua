@@ -64,7 +64,7 @@ end
 function MinigameController.stopMusic(name: Music)
     local sound = music[name]
     if sound then
-        Sound.fadeOut(music[name])
+        Sound.fadeOut(music[name], nil, true)
         music[name] = nil
     end
 end
