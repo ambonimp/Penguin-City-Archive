@@ -81,10 +81,8 @@ function IceCreamExtravaganzaSession.new(...: any)
 
     local function spawnCharacter(participant: Player)
         local character: Model = participant.Character
-        local humanoid: Humanoid = character.Humanoid
         local humanoidRootPart = character.HumanoidRootPart
 
-        PropertyStack.setProperty(humanoid, "WalkSpeed", IceCreamExtravaganzaConstants.WalkSpeed, PROPERTY_STACK_KEY_SPEED, math.huge)
         CharacterController.standOn(character, minigameSession:GetPlayerSpawnPoint(participant))
 
         clearCone(participant)
@@ -96,7 +94,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         cone:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -(1 + conePrimary.Size.Z / 2)))
         BasePartUtil.weld(conePrimary, humanoidRootPart)
 
-        local track = humanoid.Animator:LoadAnimation(CONE_HOLD_ANIMATION)
+        local track = character.Humanoid.Animator:LoadAnimation(CONE_HOLD_ANIMATION)
         track:Play(0, 11)
     end
 
@@ -108,6 +106,13 @@ function IceCreamExtravaganzaSession.new(...: any)
     -- LOGIC
     -------------------------------------------------------------------------------
     minigameSession.ParticipantAdded:Connect(function(participant: Player)
+        PropertyStack.setProperty(
+            participant.Character.Humanoid,
+            "WalkSpeed",
+            IceCreamExtravaganzaConstants.WalkSpeed,
+            PROPERTY_STACK_KEY_SPEED,
+            math.huge
+        )
         spawnCharacter(participant)
     end)
 
@@ -116,7 +121,8 @@ function IceCreamExtravaganzaSession.new(...: any)
             local character: Model = participant.Character
             clearCone(participant)
             CharacterUtil.unanchor(character)
-            PropertyStack.clearProperty(character.Humanoid, "WalkSpeed", PROPERTY_STACK_KEY_SPEED)
+
+            PropertyStack.clearProperty(character.Humanoid, "WalkSpeed", PROPERTY_STACK_KEY_SPEED, true)
         end
     end)
 
@@ -225,11 +231,14 @@ function IceCreamExtravaganzaSession.new(...: any)
                     end, { character })
 
                     inviciblePlayers[player] = function()
-                        inviciblePlayers[player] = nil
-                        for _, descendant in pairs(character:GetDescendants()) do
+                        if inviciblePlayers[player] then
+                            inviciblePlayers[player] = nil
                             descendantMaid:Destroy()
-                            if descendant:IsA("BasePart") then
-                                PropertyStack.clearProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
+
+                            for _, descendant in pairs(character:GetDescendants()) do
+                                if descendant:IsA("BasePart") then
+                                    PropertyStack.clearProperties(descendant, INVICIBILITY_PROPERTIES, PROPERTY_STACK_KEY_INVICIBLE)
+                                end
                             end
                         end
                     end
@@ -277,6 +286,13 @@ function IceCreamExtravaganzaSession.new(...: any)
                 invicibleReverter()
             end
         end)
+
+        coreJanitor:Add(minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
+            local invicibleReverter = inviciblePlayers[participant]
+            if stillInGame and invicibleReverter then
+                invicibleReverter()
+            end
+        end))
 
         --
     end, function()

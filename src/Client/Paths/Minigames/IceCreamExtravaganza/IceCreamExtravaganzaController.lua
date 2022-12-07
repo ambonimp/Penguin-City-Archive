@@ -55,7 +55,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
 
-    minigameJanitor:Add(unanchorCharacter())
+    MinigameController.playMusic("Intermission")
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.WaitingForPlayers, function()
@@ -91,6 +91,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
+    MinigameController.stopMusic("Intermission")
+    MinigameController.playMusic("Core")
+
     SharedMinigameScreen.setStatusText("Collect scoops!")
     MinigameController.startCountdownAsync(IceCreamExtravaganzaConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
@@ -100,6 +103,9 @@ end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
     Confetti.play()
+
+    MinigameController.stopMusic("Core")
+    MinigameController.playMusic("Intermission")
 
     task.wait(AWARD_SEQUENCE_DELAY)
 
