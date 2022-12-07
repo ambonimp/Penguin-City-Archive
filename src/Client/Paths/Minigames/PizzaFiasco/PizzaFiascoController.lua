@@ -17,6 +17,7 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local Output = require(Paths.Shared.Output)
+local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
 local MINIGAME_NAME = "PizzaFiasco"
 local RUNNER_JANITOR_INDEX = "Runner"
@@ -60,6 +61,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
         CharacterUtil.unanchor(player.Character)
     end)
+
+    MinigameController.playMusic("Intermission")
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
@@ -70,6 +73,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
+    MinigameController.stopMusic("Intermission")
     SharedMinigameScreen.closeStartMenu(false, function()
         CameraController.viewCameraModel(MinigameController.getMap().Cameras.Gameplay)
         runner:Run()
@@ -77,6 +81,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
+    MinigameController.playMusic("Intermission")
+    Confetti.play()
+
     local stats = runner:GetStats()
     minigameJanitor:Remove(RUNNER_JANITOR_INDEX)
 
