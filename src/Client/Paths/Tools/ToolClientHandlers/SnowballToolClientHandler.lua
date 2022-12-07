@@ -44,6 +44,7 @@ local CROSSHAIR_EPSILON = 0.2
 local isThrowingSnowball = false
 local snowballModels: { Model } = {}
 local lastCrosshairPosition: Vector3?
+local currentCrosshairModel: Model?
 
 -------------------------------------------------------------------------------
 -- Snowball Logic
@@ -127,12 +128,8 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
                 end)
 
                 -- Play landing animation
-                local particle = SnowballToolUtil.landingParticle(ourSnowballModel)
-                task.delay(PLAY_LANDING_PARTICLE_FOR, function()
-                    particle.Enabled = false
-                    task.wait(particle.Lifetime.Max)
-                    particle:Destroy()
-                end)
+                local particles = SnowballToolUtil.landingParticle(ourSnowballModel)
+                task.delay(PLAY_LANDING_PARTICLE_FOR, Particles.remove, particles)
             end
         end, TweenInfo.new(inaccurateBezierCurveLength / THROW_SPEED, Enum.EasingStyle.Linear))
     end
@@ -176,6 +173,11 @@ local function mouseRaycastCheck(instance: BasePart)
         return false
     end
 
+    -- FALSE: Is our crosshair!
+    if currentCrosshairModel and instance:IsDescendantOf(currentCrosshairModel) then
+        return false
+    end
+
     return true
 end
 
@@ -198,6 +200,8 @@ function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: S
     local crosshairModel: Model = ReplicatedStorage.Assets.Misc.Crosshair:Clone()
     crosshairModel.Parent = game.Workspace
 
+    currentCrosshairModel = crosshairModel
+
     local stepped = RunService.RenderStepped:Connect(function()
         -- RETURN: Hide crosshair (bad raycast)
         local mouseRaycastResult = RaycastUtil.raycastMouse(nil, MOUSE_RAYCAST_DISTANCE, mouseRaycastCheck)
@@ -219,6 +223,10 @@ function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: S
     return function()
         crosshairModel:Destroy()
         stepped:Disconnect()
+
+        if currentCrosshairModel == crosshairModel then
+            currentCrosshairModel = nil
+        end
     end
 end
 
