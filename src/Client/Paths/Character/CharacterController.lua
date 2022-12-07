@@ -14,20 +14,22 @@ local function unloadCharacter(_character: Model)
 end
 
 local function loadCharacter(character: Model)
-    loadMaid:Cleanup()
-
-    if character then
-        local animate = Animate:Clone()
-        animate.Disabled = false
-        animate.Parent = character
+    task.defer(function()
+        loadMaid:Cleanup()
 
         if character then
-            -- Death cleanup
-            loadMaid:GiveTask(character.Humanoid.Died:Connect(function()
-                unloadCharacter(character)
-            end))
+            local animate = Animate:Clone()
+            animate.Disabled = false
+            animate.Parent = character
+
+            if character then
+                -- Death cleanup
+                loadMaid:GiveTask(character.Humanoid.Died:Connect(function()
+                    unloadCharacter(character)
+                end))
+            end
         end
-    end
+    end)
 end
 
 Loader.giveTask("Character", "LoadCharacter", function()

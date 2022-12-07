@@ -30,7 +30,7 @@ function PlayerIcon.new(playerOrUserId: Player | number, cornerRadius: UDim?)
     -------------------------------------------------------------------------------
 
     local uiCorner = Instance.new("UICorner")
-    uiCorner.CornerRadius = cornerRadius or UDim2.new()
+    uiCorner.CornerRadius = cornerRadius or UDim.new()
 
     local function viewport(player: Player)
         local viewportFrame = Instance.new("ViewportFrame")
