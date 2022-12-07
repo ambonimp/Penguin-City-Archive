@@ -2,6 +2,7 @@ local SledRaceDriving = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
@@ -13,6 +14,7 @@ local Toggle = require(Paths.Shared.Toggle)
 local Lerpable = require(Paths.Shared.Lerpable)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
+local Sound = require(Paths.Shared.Sound)
 
 local MIN_SPEED = SledRaceConstants.MinSpeed
 local DEFAULT_SPEED = SledRaceConstants.DefaultSpeed
@@ -88,6 +90,8 @@ function SledRaceDriving.setup()
     local driftFOVAddend = Lerpable.new(0)
     local speedFOVAddend = Lerpable.new(0)
 
+    local drivingSound: Sound = Sound.play("SledMovement", true)
+
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
@@ -116,11 +120,11 @@ function SledRaceDriving.setup()
             local torque = proportionalOutput + derrivativeOutput
             steer.Torque = Vector3.new(0, math.sign(torque) * math.min(MAX_STEER_TORQUE, math.abs(torque)), 0) * mass
 
-            local lean = math.clamp(err * 2, -1, 1) * (if forcedSpeed then 0 else 1)
+            --[[        local lean = math.clamp(err * 2, -1, 1) * (if forcedSpeed then 0 else 1)
             tailbone.CFrame = tailbone.CFrame:Lerp(
                 seatingCFrame * CFrame.fromEulerAnglesYXZ(math.abs(math.sign(lean)) * math.rad(10), 0, lean * MAX_SEAT_LEAN_ANGLE),
                 dt * 2
-            )
+            ) *]]
         end
 
         -- Roll resistance
@@ -156,6 +160,8 @@ function SledRaceDriving.setup()
             camera.FieldOfView = BASE_FOV
                 + driftFOVAddend:UpdateVariable(-MAX_DRIFT_FOV_MINUEND * driftyness, dt * 5)
                 + speedFOVAddend:UpdateVariable(MAX_SPEED_FOV_ADDEND * math.max(0, speedyness), dt * 3)
+
+            drivingSound.PlaybackSpeed = 1 + speedyness
         end
     end)
 
@@ -174,6 +180,8 @@ function SledRaceDriving.setup()
                 physicalProperties.ElasticityWeight
             )
 
+            Sound.fadeOut(drivingSound)
+
             forcedAcceleration = 1
             forcedSpeed = 0
 
@@ -186,6 +194,8 @@ function SledRaceDriving.setup()
 
     return function()
         driving:Disconnect()
+        drivingSound:Destroy()
+
         tailbone.CFrame = seatingCFrame
 
         if complete then

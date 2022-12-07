@@ -176,6 +176,10 @@ function MinigameSession.new(
             minigameSession:GetParticipants(),
             isMultiplayer
         )
+
+        janitor:Add(player.Character.Humanoid.Died:Connect(function()
+            minigameSession:RemoveParticipant(player)
+        end))
     end
 
     function minigameSession:RemoveParticipant(player)

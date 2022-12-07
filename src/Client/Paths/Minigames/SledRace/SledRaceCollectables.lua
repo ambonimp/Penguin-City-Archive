@@ -18,6 +18,7 @@ local DrivingController = require(Paths.Client.Minigames.SledRace.SledRaceDrivin
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local SledRaceScreen = require(Paths.Client.UI.Screens.Minigames.SledRaceScreen)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
+local Sound = require(Paths.Shared.Sound)
 
 local MAX_OBSTACLE_MASS = 2800
 local FLING_FORCE = { Min = 125, Max = 200 }
@@ -111,8 +112,12 @@ function SledRaceCollectables.setup()
                 MathUtil.map(weighted(0.7, 1 - heavyness) + weighted(0.3, hitDirectness), 0, 1, FLING_FORCE.Min, FLING_FORCE.Max)
             local cameraShakeFactor = weighted(0.3, heavyness) + weighted(0.7, hitDirectness)
 
-            -- Shake camera
             CameraController.shake(cameraShakeFactor)
+
+            local crashSound: Sound = Sound.play("SledCrash", true)
+            crashSound.PlaybackSpeed = 1 + (1 - heavyness) * 2
+            crashSound.PlayOnRemove = true
+            crashSound:Destroy()
 
             for _, basePart in pairs(collectable:GetDescendants()) do
                 if basePart:IsA("BasePart") then
@@ -138,9 +143,13 @@ function SledRaceCollectables.setup()
 
             collectable:Destroy()
         elseif SledRaceUtil.collectableIsA(collectable, "Boost") then
+            Sound.play("SledRaceSpeedBoost")
+
             DrivingController.applySpeedModifier(SledRaceConstants.BoostSpeedAdded)
             collectable:Destroy()
         elseif SledRaceUtil.collectableIsA(collectable, "Coin") then
+            Sound.play("CollectGood")
+
             collectable.PrimaryPart:Destroy()
             collectable:Destroy()
 
