@@ -173,7 +173,7 @@ function RadialMenu.new()
     end
 
     -- Returns a KeyboardButton
-    function radialMenu:AddButton(button: Button.Button?)
+    function radialMenu:AddButton(button: (Button.Button)?)
         button = button or KeyboardButton.new()
         button:Mount(createButtonHolder())
         table.insert(buttons, button)

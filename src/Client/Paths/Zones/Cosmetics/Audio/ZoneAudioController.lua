@@ -35,7 +35,7 @@ function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: 
 
         -- Create New
         if zoneMusicName then
-            local sound = Sound.play(zoneMusicName, true)
+            local sound = Sound.play(zoneMusicName :: string, true)
             Sound.fadeIn(sound, FADE_DURATION)
 
             currentMusic.Sound = sound

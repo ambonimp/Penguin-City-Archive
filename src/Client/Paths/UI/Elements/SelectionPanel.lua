@@ -19,12 +19,14 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { {
-        WidgetName: string,
-        Selected: boolean,
-        Instance: Widget.Widget?,
-        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
-    } },
+    WidgetConstructors: {
+        {
+            WidgetName: string,
+            Selected: boolean,
+            Instance: Widget.Widget?,
+            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+        }
+    },
     Button: Button.Button | nil,
 }
 

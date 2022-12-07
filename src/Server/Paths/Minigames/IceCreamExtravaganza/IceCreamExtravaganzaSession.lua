@@ -122,7 +122,7 @@ function IceCreamExtravaganzaSession.new(...: any)
             clearCone(participant)
             CharacterUtil.unanchor(character)
 
-            PropertyStack.clearProperty(character.Humanoid, "WalkSpeed", PROPERTY_STACK_KEY_SPEED, true)
+            PropertyStack.clearProperty(character.Humanoid, "WalkSpeed", PROPERTY_STACK_KEY_SPEED)
         end
     end)
 

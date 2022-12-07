@@ -23,7 +23,7 @@ function ServerPet.new(owner: Player, petDataIndex: string)
     local PetService = require(Paths.Server.Pets.PetService)
 
     local petData = PetService.getPet(owner, petDataIndex)
-    local serverPet = Pet.new(owner, petData)
+    local serverPet = Pet.new(owner)
 
     -------------------------------------------------------------------------------
     -- Private Members
