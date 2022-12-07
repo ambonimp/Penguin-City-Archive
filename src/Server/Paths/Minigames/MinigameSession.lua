@@ -140,7 +140,7 @@ function MinigameSession.new(
             )
         end
 
-        return playerSpawns[(table.find(participants, participant) + playerSpawnRandomizer) % #playerSpawns]
+        return playerSpawns[math.max(1, (table.find(participants, participant) + playerSpawnRandomizer) % #playerSpawns)]
     end
 
     function minigameSession:RelayToParticipants(eventName: string, ...: any)
@@ -425,7 +425,7 @@ function MinigameSession.new(
             scores = nil
 
             if isMultiplayer and config.Loop then
-                playerSpawnRandomizer = random:NextInteger(0, #playerSpawns - 1)
+                playerSpawnRandomizer = random:NextInteger(0, #playerSpawns)
 
                 minigameSession:CountdownSync(config.AwardShowLength)
                 minigameSession:ChangeState(STATES.Intermission)
