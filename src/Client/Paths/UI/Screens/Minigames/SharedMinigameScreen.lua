@@ -243,7 +243,7 @@ function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScor
     end
 end
 
-function SharedMinigameScreen.openResults(values: { { Title: string, Icon: string?, Value: string | number } | string })
+function SharedMinigameScreen.openResults(values: { { Title: string, Icon: string?, Value: string | number, Tag: string? } | string })
     -- RETURN: Player is no longer in a minigame
     if not MinigameController.getMinigame() then
         return
@@ -256,6 +256,14 @@ function SharedMinigameScreen.openResults(values: { { Title: string, Icon: strin
         label.Title.Text = info.Title .. ":"
         label.Value.Text = info.Value
         label.Title.Icon.Image = info.Icon or ""
+
+        local tag = info.Tag
+        if tag then
+            local tagLabel: TextLabel = label.Tag
+            tagLabel.Text = tag
+            tagLabel.Visible = true
+        end
+
         label.Parent = resultsFrame.Values
 
         table.insert(trash, label)

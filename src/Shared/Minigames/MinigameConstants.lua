@@ -8,7 +8,7 @@ export type Session = {
     Id: number,
 }
 export type PlayRequest = { Session: Session | nil, Error: string | nil }
-export type SortedScores = { { Player: Player, Score: number } }
+export type SortedScores = { { Player: Player, Score: number, NewBest: true? } }
 export type SessionConfig = {
     -- Size
     MinParticipants: number?,
@@ -24,7 +24,7 @@ export type SessionConfig = {
     Multiplayer: boolean,
     Loop: boolean?,
     --
-    HigherScoreWins: boolean?,
+    HigherScoreWins: boolean,
     ScoreFormatter: ((number) -> (number | string))?,
     Reward: (placement: number, score: number) -> (number)?,
 }

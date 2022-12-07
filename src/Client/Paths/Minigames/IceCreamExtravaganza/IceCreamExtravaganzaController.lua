@@ -121,7 +121,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     local placement = MinigameController.getOwnPlacement(scores)
     SharedMinigameScreen.openResults({
         if isMultiplayer then { Title = "Placement", Value = placement } else nil,
-        { Title = "Scoops", Value = MinigameController.getOwnScore(scores) },
+        { Title = "Scoops", Value = MinigameController.getOwnScore(scores), Tag = MinigameController.isNewBest(scores) and "New Best" },
         {
             Title = "Total Coins",
             Icon = Images.Coins.Coin,

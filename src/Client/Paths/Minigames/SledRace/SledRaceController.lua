@@ -113,7 +113,11 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
     SharedMinigameScreen.openResults({
         if isMultiplayer then { Title = "Placement", Value = placement } else nil,
-        { Title = "Time", Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore(scores)) },
+        {
+            Title = "Time",
+            Value = MinigameUtil.formatScore(MinigameController.getMinigame(), MinigameController.getOwnScore(scores)),
+            Tag = MinigameController.isNewBest(scores) and "New Best",
+        },
         { Title = "Coins Collected", Value = coinsCollected },
         { Title = "Total Coins", Icon = Images.Coins.Coin, Value = SledRaceConstants.SessionConfig.Reward(placement) + coinsCollected },
     })

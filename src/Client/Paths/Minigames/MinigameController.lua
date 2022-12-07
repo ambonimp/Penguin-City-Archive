@@ -197,6 +197,10 @@ function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores):
     return scores[MinigameController.getOwnPlacement(scores)].Score
 end
 
+function MinigameController.isNewBest(scores: MinigameConstants.SortedScores): boolean
+    return scores[MinigameController.getOwnPlacement(scores)].NewBest ~= nil
+end
+
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------

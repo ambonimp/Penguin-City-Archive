@@ -17,7 +17,7 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     SinglePlayer = true,
     Multiplayer = true,
     --
-    HigherScoreWins = true,
+    HigherScoreWins = false,
     ScoreFormatter = function(score: number): string
         return (score / 10 ^ 2) .. "s"
     end,

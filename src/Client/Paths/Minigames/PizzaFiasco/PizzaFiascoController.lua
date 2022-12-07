@@ -76,13 +76,18 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     end)
 end)
 
-MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function()
+MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
     local stats = runner:GetStats()
     minigameJanitor:Remove(RUNNER_JANITOR_INDEX)
 
     SharedMinigameScreen.openResults({
         { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
-        { Title = "Pizzas Completed", Value = stats.TotalPizzas - stats.TotalMistakes, Icon = Images.PizzaFiasco.PizzaBase },
+        {
+            Title = "Pizzas Completed",
+            Value = stats.TotalPizzas - stats.TotalMistakes,
+            Icon = Images.PizzaFiasco.PizzaBase,
+            Tag = MinigameController.isNewBest(data.Scores) and "New Best",
+        },
         { Title = "Coins", Value = stats.TotalCoins, Icon = Images.Coins.Coin },
         --[[ {
             Title = "Lives Left",

@@ -14,7 +14,7 @@ local sessionConfig: MinigameConstants.SessionConfig = {
 
     SinglePlayer = true,
     Multiplayer = false,
-
+    HigherScoreWins = true,
     Reward = function(_, score: number): number
         local totalReward = 0
 

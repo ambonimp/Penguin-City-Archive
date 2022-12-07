@@ -18,6 +18,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
+local DataService = require(Paths.Server.Data.DataService)
 
 type Participants = { Player }
 
@@ -394,12 +395,31 @@ function MinigameSession.new(
             end
 
             local sortedScores = minigameSession:SortScores()
-            stateMachine:GetData().Scores = sortedScores
 
             -- Reward
             for placement, scoreInfo in pairs(sortedScores) do
-                CurrencyService.addCoins(scoreInfo.Player, config.Reward(placement, scoreInfo.Score))
+                local player = scoreInfo.Player
+                local score = scoreInfo.Score
+
+                CurrencyService.addCoins(player, config.Reward(placement, score))
+
+                local recordAddress = "MinigameRecords." .. minigameName
+                local highscore = DataService.get(player, recordAddress) or defaultScore
+                if config.HigherScoreWins then
+                    if score > highscore then
+                        DataService.set(player, recordAddress, score)
+                        scoreInfo.NewBest = true
+                    end
+                else
+                    if score < highscore then
+                        DataService.set(player, recordAddress, score)
+                        scoreInfo.NewBest = true
+                    end
+                end
             end
+
+            -- Relay to client
+            stateMachine:GetData().Scores = sortedScores
 
             -- Cleanup
             scores = nil
