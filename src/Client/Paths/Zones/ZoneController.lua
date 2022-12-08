@@ -20,6 +20,8 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -220,6 +222,9 @@ function ZoneController.transitionToZone(
                 character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
             end
+
+            -- Reset to Hud
+            UIController.getStateMachine():PopToAndPush(UIConstants.States.HUD)
 
             -- Wait for zone to load
             local didLoad = ZoneController.waitForZoneToLoad(toZone)
