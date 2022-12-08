@@ -109,7 +109,7 @@ function ToolController.Start()
 
     -- Start with some default tools
     do
-        UIUtil.waitForHudAndRoomZone():andThen(function()
+        UIUtil.waitForHudAndRoomZone(0.5):andThen(function()
             for _, tool in pairs(INITIAL_TOOLBAR) do
                 ToolController.holster(tool)
             end
