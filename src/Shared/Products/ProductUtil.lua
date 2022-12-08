@@ -261,6 +261,14 @@ function ProductUtil.isVehicleProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- Blueprints
+-------------------------------------------------------------------------------
+
+function ProductUtil.getBlueprintProductId(categoryName: string, objectKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(objectKey))
+end
+
+-------------------------------------------------------------------------------
 -- PetEggs
 -------------------------------------------------------------------------------
 
