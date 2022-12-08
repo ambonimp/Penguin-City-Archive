@@ -27,6 +27,19 @@ local defaultZone = ZoneUtil.defaultZone()
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 ZoneService.PlayerTeleported = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
+function ZoneService.Start()
+    -- Setup Cosmetics
+    for _, moduleScript: ModuleScript in pairs(Paths.Server.Zones.Cosmetics:GetDescendants()) do
+        if moduleScript:IsA("ModuleScript") then
+            local module = require(moduleScript)
+            local zoneSetup = typeof(module) == "table" and module.zoneSetup
+            if zoneSetup then
+                zoneSetup()
+            end
+        end
+    end
+end
+
 function ZoneService.getPlayerZoneState(player: Player)
     return playerZoneStatesByPlayer[player]
 end

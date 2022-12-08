@@ -89,7 +89,8 @@ function ZoneController.Start()
         local zoneModel = ZoneUtil.getZoneModel(currentZone)
         for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
             if descendant:IsA("ModuleScript") then
-                local onZoneUpdateCallback = require(descendant).onZoneUpdate
+                local module = require(descendant)
+                local onZoneUpdateCallback = typeof(module) == "table" and module.onZoneUpdate
                 if onZoneUpdateCallback then
                     onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
                 end
