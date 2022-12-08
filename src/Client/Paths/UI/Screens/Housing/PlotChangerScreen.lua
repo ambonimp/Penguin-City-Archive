@@ -105,7 +105,7 @@ do
 
         if plot and not plot:GetAttribute(HousingConstants.PlotOwner) then
             Remotes.fireServer("ChangePlot", plot) -- TODO: Teleport them infront of new plot
-            uiStateMachine:PopTo(UIConstants.States.Nothing) --  TODO: Set this to the HUD when it's complete
+            uiStateMachine:PopTo(UIConstants.States.HUD) --  TODO: Set this to the HUD when it's complete
         end
     end)
     changePlotButton:Mount(setButtonContainer, true)

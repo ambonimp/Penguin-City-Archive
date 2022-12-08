@@ -17,8 +17,8 @@ GameConstants.GameId = {
 }
 
 GameConstants.DataIds = {
-    Dev = 27,
-    QA = 2,
+    Dev = 31,
+    QA = 3,
     Live = 1, --!! Dangerous. Past nums: (1: Alpha)
 }
 

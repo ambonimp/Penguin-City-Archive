@@ -4,8 +4,8 @@
 local Widget = {}
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local UIController = require(Paths.Client.UI.UIController)
 local Signal = require(Paths.Shared.Signal)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
@@ -21,7 +21,6 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ToolController = require(Paths.Client.Tools.ToolController)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
@@ -29,6 +28,8 @@ local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 export type DiverseWidget = typeof(Widget.diverseWidget())
 
 export type Widget = typeof(Widget.diverseWidget())
+
+local uiStateMachine = UIController.getStateMachine()
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -201,9 +202,57 @@ function Widget.diverseWidgetFromProduct(
     return widget
 end
 
--------------------------------------------------------------------------------
--- Pet / PetEgg Widgets
--------------------------------------------------------------------------------
+function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
+    local widget = Widget.diverseWidget()
+    local canPlaceProduct: boolean, _amountToPlace: number = nil, nil
+    -- Populate Widget
+    widget:SetText(product.DisplayName)
+
+    local model = ProductUtil.getModel(product)
+    if model then
+        widget:SetViewport(model)
+    else
+        widget:SetIcon(product.ImageId, product.ImageColor)
+    end
+
+    local function updateWidget()
+        canPlaceProduct, _amountToPlace = ProductController.canPlaceHouseProduct(product)
+        if canPlaceProduct then
+            widget:SetNumberTag(_amountToPlace)
+            widget:SetFade(false)
+            widget:SetPrice()
+        else
+            widget:SetFade(true)
+            widget:SetPrice(product.CoinData and product.CoinData.Cost)
+            widget:SetNumberTag(nil)
+        end
+    end
+
+    local placementMaid = Maid.new()
+    widget:GetMaid():GiveTask(placementMaid)
+
+    placementMaid:GiveTask(widget.Pressed:Connect(function()
+        local canPlace = ProductController.canPlaceHouseProduct(product)
+        if canPlace then
+            uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
+                Object = model:Clone(),
+                IsNewObject = true,
+            })
+        else
+            ProductController.prompt(product)
+        end
+    end))
+
+    placementMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, _amount: number)
+        if addedProduct == product then
+            updateWidget()
+        end
+    end))
+
+    updateWidget()
+
+    return widget
+end
 
 --[[
     `hatchTime` must be straight from data
@@ -279,11 +328,10 @@ end
 
 function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string)
     local product = ProductUtil.getHouseObjectProduct(category, objectKey)
-    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = true })
-    local assets = ReplicatedStorage.Assets.Housing
-    local model = assets.Furniture[objectKey]:Clone()
+    local widget = Widget.diverseWidgetFromHouseObjectProduct(product)
+    local model = ProductUtil.getModel(product)
 
-    widget:GetGuiObject().Size = UDim2.new(0, 250, 1, 0)
+    widget:GetGuiObject().Size = UDim2.new(0, 220, 1, 0)
     widget:SetViewport(model)
 
     return widget

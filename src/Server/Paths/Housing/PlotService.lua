@@ -12,8 +12,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
+local ProductService = require(Paths.Server.Products.ProductService)
 local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
@@ -74,6 +76,25 @@ local function getPlot(player: Player, type: string): Model | nil
     end
 
     return plots[type][player]
+end
+
+local function checkPositionIsWithinBounds(player: Player, position: Vector3): boolean
+    local plot = getPlot(player, HousingConstants.InteriorType)
+
+    local Floor = plot:FindFirstChildOfClass("Model")
+    if Floor then
+        Floor = Floor.Floor
+    end
+    local houseCFrame = CFrame.new(plot.Origin.Position)
+
+    position = (houseCFrame * CFrame.new(position)).Position
+
+    local boundsMin = Floor.Position - Vector3.new(Floor.Size.X / 2, 15, Floor.Size.Z / 2)
+    local boundsMax = Floor.Position + Vector3.new(Floor.Size.X / 2, 300, Floor.Size.Z / 2)
+
+    return (position.X >= boundsMin.X and position.X <= boundsMax.X)
+        and (position.Y >= boundsMin.Y and position.Y <= boundsMax.Y)
+        and (position.Z >= boundsMin.Z and position.Z <= boundsMax.Z)
 end
 
 -------------------------------------------------------------------------------
@@ -263,6 +284,10 @@ end
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
     PlaceHouseObject = function(player: Player, type: string, metadata: FurnitureMetadata | WallpaperMetadata | FloorMetadata)
+        local product = ProductUtil.getHouseObjectProduct("Furniture", metadata.Name)
+        if not ProductService.canPlaceHouseProduct(player, product) then
+            return -- doesn't have enough of the iem to place
+        end
         local typeConstants = HouseObjects[type]
         -- RETURN: Object isn't valid
         if not typeConstants then
@@ -278,13 +303,16 @@ Remotes.bindEvents({
 
         -- Handlers
         if type == "Furniture" then
-            local id = DataService.getAppendageKey(player, "House.Furniture")
-            local object = assets[type]:FindFirstChild(name):Clone()
-            object.Name = id
-
-            local store = updateFurniture(player, object, metadata) -- Flag for valid placement
-            if store then
-                DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+            local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
+            if withinBounds then
+                local id = DataService.getAppendageKey(player, "House.Furniture")
+                local object = assets[type]:FindFirstChild(name):Clone()
+                object.Name = id
+                ProductService.addProduct(player, product, -1)
+                local store = updateFurniture(player, object, metadata) -- Flag for valid placement
+                if store then
+                    DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                end
             end
         end
     end,
@@ -298,7 +326,8 @@ Remotes.bindEvents({
         if not store[id] then
             return
         end
-
+        local product = ProductUtil.getHouseObjectProduct("Furniture", store[id].Name)
+        ProductService.addProduct(player, product, 1)
         plot.Furniture[id]:Destroy()
         DataService.set(player, "House.Furniture." .. id, nil, "OnFurnitureRemoved", {
             Id = id,
@@ -310,11 +339,14 @@ Remotes.bindEvents({
 
         -- RETURN: Object does not exist
         if store[id] then
-            local object = plot.Furniture[id]
+            local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
+            if withinBounds then
+                local object = plot.Furniture[id]
 
-            local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
-            if newStore then
-                DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
+                if newStore then
+                    DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                end
             end
         end
     end,

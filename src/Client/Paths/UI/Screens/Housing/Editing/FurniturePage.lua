@@ -45,7 +45,6 @@ local furniturePanel = SelectionPanel.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local templates: Folder = Paths.Templates.Housing
-local models: Folder = Paths.Assets.Housing.Furniture
 
 local screenGui: ScreenGui = Paths.UI.Housing
 
@@ -100,21 +99,21 @@ local function isModelColliding(model: Model)
     return false
 end
 
-local function selectPaintColor(color: Color3 | string)
-    color = tostring(color)
+local function selectPaintColor(color_: Color3 | string)
+    color_ = tostring(color_)
 
-    local button = colorPanel:GetContainer():FindFirstChild(color) -- Some colors stored in data might get discontinued
+    local button = colorPanel:GetContainer():FindFirstChild(color_) -- Some colors stored in data might get discontinued
     if button then
         button.ColorSelected.Visible = true
     end
 end
 
-local function deselectPaintColor(color: Color3 | string)
-    color = tostring(color)
+local function deselectPaintColor(color_: Color3 | string)
+    color_ = tostring(color_)
 
-    local button = colorPanel:GetContainer():FindFirstChild(color) -- Some colors stored in data might get discontinued
+    local button = colorPanel:GetContainer():FindFirstChild(color_) -- Some colors stored in data might get discontinued
     if button then
-        colorPanel:GetContainer()[color].ColorSelected.Visible = false
+        colorPanel:GetContainer()[color_].ColorSelected.Visible = false
     end
 end
 
@@ -178,7 +177,7 @@ do
                     if model:FindFirstChild("Color" .. i) then
                         local part = model:FindFirstChild("Color" .. i):FindFirstChildOfClass("BasePart")
                             or model:FindFirstChild("Color" .. i):FindFirstChildOfClass("MeshPart")
-
+                            or model:FindFirstChild("Color" .. i):FindFirstChildOfClass("Part")
                         color[i] = part.Color
                     end
                 end
@@ -263,7 +262,7 @@ do
                 if not moving then
                     return
                 end
-                if DeviceUtil.isConsole() or DeviceUtil.isMobile then
+                if DeviceUtil.isConsole() or DeviceUtil.isMobile() then
                     CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Custom)
                 end
 
@@ -280,7 +279,7 @@ do
 
             placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
                 moving = true
-                if DeviceUtil.isConsole() or DeviceUtil.isMobile then
+                if DeviceUtil.isConsole() or DeviceUtil.isMobile() then
                     CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Scriptable)
                 end
 
@@ -408,9 +407,9 @@ do
     })
 
     --HouseEditor UI state
-    local function enterHouseEdit(data)
+    local function enterHouseEdit(_data)
         character = player.Character
-
+        ScreenUtil.inUp(furniturePanel:GetContainer())
         -- See if we can get plot
         local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
         local thisPlot = HousingController.getPlotFromOwner(zoneOwner, HousingConstants.InteriorType)
@@ -439,9 +438,9 @@ do
                     target = target.Parent
                 end
 
-                local model = target.Parent
+                local model_ = target.Parent
                 if uiStateMachine:GetState() == UIConstants.States.FurniturePlacement then
-                    if uiStateMachine:GetData().Object == model then
+                    if uiStateMachine:GetData().Object == model_ then
                         return
                     else
                         uiStateMachine:Pop()
@@ -449,7 +448,7 @@ do
                 end
 
                 uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
-                    Object = model,
+                    Object = model_,
                     IsNewObject = false,
                 })
             end
@@ -513,46 +512,18 @@ do
             furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
         end
 
-        local function getTotalPlaced(objectKey: string)
-            local data = DataController.get("House.Furniture")
-            local placed = 0
-
-            for _, object in data do
-                if object.Name == objectKey and object.FromDefault == nil then
-                    placed += 1
-                end
-            end
-
-            return placed
-        end
-
         local function loadNewItems(tag: string)
-            for i, v in pairs(ObjectsFrame:GetChildren()) do
+            for _, v in pairs(ObjectsFrame:GetChildren()) do
                 if not v:IsA("UIListLayout") then
                     v:Destroy()
                 end
             end
             local objects = FurnitureConstants.GetObjectsFromTag(tag)
-            for objectKey, objectInfo in objects do
-                local modelTemplate = models[objectKey]
-                local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
+            for objectKey, _objectInfo in objects do
+                --local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
                 local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
 
                 objectWidget:GetGuiObject().Parent = ObjectsFrame
-
-                objectWidget.Pressed:Connect(function()
-                    local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-                    local count = ProductController.getProductCount(product)
-                    local total = getTotalPlaced(objectKey)
-                    if isOwned and count - total > 0 then
-                        uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
-                            Object = modelTemplate:Clone(),
-                            IsNewObject = true,
-                        })
-                    else
-                        ProductController.prompt(product)
-                    end
-                end)
             end
             setCategoryVisible(true)
         end
@@ -564,7 +535,7 @@ do
         furniturePanel:GetContainer().Background.Back.ScrollingFrame.UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 
         local function addWidget(tabName: string, tag: string)
-            furniturePanel:AddWidgetConstructor(tabName, tag, function(parent, maid)
+            furniturePanel:AddWidgetConstructor(tabName, tag, false, function(parent, maid)
                 local widget = Widget.diverseWidget()
                 widget:DisableIcon()
                 widget:SetText(tag)
@@ -575,6 +546,7 @@ do
 
                 widget:Mount(parent)
                 maid:GiveTask(widget)
+                return widget
             end)
         end
 
@@ -610,7 +582,7 @@ do
 
         colorPanel:OpenTab("Color1")
         colorPanel.ClosePressed:Connect(function()
-            UIController:Remove(UIConstants.States.FurniturePlacement)
+            uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
         end)
         template.Parent = colorPanel:GetContainer()
 
