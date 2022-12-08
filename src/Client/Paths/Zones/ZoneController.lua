@@ -20,7 +20,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
-local UIController = require(Paths.Client.UI.UIController)
+local UIController: typeof(require(Paths.Client.UI.UIController))
 local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
@@ -43,6 +43,7 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
+    UIController = require(Paths.Client.UI.UIController)
 end
 
 function ZoneController.Start()
