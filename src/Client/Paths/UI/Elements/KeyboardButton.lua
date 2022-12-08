@@ -23,6 +23,8 @@ local LEFT_ALIGN_ANCHOR_POINT = Vector2.new(0, 0.5)
 local RIGHT_ALIGN_ANCHOR_POINT = Vector2.new(1, 0.5)
 local CENTER_ALIGN_ANCHOR_POINT = Vector2.new(0.5, 0.5)
 
+export type KeyboardButton = typeof(KeyboardButton.new())
+
 KeyboardButton.Defaults = {
     Height = 0.12, -- Dictates size of the "back" of the keyboardButton
     HeightPressed = 0.04, -- Perceived height when the keyboardButton is visually pressed
@@ -422,7 +424,12 @@ function KeyboardButton.new()
         if textLabel then
             textLabel.ZIndex = imageButton.ZIndex + 1
         end
+
         back.ZIndex = imageButton.ZIndex - 1
+        if buttonOutline then
+            buttonOutline.ZIndex = back.ZIndex - 1
+            backOutline.ZIndex = back.ZIndex - 1
+        end
 
         adjustIconAndText()
     end)

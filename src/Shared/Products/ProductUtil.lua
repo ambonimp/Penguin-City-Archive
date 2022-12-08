@@ -313,6 +313,39 @@ function ProductUtil.isCoinProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- Tools
+-------------------------------------------------------------------------------
+
+function ProductUtil.getToolProductId(categoryName: string, toolName: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(toolName))
+end
+
+function ProductUtil.getToolProduct(categoryName: string, toolName: string)
+    local product = Products.Products[ProductConstants.ProductType.Tool][ProductUtil.getToolProductId(categoryName, toolName)]
+    if not product then
+        error(("No Tool Product %s.%s"):format(categoryName, toolName))
+    end
+
+    return product
+end
+
+function ProductUtil.getToolProductData(product: Products.Product)
+    -- ERROR: Not a Tool product
+    if not ProductUtil.isToolProduct(product) then
+        error("Passed a non-Tool product")
+    end
+
+    return {
+        CategoryName = product.Metadata.CategoryName :: string,
+        ToolId = product.Metadata.ToolId :: string,
+    }
+end
+
+function ProductUtil.isToolProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.Tool
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 

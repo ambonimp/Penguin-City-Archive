@@ -3,6 +3,7 @@ local RadialMenu = {}
 
 local UIElement = require(script.Parent.UIElement)
 local KeyboardButton = require(script.Parent.KeyboardButton)
+local Button = require(script.Parent.Button)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local Maid = require(ReplicatedStorage.Packages.maid)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
@@ -172,8 +173,8 @@ function RadialMenu.new()
     end
 
     -- Returns a KeyboardButton
-    function radialMenu:AddButton()
-        local button = KeyboardButton.new()
+    function radialMenu:AddButton(button: (Button.Button)?)
+        button = button or KeyboardButton.new()
         button:Mount(createButtonHolder())
         table.insert(buttons, button)
         redraw()
@@ -186,7 +187,7 @@ function RadialMenu.new()
     end
 
     -- Returns true if removed
-    function radialMenu:RemoveButton(button: typeof(KeyboardButton.new()))
+    function radialMenu:RemoveButton(button: Button.Button)
         local index = table.find(buttons, button)
         if index then
             buttons[index]:Destroy()

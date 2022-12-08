@@ -1,95 +1,185 @@
 local CharacterEditorScreen = {}
-
--- Dependecies
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local Janitor = require(Paths.Packages.janitor)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
 local Promise = require(Paths.Packages.promise)
-local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
-local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
-local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
+local DataController = require(Paths.Client.DataController)
+local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
-local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local DataController = require(Paths.Client.DataController)
-local CoreGui = require(Paths.Client.UI.CoreGui)
-local Button = require(Paths.Client.UI.Elements.Button)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local Category = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCategory)
-local BodyTypeCategory = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorBodyTypeCategory)
-local CharacterEditorCamera = require(Paths.Client.UI.Screens.CharacterEditor.CharacterEditorCamera)
+
+export type EquippedItems = { string }
 
 local STANDUP_TIME = 0.1
-local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
-local DEFAULT_CATEGORY = "Shirt"
+local CHARACTER_PREVIEW_CONFIG = {
+    SubjectScale = 7,
+    SubjectPosition = -0.2,
+}
 
-local canOpen: boolean = true
-
-local player: Player = Players.LocalPlayer
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
+local player = Players.LocalPlayer
 
 local screen: ScreenGui = Paths.UI.CharacterEditor
-local menu: Frame = screen.Edit
-local tabs: Frame = menu.Tabs
-local equippedSlots: Frame = screen.Equipped
-local bodyTypesPage: Frame = screen.BodyTypes
+local panel = SelectionPanel.new()
+panel:SetAlignment("Right")
+panel:SetSize(4)
+panel:Mount(screen)
+panel:GetContainer().Visible = false
+local equipSlots: Frame = screen.EquipSlots
+
+local tabJanitor = Janitor.new()
+
+local previewCharacter, previewMaid
+local equippedItems: { [string]: EquippedItems } = {}
+
 local uiStateMachine = UIController.getStateMachine()
 
-local categories: { [string]: any } = {}
-local currentCategory: string
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function updateAppearance(changes: { [string]: EquippedItems }): CharacterItemConstants.Appearance
+    return CharacterItemUtil.applyAppearance(previewCharacter, changes)
+end
 
-local preview: Model
-local session = Maid.new()
-
--- Initialize categories
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
 do
-    for categoryName in pairs(CharacterItems) do
-        local category
+    for _, keyValuePair in pairs(TableUtil.sortFromProperty(CharacterItemConstants, "TabOrder")) do
+        local categoryName: string = keyValuePair.Key
+        local categoryConstants: CharacterItemConstants.Category = keyValuePair.Value
 
-        if categoryName == "BodyType" then
-            category = BodyTypeCategory
-        else
-            category = Category.new(categoryName)
+        if categoryName ~= "BodyType" then
+            local canEquip: boolean = categoryConstants.MaxEquippables ~= 0
+            local canUnequip: boolean = categoryConstants.CanUnequip
+            local maxEquippables: number = categoryConstants.MaxEquippables
+            local canMultiEquip: boolean = maxEquippables > 1
 
-            local tabButton = Button.new(category:GetTab())
-            tabButton:Mount(tabs)
-            tabButton.InternalPress:Connect(function()
-                if currentCategory then
-                    categories[currentCategory]:Close()
+            -------------------------------------------------------------------------------
+            -- Equipping
+            -------------------------------------------------------------------------------
+            local function unequipItem(itemName: string, doNotUpdateAppearance: true?)
+                table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemName))
+                if not doNotUpdateAppearance then
+                    updateAppearance({ [categoryName] = equippedItems[categoryName] })
                 end
 
-                currentCategory = categoryName
-                category:Open()
-            end)
+                panel:SetWidgetSelected(categoryName, itemName, false)
+            end
 
-            if categoryName == DEFAULT_CATEGORY then
-                currentCategory = categoryName
-                category:Open()
+            local function equipItem(itemName: string, doNotUpdateAppearance: true?)
+                if canMultiEquip then
+                    if #equippedItems[categoryName] == maxEquippables then
+                        return
+                    end
+                else
+                    -- Appearance is updated when the new item is equipped, no point in updating it here
+                    local equipped = equippedItems[categoryName][1]
+                    if equipped then
+                        unequipItem(equipped, true)
+                    end
+                end
+
+                table.insert(equippedItems[categoryName], itemName)
+                if not doNotUpdateAppearance then
+                    updateAppearance({ [categoryName] = equippedItems[categoryName] })
+                end
+
+                panel:SetWidgetSelected(categoryName, itemName, true)
+            end
+
+            local function bulkEquip(equipping: EquippedItems, doNotUpdateAppearance: true?)
+                for _, itemName in pairs(equipping) do
+                    equipItem(itemName, doNotUpdateAppearance)
+                end
+            end
+
+            -------------------------------------------------------------------------------
+            -- Interface
+            -------------------------------------------------------------------------------
+            panel:AddTab(categoryName, categoryConstants.TabIcon)
+            for itemName in pairs(categoryConstants.Items) do
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+
+                panel:AddWidgetFromProduct(categoryName, itemName, false, product, {
+                    VerifyOwnership = true,
+                    HideText = true,
+                }, function()
+                    if canEquip then
+                        local isEquipped = table.find(equippedItems[categoryName], itemName)
+                        if canUnequip and isEquipped then
+                            unequipItem(itemName)
+                        elseif not isEquipped then
+                            equipItem(itemName)
+                        end
+                    elseif categoryName == "Outfit" then
+                        local changedItems = updateAppearance({ [categoryName] = { itemName } })
+                        for category, items in pairs(changedItems) do
+                            for _, item in pairs(equippedItems[category]) do
+                                panel:SetWidgetSelected(category, item, false)
+                            end
+                            for _, item in pairs(items) do
+                                panel:SetWidgetSelected(category, item, true)
+                            end
+                        end
+
+                        TableUtil.merge(equippedItems, changedItems)
+                    end
+                end, function(widget)
+                    if canMultiEquip then
+                        local slotTask = itemName .. "Slot"
+                        widget.SelectedChanged:Connect(function(selected)
+                            if selected then
+                                local unequipButton = ExitButton.new()
+                                unequipButton.Pressed:Connect(function()
+                                    unequipItem(itemName)
+                                end)
+
+                                local slot = Widget.diverseWidgetFromProduct(product, { HideText = true })
+                                slot:SetCornerButton(unequipButton)
+                                slot:Mount(equipSlots)
+
+                                tabJanitor:Add(function()
+                                    slot:Destroy()
+                                    unequipButton:GetMaid():Cleanup()
+                                end, nil, slotTask)
+                            else
+                                tabJanitor:Remove(slotTask)
+                            end
+                        end)
+                    end
+                end)
+            end
+
+            if canEquip then
+                equippedItems[categoryName] = {}
+                bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
             end
         end
-
-        categories[categoryName] = category
     end
 
-    categories.Outfit.Changed:Connect(function(appearance: CharacterItems.Appearance)
-        for categoryName, category in pairs(categories) do
-            local equippedItems: Category.EquippedItems = appearance[categoryName]
-            if equippedItems then
-                category:Equip(equippedItems)
-            end
-        end
+    panel.TabChanged:Connect(function()
+        tabJanitor:Cleanup()
     end)
 end
 
 -- Register UIState
 do
     local characterIsReady
-    local function openMenu()
+    local canOpen = true
+
+    local function boot(data)
         -- RETURN: Menu is already open
         if not canOpen then
             return
@@ -105,7 +195,8 @@ do
         end
 
         -- Only open character editor when the player is on the floor
-        characterIsReady = Promise.new(function(resolve, reject, onCancel)
+        local stateUpdateConnection: RBXScriptConnection
+        characterIsReady = Promise.new(function(resolve, reject)
             local humanoid: Humanoid = character.Humanoid
             local function checkState()
                 local state = humanoid:GetState()
@@ -127,49 +218,40 @@ do
             end
 
             checkState()
-            local stateUpdateConnection = humanoid.StateChanged:Connect(checkState)
-            onCancel(function()
-                stateUpdateConnection:Disconnect()
-            end)
+            stateUpdateConnection = humanoid.StateChanged:Connect(checkState)
         end):finally(function()
             character = player.Character
             if character then
                 character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
             end
+
+            stateUpdateConnection:Disconnect()
         end)
 
-        local proceed = characterIsReady:await()
         -- RETURN: Player no longer wants to open the editor
+        local proceed = characterIsReady:await()
         if not proceed then
             return
         end
-        -- Create a testing dummy where changes to the players appearance can be previewed really quickly, hide the actual character
-        character:WaitForChild("HumanoidRootPart").Anchored = true
 
-        preview = character:Clone()
-        preview.Name = "CharacterEditorPreview"
-        preview.Parent = Workspace
-        preview.Humanoid:WaitForChild("Animator"):LoadAnimation(IDLE_ANIMATION):Play()
-        session:GiveTask(preview)
+        previewCharacter, previewMaid = CharacterPreview.preview(CHARACTER_PREVIEW_CONFIG)
 
-        for _, category in pairs(categories) do
-            category:SetPreview(preview)
+        if data.Tab then
+            panel:OpenTab(data.Tab)
         end
-
-        -- Make camera look at preview character
-        session:GiveTask(CharacterEditorCamera.look(preview))
-
-        -- Open menu and hide all other characters
-        ScreenUtil.inLeft(menu)
-        ScreenUtil.inRight(equippedSlots)
-        ScreenUtil.inRight(bodyTypesPage)
-
-        CoreGui.disable()
-        InteractionUtil.hideInteractions(script.Name)
-        CharacterUtil.hideCharacters(script.Name)
     end
 
-    local function exitMenu()
+    local function maximize()
+        ScreenUtil.inLeft(panel:GetContainer())
+        ScreenUtil.inUp(equipSlots)
+    end
+
+    local function minimize()
+        ScreenUtil.out(panel:GetContainer())
+        ScreenUtil.out(equipSlots)
+    end
+
+    local function shutdown()
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
@@ -177,16 +259,14 @@ do
             characterIsReady:Cancel()
             characterIsReady:Destroy()
         else
+            local currentApperance = DataController.get("CharacterAppearance")
+
             --Were changes were made to the character's appearance?
             local appearanceChanges = {}
-            local currentApperance: CharacterItems.Appearance = DataController.get("CharacterAppearance")
-            for categoryName, category in pairs(categories) do
-                local equipped = category:GetEquipped()
-                if not TableUtil.shallowEquals(currentApperance[categoryName] :: table, equipped) then
-                    appearanceChanges[categoryName] = equipped
+            for categoryName, items in pairs(equippedItems) do
+                if not TableUtil.shallowEquals(currentApperance[categoryName], items) then
+                    appearanceChanges[categoryName] = items
                 end
-                -- Prevent memory leaks
-                category:SetPreview()
             end
 
             if TableUtil.length(appearanceChanges) ~= 0 then
@@ -199,28 +279,23 @@ do
                 character.HumanoidRootPart.Anchored = false
             end
 
-            ScreenUtil.out(menu)
-            ScreenUtil.out(equippedSlots)
-            ScreenUtil.out(bodyTypesPage)
-
-            CharacterUtil.showCharacters(script.Name)
-            CoreGui.enable()
-            InteractionUtil.showInteractions(script.Name)
-
-            session:Cleanup()
+            previewMaid:Destroy()
         end
 
         canOpen = true
     end
 
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.CharacterEditor, openMenu, exitMenu)
+    UIController.registerStateScreenCallbacks(UIConstants.States.CharacterEditor, {
+        Boot = boot,
+        Shutdown = shutdown,
+        Maximize = maximize,
+        Minimize = minimize,
+    })
 end
 
 -- Manipulate UIState
 do
-    local exitButton = ExitButton.new(UIConstants.States.CharacterEditor)
-    exitButton:Mount(tabs.Exit, true)
-    exitButton.Pressed:Connect(function()
+    panel.ClosePressed:Connect(function()
         uiStateMachine:Pop()
     end)
 end

@@ -22,7 +22,7 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local ProductController = require(Paths.Client.ProductController)
-local PartUtil = require(Paths.Shared.Utils.PartUtil)
+local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
 local HousingController = require(Paths.Client.HousingController)
@@ -218,7 +218,7 @@ do
                 for _, basePart in pairs(model:GetDescendants()) do
                     if basePart:IsA("BasePart") and basePart ~= primaryPart then
                         basePart.Anchored = false
-                        PartUtil.weld(primaryPart, basePart)
+                        BasePartUtil.weld(primaryPart, basePart)
                     end
                 end
             end

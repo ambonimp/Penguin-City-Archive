@@ -5,6 +5,8 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Maid = require(Paths.Packages.maid)
+local GroupUtil = require(Paths.Shared.Utils.GroupUtil)
+local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
 
 local maidByPlayer: { [Player]: typeof(Maid.new()) } = {}
 
@@ -23,6 +25,8 @@ function PlayerService.Start()
     local RewardsService = require(Paths.Server.RewardsService)
     local SessionService = require(Paths.Server.SessionService)
     local PetService = require(Paths.Server.Pets.PetService)
+    local PlayerChatService = require(Paths.Server.PlayerChatService)
+    local ToolService = require(Paths.Server.Tools.ToolService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -44,6 +48,8 @@ function PlayerService.Start()
         ZoneService.loadPlayer(player)
         RewardsService.loadPlayer(player)
         PetService.loadPlayer(player)
+        PlayerChatService.loadPlayer(player)
+        ToolService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)
@@ -64,6 +70,18 @@ function PlayerService.Start()
     for _, player in pairs(Players:GetPlayers()) do
         loadPlayer(player)
     end
+end
+
+function PlayerService.getAestheticRoleDetails(player: Player)
+    if GroupUtil.isAdmin(player) then
+        return PlayerConstants.AestheticRoleDetails.Admin
+    end
+
+    if GroupUtil.isTester(player) then
+        return PlayerConstants.AestheticRoleDetails.Tester
+    end
+
+    return nil
 end
 
 return PlayerService

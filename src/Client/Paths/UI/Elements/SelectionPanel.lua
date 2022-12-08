@@ -15,13 +15,16 @@ local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local Products = require(Paths.Shared.Products.Products)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local ProductController = require(Paths.Client.ProductController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { { WidgetName: string, Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil } },
+    WidgetConstructors: { {
+        WidgetName: string,
+        Selected: boolean,
+        Instance: Widget.Widget?,
+        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+    } },
     Button: Button.Button | nil,
 }
 
@@ -62,6 +65,7 @@ function SelectionPanel.new()
     local parent: GuiBase | GuiObject | nil
     local containerFrame: Frame
     local backgroundFrame: Frame
+    local closeButtonFrame: Frame
     local tabsFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
@@ -81,6 +85,7 @@ function SelectionPanel.new()
 
     selectionPanel.TabChanged = Signal.new()
     selectionPanel.ClosePressed = Signal.new()
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
 
     -------------------------------------------------------------------------------
@@ -171,6 +176,7 @@ function SelectionPanel.new()
         end
         containerFrame = containerFrame:Clone()
         backgroundFrame = containerFrame.Background
+        closeButtonFrame = backgroundFrame.Side.CloseButton
         containerMaid:GiveTask(containerFrame)
 
         if parent then
@@ -303,7 +309,10 @@ function SelectionPanel.new()
                 drawMaid:GiveTask(widgetFrame)
 
                 widgetFrame.Background:Destroy()
-                widgetInfo.Constructor(widgetFrame, drawMaid)
+
+                local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
+                widget:SetSelected(widgetInfo.Selected)
+                widgetInfo.Instance = widget
             end
         end
 
@@ -321,6 +330,18 @@ function SelectionPanel.new()
         if hideParent and parent:IsA("GuiObject") then
             parent.BackgroundTransparency = 1
         end
+
+        -- WARN: Unintended Behaviour
+        local screenGui = newParent:IsA("ScreenGui") and newParent or newParent:FindFirstAncestorOfClass("ScreenGui")
+        if screenGui then
+            if screenGui.ZIndexBehavior ~= Enum.ZIndexBehavior.Global then
+                warn(
+                    ("ScreenGui %q must have ZIndexBehavior Enum.ZIndexBehavior.Global for SelectionPanel to function properly"):format(
+                        screenGui:GetFullName()
+                    )
+                )
+            end
+        end
     end
 
     function selectionPanel:GetContainer()
@@ -334,7 +355,14 @@ function SelectionPanel.new()
             warn(("No tab %q exits"):format(tabName))
             return
         end
-        selectionPanel.TabChanged:Fire(tabName)
+
+        if openTabName then
+            for _, widgetInfo in pairs(getTab(openTabName).WidgetConstructors) do
+                widgetInfo.Instance = nil
+            end
+        end
+        selectionPanel.TabChanged:Fire(openTabName, tabName)
+
         openTabName = tabName
         openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
 
@@ -451,7 +479,8 @@ function SelectionPanel.new()
     function selectionPanel:AddWidgetConstructor(
         tabName: string,
         widgetName: string,
-        constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil
+        selected: boolean,
+        constructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget)
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -469,6 +498,7 @@ function SelectionPanel.new()
         table.insert(tab.WidgetConstructors, {
             WidgetName = widgetName,
             Constructor = constructor,
+            Selected = selected,
         })
 
         if openTabName == tab.Name then
@@ -479,24 +509,55 @@ function SelectionPanel.new()
     function selectionPanel:AddWidgetFromProduct(
         tabName: string,
         widgetName: string,
+        selected: boolean,
         product: Products.Product,
-        state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?,
-        callback: (() -> nil)?
+        state: {
+            VerifyOwnership: boolean?,
+            ShowTotals: boolean?,
+            HideText: boolean?,
+        }?,
+        onClicked: (() -> ())?,
+        onCreated: ((Widget.Widget) -> ())?
     )
-        selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
-            local widget = Widget.diverseWidgetFromProduct(product, state)
-            widget:Mount(widgetParent)
-            widget.Pressed:Connect(function()
-                local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-                local doRunCallback = not (state and state.VerifyOwnership) or isOwned
-
-                if doRunCallback then
-                    callback()
-                end
+        selectionPanel:AddWidgetConstructor(tabName, widgetName, selected, function(widgetParent, maid)
+            local widget = Widget.diverseWidgetFromProduct(product, state, function(button)
+                button.Pressed:Connect(function()
+                    if onClicked then
+                        onClicked()
+                    end
+                end)
             end)
 
+            if onCreated then
+                onCreated(widget)
+            end
+
+            widget:Mount(widgetParent)
             maid:GiveTask(widget)
+
+            return widget
         end)
+    end
+
+    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, toggle: boolean)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        for _, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                widgetInfo.Selected = toggle
+                local widget = widgetInfo.Instance
+                if widget then
+                    widget:SetSelected(toggle)
+                end
+
+                break
+            end
+        end
     end
 
     function selectionPanel:RemoveWidget(tabName: string, widgetName: string)
@@ -510,6 +571,7 @@ function SelectionPanel.new()
         for index, widgetInfo in pairs(tab.WidgetConstructors) do
             if widgetInfo.WidgetName == widgetName then
                 table.remove(tab.WidgetConstructors, index)
+                break
             end
         end
 
@@ -533,6 +595,10 @@ function SelectionPanel.new()
         if openTabName == tabName then
             draw()
         end
+    end
+
+    function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
+        closeButtonFrame.Visible = isVisible
     end
 
     -------------------------------------------------------------------------------

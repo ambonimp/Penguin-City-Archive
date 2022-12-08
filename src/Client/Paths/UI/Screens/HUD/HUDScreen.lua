@@ -10,6 +10,10 @@ local Images = require(Paths.Shared.Images.Images)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
+local ToolController = require(Paths.Client.Tools.ToolController)
+local Maid = require(Paths.Packages.maid)
+local Widget = require(Paths.Client.UI.Elements.Widget)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 local BUTTON_PROPERTIES = {
     Position = UDim2.fromScale(0.5, 0.5),
@@ -21,11 +25,10 @@ local UNFURLED_MAP_PROPERTIES = {
 }
 
 local uiStateMachine = UIController.getStateMachine()
-
 local screenGui: ScreenGui = Ui.HUD
 local openCallbacks: { () -> () } = {}
 local closeCallbacks: { () -> () } = {}
-
+local toolbarMaid = Maid.new()
 local inventoryButton: AnimatedButton.AnimatedButton
 
 local function isIglooButtonEdit()
@@ -44,9 +47,9 @@ end
 
 local function map(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.FoldedMap
-
-    --!!temp
-    button.Pressed:Connect(ZoneController.teleportToRandomRoom)
+    button.Pressed:Connect(function()
+        UIController.getStateMachine():Push(UIConstants.States.Map)
+    end)
 end
 
 local function dailyRewards(button: AnimatedButton.AnimatedButton)
@@ -111,6 +114,59 @@ local function createAnimatedButton(frame: Frame)
 
     return button
 end
+
+-------------------------------------------------------------------------------
+-- Tools
+-------------------------------------------------------------------------------
+
+local function updateToolbar()
+    toolbarMaid:Cleanup()
+
+    local itemHolderTemplate: Frame = screenGui.Bottom.itemHolder
+    itemHolderTemplate.BackgroundTransparency = 1
+    itemHolderTemplate.Visible = false
+
+    -- Create a toolbar widget for each tool
+    local holsteredTools = ToolController.getHolsteredTools()
+    for i, tool in pairs(holsteredTools) do
+        -- Holder
+        local holder = itemHolderTemplate:Clone()
+        holder.Name = tool.ToolId
+        holder.LayoutOrder = i
+        holder.Parent = screenGui.Bottom
+        holder.Visible = true
+        toolbarMaid:GiveTask(holder)
+
+        -- Widget
+        local toolWidget, closeButton = Widget.diverseWidgetFromTool(tool)
+        toolWidget:Mount(holder)
+        toolWidget.Pressed:Connect(function()
+            -- Unequip
+            local equippedTool = ToolController.getEquipped()
+            if equippedTool then
+                ToolController.unequip()
+            end
+
+            -- Equip
+            if not (equippedTool and ToolUtil.toolsMatch(equippedTool, tool)) then
+                ToolController.equipRequest(tool)
+            end
+        end)
+        toolbarMaid:GiveTask(toolWidget)
+
+        -- Close button
+        toolbarMaid:GiveTask(closeButton.Pressed:Connect(function()
+            ToolController.unholster(tool)
+        end))
+    end
+end
+
+ToolController.ToolHolstered:Connect(updateToolbar)
+ToolController.ToolUnholstered:Connect(updateToolbar)
+
+-------------------------------------------------------------------------------
+-- Methods
+-------------------------------------------------------------------------------
 
 function HUDScreen.Init()
     -- Create Buttons

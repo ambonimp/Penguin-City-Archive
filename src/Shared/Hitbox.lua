@@ -8,7 +8,7 @@ local Workspace = game:GetService("Workspace")
 local RotatedRegion3 = require(ReplicatedStorage.Shared.RotatedRegion3)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Maid = require(ReplicatedStorage.Packages.maid)
-local PartUtil = require(ReplicatedStorage.Shared.Utils.PartUtil)
+local BasePartUtil = require(ReplicatedStorage.Shared.Utils.BasePartUtil)
 
 local EPSILON = 0.001
 
@@ -96,7 +96,7 @@ function Hitbox.new()
 
         -- Check parts
         for _, part in pairs(parts) do
-            if PartUtil.isPointInPart(part, point) then
+            if BasePartUtil.isPointInPart(part, point) then
                 return true
             end
         end

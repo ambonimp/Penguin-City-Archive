@@ -2,7 +2,6 @@ local Pet = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Maid = require(ReplicatedStorage.Packages.maid)
-local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 
 local idCounter = 0
 

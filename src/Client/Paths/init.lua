@@ -48,8 +48,12 @@ task.delay(0, function()
         require(client.Zones.ZoneController),
         require(client.PlayerMenuController),
         require(client.Rewards.RewardsController),
+        require(client.Interactions.InteractionController),
         require(client.Pets.PetController),
         require(client.StampController),
+        require(client.PlayerChatController),
+        require(client.TutorialController),
+        require(client.Tools.ToolController),
 
         -- UnitTest
         require(client.UnitTestingController),

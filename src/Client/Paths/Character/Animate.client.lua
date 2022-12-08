@@ -46,23 +46,10 @@ local PreloadedAnims = {}
 local animTable = {}
 
 -- Existance in this list signifies that it is an emote, the value indicates if it is a looping emote
-local emoteNames = {}
+-- Emotes: wave, point, dance, dance2, dance3, laugh, cheer
+local emoteNames = { Wave = false, Point = false, Cheer = false }
 
 math.randomseed(tick())
-
-function findExistingAnimationInSet(set, anim)
-    if set == nil or anim == nil then
-        return 0
-    end
-
-    for idx = 1, set.count, 1 do
-        if set[idx].anim.AnimationId == anim.AnimationId then
-            return idx
-        end
-    end
-
-    return 0
-end
 
 function configureAnimationSet(name, fileList)
     if animTable[name] ~= nil then
@@ -523,7 +510,7 @@ function stepAnimate(currentTime)
     if pose == "FreeFall" and jumpAnimTime <= 0 then
         playAnimation("Fall", fallTransitionTime, Humanoid)
     elseif pose == "Seated" then
-        playAnimation("Sit", 0.5, Humanoid)
+        playAnimation("Sit", 0.25, Humanoid)
         return
     elseif pose == "Running" then
         playAnimation("Walk", 0.2, Humanoid)
@@ -580,6 +567,9 @@ Players.LocalPlayer.Chatted:Connect(function(msg)
     elseif string.sub(msg, 1, 7) == "/emote " then
         emote = string.sub(msg, 8)
     end
+
+    emote = emote:lower()
+    emote = emote:sub(1, 1):upper() .. emote:sub(2, #emote)
 
     if pose == "Standing" and emoteNames[emote] ~= nil then
         playAnimation(emote, EMOTE_TRANSITION_TIME, Humanoid)

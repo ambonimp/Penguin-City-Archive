@@ -9,6 +9,22 @@ local Binder = require(shared.Binder)
 local packages = ReplicatedStorage.Packages
 local Promise = require(packages.promise)
 
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function getPromise(tween)
+    return Promise.new(function(resolve, _, onCancel)
+        if onCancel(function()
+            tween:Cancel()
+        end) then
+            return
+        end
+
+        tween.Completed:Connect(resolve)
+        tween:Play()
+    end)
+end
+
 -- Creates a tween, and automatically plays it
 function TweenUtil.tween(instance: Instance, tweenInfo: TweenInfo, propertyTable: { [string]: any })
     local tween = TweenService:Create(instance, tweenInfo, propertyTable)
@@ -43,20 +59,19 @@ end
     Returns a promise that resolves when a tween is completed
 ]]
 function TweenUtil.promisify(instance: Instance, tweenInfo: TweenInfo, goal: { [string]: any })
-    return function()
-        return Promise.new(function(resolve, _, onCancel)
-            local tween = TweenService:Create(instance, tweenInfo, goal)
+    return getPromise(TweenService:Create(instance, tweenInfo, goal))
+end
 
-            if onCancel(function()
-                tween:Cancel()
-            end) then
-                return
-            end
-
-            tween.Completed:Connect(resolve)
-            tween:Play()
-        end)
+--[[
+    Returns a promise that resolves when a bactch of tweens are completed
+]]
+function TweenUtil.batch(tweens: { Tween })
+    local promises = {}
+    for _, tween in pairs(tweens) do
+        table.insert(promises, getPromise(tween))
     end
+
+    return Promise.all(promises)
 end
 
 --[[

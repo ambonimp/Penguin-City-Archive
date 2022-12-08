@@ -1,6 +1,6 @@
 local TableUtil = {}
 
-function TableUtil.deepClone(tbl: table)
+function TableUtil.deepClone<T>(tbl: T): T
     local clone = {}
 
     for i, v in pairs(tbl) do
@@ -243,6 +243,36 @@ function TableUtil.mapValues(tbl: table, map: (value: any) -> any)
     end
 
     return mappedTbl
+end
+
+function TableUtil.sortFromProperty<T>(tbl: T, property: any, comp: ((any, any) -> (boolean))?)
+    local sorted: { { Key: any, Value: any } } = {}
+
+    for k, v in pairs(tbl) do
+        table.insert(sorted, { Key = k, Value = v })
+    end
+
+    table.sort(sorted, function(a, b)
+        local aValue = a.Value[property]
+        local bValue = b.Value[property]
+
+        return if comp then comp(aValue, bValue) else aValue < bValue
+    end)
+
+    return sorted
+end
+
+--[[
+    Returns a table such that indexing `key` returns `key`, where `keys` are derived from `tbl`
+]]
+function TableUtil.enumFromKeys(tbl: table)
+    local enumTbl = {}
+
+    for key, _ in pairs(tbl) do
+        enumTbl[key] = key
+    end
+
+    return enumTbl
 end
 
 return TableUtil

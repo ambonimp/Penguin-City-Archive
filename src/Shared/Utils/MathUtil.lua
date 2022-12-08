@@ -114,10 +114,12 @@ end
     Returns `Value`
 ]]
 function MathUtil.weightedChoice(
-    tbl: { {
-        Weight: number,
-        Value: any,
-    } },
+    tbl: {
+        {
+            Weight: number,
+            Value: any,
+        }
+    },
     random: Random?
 )
     local sum = 0
@@ -315,16 +317,6 @@ function MathUtil.nextVariation(value: number, variation: number)
 end
 
 --[[
-    Returns a Vector3 with internalRandom numbers in all axes.
-]]
-function MathUtil.nextVector3(min: number, max: number)
-    local x = MathUtil.nextNumber(min, max)
-    local y = MathUtil.nextNumber(min, max)
-    local z = MathUtil.nextNumber(min, max)
-    return Vector3.new(x, y, z)
-end
-
---[[
 Returns a internalRandom angle in degrees from 0 to 360.
 ]]
 function MathUtil.nextDegrees()
@@ -409,6 +401,10 @@ end
 
 --[[
     https://developer.roblox.com/en-us/articles/Bezier-curves
+
+    - `v0`: Start Position
+    - `v1`: Intermediate Position
+    - `v2`: End Position
 ]]
 function MathUtil.getQuadraticBezierPoint(alpha: number, v0: Vector3, v1: Vector3, v2: Vector3)
     alpha = math.clamp(alpha, 0, 1)

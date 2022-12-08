@@ -5,7 +5,7 @@ local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
-local UIController = require(Paths.Client.UI.UIController)
+local UIController: typeof(require(Paths.Client.UI.UIController))
 local UIConstants = require(Paths.Client.UI.UIConstants)
 
 type Task = {
@@ -20,7 +20,10 @@ local VERIFY_PLAYER_GUI_EVERY = 1
 
 local localPlayer = Players.LocalPlayer
 local character: Model, humanoidRootPart: Part
+
 local screen: ScreenGui = Paths.UI:WaitForChild("LoadingScreen")
+screen.Enabled = true
+
 local gradient: UIGradient = screen.Logo.Colored.UIGradient
 local skipBtn: ImageButton = screen.Skip
 local skipConn: RBXScriptConnection?
@@ -28,7 +31,6 @@ local tween: Tween?
 local playing = true
 local taskQueue: { Task } = {}
 local hasStartedLoading = false
-local uiStateMachine = UIController.getStateMachine()
 
 local function close()
     repeat
@@ -38,23 +40,23 @@ local function close()
     playing = false
 
     TransitionFX.blink(function()
-        uiStateMachine:PopIfStateOnTop(UIConstants.States.Loading)
+        UIController.getStateMachine():Remove(UIConstants.States.Loading)
 
         humanoidRootPart.Anchored = false
         screen:Destroy()
     end)
 end
 
-function Loader.giveTask(scope: string, name: string, task: () -> nil)
-    -- ERROR: Cannot give tasks once loading has started
+function Loader.giveTask(scope: string, name: string, taskCallback: () -> nil)
     if hasStartedLoading then
-        error("Cannot give task once loading has started - tasks should be given when a script is required.")
+        task.delay(nil, taskCallback)
+        return
     end
 
     local newTask: Task = {
         Scope = scope,
         Name = name,
-        Task = task,
+        Task = taskCallback,
     }
     table.insert(taskQueue, newTask)
 end
@@ -118,6 +120,7 @@ function Loader.yieldPlayerGui()
         end
 
         -- Passed
+        print("PlayerGui Loaded")
         return true
     end
 
@@ -127,12 +130,15 @@ function Loader.yieldPlayerGui()
 end
 
 function Loader.Start()
+    -- Circular Dependencies
+    UIController = require(Paths.Client.UI.UIController)
+
     -- ERROR: Already loading
     if hasStartedLoading then
         error(".load has already been called!")
     end
     hasStartedLoading = true
-    uiStateMachine:Push(UIConstants.States.Loading)
+    UIController.getStateMachine():Push(UIConstants.States.Loading)
 
     local totalTasks = #taskQueue
     local tasksCompleted = 0

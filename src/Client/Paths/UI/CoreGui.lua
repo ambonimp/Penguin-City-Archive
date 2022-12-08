@@ -9,6 +9,7 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Health,
     Enum.CoreGuiType.PlayerList,
+    Enum.CoreGuiType.Backpack,
 }
 
 local isEnabled = true

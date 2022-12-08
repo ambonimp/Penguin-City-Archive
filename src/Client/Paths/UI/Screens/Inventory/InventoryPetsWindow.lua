@@ -34,7 +34,9 @@ function InventoryPetsWindow.new(
             Unequip = function(_product: Products.Product)
                 PetController.unequipPetRequest()
             end,
-            StartEquipped = PetController.getEquippedPetDataIndex(),
+            GetEquipped = function()
+                return { PetController.getCachedEquippedPetDataIndex() }
+            end,
         },
     })
 
@@ -126,11 +128,6 @@ function InventoryPetsWindow.new(
     -- Repopulate/draw when we get an update
     inventoryPetsWindow:GetMaid():GiveTask(PetController.PetUpdated:Connect(populate))
     inventoryPetsWindow:GetMaid():GiveTask(PetController.PetEggUpdated:Connect(populate))
-
-    -- External Equipping
-    inventoryPetsWindow:GetMaid():GiveTask(PetController.PetCreated:Connect(function(petDataIndex: string)
-        inventoryPetsWindow:Equip(petDataIndex, true)
-    end))
 
     return inventoryPetsWindow
 end

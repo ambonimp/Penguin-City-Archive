@@ -32,12 +32,13 @@ task.delay(0, function()
         require(server.Cmdr.CmdrService),
         require(server.Characters.CharacterItemService),
         require(server.PlayerService),
-        require(server.Minigames.MinigameService),
         require(server.Products.ProductProcessReceipt),
         require(server.Zones.ZoneService),
         require(server.Housing.PlotService),
         require(server.Pets.PetService),
         require(server.Stamps.StampService),
+        require(server.TutorialService),
+        require(server.Tools.ToolService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

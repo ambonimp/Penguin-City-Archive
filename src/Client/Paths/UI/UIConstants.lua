@@ -3,6 +3,7 @@ local UIConstants = {}
 UIConstants.States = {
     Loading = "Loading",
     CharacterEditor = "CharacterEditor",
+    Minigame = "Minigame",
     PizzaMinigame = "PizzaMinigame",
     HouseEditor = "HouseEditor",
     FurniturePlacement = "FurniturePlacement",
@@ -22,6 +23,8 @@ UIConstants.States = {
     PetEggHatching = "PetEggHatching",
     Shop = "Shop",
     StampInfo = "StampInfo",
+    StartingAppearance = "StartingAppearance",
+    Map = "Map",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -33,6 +36,8 @@ UIConstants.PseudoStates = {
         UIConstants.States.Paycheck,
     },
 }
+
+UIConstants.InteractionPermissiveStates = { [UIConstants.States.HUD] = true }
 
 -- If any states in here are on the top of the stack, the next visible state below will *also* be treated as being on top of the stack
 UIConstants.InvisibleStates = { UIConstants.States.StampInfo }
@@ -66,6 +71,7 @@ UIConstants.Colors = {
         UnavailableGrey = Color3.fromRGB(158, 158, 158),
         StampBeige = Color3.fromRGB(225, 209, 159),
         IglooPink = Color3.fromRGB(229, 142, 237),
+        NextTeal = Color3.fromRGB(50, 195, 185),
         WaitOrange = Color3.fromRGB(255, 151, 32),
         EditOrange = Color3.fromRGB(255, 158, 46),
     },

@@ -6,13 +6,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Toggle = require(Shared.Toggle)
-local Packages = ReplicatedStorage.Packages
-local Maid = require(Packages.maid)
+local Maid = require(ReplicatedStorage.Packages.maid)
 local CharacterConstants = require(Shared.Constants.CharacterConstants)
-local CharacterItems = require(Shared.Constants.CharacterItems)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
+local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
+local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 
 export type CharacterAppearance = {
     BodyType: string,
@@ -43,7 +45,6 @@ local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = 
 local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
 local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.EtherealCharacters)
 local isCollidingWithOtherCharacterOverlapParams = OverlapParams.new()
-local characterAssets = ReplicatedStorage.Assets.Character
 
 -------------------------------------------------------------------------------
 -- Ethereal
@@ -181,118 +182,6 @@ function CharacterUtil.showCharacters(requester: string)
 end
 
 -------------------------------------------------------------------------------
--- Appearance
--------------------------------------------------------------------------------
-
-local function applyAccessoryApperance(character: Model, type: string, accessories: { string })
-    local categoryConstant = CharacterItems[type]
-
-    local alreadyEquippedAccessories: { [string]: true } = {}
-    for _, accessory in pairs(character:GetChildren()) do
-        if accessory:GetAttribute("AccessoryType") == type then
-            if table.find(accessories, accessory.Name) then
-                alreadyEquippedAccessories[accessory.Name] = true
-            else
-                accessory:Destroy()
-            end
-        end
-    end
-
-    for _, accessoryName: string in pairs(accessories) do
-        if not alreadyEquippedAccessories[accessoryName] and categoryConstant.Items[accessoryName] then
-            local model: Accessory = characterAssets[categoryConstant.AssetsPath][accessoryName]:Clone()
-
-            local rigidConstraint = Instance.new("RigidConstraint")
-            rigidConstraint.Attachment0 = model.Handle.AccessoryAttachment
-            rigidConstraint.Attachment1 = character.Body.Main_Bone.Belly["Belly.001"].HEAD
-            rigidConstraint.Parent = model
-
-            model.Parent = character
-        end
-    end
-end
-
-local function applyClothingAppearance(character: Model, type: string, clothingName: string)
-    for _, clothing in pairs(character:GetChildren()) do
-        if clothing:GetAttribute("ClothingType") == type then
-            clothing:Destroy()
-        end
-    end
-
-    if clothingName then
-        local body = character.Body
-        local bodyPosition = body.Position
-        for _, pieceTemplate in pairs(characterAssets[CharacterItems[type].AssetsPath][clothingName]:GetChildren()) do
-            local piece = pieceTemplate:Clone()
-            piece.Position = bodyPosition
-            piece.Parent = character
-
-            local weldConstraint = Instance.new("WeldConstraint")
-            weldConstraint.Part0 = body
-            weldConstraint.Part1 = piece
-            weldConstraint.Parent = piece
-        end
-    end
-end
-
-function CharacterUtil.applyAppearance(character: Model, appearance: CharacterItems.Appearance): CharacterItems.Appearance
-    local bodyType = appearance.BodyType
-    if bodyType then
-        bodyType = bodyType[1]
-        character.Body.Main_Bone.Belly["Belly.001"].Position = Vector3.new(0, 1.319, -0) + CharacterItems.BodyType.Items[bodyType].Height
-    end
-
-    local furColor = appearance.FurColor
-    if furColor then
-        furColor = furColor[1]
-
-        local color = CharacterItems.FurColor.Items[furColor].Color
-        character.Body.Color = color
-        character.Arms.Color = color
-        character.EyeLids.Color = color
-    end
-
-    local outfit = appearance.Outfit
-    if outfit then
-        outfit = outfit[1]
-        for itemType, items in pairs(CharacterItems.Outfit.Items[outfit].Items) do
-            appearance[itemType] = items
-        end
-        appearance.Outfit = nil
-    end
-
-    local hats = appearance.Hat
-    if hats then
-        applyAccessoryApperance(character, "Hat", hats)
-    end
-
-    local backpacks = appearance.Backpack
-    if backpacks then
-        applyAccessoryApperance(character, "Backpack", backpacks)
-    end
-
-    local shirt = appearance.Shirt
-    if shirt then
-        shirt = shirt[1]
-        applyClothingAppearance(character, "Shirt", shirt)
-    end
-
-    local pants = appearance.Pants
-    if pants then
-        pants = pants[1]
-        applyClothingAppearance(character, "Pants", pants)
-    end
-
-    local shoes = appearance.Shoes
-    if shoes then
-        shoes = shoes[1]
-        applyClothingAppearance(character, "Shoes", shoes)
-    end
-
-    return appearance
-end
-
--------------------------------------------------------------------------------
 -- Misc API
 -------------------------------------------------------------------------------
 
@@ -375,6 +264,46 @@ end
 
 function CharacterUtil.getHumanoidRootPart(player: Player)
     return player.Character and player.Character:FindFirstChild("HumanoidRootPart") or nil
+end
+
+-------------------------------------------------------------------------------
+-- Pivoting
+-------------------------------------------------------------------------------
+
+-- Moves a character so that they're standing above a part, usefull for spawning
+function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPosition: boolean?)
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    character.WorldPivot = humanoidRootPart.CFrame
+
+    local pivotCFrame: CFrame
+    if useRandomPosition then
+        pivotCFrame = platform.CFrame:ToWorldSpace(
+            CFrame.new(
+                MathUtil.nextNumber(-platform.Size.X / 2, platform.Size.X / 2),
+                character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2,
+                MathUtil.nextNumber(-platform.Size.Z / 2, platform.Size.Z / 2)
+            )
+        )
+    else
+        pivotCFrame =
+            platform.CFrame:ToWorldSpace(CFrame.new(0, character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2, 0))
+    end
+    character:PivotTo(pivotCFrame)
+end
+
+function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)
+    local startCFrame = character:GetPivot()
+    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + VectorUtil.getXZComponents(direction))
+
+    if tweenInfo then
+        TweenUtil.run(function(alpha)
+            local alphaCFrame = startCFrame:Lerp(goalCFrame, alpha)
+            character:PivotTo(alphaCFrame)
+        end, tweenInfo)
+    else
+        character:PivotTo(goalCFrame)
+    end
 end
 
 -------------------------------------------------------------------------------

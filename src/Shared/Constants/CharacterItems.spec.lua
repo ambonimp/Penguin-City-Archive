@@ -1,13 +1,17 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CharacterItems = require(ReplicatedStorage.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 
 return function()
     local issues: { string } = {}
 
-    for categoryName, itemConstants in pairs(CharacterItems) do
+    for categoryName, itemConstants in pairs(CharacterItemConstants) do
         for itemKey, item in pairs(itemConstants.Items) do
             -- Name
-            if not item.Name then
+            if item.Name then
+                if item.Name ~= itemKey then
+                    table.insert(issues, ("%s.%s .Name must match itemKey (%s)"):format(categoryName, itemKey, itemKey))
+                end
+            else
                 table.insert(issues, ("%s.%s has no .Name!"):format(categoryName, itemKey))
             end
 

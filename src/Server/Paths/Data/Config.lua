@@ -64,6 +64,8 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
             Eggs = {},
             Pets = {},
         },
+        MinigameRecords = {},
+        Tutorial = {},
     } :: DataUtil.Store
 end
 

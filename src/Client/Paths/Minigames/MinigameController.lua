@@ -1,156 +1,257 @@
---[[
-    This is the main hub where a player requests to start/stop a minigame, and gets permission from the server.
-]]
 local MinigameController = {}
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
-local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
-local Assume = require(Paths.Shared.Assume)
-local Output = require(Paths.Shared.Output)
-local ZoneController = require(Paths.Client.Zones.ZoneController)
-local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Signal = require(Paths.Shared.Signal)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController = require(Paths.Client.UI.UIController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
+local Output = require(Paths.Shared.Output)
+local Sound = require(Paths.Shared.Sound)
 
-type MinigameController = {
-    startMinigame: (minigamesDirectory: Folder, () -> MinigameConstants.PlayRequest, ...any) -> nil,
-    stopMinigame: (...any) -> nil,
-    [any]: any,
-}
+type Music = "Core" | "Intermission"
+type StateData = { [string]: any }
+type State = { Name: string, Data: StateData? }
+type StateCallback = (StateData) -> ()
+type Participants = { Player }
 
-local currentSession: MinigameConstants.Session | nil
-local minigameToController: { [string]: MinigameController } = {
-    [MinigameConstants.Minigames.Pizza] = require(Paths.Client.Minigames.Pizza.PizzaMinigameController),
-}
-local minigamesDirectory = game.Workspace:WaitForChild("Minigames")
+local STATES = MinigameConstants.States
+local INITIALIZATION_STATE = { Name = STATES.Nothing }
+-------------------------------------------------------------------------------
+-- PRIVATE MEMBERS
+-------------------------------------------------------------------------------
+local player = Players.LocalPlayer
 
--- Returns Assume
-function MinigameController.play(minigame: string)
-    Output.doDebug(MinigameConstants.DoDebug, "play", minigame)
+local currentMinigame: string?
+local currentState: State?
+local currentZone: ZoneConstans.Zone?
+local currentParticipants: Participants?
+local currentIsMultiplayer: boolean?
 
-    -- ERROR: No linked controller
-    local minigameController = MinigameController.getControllerFromMinigame(minigame)
-    if not minigameController then
-        error(("No serviced linked to minigame %q"):format(minigame))
+local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = {}
+
+local janitor = Janitor.new()
+local uiStateMachine = UIController.getStateMachine()
+
+local music: { [string]: Sound } = {}
+
+-------------------------------------------------------------------------------
+-- PUBLIC MEMBES
+-------------------------------------------------------------------------------
+MinigameController.ParticipantAdded = Signal.new()
+MinigameController.ParticipantRemoved = Signal.new()
+
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+function MinigameController.playMusic(name: Music)
+    -- RETURN: Music already playing
+    if music[name] then
+        return
     end
 
-    -- ERROR: Bad zone
-    local zoneId = ZoneConstants.ZoneId.Minigame[minigame]
-    if not zoneId then
-        error(("Could not get ZoneId from minigame %q"):format(minigame))
+    music[name] = Sound.play(if name == "Intermission" then "MinigameIntermission" else currentMinigame, true)
+end
+
+function MinigameController.stopMusic(name: Music)
+    local sound = music[name]
+    if sound then
+        Sound.fadeOut(music[name], nil, true)
+        music[name] = nil
     end
-    local minigameZone = ZoneUtil.zone(ZoneConstants.ZoneType.Minigame, zoneId)
+end
 
-    -- RETURN ERROR: Already playing!
-    if currentSession then
-        warn("already playing!")
-        return { Error = ("Client is already playing %s"):format(currentSession.Minigame) }
+local function setState(newState: State)
+    local newName: string = newState.Name
+    local newData: StateData = newState.Data
+
+    local lastState = currentState
+    currentState = newState
+
+    Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
+
+    -- Close previously opened
+    if lastState then
+        local callbacks = stateCallbacks[currentMinigame][lastState.Name]
+
+        if callbacks and callbacks.Close then
+            callbacks.Close(newData)
+        end
     end
 
-    -- Assume server response
-    local requestAssume = Assume.new(function()
-        local playRequest: MinigameConstants.PlayRequest, teleportBuffer: number? =
-            Remotes.invokeServer("RequestToPlayMinigame", minigame, game.Workspace:GetServerTimeNow())
+    local callbacks = stateCallbacks[currentMinigame][newName]
+    if callbacks and callbacks.Open then
+        callbacks.Open(newData)
+    end
+end
 
-        Output.doDebug(MinigameConstants.DoDebug, ".play Assume", playRequest, teleportBuffer)
+local function assertActiveMinigame()
+    assert(currentMinigame, "There is no active minigame")
+end
 
-        return playRequest, teleportBuffer
-    end)
-    requestAssume:Check(function(playRequest: MinigameConstants.PlayRequest, _teleportBuffer: number?)
-        return playRequest and playRequest.Session and true or false
-    end)
-    requestAssume:Then(function(playRequest: MinigameConstants.PlayRequest)
-        currentSession = playRequest.Session
-    end)
-    requestAssume:Run(function()
-        task.spawn(function()
-            local function yielder()
-                -- Wait for Response
-                local _playRequest, teleportBuffer = requestAssume:Await()
-                if teleportBuffer then
-                    -- Wait for teleport
-                    local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
-                    task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
+function MinigameController.Start()
+    for _, minigame in pairs(MinigameConstants.Minigames) do
+        local controller: ModuleScript? = Paths.Client.Minigames[minigame]:FindFirstChild(minigame .. "Controller")
+        if controller then
+            require(controller)
+        end
+    end
+end
 
-                    -- Start Minigame
-                    minigameController.startMinigame(minigamesDirectory, MinigameController.stopPlaying)
-                end
-            end
+function MinigameController.registerStateCallback(minigame: string, state: string, onOpen: StateCallback?, onClose: StateCallback?)
+    local minigameCallbacks = stateCallbacks[minigame]
+    if not minigameCallbacks then
+        minigameCallbacks = {}
+        stateCallbacks[minigame] = minigameCallbacks
+    end
 
-            local function validator()
-                local playRequest: MinigameConstants.PlayRequest, _teleportBuffer: number? = requestAssume:Await()
-                return playRequest and playRequest.Session and true or false
-            end
+    -- ERROR: Attempt to overide state
+    if minigameCallbacks[state] then
+        error(("Minigame %s has already registered %s state callbacks"):format(minigame, state))
+    end
 
-            ZoneController.transitionToZone(minigameZone, yielder, validator)
+    stateCallbacks[minigame][state] = {
+        Open = onOpen,
+        Close = onClose,
+    }
+end
+
+function MinigameController.getMinigame(): string?
+    return currentMinigame
+end
+
+function MinigameController.getMinigameJanitor()
+    return janitor
+end
+
+function MinigameController.isMultiplayer(): boolean
+    assertActiveMinigame()
+    return currentIsMultiplayer
+end
+
+function MinigameController.getState(): string
+    assertActiveMinigame()
+    return currentState.Name
+end
+
+function MinigameController.getData(): StateData
+    assertActiveMinigame()
+    return currentState.Data
+end
+
+function MinigameController.getZone(): ZoneConstans.Zone
+    assertActiveMinigame()
+    return currentZone
+end
+
+function MinigameController.getMap(): Model
+    assertActiveMinigame()
+    return ZoneUtil.getZoneModel(currentZone):WaitForChild("Map")
+end
+
+function MinigameController.getParticpants(): Participants
+    assertActiveMinigame()
+    return currentParticipants
+end
+
+function MinigameController.startCountdownAsync(length: number, onChanged: (value: number) -> ()?): boolean
+    assertActiveMinigame()
+
+    local initialState = currentState
+    length = math.max(0, currentState.Data.StartTime + length - Workspace:GetServerTimeNow()) -- Syncs with server
+
+    if onChanged then
+        onChanged(math.ceil(length))
+    end
+
+    task.wait(length % 1)
+    length = math.floor(length)
+    while length > 0 and initialState == currentState do
+        if onChanged then
+            onChanged(length)
+        end
+
+        task.wait(1)
+        length -= 1
+    end
+
+    return length == 0
+end
+
+function MinigameController.getOwnPlacement(scores: MinigameConstants.SortedScores): number
+    return TableUtil.findFromProperty(scores, "Player", player)
+end
+
+function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores): number
+    return scores[MinigameController.getOwnPlacement(scores)].Score
+end
+
+function MinigameController.isNewBest(scores: MinigameConstants.SortedScores): boolean
+    return scores[MinigameController.getOwnPlacement(scores)].NewBest ~= nil
+end
+
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
+Remotes.bindEvents({
+    MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
+        currentMinigame = minigame
+        currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
+        currentParticipants = participants
+        currentIsMultiplayer = isMultiplayer
+
+        if state.Name ~= INITIALIZATION_STATE.Name then
+            setState(INITIALIZATION_STATE)
+        end
+        setState(state)
+        uiStateMachine:Push(UIConstants.States.Minigame)
+    end,
+
+    MinigameExited = function()
+        -- Music
+        MinigameController.stopMusic("Core")
+        MinigameController.stopMusic("Intermission")
+
+        if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
+            ZoneController.ZoneChanged:Wait()
+        end
+
+        janitor:Cleanup()
+        uiStateMachine:Pop()
+
+        task.defer(function()
+            currentMinigame = nil
+            currentZone = nil :: ZoneConstans.Zone -- ahh
+            currentState = nil
+            currentParticipants = nil
+            currentIsMultiplayer = nil
         end)
-    end)
+    end,
 
-    return requestAssume
-end
+    MinigameParticipantAdded = function(participant: Player)
+        table.insert(currentParticipants, participant)
+        MinigameController.ParticipantAdded:Fire(participant)
+    end,
 
-function MinigameController.getSession()
-    return currentSession
-end
+    MinigameParticipantRemoved = function(participant: Player)
+        table.remove(currentParticipants, table.find(currentParticipants, participant))
+        MinigameController.ParticipantRemoved:Fire(participant)
+    end,
 
-function MinigameController.getControllerFromMinigame(minigame: string)
-    return minigameToController[minigame]
-end
-
--- Returns Assume
-function MinigameController.stopPlaying(): MinigameConstants.PlayRequest
-    Output.doDebug(MinigameConstants.DoDebug, "stopPlaying")
-
-    -- WARN: Not playing!
-    if not currentSession then
-        return { Error = "Cannot stop playing for Client; they weren't playing in the first place!" }
-    end
-
-    -- Assume server response
-    local guessedZone = ZoneController.getCurrentRoomZone()
-    local requestAssume = Assume.new(function()
-        local playRequest: MinigameConstants.PlayRequest, roomZoneId: string?, teleportBuffer: number? =
-            Remotes.invokeServer("RequestToStopPlaying", game.Workspace:GetServerTimeNow())
-
-        Output.doDebug(MinigameConstants.DoDebug, ".play Assume", playRequest, teleportBuffer)
-
-        local zone = roomZoneId and ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomZoneId) or nil
-        return playRequest, zone, teleportBuffer
-    end)
-    requestAssume:Check(function(playRequest: MinigameConstants.PlayRequest, _zone: ZoneConstants.Zone?, _teleportBuffer: number?)
-        return playRequest and playRequest.Session and true or false
-    end)
-    requestAssume:Run(function()
-        task.spawn(function()
-            local function yielder()
-                -- Stop Minigame
-                local oldSession = currentSession
-                currentSession = nil
-
-                local minigameController = MinigameController.getControllerFromMinigame(oldSession.Minigame)
-                minigameController.stopMinigame()
-
-                -- Wait for Response
-                local _playRequest, _actualZone, teleportBuffer: number = requestAssume:Await()
-                if teleportBuffer then
-                    -- Wait for teleport
-                    local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
-                    task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
-                end
-            end
-
-            local function validator()
-                local playRequest: MinigameConstants.PlayRequest, _zone: ZoneConstants.Zone?, _teleportBuffer: number? =
-                    requestAssume:Await()
-                return playRequest and playRequest.Session and true or false
-            end
-
-            ZoneController.transitionToZone(guessedZone, yielder, validator)
-        end)
-    end)
-
-    return requestAssume
-end
+    MinigameStateChanged = function(state: State)
+        setState(state)
+    end,
+})
 
 return MinigameController

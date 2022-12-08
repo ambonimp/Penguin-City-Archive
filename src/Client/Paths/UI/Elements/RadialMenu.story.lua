@@ -1,4 +1,5 @@
 local RadialMenu = require(script.Parent.RadialMenu)
+local KeyboardButton = require(script.Parent.KeyboardButton)
 
 return function(target)
     local frame = Instance.new("Frame")
@@ -13,13 +14,18 @@ return function(target)
     local count = 0
     local function addButton()
         count += 1
-        local button = radialMenu:AddButton()
+        local button = radialMenu:AddButton() :: KeyboardButton.KeyboardButton
         button:SetText(tostring(count))
         button.Pressed:Connect(addButton)
     end
+
+    addButton()
+    addButton()
     addButton()
 
     radialMenu:Mount(frame)
+    radialMenu:Open()
+
     return function()
         frame:Destroy()
         radialMenu:Destroy()

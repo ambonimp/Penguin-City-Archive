@@ -6,6 +6,7 @@ local Widget = {}
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Signal = require(Paths.Shared.Signal)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
@@ -20,6 +21,14 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local ToolController = require(Paths.Client.Tools.ToolController)
+local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+
+export type DiverseWidget = typeof(Widget.diverseWidget())
+
+export type Widget = typeof(Widget.diverseWidget())
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -46,7 +55,9 @@ local PET_EGG_HSV_RANGE = {
     },
 }
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
-local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local COLOR_WHITE = Color3.fromRGB(251, 252, 255)
+local SELECTED_COLOR = Color3.fromRGB(255, 245, 154)
+local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
@@ -55,6 +66,10 @@ Widget.Defaults = {
 }
 
 local templates: Folder = Paths.Templates
+
+-------------------------------------------------------------------------------
+-- Misc Widgets
+-------------------------------------------------------------------------------
 
 function Widget.addWidget()
     local widget = Widget.diverseWidget()
@@ -65,12 +80,61 @@ function Widget.addWidget()
     return widget
 end
 
-function Widget.diverseWidgetFromProduct(product: Products.Product, state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?)
+-------------------------------------------------------------------------------
+-- Tool Widgets
+-------------------------------------------------------------------------------
+
+--[[
+    Returns widget: Widget, closeButton: ExitButton
+]]
+function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
+    local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
+    local widget = Widget.diverseWidgetFromProduct(toolProduct)
+
+    local closeButton = ExitButton.new()
+
+    widget:SetText()
+    widget:SetCornerRadius(UDim.new(100, 0))
+    widget:SetCornerButton(closeButton)
+
+    -- Manage equipped feedback
+    do
+        local function update(isEquipped: boolean)
+            widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+        end
+
+        ToolController.ToolEquipped:Connect(function(equippedTool)
+            if ToolUtil.toolsMatch(equippedTool, tool) then
+                update(true)
+            end
+        end)
+        ToolController.ToolUnequipped:Connect(function(unequippedTool)
+            if ToolUtil.toolsMatch(unequippedTool, tool) then
+                update(false)
+            end
+        end)
+        update(ToolController.isEquipped(tool))
+    end
+
+    return widget, closeButton
+end
+
+-------------------------------------------------------------------------------
+-- Product Widgets
+-------------------------------------------------------------------------------
+
+function Widget.diverseWidgetFromProduct(
+    product: Products.Product,
+    state: { VerifyOwnership: boolean?, ShowTotals: boolean?, HideText: boolean? }?,
+    onItemOwned: ((Widget) -> ())?
+)
     local widget = Widget.diverseWidget()
     state = state or {}
 
     -- Populate Widget
-    widget:SetText(product.DisplayName)
+    if not (state and state.HideText) then
+        widget:SetText(product.DisplayName)
+    end
 
     local model = ProductUtil.getModel(product)
     if model then
@@ -82,7 +146,11 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
     -- Handle widget being used for purchases + showing if owned
     if state.VerifyOwnership then
         local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-        if not isOwned then
+        if isOwned then
+            if onItemOwned then
+                onItemOwned(widget)
+            end
+        else
             widget:SetFade(true)
             widget:SetPrice(product.CoinData and product.CoinData.Cost)
 
@@ -99,6 +167,10 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
                     widget:SetFade(false)
                     widget:SetPrice()
                     purchaseMaid:Cleanup()
+
+                    if onItemOwned then
+                        onItemOwned(widget)
+                    end
                 end
             end))
         end
@@ -128,6 +200,10 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
 
     return widget
 end
+
+-------------------------------------------------------------------------------
+-- Pet / PetEgg Widgets
+-------------------------------------------------------------------------------
 
 --[[
     `hatchTime` must be straight from data
@@ -251,6 +327,10 @@ function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
     return widget
 end
 
+-------------------------------------------------------------------------------
+-- Diverse Widget
+-------------------------------------------------------------------------------
+
 function Widget.diverseWidget()
     local widget = AnimatedButton.new(Instance.new("ImageButton"))
     widget:SetHoverAnimation(nil)
@@ -259,6 +339,7 @@ function Widget.diverseWidget()
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
+    local selected: boolean = false
 
     --#region Create UI
     local diverseWidget = Instance.new("Frame")
@@ -269,7 +350,7 @@ function Widget.diverseWidget()
     local imageButton = widget:GetButtonObject()
     imageButton.Name = "imageButton"
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    imageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    imageButton.BackgroundColor3 = COLOR_WHITE
     imageButton.BorderSizePixel = 0
     imageButton.Position = UDim2.fromScale(0.5, 0.5)
     imageButton.Size = UDim2.fromScale(0.9, 0.9)
@@ -334,9 +415,15 @@ function Widget.diverseWidget()
     local priceUIStroke: UIStroke | nil
 
     local cornerMaid = Maid.new()
+    widget:GetMaid():GiveTask(cornerMaid)
     local cornerFade: (() -> nil) | nil
 
     local transparency = 0
+
+    -------------------------------------------------------------------------------
+    -- Public members
+    -------------------------------------------------------------------------------
+    widget.SelectedChanged = Signal.new()
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -493,7 +580,7 @@ function Widget.diverseWidget()
             local numberTagFrame = Instance.new("Frame")
             numberTagFrame.Name = "numberTagFrame"
             numberTagFrame.AnchorPoint = Vector2.new(0.7, 0.3)
-            numberTagFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            numberTagFrame.BackgroundColor3 = COLOR_WHITE
             numberTagFrame.Position = UDim2.fromScale(1, 0)
             numberTagFrame.Size = UDim2.fromOffset(50, 50)
             numberTagFrame.Visible = false
@@ -554,6 +641,15 @@ function Widget.diverseWidget()
         end
     end
 
+    function widget:SetSelected(toggle: boolean)
+        widget:SetBackgroundColor(toggle and SELECTED_COLOR)
+
+        if selected ~= toggle then
+            widget.SelectedChanged:Fire(toggle)
+            selected = toggle
+        end
+    end
+
     function widget:SetCornerButton(button: typeof(KeyboardButton.new())?)
         cornerMaid:Cleanup()
 
@@ -565,7 +661,7 @@ function Widget.diverseWidget()
             cornerButtonFrame.BackgroundTransparency = 1
             cornerButtonFrame.Position = UDim2.fromScale(1, 0)
             cornerButtonFrame.Size = UDim2.fromOffset(50, 50)
-            cornerButtonFrame.ZIndex = 2
+            cornerButtonFrame.ZIndex = 10
 
             cornerButtonFrame.Parent = imageButton
             --#endregion
@@ -578,6 +674,10 @@ function Widget.diverseWidget()
                 button:Destroy()
             end)
         end
+    end
+
+    function widget:SetCornerRadius(cornerRadius: UDim)
+        uICorner.CornerRadius = cornerRadius
     end
 
     function widget:GetGuiObject()
