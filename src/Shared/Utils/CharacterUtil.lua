@@ -12,7 +12,7 @@ local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
-local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
+local Vector3Util = require(ReplicatedStorage.Shared.Utils.Vector3Util)
 local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 
@@ -294,7 +294,7 @@ end
 
 function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)
     local startCFrame = character:GetPivot()
-    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + VectorUtil.getXZComponents(direction))
+    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + Vector3Util.getXZComponents(direction))
 
     if tweenInfo then
         TweenUtil.run(function(alpha)
