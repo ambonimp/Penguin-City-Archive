@@ -24,6 +24,14 @@ local function setupSwingObject(swingObject: Model)
     seatAttachment.Parent = seat
     AttachmentUtil.pivot(seatAttachment, topAttachment)
 
+    -- Hinge
+    local hingeConstraint = Instance.new("HingeConstraint")
+    hingeConstraint.ActuatorType = Enum.ActuatorType.None
+    hingeConstraint.Attachment0 = seatAttachment
+    hingeConstraint.Attachment1 = topAttachment
+    hingeConstraint.MotorMaxTorque = math.huge
+    hingeConstraint.Parent = seat
+
     -- Setup Model
     ModelUtil.weld(model)
     ModelUtil.unanchor(model)
@@ -35,6 +43,11 @@ local function setupSwingObject(swingObject: Model)
         local humanoid = seat.Occupant
         local player = humanoid and Players:GetPlayerFromCharacter(humanoid.Parent) or nil
         seat:SetNetworkOwner(player)
+
+        -- Reset hinge if no player
+        if not player then
+            hingeConstraint.ActuatorType = Enum.ActuatorType.None
+        end
     end)
 end
 

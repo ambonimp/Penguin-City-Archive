@@ -14,7 +14,7 @@ local MAX_ANGLE = 45
 local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstraint, angleDegrees: number)
     -- Get throttle
     local moveDirection = humanoid.MoveDirection
-    local throttle = -moveDirection.X
+    local throttle = -math.sign(moveDirection.X) * math.ceil(math.abs(moveDirection.X))
 
     -- Update throttle / acuator type
     local doDisable = throttle == 0 or angleDegrees > MAX_ANGLE
