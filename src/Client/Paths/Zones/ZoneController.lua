@@ -225,7 +225,9 @@ function ZoneController.transitionToZone(
             end
 
             -- Reset to Hud
-            UIController.getStateMachine():PopToAndPush(UIConstants.States.HUD)
+            if UIController.getStateMachine():GetState() ~= UIConstants.States.HUD then
+                UIController.getStateMachine():PopToAndPush(UIConstants.States.HUD)
+            end
 
             -- Wait for zone to load
             local didLoad = ZoneController.waitForZoneToLoad(toZone)
