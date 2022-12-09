@@ -211,10 +211,16 @@ Remotes.bindEvents({
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
+        if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
+            ZoneController.ZoneChanged:Wait()
+        end
+
         if state.Name ~= INITIALIZATION_STATE.Name then
             setState(INITIALIZATION_STATE)
         end
+
         setState(state)
+
         uiStateMachine:Push(UIConstants.States.Minigame)
     end,
 
@@ -223,7 +229,7 @@ Remotes.bindEvents({
         MinigameController.stopMusic("Core")
         MinigameController.stopMusic("Intermission")
 
-        if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
+        if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
             ZoneController.ZoneChanged:Wait()
         end
 
