@@ -28,7 +28,7 @@ local DISCO_BALL_ROTATION_PER_SECOND = 45
 
 local colorParts: { [BasePart]: number } = {} -- Values are index offset
 
-function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model)
+function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
     -- ColorParts
     do
         -- Cache Cleanup

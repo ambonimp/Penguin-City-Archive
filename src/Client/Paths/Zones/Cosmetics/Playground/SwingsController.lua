@@ -58,7 +58,7 @@ local function setupSwingObject(swingObject: Model, maid: typeof(Maid.new()))
     end))
 end
 
-function SwingsController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model)
+function SwingsController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
     local swingObjects = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.Swing)
     for _, swingObject in pairs(swingObjects) do
         if swingObject:IsDescendantOf(zoneModel) then
