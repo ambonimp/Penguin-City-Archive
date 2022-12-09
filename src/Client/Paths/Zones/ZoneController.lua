@@ -20,6 +20,8 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
+local UIController: typeof(require(Paths.Client.UI.UIController))
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -41,6 +43,7 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
+    UIController = require(Paths.Client.UI.UIController)
 end
 
 function ZoneController.Start()
@@ -219,6 +222,11 @@ function ZoneController.transitionToZone(
             if character then
                 character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
+            end
+
+            -- Reset to Hud
+            if UIController.getStateMachine():GetState() ~= UIConstants.States.HUD then
+                UIController.getStateMachine():PopToAndPush(UIConstants.States.HUD)
             end
 
             -- Wait for zone to load

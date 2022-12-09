@@ -26,8 +26,8 @@ local UNFURLED_MAP_PROPERTIES = {
 
 local uiStateMachine = UIController.getStateMachine()
 local screenGui: ScreenGui = Ui.HUD
-local openCallbacks: { () -> () } = {}
-local closeCallbacks: { () -> () } = {}
+local maximizeCallbacks: { () -> () } = {}
+local minimizeCallbacks: { () -> () } = {}
 local toolbarMaid = Maid.new()
 local inventoryButton: AnimatedButton.AnimatedButton
 
@@ -235,7 +235,7 @@ function HUDScreen.Init()
 
             mapButton.InternalEnter:Connect(unfurl)
             mapButton.InternalLeave:Connect(fold)
-            table.insert(openCallbacks, fold)
+            table.insert(maximizeCallbacks, fold)
 
             fold()
         end
@@ -255,27 +255,22 @@ function HUDScreen.getInventoryButton()
 end
 
 function HUDScreen.maximize()
-    for _, callback in pairs(openCallbacks) do
+    for _, callback in pairs(maximizeCallbacks) do
         task.spawn(callback)
     end
 
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
+    screenGui.Enabled = true
 end
 
 function HUDScreen.minimize()
-    for _, callback in pairs(closeCallbacks) do
+    for _, callback in pairs(minimizeCallbacks) do
         task.spawn(callback)
     end
 
     ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
 end
-
--------------------------------------------------------------------------------
--- Logic
--------------------------------------------------------------------------------
-
-screenGui.Enabled = true
 
 return HUDScreen

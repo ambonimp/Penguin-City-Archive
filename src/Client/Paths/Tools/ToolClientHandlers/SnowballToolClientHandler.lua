@@ -19,7 +19,7 @@ local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
-local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
@@ -70,7 +70,7 @@ local function throwSnowball(player: Player, goalPosition: Vector3, snowballMode
         local directionVector = goalPosition - startPosition
 
         local length = directionVector.Magnitude
-        local midpoint = VectorUtil.getXZComponents(startPosition + directionVector / 2)
+        local midpoint = Vector3Util.getXZComponents(startPosition + directionVector / 2)
             + Vector3.new(0, math.max(startPosition.Y, goalPosition.Y) + THROW_HEIGHT_PER_UNIT_DISTANCE * length, 0)
 
         -- We very badly estimate the length of the bezier curve to get the rough magnitude of its length to help us calculate speed / tween time
