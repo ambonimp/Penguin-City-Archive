@@ -695,22 +695,4 @@ do
     ScreenUtil.outLeft(colorPanel:GetContainer())
 end
 
-ZoneController.ZoneChanging:Connect(function(old, new)
-    if tostring(old.ZoneType) == tostring(player.UserId) and tostring(new.ZoneType) ~= tostring(player.UserId) then
-        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
-            uiStateMachine:Remove(UIConstants.States.HouseEditor)
-        end
-        if uiStateMachine:HasState(UIConstants.States.FurniturePlacement) then
-            uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
-        end
-    elseif tonumber(new.ZoneType) then --remove house setting state when entering house
-        if uiStateMachine:HasState(UIConstants.States.PlotSettings) then
-            uiStateMachine:Remove(UIConstants.States.PlotSettings)
-        end
-        if uiStateMachine:HasState(UIConstants.States.HouseSelectionUI) then
-            uiStateMachine:Remove(UIConstants.States.HouseSelectionUI)
-        end
-    end
-end)
-
 return EditingScreen
