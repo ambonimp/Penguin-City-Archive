@@ -224,9 +224,9 @@ function ZoneController.transitionToZone(
                 CharacterUtil.anchor(character)
             end
 
-            -- Reset to Hud
-            if UIController.getStateMachine():GetState() ~= UIConstants.States.HUD then
-                UIController.getStateMachine():PopToAndPush(UIConstants.States.HUD)
+            -- Remove "zone-locked" states
+            for _, uiState in pairs(UIConstants.RemoveStatesOnZoneTeleport) do
+                UIController.getStateMachine():Remove(uiState)
             end
 
             -- Wait for zone to load
