@@ -560,37 +560,18 @@ Humanoid.Seated:Connect(onSeated)
 Humanoid.PlatformStanding:Connect(onPlatformStanding)
 Humanoid.Swimming:Connect(onSwimming)
 
--- setup emote chat hook
-Players.LocalPlayer.Chatted:Connect(function(_, msg)
-    local emote = ""
-    if string.sub(msg, 1, 3) == "/e " then
-        emote = string.sub(msg, 4)
-    elseif string.sub(msg, 1, 7) == "/emote " then
-        emote = string.sub(msg, 8)
-    end
-
-    emote = emote:lower()
-    emote = emote:sub(1, 1):upper() .. emote:sub(2, #emote)
-
-    if pose == "Standing" and emoteNames[emote] ~= nil then
-        playAnimation(emote, EMOTE_TRANSITION_TIME, Humanoid)
-    end
-end)
-
 if Character.Parent ~= nil then
     -- initialize to idle
     playAnimation("Idle", 0.1, Humanoid)
     pose = "Standing"
 end
 
-TextChatService.SendingMessage:Connect(function(textChatMessage)
-    local msg = textChatMessage.Text
-
+TextChatService.TextChatCommands.Emote.Triggered:Connect(function(_, message)
     local emote = ""
-    if string.sub(msg, 1, 3) == "/e " then
-        emote = string.sub(msg, 4)
-    elseif string.sub(msg, 1, 7) == "/emote " then
-        emote = string.sub(msg, 8)
+    if string.sub(message, 1, 3) == "/e " then
+        emote = string.sub(message, 4)
+    elseif string.sub(message, 1, 7) == "/emote " then
+        emote = string.sub(message, 8)
     end
 
     emote = emote:lower()
