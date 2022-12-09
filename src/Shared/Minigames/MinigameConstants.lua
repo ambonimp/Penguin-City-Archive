@@ -46,7 +46,7 @@ MinigameConstants.States = {
     AwardShow = "AwardShow",
 }
 
-MinigameConstants.DoDebug = false -- Set to false to stop getting minigame debug messages
+MinigameConstants.DoDebug = true -- Set to false to stop getting minigame debug messages
 MinigameConstants.CoreCountdownLength = 4
 MinigameConstants.BlurSize = 8
 
