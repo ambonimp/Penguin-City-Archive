@@ -24,8 +24,9 @@ local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local Signal = require(Paths.Shared.Signal)
 
-type FurnitureMetadata = {
+export type FurnitureMetadata = {
     Name: string,
     Position: Vector3,
     Rotation: Vector3,
@@ -33,10 +34,10 @@ type FurnitureMetadata = {
     Normal: Vector3,
 }
 
-type WallpaperMetadata = {
+export type WallpaperMetadata = {
     Name: string,
 }
-type FloorMetadata = {
+export type FloorMetadata = {
     Name: string,
 }
 
@@ -52,6 +53,8 @@ local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
 local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
+PlotService.ObjectPlaced = Signal.new()
+PlotService.ObjectUpdated = Signal.new()
 -------------------------------------------------------------------------------
 -- PLOT METHODS
 -------------------------------------------------------------------------------
@@ -344,6 +347,7 @@ Remotes.bindEvents({
                 local store = updateFurniture(player, object, metadata)
                 if store then
                     DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                    PlotService.ObjectPlaced:Fire(player, type, metadata)
                 end
             end
         end
@@ -371,6 +375,7 @@ Remotes.bindEvents({
 
         -- RETURN: Object does not exist
         if store[id] then
+            local lastData = store[id]
             local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
             if withinBounds then
                 local object = plot.Furniture[id]
@@ -378,6 +383,7 @@ Remotes.bindEvents({
                 local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
                 if newStore then
                     DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                    PlotService.ObjectUpdated:Fire(player, lastData, newStore)
                 end
             end
         end
