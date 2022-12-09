@@ -63,7 +63,7 @@ function UIUtil.waitForHudAndRoomZone(timeSeconds: number?)
 
         while true do
             local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
-                and ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Room
+                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
             if canShow then
                 beenAbleToShowSince = beenAbleToShowSince or tick()
                 if not timeSeconds or (tick() > beenAbleToShowSince + timeSeconds) then

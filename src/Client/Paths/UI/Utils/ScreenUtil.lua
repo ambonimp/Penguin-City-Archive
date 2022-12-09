@@ -1,7 +1,3 @@
---[[
-    Utility that handles animating frames in and off of screens
-]]
-
 local ScreenUtil = {}
 
 local Lighting = game:GetService("Lighting")

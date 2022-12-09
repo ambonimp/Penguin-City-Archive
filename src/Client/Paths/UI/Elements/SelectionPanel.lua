@@ -19,14 +19,12 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: {
-        {
-            WidgetName: string,
-            Selected: boolean,
-            Instance: Widget.Widget?,
-            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
-        }
-    },
+    WidgetConstructors: { {
+        WidgetName: string,
+        Selected: boolean,
+        Instance: Widget.Widget?,
+        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+    } },
     Button: Button.Button | nil,
 }
 
@@ -77,12 +75,15 @@ function SelectionPanel.new()
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
+    local arrowVisible: boolean = true
+    local hiddenTabs: { string } = {}
     local tabsIndex = 1
 
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
 
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel.ClosePressed = Signal.new()
     selectionPanel.TabChanged = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
@@ -263,6 +264,9 @@ function SelectionPanel.new()
                 button:GetButtonObject().LayoutOrder = index
                 button:GetButtonObject().Visible = not (openTabName == visibleTab.Name)
 
+                if table.find(hiddenTabs, visibleTab.Name) then
+                    button:GetButtonObject().Visible = false
+                end
                 -- Selected
                 if openTabName == visibleTab.Name then
                     openTab = visibleTab
@@ -286,6 +290,10 @@ function SelectionPanel.new()
         do
             backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
+
+            if arrowVisible == false then
+                forwardArrow:GetButtonObject().Visible = false
+            end
         end
 
         -- Widgets
@@ -361,6 +369,21 @@ function SelectionPanel.new()
         draw()
     end
 
+    function selectionPanel:HideForwardArrow()
+        if tabsIndex > 1 then
+            updateTabIndex(-1)
+        end
+        arrowVisible = false
+    end
+
+    function selectionPanel:ShowForwardArrow()
+        arrowVisible = true
+    end
+
+    function selectionPanel:GetOpenTabName()
+        return openTabName
+    end
+
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
         -- RETURN: Not changed
         if newAlignmnet == alignment then
@@ -393,6 +416,23 @@ function SelectionPanel.new()
 
         resize()
         draw()
+    end
+
+    function selectionPanel:HideTab(tabName: string)
+        if table.find(hiddenTabs, tabName) then --already hidden
+            return
+        end
+        table.insert(hiddenTabs, tabName)
+
+        draw()
+    end
+
+    function selectionPanel:ShowTab(tabName: string)
+        if table.find(hiddenTabs, tabName) then --is hidden
+            table.remove(hiddenTabs, table.find(hiddenTabs, tabName))
+
+            draw()
+        end
     end
 
     function selectionPanel:AddTab(tabName: string, imageId: string)
@@ -432,6 +472,7 @@ function SelectionPanel.new()
                 return
             end
         end
+
         selectionPanel:OpenTab()
     end
 
@@ -486,14 +527,6 @@ function SelectionPanel.new()
                     end
                 end)
             end)
-
-            if not state or not state.VerifyOwnership then
-                widget.Pressed:Connect(function()
-                    if onClicked then
-                        onClicked()
-                    end
-                end)
-            end
 
             if onCreated then
                 onCreated(widget)
