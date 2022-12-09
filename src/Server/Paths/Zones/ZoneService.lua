@@ -223,7 +223,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
     local timeElapsedSinceInvoke = (game.Workspace:GetServerTimeNow() - invokedServerTime)
-    local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
+    local teleportBuffer = math.max(0.1, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
             -- Jump to detach from seat

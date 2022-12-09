@@ -20,7 +20,6 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
-local UIController: typeof(require(Paths.Client.UI.UIController))
 local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
@@ -43,7 +42,6 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
-    UIController = require(Paths.Client.UI.UIController)
 end
 
 function ZoneController.Start()
@@ -202,6 +200,9 @@ function ZoneController.transitionToZone(
     verifier: (() -> boolean)?,
     blinkOptions: (Transitions.BlinkOptions)?
 )
+    -- Circular Dependencies
+    local UIController = require(Paths.Client.UI.UIController)
+
     -- RETURN: Already playing
     if isPlayingTransition then
         return
@@ -227,7 +228,6 @@ function ZoneController.transitionToZone(
 
         if not verifier or verifier() == true then
             -- Init character
-            local character = localPlayer.Character
             if character then
                 character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
