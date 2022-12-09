@@ -8,8 +8,9 @@ local Maid = require(Paths.Packages.maid)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 
-local MAX_SPEED = 6
+local MAX_SPEED = 10
 local MAX_ANGLE = 70
+local ANGLE_EXPONENT = 1 / 3
 
 local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstraint, angleDegrees: number)
     -- Get throttle
@@ -26,7 +27,7 @@ local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstra
         hingeConstraint.ActuatorType = Enum.ActuatorType.Motor
     end
 
-    local angleFactor = math.sqrt(1 - (angleDegrees / MAX_ANGLE))
+    local angleFactor = math.pow(1 - (angleDegrees / MAX_ANGLE), ANGLE_EXPONENT)
     hingeConstraint.AngularVelocity = throttle * MAX_SPEED * angleFactor
 end
 
