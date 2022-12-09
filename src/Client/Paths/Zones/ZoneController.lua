@@ -95,7 +95,7 @@ function ZoneController.Start()
                 local module = require(descendant)
                 local onZoneUpdateCallback = typeof(module) == "table" and module.onZoneUpdate
                 if onZoneUpdateCallback then
-                    onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
+                    onZoneUpdateCallback(onZoneUpdateMaid, currentZone, zoneModel)
                 end
             end
         end

@@ -9,6 +9,7 @@ local Maid = require(Paths.Packages.maid)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Sound = require(Paths.Shared.Sound)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local FADE_DURATION = 0.5
 local DEFAULT_MUSIC_NAME = "MainTheme"
@@ -18,7 +19,7 @@ local currentMusic: {
     Name: string?,
 } = {}
 
-function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
+function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, _zoneModel: Model)
     local currentZone = ZoneController.getCurrentZone()
     local zoneSettings = ZoneUtil.getSettings(currentZone)
 
