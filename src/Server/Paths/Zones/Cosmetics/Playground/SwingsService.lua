@@ -30,24 +30,34 @@ local function setupSwingObject(swingObject: Model)
     hingeConstraint.Attachment0 = seatAttachment
     hingeConstraint.Attachment1 = topAttachment
     hingeConstraint.MotorMaxTorque = math.huge
+    hingeConstraint.LowerAngle = 0
+    hingeConstraint.UpperAngle = 0
     hingeConstraint.Parent = seat
 
     -- Setup Model
     ModelUtil.weld(model)
     ModelUtil.unanchor(model)
+    ModelUtil.canCollide(model, false)
     model.PrimaryPart = seat
     top.Transparency = 1
+    seat.Transparency = 1
 
     -- Occupant network ownership
     seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+        -- Get occupying player
         local humanoid = seat.Occupant
         local player = humanoid and Players:GetPlayerFromCharacter(humanoid.Parent) or nil
-        seat:SetNetworkOwner(player)
 
-        -- Reset hinge if no player
-        if not player then
-            hingeConstraint.ActuatorType = Enum.ActuatorType.None
+        -- Network Ownership
+        for _, modelDescendant: BasePart in pairs(model:GetDescendants()) do
+            if modelDescendant:IsA("BasePart") then
+                modelDescendant:SetNetworkOwner(player)
+            end
         end
+
+        -- Hinge Management
+        local isEmpty = not player
+        hingeConstraint.LimitsEnabled = isEmpty -- Will reset it back to default angle
     end)
 end
 

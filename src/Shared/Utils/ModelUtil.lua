@@ -37,6 +37,14 @@ function ModelUtil.anchor(model: Model)
     end
 end
 
+function ModelUtil.canCollide(model: Model, canCollide: boolean)
+    for _, descendant: BasePart in pairs(model:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            descendant.CanCollide = canCollide
+        end
+    end
+end
+
 function ModelUtil.getWorldPivotToCenter(model: Model, center: CFrame, sizeOffset: Vector3?)
     sizeOffset = sizeOffset or Vector3.new()
 
