@@ -19,7 +19,6 @@ local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 local DataService = require(Paths.Server.Data.DataService)
-local ToolService = require(Paths.Server.Tools.ToolService)
 
 type Participants = { Player }
 
@@ -178,8 +177,6 @@ function MinigameSession.new(
             minigameSession:GetParticipants(),
             isMultiplayer
         )
-
-        ToolService.unequip(player)
 
         janitor:Add(player.Character.Humanoid.Died:Connect(function()
             minigameSession:RemoveParticipant(player)
