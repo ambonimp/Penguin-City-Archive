@@ -19,6 +19,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local InteractionController = require(Paths.Client.Interactions.InteractionController)
+local ToolController = require(Paths.Client.Tools.ToolController)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
@@ -70,6 +71,16 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
 end
 
 function PlayerMenuController.clickedPlayer(player: Player)
+    -- RETURN: Is local player!
+    if player == Players.LocalPlayer then
+        return
+    end
+
+    -- RETURN: We have a tool equipped
+    if ToolController.hasToolEquipped() then
+        return
+    end
+
     -- EDGE CASE: Matches our cached player
     if cachedPlayer == player then
         PlayerMenuController.close()
