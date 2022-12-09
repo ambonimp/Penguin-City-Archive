@@ -20,7 +20,7 @@ local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
 local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
 
 local CHARACTER_PREVIEW_CONFIG = {
-    SubjectScale = 22,
+    SubjectScale = 14,
 }
 
 local screenGui: ScreenGui = Paths.UI.StartingAppearance
