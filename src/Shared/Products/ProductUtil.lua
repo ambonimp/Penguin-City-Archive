@@ -8,7 +8,6 @@ local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConsta
 -------------------------------------------------------------------------------
 -- Getters
 -------------------------------------------------------------------------------
-
 function ProductUtil.getProductDataAddress(productType: string, productId: string)
     return ("%s.%s.%s"):format(ProductConstants.DataAddress, productType, productId)
 end
@@ -163,6 +162,39 @@ function ProductUtil.isHouseObjectProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- House Color Objects
+-------------------------------------------------------------------------------
+
+function ProductUtil.getHouseColorProductId(colorName: string, color: Color3)
+    return ("%s_%s"):format(StringUtil.toCamelCase(colorName), tostring(color))
+end
+
+function ProductUtil.getHouseColorProduct(colorName: string, color: Color3)
+    local product = Products.Products[ProductConstants.ProductType.HouseColor][ProductUtil.getHouseColorProductId(colorName, color)]
+    if not product then
+        error(("No House Object Product %s.%s"):format(colorName, color))
+    end
+
+    return product
+end
+
+function ProductUtil.getHouseColorProductData(product: Products.Product)
+    -- ERROR: Not a HouseObject product
+    if not ProductUtil.isHouseColorProduct(product) then
+        error("Passed a non-HouseObject product")
+    end
+
+    return {
+        ColorName = product.Metadata.ColorName :: string,
+        Color = product.Metadata.Color :: Color3,
+    }
+end
+
+function ProductUtil.isHouseColorProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.HouseColorObject
+end
+
+-------------------------------------------------------------------------------
 -- StampBook
 -------------------------------------------------------------------------------
 
@@ -226,6 +258,14 @@ end
 
 function ProductUtil.isVehicleProduct(product: Products.Product)
     return product.Type == ProductConstants.ProductType.Vehicle
+end
+
+-------------------------------------------------------------------------------
+-- Blueprints
+-------------------------------------------------------------------------------
+
+function ProductUtil.getBlueprintProductId(categoryName: string, objectKey: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(objectKey))
 end
 
 -------------------------------------------------------------------------------

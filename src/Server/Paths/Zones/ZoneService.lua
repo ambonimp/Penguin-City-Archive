@@ -101,7 +101,7 @@ function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { I
 
     -- ERROR: Zone already exists
     local zoneCategoryDirectory = ZoneUtil.getZoneCategoryDirectory(zoneCategory)
-    local existingZoneModel = ZoneUtil.getZoneCategoryDirectory(zoneCategory):FindFirstChild(zoneType)
+    local existingZoneModel = zoneCategoryDirectory:FindFirstChild(zoneType)
     if existingZoneModel then
         error(("Zone %q %s already exists!"):format(zoneCategory, zoneType))
     end
@@ -157,7 +157,15 @@ function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { I
             zoneModel:Destroy()
         end)
     end,
-        zoneModel
+        zoneModel,
+        function(newSpawn: BasePart)
+            if spawnpoint then
+                spawnpoint:Destroy()
+            end
+            spawnpoint = newSpawn
+            spawnpoint.Name = "Spawnpoint"
+            spawnpoint.Parent = zoneInstances
+        end
 end
 
 --[[

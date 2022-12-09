@@ -31,7 +31,6 @@ UIConstants.States = {
 UIConstants.PseudoStates = {
     [UIConstants.States.HUD] = {
         UIConstants.States.PlotSettings,
-        UIConstants.States.PlotChanger,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.Paycheck,
     },
