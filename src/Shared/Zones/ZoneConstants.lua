@@ -98,6 +98,7 @@ ZoneConstants.Cosmetics = {
         WaterAnimator = "AnimateWater",
         DiscoBall = "DiscoBall",
         DanceFloor = "DanceFloor",
+        Swing = "Swing",
     },
     Disco = {
         ColorPartName = "ColorPart",
