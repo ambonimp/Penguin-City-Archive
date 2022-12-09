@@ -8,7 +8,7 @@ local Maid = require(Paths.Packages.maid)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 
-local MAX_SPEED = 3
+local MAX_SPEED = 6
 local MAX_ANGLE = 70
 
 local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstraint, angleDegrees: number)

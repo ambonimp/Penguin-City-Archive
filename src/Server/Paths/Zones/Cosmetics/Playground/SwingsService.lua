@@ -19,6 +19,8 @@ local function setupSwingObject(swingObject: Model)
     -- Attachments
     local topAttachment = Instance.new("Attachment")
     topAttachment.Parent = top
+    topAttachment.WorldAxis = Vector3.new(-math.abs(topAttachment.WorldAxis.X), 0, -math.abs(topAttachment.WorldAxis.Z)) -- This helps ensure forward throttle is forward!
+    task.wait() -- Give time for topAttachment changes to propogate, so pivoting is accurate
 
     local seatAttachment = Instance.new("Attachment")
     seatAttachment.Parent = seat
@@ -26,9 +28,9 @@ local function setupSwingObject(swingObject: Model)
 
     -- Hinge
     local hingeConstraint = Instance.new("HingeConstraint")
-    hingeConstraint.ActuatorType = Enum.ActuatorType.None
-    hingeConstraint.Attachment0 = seatAttachment
-    hingeConstraint.Attachment1 = topAttachment
+    hingeConstraint.ActuatorType = Enum.ActuatorType.Motor
+    hingeConstraint.Attachment0 = topAttachment
+    hingeConstraint.Attachment1 = seatAttachment
     hingeConstraint.MotorMaxTorque = math.huge
     hingeConstraint.LowerAngle = 0
     hingeConstraint.UpperAngle = 0
@@ -103,7 +105,7 @@ function Swings.zoneSetup()
         if not success then
             warn(("Issue with tagged SwingObject %s: %q"):format(swingObject:GetFullName(), errorMessage))
         else
-            setupSwingObject(swingObject)
+            task.spawn(setupSwingObject, swingObject)
         end
     end
 end
