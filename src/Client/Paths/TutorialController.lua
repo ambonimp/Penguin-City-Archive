@@ -16,7 +16,7 @@ function TutorialController.Start()
     do
         -- StartingAppearance
         if not TutorialController.isTaskCompleted(TutorialConstants.Tasks.StartingAppearance) then
-            UIUtil.waitForHudAndRoomZone():andThen(function()
+            UIUtil.waitForHudAndRoomZone(0.5):andThen(function()
                 UIController.getStateMachine():Push(UIConstants.States.StartingAppearance)
             end)
         end
