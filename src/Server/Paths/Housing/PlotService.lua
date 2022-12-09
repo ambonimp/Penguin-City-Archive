@@ -291,9 +291,9 @@ function PlotService.loadPlayer(player: Player)
 
     newSpawnTable[player] = changeSpawn
 
-    local didStartingObjects = DataService.get(player, "Housing.DidStartingObjects")
+    local didStartingObjects = DataService.get(player, "House.DidStartingObjects")
     if didStartingObjects == nil then
-        DataService.set(player, "Housing.DidStartingObjects", true)
+        DataService.set(player, "House.DidStartingObjects", true)
         for itemName, amount in FurnitureConstants.StartingObjects do
             local product = ProductUtil.getHouseObjectProduct("Furniture", itemName)
             ProductService.addProduct(player, product, amount)
