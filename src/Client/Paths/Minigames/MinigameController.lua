@@ -73,27 +73,29 @@ function MinigameController.stopMusic(name: Music)
 end
 
 local function setState(newState: State)
-    local newName: string = newState.Name
-    local newData: StateData = newState.Data
+    task.spawn(function()
+        local newName: string = newState.Name
+        local newData: StateData = newState.Data
 
-    local lastState = currentState
-    currentState = newState
+        local lastState = currentState
+        currentState = newState
 
-    Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
+        Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
 
-    -- Close previously opened
-    if lastState then
-        local callbacks = stateCallbacks[currentMinigame][lastState.Name]
+        -- Close previously opened
+        if lastState then
+            local callbacks = stateCallbacks[currentMinigame][lastState.Name]
 
-        if callbacks and callbacks.Close then
-            callbacks.Close(newData)
+            if callbacks and callbacks.Close then
+                callbacks.Close(newData)
+            end
         end
-    end
 
-    local callbacks = stateCallbacks[currentMinigame][newName]
-    if callbacks and callbacks.Open then
-        callbacks.Open(newData)
-    end
+        local callbacks = stateCallbacks[currentMinigame][newName]
+        if callbacks and callbacks.Open then
+            callbacks.Open(newData)
+        end
+    end)
 end
 
 local function assertActiveMinigame()
