@@ -206,6 +206,14 @@ function ZoneController.transitionToZone(
         return
     end
 
+    -- Ensure player is not sitting
+    local character = Players.LocalPlayer.Character
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    local seatPart = humanoid and humanoid.SeatPart :: Seat
+    if seatPart then
+        humanoid.Sit = false
+    end
+
     -- Populate blink options
     blinkOptions = blinkOptions or {}
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
