@@ -289,6 +289,16 @@ function ProductService.readProducts(player: Player)
     end
 end
 
+function ProductService.canPlaceHouseProduct(player: Player, product: Products.Product)
+    local owns = ProductService.hasProduct(player, product)
+    local amount = ProductService.getProductCount(player, product)
+    if owns and (amount > 0) then
+        return true
+    else
+        return false
+    end
+end
+
 -- Returns true if success
 function ProductService.consumeProduct(player: Player, product: Products.Product)
     Output.doDebug(ProductConstants.DoDebug, "consumeProduct", player, product.Type, product.Id)

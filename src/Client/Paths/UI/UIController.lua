@@ -153,10 +153,10 @@ end
 function UIController.registerStateScreenCallbacks(
     state: string,
     callbacks: {
-        Boot: (data: table?) -> nil,
-        Shutdown: () -> nil,
-        Maximize: () -> nil,
-        Minimize: () -> nil,
+        Boot: ((data: table?) -> nil)?,
+        Shutdown: (() -> nil)?,
+        Maximize: (() -> nil)?,
+        Minimize: (() -> nil)?,
     }
 )
     -- ERROR: Already registered

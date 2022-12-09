@@ -5,6 +5,8 @@ local Widget = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local UIController = require(Paths.Client.UI.UIController)
+local Signal = require(Paths.Shared.Signal)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
@@ -17,14 +19,18 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local ToolController = require(Paths.Client.Tools.ToolController)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 
 export type DiverseWidget = typeof(Widget.diverseWidget())
+
+export type Widget = typeof(Widget.diverseWidget())
+
+local uiStateMachine = UIController.getStateMachine()
 
 local FADE_TRANSPARENCY = 0.5
 local ADD_BUTTON_SIZE = UDim2.fromScale(0.75, 0.75)
@@ -51,7 +57,8 @@ local PET_EGG_HSV_RANGE = {
     },
 }
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
-local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
+local COLOR_WHITE = Color3.fromRGB(251, 252, 255)
+local SELECTED_COLOR = Color3.fromRGB(255, 245, 154)
 local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
 
 Widget.Defaults = {
@@ -59,6 +66,8 @@ Widget.Defaults = {
     TextStrokeColor = Color3.fromRGB(38, 71, 118),
     ImageColor = Color3.fromRGB(255, 255, 255),
 }
+
+local templates: Folder = Paths.Templates
 
 -------------------------------------------------------------------------------
 -- Misc Widgets
@@ -116,16 +125,29 @@ end
 -- Product Widgets
 -------------------------------------------------------------------------------
 
-function Widget.diverseWidgetFromProduct(product: Products.Product, state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?)
+function Widget.diverseWidgetFromProduct(
+    product: Products.Product,
+    state: { VerifyOwnership: boolean?, ShowTotals: boolean?, HideText: boolean? }?,
+    onItemOwned: ((Widget) -> ())?
+)
     local widget = Widget.diverseWidget()
     state = state or {}
 
     -- Populate Widget
-    widget:SetText(product.DisplayName)
+    if not (state and state.HideText) then
+        widget:SetText(product.DisplayName)
+    end
 
     local model = ProductUtil.getModel(product)
     if model then
-        widget:SetViewport(model)
+        if
+            FurnitureConstants.Objects[model.Name]
+            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
+        then
+            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
+        else
+            widget:SetViewport(model)
+        end
     else
         widget:SetIcon(product.ImageId, product.ImageColor)
     end
@@ -133,7 +155,11 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
     -- Handle widget being used for purchases + showing if owned
     if state.VerifyOwnership then
         local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-        if not isOwned then
+        if isOwned then
+            if onItemOwned then
+                onItemOwned(widget)
+            end
+        else
             widget:SetFade(true)
             widget:SetPrice(product.CoinData and product.CoinData.Cost)
 
@@ -150,6 +176,10 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
                     widget:SetFade(false)
                     widget:SetPrice()
                     purchaseMaid:Cleanup()
+
+                    if onItemOwned then
+                        onItemOwned(widget)
+                    end
                 end
             end))
         end
@@ -180,9 +210,64 @@ function Widget.diverseWidgetFromProduct(product: Products.Product, state: { Ver
     return widget
 end
 
--------------------------------------------------------------------------------
--- Pet / PetEgg Widgets
--------------------------------------------------------------------------------
+function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
+    local widget = Widget.diverseWidget()
+    local canPlaceProduct: boolean, _amountToPlace: number = nil, nil
+    -- Populate Widget
+    widget:SetText(product.DisplayName)
+
+    local model = ProductUtil.getModel(product)
+    if model then
+        if
+            FurnitureConstants.Objects[model.Name]
+            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
+        then
+            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
+        else
+            widget:SetViewport(model)
+        end
+    else
+        widget:SetIcon(product.ImageId, product.ImageColor)
+    end
+
+    local function updateWidget()
+        canPlaceProduct, _amountToPlace = ProductController.canPlaceHouseProduct(product)
+        if canPlaceProduct then
+            widget:SetNumberTag(_amountToPlace)
+            widget:SetFade(false)
+            widget:SetPrice()
+        else
+            widget:SetFade(true)
+            widget:SetPrice(product.CoinData and product.CoinData.Cost)
+            widget:SetNumberTag(nil)
+        end
+    end
+
+    local placementMaid = Maid.new()
+    widget:GetMaid():GiveTask(placementMaid)
+
+    placementMaid:GiveTask(widget.Pressed:Connect(function()
+        local canPlace = ProductController.canPlaceHouseProduct(product)
+        if canPlace then
+            uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
+                Object = model:Clone(),
+                IsNewObject = true,
+            })
+        else
+            ProductController.prompt(product)
+        end
+    end))
+
+    placementMaid:GiveTask(ProductController.ProductAdded:Connect(function(addedProduct: Products.Product, _amount: number)
+        if addedProduct == product then
+            updateWidget()
+        end
+    end))
+
+    updateWidget()
+
+    return widget
+end
 
 --[[
     `hatchTime` must be straight from data
@@ -256,6 +341,37 @@ function Widget.diverseWidgetFromPetData(petData: PetConstants.PetData)
     return widget
 end
 
+function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string)
+    local product = ProductUtil.getHouseObjectProduct(category, objectKey)
+    local widget = Widget.diverseWidgetFromHouseObjectProduct(product)
+
+    widget:GetGuiObject().Size = UDim2.new(0, 220, 1, 0)
+
+    return widget
+end
+
+function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3)
+    local product = ProductUtil.getHouseColorProduct(colorName, color)
+    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = false })
+
+    local ui = widget:GetGuiObject()
+    ui.ZIndex = 50
+
+    widget:SetIconColor(color)
+
+    local selected = templates.Housing.ColorSelected:Clone()
+    selected.Parent = ui.imageButton.icon.iconImageLabel
+
+    ui.imageButton.icon.iconImageLabel.ZIndex += 1
+    selected.ZIndex = ui.imageButton.icon.iconImageLabel.ZIndex - 1
+
+    function widget:SetSelected(on: boolean)
+        selected.Visible = on or false
+    end
+
+    return widget
+end
+
 function Widget.diverseWidgetFromPetDataIndex(petDataIndex: string)
     -- Circular Dependencies
     local PetController = require(Paths.Client.Pets.PetController)
@@ -284,6 +400,7 @@ function Widget.diverseWidget()
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
+    local selected: boolean = false
 
     --#region Create UI
     local diverseWidget = Instance.new("Frame")
@@ -294,7 +411,7 @@ function Widget.diverseWidget()
     local imageButton = widget:GetButtonObject()
     imageButton.Name = "imageButton"
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    imageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    imageButton.BackgroundColor3 = COLOR_WHITE
     imageButton.BorderSizePixel = 0
     imageButton.Position = UDim2.fromScale(0.5, 0.5)
     imageButton.Size = UDim2.fromScale(0.9, 0.9)
@@ -365,6 +482,11 @@ function Widget.diverseWidget()
     local transparency = 0
 
     -------------------------------------------------------------------------------
+    -- Public members
+    -------------------------------------------------------------------------------
+    widget.SelectedChanged = Signal.new()
+
+    -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
 
@@ -400,11 +522,27 @@ function Widget.diverseWidget()
         iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
     end
 
-    function widget:SetViewport(model: Model)
+    function widget:DisableIcon()
+        textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+        textLabel.Position = UDim2.fromScale(0.5, 0.5)
+        iconImageLabel.Visible = false
+    end
+
+    function widget:EnableIcon()
+        iconImageLabel.Visible = true
+        textLabel.AnchorPoint = Vector2.new(0.5, 1)
+        textLabel.Position = UDim2.fromScale(0.5, 1)
+    end
+
+    function widget:SetIconColor(imageColor: Color3?)
+        iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
+    end
+
+    function widget:SetViewport(model: Model, rotation: CFrame?)
         iconImageLabel.Visible = false
         viewportFrame.Visible = true
 
-        CameraUtil.lookAtModelInViewport(viewportFrame, model)
+        CameraUtil.lookAtModelInViewport(viewportFrame, model, rotation)
     end
 
     function widget:SetBackgroundColor(color: Color3?)
@@ -503,7 +641,7 @@ function Widget.diverseWidget()
             local numberTagFrame = Instance.new("Frame")
             numberTagFrame.Name = "numberTagFrame"
             numberTagFrame.AnchorPoint = Vector2.new(0.7, 0.3)
-            numberTagFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            numberTagFrame.BackgroundColor3 = COLOR_WHITE
             numberTagFrame.Position = UDim2.fromScale(1, 0)
             numberTagFrame.Size = UDim2.fromOffset(50, 50)
             numberTagFrame.Visible = false
@@ -561,6 +699,15 @@ function Widget.diverseWidget()
                 numberTagLabel.TextTransparency = transparency
             end
             cornerFade()
+        end
+    end
+
+    function widget:SetSelected(toggle: boolean)
+        widget:SetBackgroundColor(toggle and SELECTED_COLOR)
+
+        if selected ~= toggle then
+            widget.SelectedChanged:Fire(toggle)
+            selected = toggle
         end
     end
 

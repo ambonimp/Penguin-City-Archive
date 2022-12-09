@@ -1,16 +1,14 @@
 local HouseSettingsScreen = {}
 
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local WideButton = require(Paths.Client.UI.Elements.WideButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 
-local screenGui: ScreenGui = Paths.UI.Housing
+local screenGui: ScreenGui = Paths.UI.HouseSettings
 local frame: Frame = screenGui.Settings
 
 local uiStateMachine = UIController.getStateMachine()
@@ -19,19 +17,26 @@ local plotAt: Model
 
 -- Register UIState
 do
-    local function open(data)
-        plotAt = data.PlotAt
-        InteractionUtil.hideInteractions(script.Name)
-
+    local function maximize()
         ScreenUtil.sizeIn(frame)
     end
 
+    local function open(data)
+        plotAt = data.PlotAt
+        screenGui.Enabled = true
+        maximize()
+    end
+
     local function close()
-        InteractionUtil.showInteractions(script.Name)
         ScreenUtil.sizeOut(frame)
     end
 
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotSettings, open, close)
+    UIController.registerStateScreenCallbacks(UIConstants.States.PlotSettings, {
+        Boot = open,
+        Shutdown = close,
+        Maximize = maximize,
+        Minimize = close,
+    })
 end
 
 -- Manipulate UIState
@@ -41,29 +46,6 @@ do
         uiStateMachine:Pop()
     end)
     exitButton:Mount(frame.ExitButton, true)
-
-    -- Way better, don't have to worry about things loading
-    ProximityPromptService.PromptTriggered:Connect(function(prompt)
-        -- RETURN: Player isn't interacting with a mailbox
-        if prompt.ObjectText ~= "Mailbox" then
-            return
-        end
-
-        -- RETURN: UI derived from this prompts are already opened
-        local state = uiStateMachine:GetState()
-        if
-            state == UIConstants.States.PlotSettings
-            or state == UIConstants.States.HouseSelectionUI
-            or state == UIConstants.States.PlotChanger
-        then
-            return
-        end
-
-        -- TODO: Switch this to a radial menu
-        uiStateMachine:Push(UIConstants.States.PlotSettings, {
-            PlotAt = prompt.Parent.Parent,
-        })
-    end)
 end
 
 do
@@ -74,7 +56,9 @@ do
     plotChangeButton:Mount(frame.Center.PlotChange, true)
 
     local houseChangeButton = WideButton.blue("Change House")
-    houseChangeButton.Pressed:Connect(function() end)
+    houseChangeButton.Pressed:Connect(function()
+        uiStateMachine:Push(UIConstants.States.HouseSelectionUI, { PlotAt = plotAt })
+    end)
     houseChangeButton:Mount(frame.Center.HouseChange, true)
 end
 

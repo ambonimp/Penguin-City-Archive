@@ -1,3 +1,4 @@
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local ServerStorage = game:GetService("ServerStorage")
 local Selection = game:GetService("Selection")
 local Utils = ServerStorage.SocketPlugin:FindFirstChild("Utils")
@@ -39,6 +40,7 @@ local macroDefinition = {
             end
         end
 
+        ChangeHistoryService:SetWaypoint("FixRenderFidelity")
         Logger:MacroInfo(macro, ("Updated %d MeshParts"):format(totalUpdates))
     end,
 }

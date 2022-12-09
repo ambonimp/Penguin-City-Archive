@@ -75,6 +75,7 @@ Images.Icons = {
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
     Exit_Shadowless = "rbxassetid://11259375721",
+    Click = "rbxassetid://11637103411",
 }
 --#endregion
 --#region Coins
@@ -88,8 +89,20 @@ Images.Coins = {
     Coin = "rbxassetid://11152355612",
 }
 --#endregion
---#region PizzaMinigame
-Images.PizzaMinigame = {
+--#region Minigame
+Images.Minigames = {
+    Medal1 = "rbxassetid://11494007933",
+    Medal2 = "rbxassetid://11494007344",
+    Medal3 = "rbxassetid://11494007246",
+    Countdown3 = "rbxassetid://11468633791",
+    Countdown2 = "rbxassetid://11468634030",
+    Countdown1 = "rbxassetid://11468634160",
+    Countdown0 = "rbxassetid://11468633672",
+    Hologram = "rbxassetid://11700324057",
+}
+--#endregion
+--#region PizzaFiasco
+Images.PizzaFiasco = {
     Squid = "rbxassetid://11152398223",
     TomatoSauce = "rbxassetid://11152398287",
     Shrimp = "rbxassetid://11154654667",
@@ -104,6 +117,26 @@ Images.PizzaMinigame = {
     PizzaBase = "rbxassetid://11152399418",
     Cheese = "rbxassetid://11152399496",
     Anchovy = "rbxassetid://11152399621",
+}
+--#endregion
+--#region SledRace
+Images.SledRace = {
+    Logo = "rbxassetid://11467711828",
+    InstructionsPaper = "rbxassetid://11624971628",
+    Doodle1 = "rbxassetid://11624957666",
+    Doodle2 = "rbxassetid://11624957801",
+    Doodle3 = "rbxassetid://11624957746",
+    Pin = "rbxassetid://11624925597",
+}
+--#endregion
+--#region IceCreamExtravaganza
+Images.IceCreamExtravaganza = {
+    Doodle1 = "rbxassetid://11624987232",
+    Doodle2 = "rbxassetid://11624987103",
+    Doodle3 = "rbxassetid://11624987002",
+    InstructionsPaper = "rbxassetid://11624986943",
+    Logo = "rbxassetid://11583529373",
+    ConeIcon = "rbxassetid://11625086321",
 }
 --#endregion
 --#region SelectionPanel
@@ -136,7 +169,7 @@ Images.Outfits = {
 --#endregion
 --#region Hats
 Images.Hats = {
-    ["Detective's_Hat"] = "rbxassetid://10534508114",
+    ["Detectives_Hat"] = "rbxassetid://10534508114",
     ["Boot_Hat"] = "rbxassetid://10534511175",
     ["Bird_Hat"] = "rbxassetid://10534511478",
     ["Backwards_Cap"] = "rbxassetid://10534516561",

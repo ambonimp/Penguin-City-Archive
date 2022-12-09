@@ -2,14 +2,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
 
 local assets = ReplicatedStorage.Assets.Character
 
 local function doesModelContainerExist(issues, itemType: string): boolean
     local passed: boolean = true
 
-    if not assets:FindFirstChild(CharacterItems[itemType].AssetsPath) then
+    if not assets:FindFirstChild(CharacterItemConstants[itemType].AssetsPath) then
         table.insert(
             issues,
             string.format(
@@ -25,7 +25,7 @@ local function doesModelContainerExist(issues, itemType: string): boolean
 end
 
 local function doModelsExist(issues, itemType: string)
-    local itemConstants = CharacterItems[itemType]
+    local itemConstants = CharacterItemConstants[itemType]
 
     local models = assets[itemConstants.AssetsPath]
     for item in pairs(itemConstants.Items) do
@@ -36,7 +36,7 @@ local function doModelsExist(issues, itemType: string)
 end
 
 local function doModelsHaveA(issues, itemType: string, descedant: string)
-    local itemConstants = CharacterItems[itemType]
+    local itemConstants = CharacterItemConstants[itemType]
     local items: { [string]: table } = itemConstants.Items
 
     for _, model in pairs(assets[itemConstants.AssetsPath]:GetChildren()) do

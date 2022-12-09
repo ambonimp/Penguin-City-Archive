@@ -13,13 +13,13 @@ return {
             Description = "The players to teleport",
         },
         {
-            Type = "zoneType",
-            Name = "zoneType",
-            Description = "zoneType",
+            Type = "zoneCategory",
+            Name = "zoneCategory",
+            Description = "zoneCategory",
         },
         function(context)
-            local zoneTypeArgument = context:GetArgument(2)
-            return ZoneUtil.getZoneIdCmdrArgument(zoneTypeArgument)
+            local zoneCategoryArgument = context:GetArgument(2)
+            return ZoneUtil.getZoneTypeCmdrArgument(zoneCategoryArgument)
         end,
     },
 }

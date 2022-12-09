@@ -13,7 +13,7 @@ local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local TutorialController = require(Paths.Client.TutorialController)
 local UIActions = require(Paths.Client.UI.UIActions)
 local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
@@ -40,7 +40,7 @@ local hasMadeChange = false
 
 local function updateAppearance()
     local appearance = TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(currentColorIndex, currentOutfitIndex)
-    CharacterUtil.applyAppearance(character, appearance, true)
+    CharacterItemUtil.applyAppearance(character, appearance, true)
 end
 
 local function updateOutfitIndex(indexAdd: number)
@@ -119,7 +119,7 @@ function StartingAppearanceScreen.Init()
         colorPanel:AddTab("Color", Images.Icons.PaintBucket)
         for colorIndex, colorName in pairs(TutorialConstants.StartingAppearance.Colors) do
             local product = ProductUtil.getCharacterItemProduct("FurColor", colorName)
-            colorPanel:AddWidgetFromProduct("Color", colorName, product, nil, function()
+            colorPanel:AddWidgetFromProduct("Color", colorName, false, product, nil, function()
                 currentColorIndex = colorIndex
                 hasMadeChange = true
                 updateAppearance()

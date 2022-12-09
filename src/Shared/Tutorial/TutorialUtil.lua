@@ -2,7 +2,7 @@ local TutorialUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TutorialConstants = require(ReplicatedStorage.Shared.Tutorial.TutorialConstants)
-local CharacterItems = require(ReplicatedStorage.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 
 function TutorialUtil.getTaskDataAddress(task: string)
@@ -18,7 +18,7 @@ function TutorialUtil.buildAppearanceFromColorAndOutfitIndexes(colorIndex: numbe
     local color = TutorialConstants.StartingAppearance.Colors[colorIndex]
     local outfit = TutorialConstants.StartingAppearance.Outfits[outfitIndex]
 
-    local appearance = TableUtil.deepClone(outfit) :: CharacterItems.Appearance
+    local appearance = TableUtil.deepClone(outfit) :: CharacterItemConstants.Appearance
     appearance.FurColor = { color }
 
     return appearance

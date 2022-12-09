@@ -5,6 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 
@@ -82,7 +83,7 @@ function WindEmitter.new()
     local function createWind()
         local startPosition = currentCamera.CFrame.Position
             + currentCamera.CFrame.LookVector.Unit * wind.Radius
-            + VectorUtil.getUnit(VectorUtil.nextVector3(-1, 1)) * wind.Radius
+            + VectorUtil.getUnit(Vector3Util.nextVector(-1, 1)) * wind.Radius
 
         local windPart: Part = game.ReplicatedStorage.Assets.Misc.WindPart:Clone()
         windPart.Position = startPosition

@@ -1,19 +1,23 @@
 local ZoneConstants = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MinigameConstants = require(ReplicatedStorage.Shared.Minigames.MinigameConstants)
+
 -------------------------------------------------------------------------------
 -- Types
 -------------------------------------------------------------------------------
 
-export type PlayerZoneState = {
-    RoomId: string,
-    MinigameId: string?,
-    IglooId: string?,
-    TotalTeleports: number,
+export type Zone = {
+    ZoneCategory: string,
+    ZoneType: string,
+    ZoneId: string?,
 }
 
-export type Zone = {
-    ZoneType: string,
-    ZoneId: string,
+export type PlayerZoneState = {
+    RoomZone: Zone?,
+    MinigameZone: Zone?,
+    IglooId: string?,
+    TotalTeleports: number,
 }
 
 -------------------------------------------------------------------------------
@@ -21,17 +25,17 @@ export type Zone = {
 -------------------------------------------------------------------------------
 
 -- Gets our constants directly out of studio
-local function getRoomIds()
-    local roomIds = setmetatable({}, {
+local function getRoomTypes()
+    local roomTypes = setmetatable({}, {
         __index = function(_, index)
-            warn(("Bad RoomId %q"):format(index))
+            warn(("Bad RoomType %q"):format(index))
         end,
     }) :: { [string]: string }
 
     local function addRoom(roomFolder: Folder)
-        local zoneId = roomFolder.Name
-        if not tonumber(zoneId) then -- Exclude houseInteriorZones
-            roomIds[zoneId] = zoneId
+        local roomType = roomFolder.Name
+        if not tonumber(roomType) then -- Exclude houseInteriorZones
+            roomTypes[roomType] = roomType
         end
     end
 
@@ -41,43 +45,36 @@ local function getRoomIds()
     end
     rooms.ChildAdded:Connect(addRoom)
 
-    return roomIds
+    return roomTypes
 end
 
 -------------------------------------------------------------------------------
 -- Constants
 -------------------------------------------------------------------------------
 
-ZoneConstants.ZoneType = {
+ZoneConstants.ZoneCategory = {
     Room = "Room",
     Minigame = "Minigame",
 }
-ZoneConstants.ZoneId = {
-    Room = getRoomIds(),
-    Minigame = {
-        Pizza = "Pizza",
-    },
+ZoneConstants.ZoneType = {
+    Room = getRoomTypes(),
+    Minigame = MinigameConstants.Minigames,
 }
 
 ZoneConstants.ZoneInstances = {
     FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
 }
 
-local defaultPlayerZoneState: PlayerZoneState = {
-    RoomId = ZoneConstants.ZoneId.Room.Town,
-    TotalTeleports = 0,
-}
-ZoneConstants.DefaultPlayerZoneState = defaultPlayerZoneState
+ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.SkiHill
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
-ZoneConstants.StreamingTargetRadius = 3000
+ZoneConstants.StreamingTargetRadius = 5300
 
 -- Attribute we set on an instance when it has children that are BaseParts. Used for the client to detect if a zone is fully loaded in yet
 ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
-
 ZoneConstants.DoDebug = false
 
 -------------------------------------------------------------------------------

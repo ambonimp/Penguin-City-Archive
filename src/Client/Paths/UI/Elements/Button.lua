@@ -156,6 +156,10 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
         pressedDebounce = debounceTime
     end
 
+    function button:Destroy()
+        button:GetMaid():Destroy()
+    end
+
     -------------------------------------------------------------------------------
     -- Logic
     -------------------------------------------------------------------------------

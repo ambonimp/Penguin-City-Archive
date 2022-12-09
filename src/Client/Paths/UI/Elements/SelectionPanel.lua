@@ -15,13 +15,16 @@ local Queue = require(Paths.Shared.Queue)
 local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
 local Products = require(Paths.Shared.Products.Products)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local ProductController = require(Paths.Client.ProductController)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { { WidgetName: string, Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil } },
+    WidgetConstructors: { {
+        WidgetName: string,
+        Selected: boolean,
+        Instance: Widget.Widget?,
+        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+    } },
     Button: Button.Button | nil,
 }
 
@@ -72,13 +75,17 @@ function SelectionPanel.new()
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
+    local arrowVisible: boolean = true
+    local hiddenTabs: { string } = {}
     local tabsIndex = 1
 
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
 
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel.ClosePressed = Signal.new()
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
 
     -------------------------------------------------------------------------------
@@ -257,6 +264,9 @@ function SelectionPanel.new()
                 button:GetButtonObject().LayoutOrder = index
                 button:GetButtonObject().Visible = not (openTabName == visibleTab.Name)
 
+                if table.find(hiddenTabs, visibleTab.Name) then
+                    button:GetButtonObject().Visible = false
+                end
                 -- Selected
                 if openTabName == visibleTab.Name then
                     openTab = visibleTab
@@ -280,6 +290,10 @@ function SelectionPanel.new()
         do
             backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
+
+            if arrowVisible == false then
+                forwardArrow:GetButtonObject().Visible = false
+            end
         end
 
         -- Widgets
@@ -295,7 +309,10 @@ function SelectionPanel.new()
                 drawMaid:GiveTask(widgetFrame)
 
                 widgetFrame.Background:Destroy()
-                widgetInfo.Constructor(widgetFrame, drawMaid)
+
+                local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
+                widget:SetSelected(widgetInfo.Selected)
+                widgetInfo.Instance = widget
             end
         end
 
@@ -339,10 +356,32 @@ function SelectionPanel.new()
             return
         end
 
+        if openTabName then
+            for _, widgetInfo in pairs(getTab(openTabName).WidgetConstructors) do
+                widgetInfo.Instance = nil
+            end
+        end
+        selectionPanel.TabChanged:Fire(openTabName, tabName)
+
         openTabName = tabName
         openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
 
         draw()
+    end
+
+    function selectionPanel:HideForwardArrow()
+        if tabsIndex > 1 then
+            updateTabIndex(-1)
+        end
+        arrowVisible = false
+    end
+
+    function selectionPanel:ShowForwardArrow()
+        arrowVisible = true
+    end
+
+    function selectionPanel:GetOpenTabName()
+        return openTabName
     end
 
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
@@ -377,6 +416,23 @@ function SelectionPanel.new()
 
         resize()
         draw()
+    end
+
+    function selectionPanel:HideTab(tabName: string)
+        if table.find(hiddenTabs, tabName) then --already hidden
+            return
+        end
+        table.insert(hiddenTabs, tabName)
+
+        draw()
+    end
+
+    function selectionPanel:ShowTab(tabName: string)
+        if table.find(hiddenTabs, tabName) then --is hidden
+            table.remove(hiddenTabs, table.find(hiddenTabs, tabName))
+
+            draw()
+        end
     end
 
     function selectionPanel:AddTab(tabName: string, imageId: string)
@@ -416,13 +472,15 @@ function SelectionPanel.new()
                 return
             end
         end
+
         selectionPanel:OpenTab()
     end
 
     function selectionPanel:AddWidgetConstructor(
         tabName: string,
         widgetName: string,
-        constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil
+        selected: boolean,
+        constructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget)
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -440,6 +498,7 @@ function SelectionPanel.new()
         table.insert(tab.WidgetConstructors, {
             WidgetName = widgetName,
             Constructor = constructor,
+            Selected = selected,
         })
 
         if openTabName == tab.Name then
@@ -450,24 +509,55 @@ function SelectionPanel.new()
     function selectionPanel:AddWidgetFromProduct(
         tabName: string,
         widgetName: string,
+        selected: boolean,
         product: Products.Product,
-        state: { VerifyOwnership: boolean?, ShowTotals: boolean? }?,
-        callback: (() -> nil)?
+        state: {
+            VerifyOwnership: boolean?,
+            ShowTotals: boolean?,
+            HideText: boolean?,
+        }?,
+        onClicked: (() -> ())?,
+        onCreated: ((Widget.Widget) -> ())?
     )
-        selectionPanel:AddWidgetConstructor(tabName, widgetName, function(widgetParent, maid)
-            local widget = Widget.diverseWidgetFromProduct(product, state)
-            widget:Mount(widgetParent)
-            widget.Pressed:Connect(function()
-                local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-                local doRunCallback = not (state and state.VerifyOwnership) or isOwned
-
-                if doRunCallback then
-                    callback()
-                end
+        selectionPanel:AddWidgetConstructor(tabName, widgetName, selected, function(widgetParent, maid)
+            local widget = Widget.diverseWidgetFromProduct(product, state, function(button)
+                button.Pressed:Connect(function()
+                    if onClicked then
+                        onClicked()
+                    end
+                end)
             end)
 
+            if onCreated then
+                onCreated(widget)
+            end
+
+            widget:Mount(widgetParent)
             maid:GiveTask(widget)
+
+            return widget
         end)
+    end
+
+    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, toggle: boolean)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        for _, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                widgetInfo.Selected = toggle
+                local widget = widgetInfo.Instance
+                if widget then
+                    widget:SetSelected(toggle)
+                end
+
+                break
+            end
+        end
     end
 
     function selectionPanel:RemoveWidget(tabName: string, widgetName: string)
@@ -481,6 +571,7 @@ function SelectionPanel.new()
         for index, widgetInfo in pairs(tab.WidgetConstructors) do
             if widgetInfo.WidgetName == widgetName then
                 table.remove(tab.WidgetConstructors, index)
+                break
             end
         end
 

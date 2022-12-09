@@ -23,10 +23,10 @@ local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 local plots = workspace.Rooms.Neighborhood.HousingPlots
-local total = #plots:GetChildren()
+local total = 50
 local previewingIndex: number
 
-local screenGui: ScreenGui = Paths.UI.Housing
+local screenGui: ScreenGui = Paths.UI.PlotChanger
 local frame: Frame = screenGui.PlotChanger
 local ownerLabel: TextLabel = frame.Owner
 local setButtonContainer: Frame = frame.ChangePlot
@@ -55,7 +55,7 @@ do
     local function open(data)
         previewingIndex = tonumber(data.PlotAt.Name)
         preview()
-
+        screenGui.Enabled = true
         CharacterUtil.freeze(player.Character)
         ScreenUtil.sizeIn(frame)
     end
@@ -63,10 +63,16 @@ do
     local function close()
         CameraController.setPlayerControl()
         CharacterUtil.unfreeze(player.Character)
-
         ScreenUtil.sizeOut(frame)
     end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, open, close)
+
+    --uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, open, close)
+    UIController.registerStateScreenCallbacks(UIConstants.States.PlotChanger, {
+        Boot = open,
+        Shutdown = close,
+        Maximize = nil,
+        Minimize = nil,
+    })
 end
 
 -- Manipulate UIState
@@ -74,7 +80,7 @@ do
     local exitButton = ExitButton.new()
     exitButton:Mount(frame.ExitButton, true)
     exitButton.Pressed:Connect(function()
-        uiStateMachine:Pop()
+        uiStateMachine:PopTo(UIConstants.States.HUD)
     end)
 end
 
@@ -105,7 +111,7 @@ do
 
         if plot and not plot:GetAttribute(HousingConstants.PlotOwner) then
             Remotes.fireServer("ChangePlot", plot) -- TODO: Teleport them infront of new plot
-            uiStateMachine:PopTo(UIConstants.States.Nothing) --  TODO: Set this to the HUD when it's complete
+            uiStateMachine:PopTo(UIConstants.States.HUD)
         end
     end)
     changePlotButton:Mount(setButtonContainer, true)

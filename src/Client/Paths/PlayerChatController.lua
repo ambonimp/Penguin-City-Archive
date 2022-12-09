@@ -9,7 +9,7 @@ local PlayerChatController = {}
 local TextChatService = game:GetService("TextChatService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local FurColorConstants = require(Paths.Shared.Constants.CharacterItems.FurColorConstants)
+local FurColorConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants.FurColorConstants)
 local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
 
 local DEFAULT_FUR_COLOR = Color3.fromRGB(255, 255, 255)

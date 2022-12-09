@@ -36,15 +36,28 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
     -- Minigames
     Minigame = {
         -- Pizza
-        Pizza = {
+        PizzaFiasco = {
             Lighting = {
-                Ambient = Color3.fromRGB(190, 136, 97),
-                Brightness = 1.6,
+                Ambient = Color3.fromRGB(190, 190, 161),
+                Brightness = 3,
                 ColorShift_Top = Color3.fromRGB(0, 0, 0),
-                ClockTime = 11,
+                ClockTime = 14,
                 GeographicLatitude = 149,
                 ExposureCompensation = 0,
             },
+            DisableCollisions = true,
+            Music = false,
+        },
+        -- IceCreamExtravaganza
+        IceCreamExtravaganza = {
+            Lighting = {
+                Ambient = Color3.fromRGB(255, 128, 130),
+            },
+            DisableCollisions = false,
+            Music = false,
+        },
+        -- SledRace
+        SledRace = {
             DisableCollisions = true,
             Music = false,
         },
