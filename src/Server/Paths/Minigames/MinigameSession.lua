@@ -166,8 +166,10 @@ function MinigameSession.new(
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)
-
         minigameSession:RelayToOtherParticipants(player, "MinigameParticipantAdded", player)
+
+        Output.doDebug(MinigameConstants.DoDebug, "Participant joined", player.Name)
+
         Remotes.fireClient(
             player,
             "MinigameJoined",

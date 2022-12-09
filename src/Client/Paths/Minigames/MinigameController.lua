@@ -3,6 +3,7 @@ local MinigameController = {}
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Promise = require(Paths.Packages.promise)
 local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -42,6 +43,8 @@ local janitor = Janitor.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local music: { [string]: Sound } = {}
+
+local tasks
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBES
@@ -211,37 +214,44 @@ Remotes.bindEvents({
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
-        if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
-            ZoneController.ZoneChanged:Wait()
-        end
+        tasks = Promise.new(function(resolve)
+            if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
+                ZoneController.ZoneChanged:Wait()
+            end
 
-        if state.Name ~= INITIALIZATION_STATE.Name then
-            setState(INITIALIZATION_STATE)
-        end
+            if state.Name ~= INITIALIZATION_STATE.Name then
+                setState(INITIALIZATION_STATE)
+            end
 
-        setState(state)
+            setState(state)
 
-        uiStateMachine:Push(UIConstants.States.Minigame)
+            uiStateMachine:Push(UIConstants.States.Minigame)
+            resolve()
+        end)
     end,
 
     MinigameExited = function()
-        -- Music
-        MinigameController.stopMusic("Core")
-        MinigameController.stopMusic("Intermission")
+        tasks = tasks:andThen(function()
+            -- Music
+            MinigameController.stopMusic("Core")
+            MinigameController.stopMusic("Intermission")
 
-        if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
-            ZoneController.ZoneChanged:Wait()
-        end
+            if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
+                ZoneController.ZoneChanged:Wait()
+            end
 
-        janitor:Cleanup()
-        uiStateMachine:Pop()
+            janitor:Cleanup()
+            uiStateMachine:Pop()
 
-        task.defer(function()
-            currentMinigame = nil
-            currentZone = nil :: ZoneConstans.Zone -- ahh
-            currentState = nil
-            currentParticipants = nil
-            currentIsMultiplayer = nil
+            task.defer(function()
+                currentMinigame = nil
+                currentZone = nil :: ZoneConstans.Zone -- ahh
+                currentState = nil
+                currentParticipants = nil
+                currentIsMultiplayer = nil
+            end)
+
+            tasks = nil
         end)
     end,
 
@@ -256,7 +266,7 @@ Remotes.bindEvents({
     end,
 
     MinigameStateChanged = function(state: State)
-        setState(state)
+        tasks = tasks:andThenCall(setState, state)
     end,
 })
 
