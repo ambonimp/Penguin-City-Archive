@@ -31,12 +31,20 @@ do
         ScreenUtil.sizeOut(frame)
     end
 
+    local function maximize()
+        ScreenUtil.sizeIn(frame)
+    end
+
+    local function minimize()
+        ScreenUtil.sizeOut(frame)
+    end
+
     --uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseSelectionUI, open, close)
     UIController.registerStateScreenCallbacks(UIConstants.States.HouseSelectionUI, {
         Boot = open,
         Shutdown = close,
-        Maximize = nil,
-        Minimize = nil,
+        Maximize = maximize,
+        Minimize = minimize,
     })
 end
 
