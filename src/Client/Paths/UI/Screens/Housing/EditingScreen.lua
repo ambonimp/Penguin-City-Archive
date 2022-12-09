@@ -140,12 +140,21 @@ end
 do
     --Edit State
     local function enterState(data)
-        if os.time() - (lastItemPlaced or 0) <= ITEM_SELECT_DEBOUNCE then --prevents double clicking and mobile touches being weird
+        if DeviceUtil.isMobile() and (os.time() - (lastItemPlaced or 0) <= ITEM_SELECT_DEBOUNCE) then --prevents double clicking with mobile touches
             uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
             return
         end
         model = data.Object
-        local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0) * CFrame.new(0, 0.05, 0)
+
+        local modelData = FurnitureConstants.Objects[model.Name]
+
+        if modelData == nil then
+            local store = DataController.get("House.Furniture." .. model.Name)
+            modelData = FurnitureConstants.Objects[store.Name]
+        end
+        local isWallObject: boolean = table.find(modelData.Tags, FurnitureConstants.Tags.Wall) and true or false
+        local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0)
+            * (not isWallObject and CFrame.new(0, 0.05, 0) or CFrame.new(0, 0, -0.05))
 
         local isNewObject = data.IsNewObject
 
@@ -165,6 +174,12 @@ do
 
         local function applyCFrame()
             local cf = calculateCf(CFrame.new(position) * CFrame.Angles(0, rotationY, 0), position) * heightOffset
+            if isWallObject then
+                if normal == Vector3.new(0, 1, 0) then
+                    local sizes = model:GetExtentsSize()
+                    cf = cf * CFrame.Angles(math.rad(90), 0, 0) + Vector3.new(0, sizes.Z / 2, 0)
+                end
+            end
             TweenUtil.tween(model.PrimaryPart, CFRAME_TWEEN_INFO, {
                 CFrame = cf,
             })
@@ -307,11 +322,13 @@ do
 
                 RunService:BindToRenderStep("MoveObject", Enum.RenderPriority.First.Value, function()
                     local result = MouseUtil.getMouseTarget(ignore, true)
-                    local target, newPosition = result.Instance, result.Position
-                    if target and target:IsDescendantOf(plot) and newPosition then
-                        position = newPosition
-                        normal = result.Normal
-                        applyCFrame()
+                    if result then
+                        local target, newPosition = result.Instance, result.Position
+                        if target and target:IsDescendantOf(plot) and newPosition then
+                            position = newPosition
+                            normal = result.Normal
+                            applyCFrame()
+                        end
                     end
                 end)
             end))
@@ -607,6 +624,8 @@ do
 
         setCategoryVisible(false)
     end
+
+    ScreenUtil.outDown(furniturePanel:GetContainer())
 end
 
 -- Color Panel Setup
@@ -674,7 +693,6 @@ do
     end)
 
     ScreenUtil.outLeft(colorPanel:GetContainer())
-    ScreenUtil.outDown(furniturePanel:GetContainer())
 end
 
 ZoneController.ZoneChanging:Connect(function(old, new)

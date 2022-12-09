@@ -75,6 +75,22 @@ FurnitureConstants.Colors = {
     DarkBlue = { ImageColor = Color3.fromRGB(16, 42, 220), Price = 15 },
 }
 
+FurnitureConstants.StartingObjects = {
+    ["SHELF_2"] = 1,
+    ["Stool_1"] = 1,
+    ["Glass_Table_2"] = 1,
+    ["Floor_Lamp_01"] = 1,
+    ["TABLE_LAMP_02"] = 1,
+    ["CIRCULAR_TABLE_1"] = 1,
+    ["Table"] = 1,
+    ["BOOKSHELF_03"] = 1,
+    ["PLANT"] = 1,
+    ["Pet_Bed"] = 1,
+    ["Pet_Bowl_1"] = 1,
+    ["Stool_3"] = 1,
+    ["NIGHTSTAND"] = 1,
+}
+
 local objects: { [string]: Object } = {}
 objects["Couch_01"] = {
     Name = "Couch",
@@ -138,7 +154,7 @@ objects["TV"] = {
     Price = 30,
     Icon = "",
     Interactable = false,
-    Tags = { Tags.Entertainment, Tags.Decorations },
+    Tags = { Tags.Entertainment, Tags.Decorations, Tags.Wall },
 }
 objects["TABLE_LAMP_02"] = {
     Name = "Table Lamp",
@@ -242,7 +258,7 @@ objects["SHELF_2"] = {
     Price = 15,
     Icon = "",
     Interactable = false,
-    Tags = { Tags.Shelves, Tags.LivingRoom, Tags.BedRoom },
+    Tags = { Tags.Shelves, Tags.LivingRoom, Tags.BedRoom, Tags.Wall },
 }
 objects["Recliner"] = {
     Name = "Recliner",
@@ -498,7 +514,7 @@ objects["Cube_Shelf"] = {
     Price = 30,
     Icon = "",
     Interactable = false,
-    Tags = { Tags.Shelves, Tags.Decorations },
+    Tags = { Tags.Shelves, Tags.Decorations, Tags.Wall },
 }
 objects["Couch_03"] = {
     Name = "Couch",
@@ -562,7 +578,7 @@ objects["Bed"] = {
     Price = 25,
     Icon = "",
     Interactable = false,
-    Tags = { Tags.Chairs, Tags.Beds },
+    Tags = { Tags.Chairs, Tags.Beds, Tags.BedRoom },
 }
 objects["Bookshelf"] = {
     Name = "Bookshelf",

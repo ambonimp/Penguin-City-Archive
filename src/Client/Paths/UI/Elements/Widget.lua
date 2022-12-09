@@ -19,6 +19,7 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
@@ -139,7 +140,14 @@ function Widget.diverseWidgetFromProduct(
 
     local model = ProductUtil.getModel(product)
     if model then
-        widget:SetViewport(model)
+        if
+            FurnitureConstants.Objects[model.Name]
+            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
+        then
+            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
+        else
+            widget:SetViewport(model)
+        end
     else
         widget:SetIcon(product.ImageId, product.ImageColor)
     end
@@ -210,7 +218,14 @@ function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
 
     local model = ProductUtil.getModel(product)
     if model then
-        widget:SetViewport(model)
+        if
+            FurnitureConstants.Objects[model.Name]
+            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
+        then
+            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
+        else
+            widget:SetViewport(model)
+        end
     else
         widget:SetIcon(product.ImageId, product.ImageColor)
     end
@@ -329,10 +344,8 @@ end
 function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string)
     local product = ProductUtil.getHouseObjectProduct(category, objectKey)
     local widget = Widget.diverseWidgetFromHouseObjectProduct(product)
-    local model = ProductUtil.getModel(product)
 
     widget:GetGuiObject().Size = UDim2.new(0, 220, 1, 0)
-    widget:SetViewport(model)
 
     return widget
 end
@@ -525,11 +538,11 @@ function Widget.diverseWidget()
         iconImageLabel.ImageColor3 = imageColor or Widget.Defaults.ImageColor
     end
 
-    function widget:SetViewport(model: Model)
+    function widget:SetViewport(model: Model, rotation: CFrame?)
         iconImageLabel.Visible = false
         viewportFrame.Visible = true
 
-        CameraUtil.lookAtModelInViewport(viewportFrame, model)
+        CameraUtil.lookAtModelInViewport(viewportFrame, model, rotation)
     end
 
     function widget:SetBackgroundColor(color: Color3?)

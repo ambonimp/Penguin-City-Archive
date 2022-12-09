@@ -17,6 +17,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
@@ -116,12 +117,20 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
     local colors = metadata.Color
     local normal = metadata.Normal
 
+    local modelData = FurnitureConstants.Objects[metadata.Name]
+
     local cf = houseCFrame
         * calculateCf(
             CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0),
             position,
             normal
         )
+
+    if table.find(modelData.Tags, FurnitureConstants.Tags.Wall) then
+        if normal == Vector3.new(0, 1, 0) then
+            cf = cf * CFrame.Angles(math.rad(90), 0, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0)
+        end
+    end
     object:PivotTo(cf)
     object.Parent = plot.Furniture
 
@@ -278,6 +287,15 @@ function PlotService.loadPlayer(player: Player)
     exitPart.Parent = ZoneUtil.getZoneInstances(houseInteriorZone).RoomDepartures
 
     newSpawnTable[player] = changeSpawn
+
+    local didStartingObjects = DataService.get(player, "Housing.DidStartingObjects")
+    if didStartingObjects == nil then
+        DataService.set(player, "Housing.DidStartingObjects", true)
+        for itemName, amount in FurnitureConstants.StartingObjects do
+            local product = ProductUtil.getHouseObjectProduct("Furniture", itemName)
+            ProductService.addProduct(player, product, amount)
+        end
+    end
 end
 
 --Handles removing models and resetting plots on leave
@@ -320,9 +338,10 @@ Remotes.bindEvents({
             if withinBounds then
                 local id = DataService.getAppendageKey(player, "House.Furniture")
                 local object = assets[type]:FindFirstChild(name):Clone()
+
                 object.Name = id
                 ProductService.addProduct(player, product, -1)
-                local store = updateFurniture(player, object, metadata) -- Flag for valid placement
+                local store = updateFurniture(player, object, metadata)
                 if store then
                     DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
                 end
