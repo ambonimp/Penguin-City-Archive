@@ -92,6 +92,7 @@ end
 function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
     local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
     local widget = Widget.diverseWidgetFromProduct(toolProduct)
+    local maid = widget:GetMaid()
 
     local closeButton = ExitButton.new()
 
@@ -101,29 +102,34 @@ function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
 
     -- Manage equipped feedback
     do
-        local function update(isEquipped: boolean)
+        local function update(isEquipped: boolean, holsteredIndex: number?)
             widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+
+            widget:SetNumberTag(holsteredIndex, {
+                Position = "Bottom",
+                SizeOffset = Vector2.new(40, 40),
+                BorderThickness = 0,
+            })
         end
 
-        ToolController.ToolEquipped:Connect(function(equippedTool)
+        maid:GiveTask(ToolController.ToolEquipped:Connect(function(equippedTool)
             if ToolUtil.toolsMatch(equippedTool, tool) then
-                update(true)
+                update(true, ToolController.getHolsterSlot(tool))
             end
-        end)
-        ToolController.ToolUnequipped:Connect(function(unequippedTool)
+        end))
+        maid:GiveTask(ToolController.ToolUnequipped:Connect(function(unequippedTool)
             if ToolUtil.toolsMatch(unequippedTool, tool) then
-                update(false)
+                update(false, ToolController.getHolsterSlot(tool))
             end
-        end)
-        update(ToolController.isEquipped(tool))
+        end))
+        maid:GiveTask(ToolController.ToolHolstered:Connect(function()
+            update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
+        end))
+        maid:GiveTask(ToolController.ToolUnholstered:Connect(function()
+            update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
+        end))
+        update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
     end
-
-    -- Keybind
-    widget:SetNumberTag(1, {
-        Position = "Bottom",
-        SizeOffset = Vector2.new(40, 40),
-        BorderThickness = 0,
-    })
 
     return widget, closeButton
 end
@@ -482,9 +488,12 @@ function Widget.diverseWidget()
     local priceLabel: TextLabel | nil
     local priceUIStroke: UIStroke | nil
 
-    local cornerMaid = Maid.new()
-    widget:GetMaid():GiveTask(cornerMaid)
+    local cornerButtonMaid = Maid.new()
+    widget:GetMaid():GiveTask(cornerButtonMaid)
     local cornerFade: (() -> nil) | nil
+
+    local numberTagMaid = Maid.new()
+    widget:GetMaid():GiveTask(numberTagMaid)
 
     local transparency = 0
 
@@ -649,7 +658,7 @@ function Widget.diverseWidget()
             BorderThickness: number?,
         }?
     )
-        cornerMaid:Cleanup()
+        numberTagMaid:Cleanup()
 
         if number then
             -- Read Config
@@ -712,7 +721,7 @@ function Widget.diverseWidget()
             numberTagFrame.Visible = true
             numberTagLabel.Text = tostring(number)
 
-            cornerMaid:GiveTask(function()
+            numberTagMaid:GiveTask(function()
                 numberTagFrame:Destroy()
                 cornerFade = nil
             end)
@@ -738,7 +747,7 @@ function Widget.diverseWidget()
     end
 
     function widget:SetCornerButton(button: typeof(KeyboardButton.new())?)
-        cornerMaid:Cleanup()
+        cornerButtonMaid:Cleanup()
 
         if button then
             --#region Create UI
@@ -756,7 +765,7 @@ function Widget.diverseWidget()
             button:GetButtonObject().Size = UDim2.fromScale(1, 1)
             button:Mount(cornerButtonFrame)
 
-            cornerMaid:GiveTask(function()
+            cornerButtonMaid:GiveTask(function()
                 cornerButtonFrame:Destroy()
                 button:Destroy()
             end)

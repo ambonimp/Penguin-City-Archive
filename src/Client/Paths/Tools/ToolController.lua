@@ -143,6 +143,17 @@ function ToolController.hasToolEquipped()
     return ToolController.getEquipped() and true or false
 end
 
+-- If holstered, returns the index the tool is holstered at
+function ToolController.getHolsterSlot(tool: ToolUtil.Tool)
+    for index, someTool in pairs(holsteredTools) do
+        if ToolUtil.toolsMatch(someTool, tool) then
+            return index
+        end
+    end
+
+    return nil
+end
+
 function ToolController.getHolsteredTools()
     return holsteredTools
 end
