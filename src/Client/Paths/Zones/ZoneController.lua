@@ -15,7 +15,6 @@ local Assume = require(Paths.Shared.Assume)
 local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
-local MinigameController: typeof(require(Paths.Client.Minigames.MinigameController))
 local Limiter = require(Paths.Shared.Limiter)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
@@ -41,7 +40,6 @@ ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZ
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
-    MinigameController = require(Paths.Client.Minigames.MinigameController)
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
 end
 
@@ -134,9 +132,9 @@ end
 -- Arrivals
 -------------------------------------------------------------------------------
 
-local function setupTeleporter(teleporter: BasePart, zoneType: string)
-    local zoneId = teleporter.Name
-    local zone = ZoneUtil.zone(zoneType, zoneId)
+local function setupTeleporter(teleporter: BasePart, zoneCategory: string)
+    local zoneType = teleporter.Name
+    local zone = ZoneUtil.zone(zoneCategory, zoneType)
 
     -- Teleporter
     do
@@ -149,26 +147,24 @@ local function setupTeleporter(teleporter: BasePart, zoneType: string)
                 return
             end
 
-            if zone.ZoneType == ZoneConstants.ZoneType.Room then
+            if zone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
                 ZoneController.teleportToRoomRequest(zone)
-            elseif zone.ZoneType == ZoneConstants.ZoneType.Minigame then
-                MinigameController.play(zone.ZoneId)
             else
-                warn(("%s wat"):format(zone.ZoneType))
+                warn(("%s wat"):format(zone.ZoneCategory))
             end
         end)
     end
 end
 
 local function setupTeleporters()
-    for _, zoneType in pairs(ZoneConstants.ZoneType) do
-        local departures = ZoneUtil.getDepartures(currentZone, zoneType)
+    for _, zoneCategory in pairs(ZoneConstants.ZoneCategory) do
+        local departures = ZoneUtil.getDepartures(currentZone, zoneCategory)
         if departures then
             for _, teleporter: BasePart in pairs(departures:GetChildren()) do
-                setupTeleporter(teleporter, zoneType)
+                setupTeleporter(teleporter, zoneCategory)
             end
             zoneMaid:GiveTask(departures.ChildAdded:Connect(function(child)
-                setupTeleporter(child, zoneType)
+                setupTeleporter(child, zoneCategory)
             end))
         end
     end
@@ -176,7 +172,7 @@ end
 
 -- Only invoked when the server has forcefully teleported us somewhere
 function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneType, zone.ZoneId)
+    Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneCategory, zone.ZoneType)
 
     local blinkDuration = math.min(teleportBuffer, Transitions.BLINK_TWEEN_INFO.Time)
     ZoneController.transitionToZone(zone, function()
@@ -244,7 +240,7 @@ function ZoneController.transitionToZone(
 end
 
 function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
-    Output.doDebug(ZoneConstants.DoDebug, "arrivedAtZone", zone.ZoneType, zone.ZoneId)
+    Output.doDebug(ZoneConstants.DoDebug, "arrivedAtZone", zone.ZoneCategory, zone.ZoneType)
 
     -- Clean up old zone
     zoneMaid:Cleanup()
@@ -252,7 +248,7 @@ function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
     -- Init new Zone
     local oldZone = currentZone
     currentZone = zone
-    if currentZone.ZoneType == ZoneConstants.ZoneType.Room then
+    if currentZone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
         currentRoomZone = currentZone
     end
 
@@ -282,13 +278,14 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
     isRunningTeleportToRoomRequest = true
 
     -- ERROR: Not a room!
-    if roomZone.ZoneType ~= ZoneConstants.ZoneType.Room then
+    if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
         error("Not passed a room zone!")
     end
 
+    print(debug.traceback())
     local requestAssume = Assume.new(function()
         local teleportBuffer: number? =
-            Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneType, roomZone.ZoneId, game.Workspace:GetServerTimeNow())
+            Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, game.Workspace:GetServerTimeNow())
         return teleportBuffer
     end)
     requestAssume:Check(function(teleportBuffer: number)
@@ -327,8 +324,8 @@ function ZoneController.teleportToDefaultZone()
 end
 
 function ZoneController.teleportToRandomRoom()
-    local zoneId = TableUtil.getRandom(ZoneConstants.ZoneId.Room)
-    local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, zoneId)
+    local zoneType = TableUtil.getRandom(ZoneConstants.ZoneType.Room)
+    local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType)
     ZoneController.teleportToRoomRequest(roomZone)
 end
 
@@ -339,7 +336,7 @@ end
 function ZoneController.applySettings(zone: ZoneConstants.Zone)
     local zoneSettings = ZoneUtil.getSettings(zone)
     if zoneSettings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if zoneSettings.Lighting then
@@ -356,7 +353,7 @@ end
 function ZoneController.revertSettings(zone: ZoneConstants.Zone)
     local zoneSettings = ZoneUtil.getSettings(zone)
     if zoneSettings then
-        local key = zone.ZoneType .. zone.ZoneId
+        local key = zone.ZoneCategory .. zone.ZoneType
 
         -- Lighting
         if zoneSettings.Lighting then
@@ -391,11 +388,11 @@ end
 -- Communication
 do
     Remotes.bindEvents({
-        ZoneTeleport = function(zoneType: string, zoneId: string, teleportBuffer: number)
-            ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneType, zoneId), teleportBuffer)
+        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, teleportBuffer: number)
+            ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneCategory, zoneType, zoneId), teleportBuffer)
         end,
-        CmdrRoomTeleport = function(roomId: string)
-            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, roomId)
+        CmdrRoomTeleport = function(roomType: string)
+            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, roomType)
             ZoneController.teleportToRoomRequest(roomZone)
         end,
     })

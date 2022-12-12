@@ -10,6 +10,10 @@ function Connection.new(handler: Handler, connections: { [number]: Handler })
         connections[id] = nil
     end
 
+    function connection:Destroy()
+        connection:Disconnect()
+    end
+
     connections[id] = handler
     return connection
 end

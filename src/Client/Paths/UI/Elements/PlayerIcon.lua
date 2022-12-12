@@ -7,14 +7,14 @@ local UIElement = require(Paths.Client.UI.Elements.UIElement)
 local Promise = require(Paths.Packages.promise)
 local DataController = require(Paths.Client.DataController)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
-local CharacterItems = require(Paths.Shared.Constants.CharacterItems)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 
 local CHARACTER_HIDE_POSITION = Vector3.new(0, 50000, 0)
 local CAMERA_POSITION_OFFSET = Vector3.new(0, 2, -3)
 local CAMERA_LOOK_OFFSET = Vector3.new(0, 2, 0)
 
-function PlayerIcon.new(playerOrUserId: Player | number)
+function PlayerIcon.new(playerOrUserId: Player | number, cornerRadius: UDim?)
     local playerIcon = UIElement.new()
 
     -------------------------------------------------------------------------------
@@ -29,11 +29,18 @@ function PlayerIcon.new(playerOrUserId: Player | number)
     -- Private Methods
     -------------------------------------------------------------------------------
 
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = cornerRadius or UDim.new()
+
     local function viewport(player: Player)
         local viewportFrame = Instance.new("ViewportFrame")
+        viewportFrame.Name = "Icon"
+        viewportFrame.Ambient = Color3.fromRGB(255, 255, 255)
         viewportFrame.BackgroundTransparency = 1
         viewportFrame.Size = UDim2.fromScale(1, 1)
         viewportFrame.Parent = frame
+
+        uiCorner.Parent = viewportFrame
 
         local camera = Instance.new("Camera")
         viewportFrame.CurrentCamera = camera
@@ -50,11 +57,11 @@ function PlayerIcon.new(playerOrUserId: Player | number)
         local dataPromise = Promise.new(function(resolve, _reject, _onCancel)
             local characterAppearance = DataUtil.readAsArray(DataController.getPlayer(player, "CharacterAppearance"))
             resolve(characterAppearance)
-        end):andThen(function(characterAppearance: CharacterItems.Appearance)
+        end):andThen(function(characterAppearance: CharacterItemConstants.Appearance)
             -- Apply to a clone character that we can place in workspace so RigidConstraints in `applyAppearance` will work
             local prettyCharacter: Model = character:Clone()
             prettyCharacter.Parent = game.Workspace
-            CharacterUtil.applyAppearance(prettyCharacter, characterAppearance)
+            CharacterItemUtil.applyAppearance(prettyCharacter, characterAppearance)
             task.wait() -- Wait a frame for RigidConstraints to work
             prettyCharacter.Parent = viewportFrame
             character:Destroy()
@@ -69,10 +76,13 @@ function PlayerIcon.new(playerOrUserId: Player | number)
 
     local function thumbnail(userId: number)
         local imageLabel = Instance.new("ImageLabel")
+        imageLabel.Name = "Icon"
         imageLabel.BackgroundTransparency = 1
         imageLabel.Size = UDim2.fromScale(1, 1)
         imageLabel.Image = ""
         imageLabel.Parent = frame
+
+        uiCorner.Parent = imageLabel
 
         task.spawn(function()
             imageLabel.Image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
@@ -85,10 +95,15 @@ function PlayerIcon.new(playerOrUserId: Player | number)
 
     function playerIcon:Mount(parent: GuiObject, hideParent: boolean?)
         frame.Parent = parent
+        frame.Icon.ZIndex = parent.ZIndex + 1
 
         if hideParent then
             parent.BackgroundTransparency = 1
         end
+    end
+
+    function playerIcon:GetGuiObject()
+        return frame
     end
 
     -------------------------------------------------------------------------------

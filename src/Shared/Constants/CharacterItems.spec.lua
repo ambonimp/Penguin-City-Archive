@@ -1,10 +1,10 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CharacterItems = require(ReplicatedStorage.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 
 return function()
     local issues: { string } = {}
 
-    for categoryName, itemConstants in pairs(CharacterItems) do
+    for categoryName, itemConstants in pairs(CharacterItemConstants) do
         for itemKey, item in pairs(itemConstants.Items) do
             -- Name
             if item.Name then

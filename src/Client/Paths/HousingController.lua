@@ -16,7 +16,7 @@ function HousingController.getPlotFromOwner(owner: Player, type: string)
         end
     elseif type == HousingConstants.InteriorType then
         local houseInteriorZone = ZoneUtil.houseInteriorZone(owner)
-        local plot = ZoneUtil.getZoneTypeDirectory(houseInteriorZone.ZoneType):WaitForChild(houseInteriorZone.ZoneId)
+        local plot = ZoneUtil.getZoneCategoryDirectory(houseInteriorZone.ZoneCategory):WaitForChild(houseInteriorZone.ZoneType)
         if plot then
             return plot.InteriorPlot
         end

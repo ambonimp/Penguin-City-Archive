@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RewardsConstants = require(ReplicatedStorage.Shared.Rewards.RewardsConstants)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
-local CharacterItems = require(ReplicatedStorage.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 local HouseObjects = require(ReplicatedStorage.Shared.Constants.HouseObjects)
 
 local BAD_CLOTHING_CHARACTER_ITEM_CATEGORIES = {
@@ -44,7 +44,7 @@ return function()
                 if gift.Data.Clothing and typeof(gift.Data.Clothing) == "table" then
                     for categoryName, itemNames in pairs(gift.Data.Clothing) do
                         categoryName = tostring(categoryName)
-                        local category = CharacterItems[categoryName]
+                        local category = CharacterItemConstants[categoryName]
                         if category then
                             if table.find(BAD_CLOTHING_CHARACTER_ITEM_CATEGORIES, categoryName) then
                                 table.insert(
@@ -97,7 +97,7 @@ return function()
                 if gift.Data.Outfit and typeof(gift.Data.Outfit) == "table" then
                     for _, outfitName in pairs(gift.Data.Outfit) do
                         outfitName = tostring(outfitName)
-                        if not CharacterItems.Outfit.Items[outfitName] then
+                        if not CharacterItemConstants.Outfit.Items[outfitName] then
                             table.insert(issues, ("%s.%d Data.Outfit has a bad outfitName %q"):format(giftName, index, outfitName))
                         end
                     end

@@ -1,5 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CharacterItems = require(ReplicatedStorage.Shared.Constants.CharacterItems)
+local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
 
@@ -22,7 +22,7 @@ local function getDisplayName(categoryName: string, item: any): string | nil
     return StringUtil.getFriendlyString(item.Name)
 end
 
-for categoryName, itemConstants in pairs(CharacterItems) do
+for categoryName, itemConstants in pairs(CharacterItemConstants) do
     -- Create Products
     for itemKey, item in pairs(itemConstants.Items) do
         local model: Model? = itemConstants.AssetsPath and characterAssets[itemConstants.AssetsPath][itemKey]

@@ -14,5 +14,10 @@ return {
             Name = "players",
             Description = "The players to play the minigame",
         },
+        {
+            Type = "boolean",
+            Name = "multiplayer",
+            Description = "Whether or not the passed players should play with others or not",
+        },
     },
 }

@@ -52,7 +52,7 @@
         "Macros": {
           "$className": "Folder",
           "$ignoreUnknownInstances": true,
-          "CarGame": {
+          "PenguinCity": {
             "$className": "Folder",
             "$path": "src/SocketPlugin/Macros"
           }

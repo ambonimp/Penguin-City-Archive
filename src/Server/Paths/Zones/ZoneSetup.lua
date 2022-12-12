@@ -8,6 +8,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+-- require(Paths.Shared.Zones.ZoneConstants) -- So that getRoomTypes runs
 
 local GRID_PADDING = 128
 local GRID_RAISE_EVERY = 100 -- 10x10
@@ -24,19 +25,19 @@ local usedGridIndexes: { [number]: boolean } = {}
 local collisionDisablers: Folder
 
 --[[
-    Rooms and Minigames Instances must have a corresponding ZoneId
+    Rooms and Minigames Instances must have a corresponding ZoneType
 ]]
 local function verifyDirectories()
     for _, roomFolder in pairs(rooms:GetChildren()) do
-        local roomId = roomFolder.Name
-        if not ZoneConstants.ZoneId.Room[roomId] then
-            error(("Room Folder %s has no corresponding Room ZoneId"):format(roomFolder:GetFullName()))
+        local roomType = roomFolder.Name
+        if not ZoneConstants.ZoneType.Room[roomType] then
+            error(("Room Folder %s has no corresponding Room ZoneType"):format(roomFolder:GetFullName()))
         end
     end
     for _, minigameFolder in pairs(minigames:GetChildren()) do
-        local minigameId = minigameFolder.Name
-        if not ZoneConstants.ZoneId.Minigame[minigameId] then
-            error(("Minigame Folder %s has no corresponding Minigame ZoneId"):format(minigameFolder:GetFullName()))
+        local minigameType = minigameFolder.Name
+        if not ZoneConstants.ZoneType.Minigame[minigameType] then
+            error(("Minigame Folder %s has no corresponding Minigame ZoneType"):format(minigameFolder:GetFullName()))
         end
     end
 end
@@ -102,9 +103,9 @@ local function verifyAndCleanModels(someModels: { Model })
         end
 
         -- Verify arrivals/departures
-        for _, someZoneType in pairs(ZoneConstants.ZoneType) do
+        for _, someZoneCategory in pairs(ZoneConstants.ZoneCategory) do
             for _, direction in pairs({ "Arrivals", "Departures" }) do
-                local folder = zoneInstances[("%s%s"):format(someZoneType, direction)]
+                local folder = zoneInstances[("%s%s"):format(someZoneCategory, direction)]
                 if folder then
                     for _, child in pairs(folder:GetChildren()) do
                         -- ERROR: Not a base part
@@ -113,10 +114,8 @@ local function verifyAndCleanModels(someModels: { Model })
                         end
 
                         -- ERROR: Bad zoneid
-                        local someZoneId = child.Name
-                        local isGoodId = ZoneConstants.ZoneId[someZoneType][someZoneId] and true or false
-                        if not isGoodId then
-                            warn(("%s does not match any known %s Id!"):format(child:GetFullName(), someZoneType))
+                        if not ZoneConstants.ZoneType[someZoneCategory][(ZoneUtil.getZoneTypeAndIdFromName(child.Name))] then
+                            warn(("%s does not match any known %s type!"):format(child:GetFullName(), someZoneCategory))
                         end
                     end
                 end
@@ -213,7 +212,7 @@ local function setupGrid()
 end
 
 local function createCollisionHitbox(zone: ZoneConstants.Zone, departurePart: BasePart)
-    local collisionName = ("%s_%s_%s_CollisionDisabler"):format(zone.ZoneType, zone.ZoneId, departurePart.Name)
+    local collisionName = ("%s_%s_%s_CollisionDisabler"):format(zone.ZoneCategory, zone.ZoneType, departurePart.Name)
 
     local collisionPart: BasePart = departurePart:Clone()
     collisionPart.Name = collisionName
@@ -238,8 +237,10 @@ end
 local function addCollisionControl(someModels: { Model })
     for _, model in pairs(someModels) do
         local zone = ZoneUtil.getZoneFromZoneModel(model)
-        local departures =
-            { ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Minigame), ZoneUtil.getDepartures(zone, ZoneConstants.ZoneType.Room) }
+        local departures = {
+            ZoneUtil.getDepartures(zone, ZoneConstants.ZoneCategory.Minigame),
+            ZoneUtil.getDepartures(zone, ZoneConstants.ZoneCategory.Room),
+        }
         for _, departureDirectory: Instance in pairs(departures) do
             -- Loop current children
             for _, departurePart in pairs(departureDirectory:GetChildren()) do

@@ -176,7 +176,10 @@ function Remotes.bindEvents(callbacks: { [string]: EventCallback })
     end
 end
 
--- Returns a function that when invoked will remove the passed callback from existence
+--[[
+    Returns a function that when invoked will remove the passed callback from existence
+    WARNING: This function yields if events aren't declared before hand
+]]
 function Remotes.bindEventTemp(name: string, callback: EventCallback)
     local handler = getEventHandler(name)
     return handler.registerCallback(callback, true)
