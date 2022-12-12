@@ -668,6 +668,55 @@ objects["CoffeeTable"] = {
     Interactable = false,
     Tags = { Tags.DiningRoom, Tags.Tables },
 }
+objects["TOILET_1"] = {
+    Name = "Toilet",
+    Type = FurnitureConstants.Types.Seat,
+    Price = 15,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom, Tags.Chair },
+}
+objects["SINK_2"] = {
+    Name = "Sink",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 15,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom },
+}
+objects["MIRROR_1"] = {
+    Name = "Mirror",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 15,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom, Tags.Decorations, Tags.Wall },
+}
+objects["BATHTUB_1"] = {
+    Name = "Bathtub",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 25,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom },
+}
+objects["TOWEL_RACK"] = {
+    Name = "Towel Rack",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 15,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom, Tags.Decorations, Tags.Wall },
+}
+objects["SHOWER_1"] = {
+    Name = "Shower",
+    Type = FurnitureConstants.Types.Miscellaneous,
+    Price = 25,
+    Icon = "",
+    Interactable = false,
+    Tags = { Tags.Bathroom },
+}
+
 FurnitureConstants.Objects = objects
 
 FurnitureConstants.AssetsPath = "Furniture"
