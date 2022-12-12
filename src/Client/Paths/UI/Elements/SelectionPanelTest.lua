@@ -4,18 +4,19 @@
 local SelectionPanel = {}
 
 local Players = game:GetService("Players")
-local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local UIElement = require(Paths.Client.UI.Elements.UIElement)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local Maid = require(Paths.Packages.maid)
-local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
-local Button = require(Paths.Client.UI.Elements.Button)
-local Signal = require(Paths.Shared.Signal)
-local Queue = require(Paths.Shared.Queue)
-local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
-local Products = require(Paths.Shared.Products.Products)
-local Widget = require(Paths.Client.UI.Elements.Widget)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UIElement = require(script.Parent.UIElement)
+local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local Maid = require(ReplicatedStorage.Packages.maid)
+local ExitButton = require(script.Parent.ExitButton)
+local Button = require(script.Parent.Button)
+local Signal = require(ReplicatedStorage.Shared.Signal)
+local Queue = require(ReplicatedStorage.Shared.Queue)
+local AnimatedButton = require(script.Parent.AnimatedButton)
+local Products = require(ReplicatedStorage.Shared.Products.Products)
+local ObjectPool = require(ReplicatedStorage.Shared.ObjectPool)
 
+type Maid = typeof(Maid.new())
 type Tab = {
     Name: string,
     ImageId: string,
@@ -23,41 +24,43 @@ type Tab = {
         {
             WidgetName: string,
             Selected: boolean,
-            Instance: Widget.Widget?,
-            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+            Instance: Button.Button?,
+            Constructor: (widget: Button.Button) -> (),
         }
     },
-    Button: Button.Button | nil,
+    Button: Button.Button?,
 }
+
+local ACTIVE_ARROW_BUTTON = "rbxassetid://11447909821"
+local INACTIVE_ARROW_BUTTON = "rbxassetid://11807285632"
+
+local COLUMN_WIDTH_OFFSET = 178
 
 local TABS_PER_VIEW = {
     Left = 5,
     Right = 5,
     Bottom = 8,
 }
-local SECTION_WIDTH_OFFSET = 178
+
+local templateScreenGui: ScreenGui = game.StarterGui.SelectionPanel
 
 SelectionPanel.Defaults = {
     Alignment = "Right",
-    Size = 1,
+    Columns = 1,
+    Rows = 1,
 }
-
-local selectionPanelScreenGui: ScreenGui = game.StarterGui.SelectionPanel
 
 function SelectionPanel.new()
     local selectionPanel = UIElement.new()
 
-    -------------------------------------------------------------------------------
-    -- Private Members
-    -------------------------------------------------------------------------------
-
     local alignment: "Left" | "Right" | "Bottom" = SelectionPanel.Defaults.Alignment
-    local size = SelectionPanel.Defaults.Size
+    local rows = SelectionPanel.Defaults.Rows
+    local columns = SelectionPanel.Defaults.Columns
+    local size = rows * columns
 
     local tabs: { Tab } = {}
     local openTabName: string | nil
     local openTabNameByTabIndex: { [number]: string | nil } = {} -- Memory for when we rotate between tabs
-    local sections: { Frame } = {}
 
     local containerMaid = Maid.new()
     local drawMaid = Maid.new()
@@ -67,33 +70,45 @@ function SelectionPanel.new()
     local parent: GuiBase | GuiObject | nil
     local containerFrame: Frame
     local backgroundFrame: Frame
-    local closeButtonFrame: Frame
     local tabsFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
+    local closeButtonFrame: Frame
     local backwardArrow: AnimatedButton.AnimatedButton
     local forwardArrow: AnimatedButton.AnimatedButton
 
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
+    local widgetPool = ObjectPool.new(size, function()
+        return { Widget = Button.new(Instance.new("ImageButton")) } :: ObjectPool.ObjectGroup
+    end, function(group)
+        local widget: Button.Button = group.Widget
+
+        widget.Pressed:DisconnectAll()
+        widget.InternalEnter:DisconnectAll()
+        widget.InternalPress:DisconnectAll()
+        widget.InternalLeave:DisconnectAll()
+        widget.InternalRelease:DisconnectAll()
+        widget.InternalEnter:DisconnectAll()
+        --TODO: Selection Changed
+
+        widget:Mount()
+    end)
+
     local tabsIndex = 1
+    local pageIndex = 1
 
     -------------------------------------------------------------------------------
-    -- Public Members
+    -- Private Members
     -------------------------------------------------------------------------------
-
-    selectionPanel.ClosePressed = Signal.new()
     selectionPanel.TabChanged = Signal.new()
+    selectionPanel.ClosePressed = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
 
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
-
-    -- Hoist
-    local function draw() end
-
     local function getTabsPerView()
         return TABS_PER_VIEW[alignment]
     end
@@ -146,20 +161,16 @@ function SelectionPanel.new()
         return visibleTabs
     end
 
-    local function getSection(widgetIndex: number)
-        return sections[MathUtil.wrapAround(widgetIndex, size)]
-    end
-
     local function resize()
         if alignment == "Left" then
-            backgroundFrame.Position = defaultBackgroundPosition + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+            backgroundFrame.Position = defaultBackgroundPosition + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
         elseif alignment == "Right" then
-            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((size - 1) * SECTION_WIDTH_OFFSET, 0)
+            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
         elseif alignment == "Bottom" then
-            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset(0, (size - 1) * SECTION_WIDTH_OFFSET)
+            backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset(0, (columns - 1) * COLUMN_WIDTH_OFFSET)
+            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset(0, (columns - 1) * COLUMN_WIDTH_OFFSET)
         else
             error(("Missing edgecase for %q"):format(alignment))
         end
@@ -169,7 +180,7 @@ function SelectionPanel.new()
         containerMaid:Cleanup()
 
         -- Get "Background"
-        containerFrame = selectionPanelScreenGui:FindFirstChild(alignment)
+        containerFrame = templateScreenGui:FindFirstChild(alignment)
         if not containerFrame then
             error(("Missing GuiObject for alignment %q"):format(alignment))
         end
@@ -223,9 +234,30 @@ function SelectionPanel.new()
         resize()
     end
 
-    function draw(updatedAlignment: boolean?)
-        local queueNext = Queue.yield(selectionPanel)
+    local function drawPage(tab: Tab)
+        widgetPool:ReleaseAll()
 
+        local widgetConstructors = tab.WidgetConstructors
+
+        local indexStart = (pageIndex - 1) * size + 1
+        local indexEnd = math.min(size, #widgetConstructors - indexStart)
+        for i = indexStart, indexEnd do
+            local widget = widgetPool:GetObject()
+            widgetPool:Mount(scrollingFrame)
+
+            local widgetInfo = widgetConstructors[i]
+            widgetInfo.Instance = widget
+            widgetInfo.Constructor(widget)
+        end
+
+        widgetPool.Cleared:Once(function()
+            for i = indexStart, indexEnd do
+                widgetConstructors[i].Instance = nil
+            end
+        end)
+    end
+
+    local function draw(updatedAlignment: boolean?)
         if updatedAlignment then
             createContainer()
         end
@@ -284,37 +316,23 @@ function SelectionPanel.new()
 
         -- Arrows
         do
-            backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
-            forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
+            backwardArrow:GetButtonObject().Image = if tabsIndex == 1 then ACTIVE_ARROW_BUTTON else INACTIVE_ARROW_BUTTON
+            forwardArrow:GetButtonObject().Image = if tabsIndex == getMaxTabsIndex() then ACTIVE_ARROW_BUTTON else INACTIVE_ARROW_BUTTON
         end
 
         -- Widgets
         if openTab then
-            for i, widgetInfo in pairs(openTab.WidgetConstructors) do
-                local section = getSection(i)
+            pageIndex = 1
 
-                local widgetFrame: Frame = section.template:Clone()
-                widgetFrame.Name = widgetInfo.WidgetName
-                widgetFrame.LayoutOrder = i
-                widgetFrame.Visible = true
-                widgetFrame.Parent = section
-                drawMaid:GiveTask(widgetFrame)
+            drawPage(openTab)
 
-                widgetFrame.Background:Destroy()
-
-                local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
-                widget:SetSelected(widgetInfo.Selected)
-                widgetInfo.Instance = widget
-            end
+            --TODO: If #openTab.WidgetConstructors > size then show navigation buttons which will invoke drawPage
         end
-
-        queueNext()
     end
 
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
-
     function selectionPanel:Mount(newParent: GuiBase | GuiObject, hideParent: boolean?)
         parent = newParent
         containerFrame.Parent = parent
@@ -336,29 +354,16 @@ function SelectionPanel.new()
         end
     end
 
-    function selectionPanel:GetContainer()
-        return containerFrame
+    function selectionPanel:SetSize(newRows: number, newColumns: number)
+        rows = newRows
+        columns = newColumns
+
+        resize()
+        draw()
     end
 
-    function selectionPanel:OpenTab(tabName: string?)
-        -- WARN: Bad tab
-        local tab = getTab(tabName)
-        if tabName and not tab then
-            warn(("No tab %q exits"):format(tabName))
-            return
-        end
-
-        if openTabName then
-            for _, widgetInfo in pairs(getTab(openTabName).WidgetConstructors) do
-                widgetInfo.Instance = nil
-            end
-        end
-        selectionPanel.TabChanged:Fire(openTabName, tabName)
-
-        openTabName = tabName
-        openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
-
-        draw()
+    function selectionPanel:GetContainer()
+        return containerFrame
     end
 
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
@@ -371,30 +376,13 @@ function SelectionPanel.new()
         draw(true)
     end
 
-    -- Sets the row/column count (depends on alignment)
-    function selectionPanel:SetSize(newSize: number)
-        size = newSize
-
-        -- Clear old Sections
-        for _, oldSection in pairs(sections) do
-            oldSection:Destroy()
-        end
-        sections = {}
-
-        -- Create New
-        for i = 1, newSize do
-            local section: Frame = scrollingFrame.sectionTemplate:Clone()
-            section.Name = ("Section %d"):format(i)
-            section.LayoutOrder = i
-            section.Visible = true
-            section.Parent = scrollingFrame
-            table.insert(sections, section)
-        end
-
-        resize()
-        draw()
+    function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
+        closeButtonFrame.Visible = isVisible
     end
 
+    -------------------------------------------------------------------------------
+    -- Tabs
+    -------------------------------------------------------------------------------
     function selectionPanel:AddTab(tabName: string, imageId: string)
         -- WARN: Already exists
         if getTab(tabName) then
@@ -435,11 +423,15 @@ function SelectionPanel.new()
         selectionPanel:OpenTab()
     end
 
+    -------------------------------------------------------------------------------
+    -- Widget types
+    -------------------------------------------------------------------------------
+
     function selectionPanel:AddWidgetConstructor(
         tabName: string,
         widgetName: string,
         selected: boolean,
-        constructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget)
+        constructor: (widget: Button.Button) -> ()
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -456,54 +448,13 @@ function SelectionPanel.new()
 
         table.insert(tab.WidgetConstructors, {
             WidgetName = widgetName,
-            Constructor = constructor,
             Selected = selected,
+            Constructor = constructor,
         })
 
         if openTabName == tab.Name then
             draw()
         end
-    end
-
-    function selectionPanel:AddWidgetFromProduct(
-        tabName: string,
-        widgetName: string,
-        selected: boolean,
-        product: Products.Product,
-        state: {
-            VerifyOwnership: boolean?,
-            ShowTotals: boolean?,
-            HideText: boolean?,
-        }?,
-        onClicked: (() -> ())?,
-        onDisplayed: ((Widget.Widget) -> ())?
-    )
-        selectionPanel:AddWidgetConstructor(tabName, widgetName, selected, function(widgetParent, maid)
-            local widget = Widget.diverseWidgetFromProduct(product, state, function(button)
-                button.Pressed:Connect(function()
-                    if onClicked then
-                        onClicked()
-                    end
-                end)
-            end)
-
-            if not state or not state.VerifyOwnership then
-                widget.Pressed:Connect(function()
-                    if onClicked then
-                        onClicked()
-                    end
-                end)
-            end
-
-            if onDisplayed then
-                onDisplayed(widget)
-            end
-
-            widget:Mount(widgetParent)
-            maid:GiveTask(widget)
-
-            return widget
-        end)
     end
 
     function selectionPanel:SetWidgetSelected(tabName: string, widgetName, toggle: boolean)
@@ -519,9 +470,9 @@ function SelectionPanel.new()
                 widgetInfo.Selected = toggle
                 local widget = widgetInfo.Instance
                 if widget then
-                    widget:SetSelected(toggle)
+                    print("Selected")
+                    -- TODO: widget:SetSelected(toggle)
                 end
-
                 break
             end
         end
@@ -547,34 +498,6 @@ function SelectionPanel.new()
             draw()
         end
     end
-
-    function selectionPanel:RemoveWidgets(tabName: string)
-        -- WARN: Bad tab
-        local tab = getTab(tabName)
-        if not tab then
-            warn(("No tab %q exits"):format(tabName))
-            return
-        end
-
-        tab.WidgetConstructors = {}
-
-        -- Draw if this would be visible right now
-        if openTabName == tabName then
-            draw()
-        end
-    end
-
-    function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
-        closeButtonFrame.Visible = isVisible
-    end
-
-    -------------------------------------------------------------------------------
-    -- Logic
-    -------------------------------------------------------------------------------
-
-    -- Setup
-    draw(true)
-    selectionPanel:SetSize(size)
 
     return selectionPanel
 end

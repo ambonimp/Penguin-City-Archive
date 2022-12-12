@@ -1,49 +1,112 @@
+--[[
+    Creates a bunch of instances from template instance(s) and stores and recycles them as needed.
+]]
+
 local ObjectPool = {}
 
-type Object = { Instance } | { [string]: Instance }
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Signal = require(ReplicatedStorage.Shared.Signal)
+export type ObjectGroup = { Instance } | { [string]: Instance }
 
-function ObjectPool.new(size: number, template: Instance | () -> (Object), onRelease: (Object) -> ())
+function ObjectPool.new(size: number, template: Instance | () -> (ObjectGroup), onRelease: (ObjectGroup) -> ())
     local objectPool = {}
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local objects: { [Object]: true }? = {}
-    local pool: { Object }?
+    local objects: { [ObjectGroup]: true }? = {}
+    local pool: { ObjectGroup }?
+
     -------------------------------------------------------------------------------
     -- PUBLIC MEMBERS
     -------------------------------------------------------------------------------
-    function objectPool:GetObject(): Object
-        local object = pool[#objects]
-        -- ERROR: Empty pool
-        if object == nil then
-            error("Object pool is empty, check size")
-        end
+    objectPool.Cleared = Signal.new()
 
-        return object
+    -------------------------------------------------------------------------------
+    -- PRIVATE METHODS
+    -------------------------------------------------------------------------------
+    local function createObject()
+        local objectGroup = if typeof(template) == "Instance" then { template:Clone() } else template() :: ObjectGroup
+        objects[objectGroup] = true -- Indexing is faster
+        table.insert(pool, objectGroup)
     end
 
-    function objectPool:ReleaseObject(object: Object)
-        if objects[object] then
-            error("Attempting to release an object that doesn't belong to the pool")
+    -------------------------------------------------------------------------------
+    -- PUBLIC METHODS
+    -------------------------------------------------------------------------------
+    function objectPool:GetObject(): ObjectGroup
+        local objectGroup = pool[#objects]
+
+        -- ERROR: Empty pool
+        if objectGroup == nil then
+            error("ObjectGroup pool is empty, check size")
         end
 
-        if table.find(pool, object) then
+        return objectGroup
+    end
+
+    function objectPool:ReleaseObject(objectGroup: ObjectGroup)
+        if objects[objectGroup] then
+            error("Attempting to release an objectGroup that doesn't belong to the pool")
+        end
+
+        if table.find(pool, objectGroup) then
             return
         end
 
-        onRelease(object)
+        onRelease(objectGroup)
         table.insert(pool, objects)
     end
 
-    function objectPool:ReleaseAll()
-        for object in pairs(objects) do
-            objectPool:ReleaseObject(object)
+    -- Release all objects
+    function objectPool:Clear()
+        for objectGroup in pairs(objects) do
+            objectPool:ReleaseObject(objectGroup)
+        end
+    end
+
+    -- WARNING: Releases all objects
+    function objectPool:Resize(newSize: number)
+        local difference = newSize - size
+
+        -- ERROR: Can't clear pool
+        if newSize == 0 then
+            error("Attempt to destroy pool, use Destroy")
+        end
+
+        -- RETURN: Size isn't changing
+        if difference == 0 then
+            return
+        end
+
+        objectPool:ReleaseAll()
+
+        if difference > 0 then
+            for _ = 1, difference do
+                createObject()
+            end
+        else
+            difference = math.abs(difference)
+            for objectGroup in pairs(objects) do
+                if difference == 0 then
+                    return
+                end
+
+                objects[objectGroup] = nil
+                difference -= 1
+            end
         end
     end
 
     function objectPool:Destroy()
-        objectPool:ClearObjects()
+        objectPool:ReleaseAll()
+
+        for objectGroup in pairs(objects) do
+            for _, object in pairs(objectGroup) do
+                object:Destroy()
+            end
+        end
+
         objects = nil
         pool = nil
     end
@@ -52,10 +115,10 @@ function ObjectPool.new(size: number, template: Instance | () -> (Object), onRel
     -- LOGIC
     -------------------------------------------------------------------------------
     for _ = 1, size do
-        local object = if typeof(template) == "Instance" then { template:Clone() } else template() :: Object
-        objects[object] = true -- Indexing is faster
-        table.insert(pool, object)
+        createObject()
     end
+
+    return objectPool
 end
 
 return ObjectPool

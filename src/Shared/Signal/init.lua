@@ -34,14 +34,14 @@ function Signal.new()
     --[[
 		Registers a callback to be invoked when the signal is fired
 	]]
-    function signal:Connect(handler: (...any) -> nil)
+    function signal:Connect(handler: (...any) -> ())
         return Connection.new(handler, connections)
     end
 
     --[[
         Same as :Connect, but will disconnect itself after the first time `handler` is ran
     ]]
-    function Signal:Once(handler: (...any) -> nil)
+    function Signal:Once(handler: (...any) -> ())
         local connection: Connection
         return Connection.new(function()
             connection:Disconnect()
@@ -63,6 +63,10 @@ function Signal.new()
     function signal:Destroy()
         connections = {}
         resumeAllThreads()
+    end
+
+    function Signal:DisconnectAll()
+        signal:Destroy()
     end
 
     return signal

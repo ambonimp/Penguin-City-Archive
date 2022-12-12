@@ -137,16 +137,17 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
         isSelected = selected
     end
 
-    function button:Mount(parent: GuiObject, hideParent: boolean?)
+    function button:Mount(parent: GuiObject?, hideParent: boolean?)
         buttonObject.Parent = parent
-        buttonObject.ZIndex = parent.ZIndex
 
-        button.MountedTo = parent
-
-        if hideParent then
-            parent.Transparency = 1
+        if parent then
+            buttonObject.ZIndex = parent.ZIndex
+            if hideParent then
+                parent.Transparency = 1
+            end
         end
 
+        button.MountedTo = parent
         button.InternalMount:Fire(parent, hideParent)
 
         return self

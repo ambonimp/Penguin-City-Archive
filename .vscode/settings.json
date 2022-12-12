@@ -17,5 +17,6 @@
     "Packages": true,
     "roblox-admin-tools": true,
     "roblox-analytics-service": true
-  }
+  },
+  "robloxLsp.diagnostics.disable": ["unused-local"]
 }
