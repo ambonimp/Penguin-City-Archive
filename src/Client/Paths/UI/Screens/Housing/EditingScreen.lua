@@ -561,9 +561,13 @@ do
         furniturePanel:HideForwardArrow()
         ObjectsFrame.Parent = furniturePanel:GetContainer().Background.Back
 
-        local function setCategoryVisible(on: boolean)
+        local function setCategoryVisible(on: boolean, tag: string?)
             ObjectsFrame.Visible = on
-            BackButton:GetButtonObject().Parent.Visible = on
+            if tag == "Owned" then
+                BackButton:GetButtonObject().Parent.Visible = false
+            else
+                BackButton:GetButtonObject().Parent.Visible = on
+            end
             furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
         end
 
@@ -588,7 +592,7 @@ do
                 end
             end
 
-            setCategoryVisible(true)
+            setCategoryVisible(true, tag)
         end
 
         furniturePanel.TabChanged:Connect(function(_oldTab: string, newTab: string)
