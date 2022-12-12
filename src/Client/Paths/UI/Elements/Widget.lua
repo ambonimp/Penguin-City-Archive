@@ -117,6 +117,13 @@ function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
         update(ToolController.isEquipped(tool))
     end
 
+    -- Keybind
+    widget:SetNumberTag(1, {
+        Position = "Bottom",
+        SizeOffset = Vector2.new(40, 40),
+        BorderThickness = 0,
+    })
+
     return widget, closeButton
 end
 
@@ -620,17 +627,36 @@ function Widget.diverseWidget()
         end
     end
 
-    function widget:SetNumberTag(number: number?)
+    function widget:SetNumberTag(
+        number: number?,
+        config: {
+            Position: "Bottom" | "Right" | nil,
+            SizeOffset: Vector2?,
+            BorderColor: Color3?,
+            BorderThickness: number?,
+        }?
+    )
         cornerMaid:Cleanup()
 
         if number then
+            -- Read Config
+            config = config or {}
+
+            local position = config.Position == "Bottom" and UDim2.fromScale(0.5, 1)
+                or (config.Position == "Right" or not config.Position) and UDim2.fromScale(1, 0)
+            local anchorPoint = config.Position == "Bottom" and Vector2.new(0.5, 0.7)
+                or (config.Position == "Right" or not config.Position) and Vector2.new(0.7, 0.3)
+            local size = config.SizeOffset and UDim2.fromOffset(config.SizeOffset.X, config.SizeOffset.Y) or UDim2.fromOffset(50, 50)
+            local borderColor = config.BorderColor or Color3.fromRGB(26, 49, 81)
+            local borderThickness = config.BorderThickness or 4
+
             --#region Create UI
             local numberTagFrame = Instance.new("Frame")
             numberTagFrame.Name = "numberTagFrame"
-            numberTagFrame.AnchorPoint = Vector2.new(0.7, 0.3)
+            numberTagFrame.AnchorPoint = anchorPoint
             numberTagFrame.BackgroundColor3 = COLOR_WHITE
-            numberTagFrame.Position = UDim2.fromScale(1, 0)
-            numberTagFrame.Size = UDim2.fromOffset(50, 50)
+            numberTagFrame.Position = position
+            numberTagFrame.Size = size
             numberTagFrame.Visible = false
 
             local numberTagUICorner = Instance.new("UICorner")
@@ -640,8 +666,8 @@ function Widget.diverseWidget()
 
             local numberTagUIStroke = Instance.new("UIStroke")
             numberTagUIStroke.Name = "numberTagUIStroke"
-            numberTagUIStroke.Color = Color3.fromRGB(26, 49, 81)
-            numberTagUIStroke.Thickness = 4
+            numberTagUIStroke.Color = borderColor
+            numberTagUIStroke.Thickness = borderThickness
             numberTagUIStroke.Transparency = 0.5
             numberTagUIStroke.Parent = numberTagFrame
 
