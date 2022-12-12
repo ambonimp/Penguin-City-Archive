@@ -191,7 +191,7 @@ local defaultHouse = {
             Normal = "0, 1, 0",
         },
         ["20"] = {
-            Rotation = "0, 7.8539814949035645, 0",
+            Rotation = "0, 3.1415927410125732, 0",
             Name = "Bed",
             Position = "-1.431640625, 3.9864091873168945, -39.40618896484375",
             Color = {
@@ -256,22 +256,7 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
     return {
         CharacterAppearance = defaultCharacterAppearance,
         House = defaultHouse,
-        Products = {
-            HouseObject = {
-                furniture_sHELF2 = 1,
-                furniture_stool1 = 1,
-                furniture_glassTable2 = 1,
-                furniture_floorLamp01 = 1,
-                furniture_tABLELAMP02 = 1,
-                furniture_cIRCULARTABLE1 = 1,
-                furniture_table = 1,
-                furniture_bookshelf = 1,
-                furniture_pLANT = 1,
-                furniture_petBed = 1,
-                furniture_stool3 = 1,
-                furniture_nIGHTSTAND = 1,
-            },
-        },
+        Products = {},
         ProductPurchaseReceiptKeys = {},
         Settings = {},
         RedeemedCodes = {},

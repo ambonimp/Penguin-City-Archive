@@ -19,7 +19,9 @@ local UIActions = require(Paths.Client.UI.UIActions)
 local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
 local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
 
-local CHARACTER_PREVIEW_CONFIG = {}
+local CHARACTER_PREVIEW_CONFIG = {
+    SubjectScale = 14,
+}
 
 local screenGui: ScreenGui = Paths.UI.StartingAppearance
 local container: Frame = screenGui.Container
@@ -86,7 +88,7 @@ function StartingAppearanceScreen.Init()
                         local imageLabel = Instance.new("ImageLabel")
                         imageLabel.Size = UDim2.fromScale(1, 1)
                         imageLabel.BackgroundTransparency = 1
-                        imageLabel.Image = Images.PizzaMinigame.Doodle3
+                        imageLabel.Image = Images.PizzaFiasco.Doodle3
                         imageLabel.ScaleType = Enum.ScaleType.Fit
                         imageLabel.Parent = parent
 

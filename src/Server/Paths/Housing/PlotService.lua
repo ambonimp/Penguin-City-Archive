@@ -17,14 +17,16 @@ local Remotes = require(Paths.Shared.Remotes)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local Signal = require(Paths.Shared.Signal)
 
-type FurnitureMetadata = {
+export type FurnitureMetadata = {
     Name: string,
     Position: Vector3,
     Rotation: Vector3,
@@ -32,10 +34,10 @@ type FurnitureMetadata = {
     Normal: Vector3,
 }
 
-type WallpaperMetadata = {
+export type WallpaperMetadata = {
     Name: string,
 }
-type FloorMetadata = {
+export type FloorMetadata = {
     Name: string,
 }
 
@@ -51,6 +53,8 @@ local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
 local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
+PlotService.ObjectPlaced = Signal.new()
+PlotService.ObjectUpdated = Signal.new()
 -------------------------------------------------------------------------------
 -- PLOT METHODS
 -------------------------------------------------------------------------------
@@ -116,12 +120,20 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
     local colors = metadata.Color
     local normal = metadata.Normal
 
+    local modelData = FurnitureConstants.Objects[metadata.Name]
+
     local cf = houseCFrame
         * calculateCf(
             CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0),
             position,
             normal
         )
+
+    if table.find(modelData.Tags, FurnitureConstants.Tags.Wall) then
+        if normal == Vector3.new(0, 1, 0) then
+            cf = cf * CFrame.Angles(math.rad(90), 0, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0)
+        end
+    end
     object:PivotTo(cf)
     object.Parent = plot.Furniture
 
@@ -278,6 +290,15 @@ function PlotService.loadPlayer(player: Player)
     exitPart.Parent = ZoneUtil.getZoneInstances(houseInteriorZone).RoomDepartures
 
     newSpawnTable[player] = changeSpawn
+
+    local didStartingObjects = DataService.get(player, "House.DidStartingObjects")
+    if didStartingObjects == nil then
+        DataService.set(player, "House.DidStartingObjects", true)
+        for itemName, amount in FurnitureConstants.StartingObjects do
+            local product = ProductUtil.getHouseObjectProduct("Furniture", itemName)
+            ProductService.addProduct(player, product, amount)
+        end
+    end
 end
 
 --Handles removing models and resetting plots on leave
@@ -320,11 +341,13 @@ Remotes.bindEvents({
             if withinBounds then
                 local id = DataService.getAppendageKey(player, "House.Furniture")
                 local object = assets[type]:FindFirstChild(name):Clone()
+
                 object.Name = id
                 ProductService.addProduct(player, product, -1)
-                local store = updateFurniture(player, object, metadata) -- Flag for valid placement
+                local store = updateFurniture(player, object, metadata)
                 if store then
                     DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                    PlotService.ObjectPlaced:Fire(player, type, metadata)
                 end
             end
         end
@@ -352,6 +375,7 @@ Remotes.bindEvents({
 
         -- RETURN: Object does not exist
         if store[id] then
+            local lastData = store[id]
             local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
             if withinBounds then
                 local object = plot.Furniture[id]
@@ -359,6 +383,7 @@ Remotes.bindEvents({
                 local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
                 if newStore then
                     DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                    PlotService.ObjectUpdated:Fire(player, lastData, newStore)
                 end
             end
         end

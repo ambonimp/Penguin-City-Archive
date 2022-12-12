@@ -261,6 +261,7 @@ function HUDScreen.maximize()
 
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
+    screenGui.Enabled = true
 end
 
 function HUDScreen.minimize()
@@ -271,11 +272,5 @@ function HUDScreen.minimize()
     ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
 end
-
--------------------------------------------------------------------------------
--- Logic
--------------------------------------------------------------------------------
-
-screenGui.Enabled = true
 
 return HUDScreen

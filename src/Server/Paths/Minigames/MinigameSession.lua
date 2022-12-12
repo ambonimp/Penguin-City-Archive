@@ -166,8 +166,10 @@ function MinigameSession.new(
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)
-
         minigameSession:RelayToOtherParticipants(player, "MinigameParticipantAdded", player)
+
+        Output.doDebug(MinigameConstants.DoDebug, "Participant joined", player.Name)
+
         Remotes.fireClient(
             player,
             "MinigameJoined",
@@ -199,6 +201,8 @@ function MinigameSession.new(
         -- Player didn't leave the game
         if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
+
+            Output.doDebug(MinigameConstants.DoDebug, "Participant left", player.Name)
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
                 ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
@@ -401,7 +405,7 @@ function MinigameSession.new(
                 local player = scoreInfo.Player
                 local score = scoreInfo.Score
 
-                CurrencyService.addCoins(player, config.Reward(placement, score))
+                CurrencyService.addCoins(player, config.Reward(placement, score), true)
 
                 local recordAddress = "MinigameRecords." .. minigameName
                 local highscore = DataService.get(player, recordAddress) or defaultScore

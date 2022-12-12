@@ -3,6 +3,7 @@ local MinigameController = {}
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local Promise = require(Paths.Packages.promise)
 local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -16,6 +17,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
+local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -42,6 +44,8 @@ local janitor = Janitor.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local music: { [string]: Sound } = {}
+
+local tasks
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBES
@@ -70,27 +74,29 @@ function MinigameController.stopMusic(name: Music)
 end
 
 local function setState(newState: State)
-    local newName: string = newState.Name
-    local newData: StateData = newState.Data
+    task.spawn(function()
+        local newName: string = newState.Name
+        local newData: StateData = newState.Data
 
-    local lastState = currentState
-    currentState = newState
+        local lastState = currentState
+        currentState = newState
 
-    Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
+        Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
 
-    -- Close previously opened
-    if lastState then
-        local callbacks = stateCallbacks[currentMinigame][lastState.Name]
+        -- Close previously opened
+        if lastState then
+            local callbacks = stateCallbacks[currentMinigame][lastState.Name]
 
-        if callbacks and callbacks.Close then
-            callbacks.Close(newData)
+            if callbacks and callbacks.Close then
+                callbacks.Close(newData)
+            end
         end
-    end
 
-    local callbacks = stateCallbacks[currentMinigame][newName]
-    if callbacks and callbacks.Open then
-        callbacks.Open(newData)
-    end
+        local callbacks = stateCallbacks[currentMinigame][newName]
+        if callbacks and callbacks.Open then
+            callbacks.Open(newData)
+        end
+    end)
 end
 
 local function assertActiveMinigame()
@@ -211,31 +217,46 @@ Remotes.bindEvents({
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
-        if state.Name ~= INITIALIZATION_STATE.Name then
-            setState(INITIALIZATION_STATE)
-        end
-        setState(state)
-        uiStateMachine:Push(UIConstants.States.Minigame)
+        tasks = Promise.new(function(resolve)
+            if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
+                ZoneController.ZoneChanged:Wait()
+            end
+
+            ToolController.unequip()
+
+            if state.Name ~= INITIALIZATION_STATE.Name then
+                setState(INITIALIZATION_STATE)
+            end
+
+            setState(state)
+
+            uiStateMachine:Push(UIConstants.States.Minigame)
+            resolve()
+        end)
     end,
 
     MinigameExited = function()
-        -- Music
-        MinigameController.stopMusic("Core")
-        MinigameController.stopMusic("Intermission")
+        tasks = tasks:andThen(function()
+            -- Music
+            MinigameController.stopMusic("Core")
+            MinigameController.stopMusic("Intermission")
 
-        if ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
-            ZoneController.ZoneChanged:Wait()
-        end
+            if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
+                ZoneController.ZoneChanged:Wait()
+            end
 
-        janitor:Cleanup()
-        uiStateMachine:Pop()
+            janitor:Cleanup()
+            uiStateMachine:Pop()
 
-        task.defer(function()
-            currentMinigame = nil
-            currentZone = nil :: ZoneConstans.Zone -- ahh
-            currentState = nil
-            currentParticipants = nil
-            currentIsMultiplayer = nil
+            task.defer(function()
+                currentMinigame = nil
+                currentZone = nil :: ZoneConstans.Zone -- ahh
+                currentState = nil
+                currentParticipants = nil
+                currentIsMultiplayer = nil
+            end)
+
+            tasks = nil
         end)
     end,
 
@@ -250,7 +271,7 @@ Remotes.bindEvents({
     end,
 
     MinigameStateChanged = function(state: State)
-        setState(state)
+        tasks = tasks:andThenCall(setState, state)
     end,
 })
 

@@ -179,7 +179,8 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local invokedServerTime = teleportData.InvokedServerTime or game.Workspace:GetServerTimeNow()
 
     -- WARN: No character!
-    if not player.Character then
+    local character = player.Character
+    if not character then
         warn(("%s has no Character!"):format(player.Name))
         return nil
     end
@@ -222,9 +223,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
     local timeElapsedSinceInvoke = (game.Workspace:GetServerTimeNow() - invokedServerTime)
-    local teleportBuffer = math.max(0, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
+    local teleportBuffer = math.max(0.1, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
     task.delay(teleportBuffer, function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
+            -- Jump to detach from seat
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Sit then
+                humanoid.Jump = true
+            end
+
             -- Disable Collisions
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 

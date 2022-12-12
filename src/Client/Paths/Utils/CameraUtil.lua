@@ -47,7 +47,8 @@ function CameraUtil.setCametaType(camera: Camera, cameraType: Enum.CameraType)
     camera.CameraType = cameraType
 end
 
-function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
+function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model, rotation: CFrame?)
+    local rot = rotation or CFrame.Angles(0, 0, 0)
     local camera = viewport.CurrentCamera or Instance.new("Camera")
     camera.Parent = viewport
     viewport.CurrentCamera = camera
@@ -55,9 +56,10 @@ function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
     local _, size = model:GetBoundingBox()
     local clone = model:Clone()
     clone.Parent = viewport
-
     local fitDepth = CameraUtil.getFitDepth(camera.ViewportSize, camera.FieldOfView, size) -- +offset
     camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
+
+    clone:PivotTo(model:GetPivot() * rot)
 end
 
 return CameraUtil

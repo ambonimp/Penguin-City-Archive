@@ -528,6 +528,14 @@ function SelectionPanel.new()
                 end)
             end)
 
+            if not state or not state.VerifyOwnership then
+                widget.Pressed:Connect(function()
+                    if onClicked then
+                        onClicked()
+                    end
+                end)
+            end
+
             if onCreated then
                 onCreated(widget)
             end

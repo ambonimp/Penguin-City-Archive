@@ -139,6 +139,10 @@ function ToolController.getEquipped()
     return equippedTool
 end
 
+function ToolController.hasToolEquipped()
+    return ToolController.getEquipped() and true or false
+end
+
 function ToolController.getHolsteredTools()
     return holsteredTools
 end
