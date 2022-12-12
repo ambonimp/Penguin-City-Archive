@@ -63,7 +63,7 @@ local editToggleButton: typeof(KeyboardButton.new())
 local editingSession = Maid.new()
 local placementSession = Maid.new()
 
-local player = Players.LocalPlayer
+local player: Player = Players.LocalPlayer
 local character: Model?
 
 local plot: Model?
@@ -567,36 +567,61 @@ do
             furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
         end
 
-        local function loadNewItems(tag: string)
+        local function loadNewItems(tag: string, objects: { [string]: FurnitureConstants.Object })
             for _, v in pairs(ObjectsFrame:GetChildren()) do
                 if not v:IsA("UIListLayout") then
                     v:Destroy()
                 end
             end
-            local objects = FurnitureConstants.GetObjectsFromTag(tag)
-            for objectKey, _objectInfo in objects do
-                --local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
-                local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
 
-                objectWidget:GetGuiObject().Parent = ObjectsFrame
+            for objectKey, _objectInfo in objects do
+                local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
+                local add = true
+                if tag == "Owned" then
+                    if not ProductController.hasProduct(product) then
+                        add = false
+                    end
+                end
+                if add then
+                    local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
+                    objectWidget:GetGuiObject().Parent = ObjectsFrame
+                end
             end
+
             setCategoryVisible(true)
         end
 
-        furniturePanel.TabChanged:Connect(function()
-            setCategoryVisible(false)
+        furniturePanel.TabChanged:Connect(function(_oldTab: string, newTab: string)
+            if newTab == "Owned" then
+                loadNewItems("Owned", FurnitureConstants.Objects)
+            else
+                setCategoryVisible(false)
+            end
         end)
 
         furniturePanel:GetContainer().Background.Back.ScrollingFrame.UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 
+        local function getObjectCount(objects: { string: FurnitureConstants.Object }): number
+            local count = 0
+            for _i, _v in objects do
+                count += 1
+            end
+            return count
+        end
+
         local function addWidget(tabName: string, tag: string)
+            local objects = FurnitureConstants.GetObjectsFromTag(tag)
+            local count = getObjectCount(objects)
+            if count == 0 then
+                return
+            end
             furniturePanel:AddWidgetConstructor(tabName, tag, false, function(parent, maid)
                 local widget = Widget.diverseWidget()
                 widget:DisableIcon()
                 widget:SetText(tag)
 
                 widget.Pressed:Connect(function()
-                    loadNewItems(tag)
+                    loadNewItems(tag, objects)
                 end)
 
                 widget:Mount(parent)
@@ -617,6 +642,7 @@ do
                 addWidget(tabName, tag)
             end
         end
+        furniturePanel:AddTab("Owned", Images.Icons.Furniture)
 
         BackButton.Pressed:Connect(function()
             setCategoryVisible(false)

@@ -672,9 +672,9 @@ FurnitureConstants.Objects = objects
 
 FurnitureConstants.AssetsPath = "Furniture"
 
-local objectsWithTagExist = {}
+local objectsWithTagExist = {} :: { string: { string: Object } }
 
-function FurnitureConstants.GetObjectsFromTag(tag)
+function FurnitureConstants.GetObjectsFromTag(tag: string)
     if objectsWithTagExist[tag] then
         return objectsWithTagExist[tag]
     end
