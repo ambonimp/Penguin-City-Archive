@@ -1,6 +1,7 @@
 local ToolController = {}
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Signal = require(Paths.Shared.Signal)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
@@ -13,6 +14,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InputController = require(Paths.Client.Input.InputController)
 local Maid = require(Paths.Packages.maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
@@ -24,6 +26,12 @@ type ToolClientHandler = {
 local DESTROY_LOCAL_TOOL_MODEL_AFTER = 3
 local INITIAL_TOOLBAR: { ToolUtil.Tool } = {
     ToolUtil.tool("Snowball", "Default"),
+}
+local HOLSTER_SLOTS_TO_KEYCODE = {
+    [1] = Enum.KeyCode.One,
+    [2] = Enum.KeyCode.Two,
+    [3] = Enum.KeyCode.Three,
+    [4] = Enum.KeyCode.Four,
 }
 
 ToolController.ToolEquipped = Signal.new() -- { tool: ToolUtil.Tool }
@@ -112,6 +120,39 @@ function ToolController.Start()
         UIUtil.waitForHudAndRoomZone(0.5):andThen(function()
             for _, tool in pairs(INITIAL_TOOLBAR) do
                 ToolController.holster(tool)
+            end
+        end)
+    end
+
+    -- Keybinds
+    do
+        -- ERROR: Mismatch
+        if TableUtil.length(HOLSTER_SLOTS_TO_KEYCODE) < ToolConstants.MaxHolsteredTools then
+            error(
+                ("HOLSTER_SLOTS_TO_KEYCODE has %d entries, max holstered tools is %d"):format(
+                    TableUtil.length(HOLSTER_SLOTS_TO_KEYCODE),
+                    ToolConstants.MaxHolsteredTools
+                )
+            )
+        end
+
+        UserInputService.InputEnded:Connect(function(inputObject, gameProcessedEvent)
+            -- RETURN: Game processed
+            if gameProcessedEvent then
+                return
+            end
+
+            -- Toggle equip state of tool that lines up with this input (if any)
+            local hotbarIndex = TableUtil.find(HOLSTER_SLOTS_TO_KEYCODE, inputObject.KeyCode)
+            if hotbarIndex then
+                local tool = holsteredTools[hotbarIndex]
+                if tool then
+                    if ToolController.isEquipped(tool) then
+                        ToolController.unequip(tool)
+                    else
+                        ToolController.equipRequest(tool)
+                    end
+                end
             end
         end)
     end
