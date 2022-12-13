@@ -189,17 +189,6 @@ function InstanceUtil.findFirstChild(
 
     local instancesToCheck = config.Recurse and instance:GetDescendants() or instance:GetChildren()
     for _, child in pairs(instancesToCheck) do
-        print(
-            config.ChildName,
-            "=",
-            child.Name,
-            "  ",
-            config.ChildClassName,
-            "=",
-            child.ClassName,
-            "  ",
-            doesChildHaveNameAndOrClassName(child, config.ChildName, config.ChildClassName)
-        )
         if doesChildHaveNameAndOrClassName(child, config.ChildName, config.ChildClassName) then
             return child
         end
