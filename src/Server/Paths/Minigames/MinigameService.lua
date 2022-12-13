@@ -97,9 +97,10 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
                 queueJoining:AddParticipant(player)
             end
         else
-            -- TODO: Prioritize minigames the player has friends in
             local session = potentialactiveSessions[1]
             session:AddParticipant(player)
+
+            Remotes.fireClient(player, "MinigameQueueExited")
         end
     else
         -- RETURN: No single player support
