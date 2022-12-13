@@ -5,6 +5,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
+local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local SPAWNPOINT_SPAWN_OFFSET = Vector3.new(0, 5, 0)
 
@@ -42,15 +44,30 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
             currentSportsEquipment:Destroy()
         end
 
+        -- Setup Equipment; pivot, properties etc
         currentSportsEquipment = sportsEquipment:Clone()
-
         PhysicsService:SetPartCollisionGroup(currentSportsEquipment, CollisionsConstants.Groups.SportsEquipment)
         currentSportsEquipment.Name = ("%s_Sports_Equipment"):format(name)
         currentSportsEquipment:PivotTo(spawnpoint.CFrame + SPAWNPOINT_SPAWN_OFFSET)
         currentSportsEquipment.Anchored = false
         currentSportsEquipment.CanCollide = true
-
         currentSportsEquipment.Parent = game.Workspace
+
+        -- Network Ownership; whoever touches it then owns it
+        currentSportsEquipment.Touched:Connect(function(otherPart)
+            -- RETURN: Not a player
+            local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
+            if not player then
+                return
+            end
+
+            -- Set network ownership for every basepart
+            for _, instance: BasePart in pairs(ArrayUtil.merge(currentSportsEquipment:GetDescendants(), { currentSportsEquipment })) do
+                if instance:IsA("BasePart") then
+                    instance:SetNetworkOwner(player)
+                end
+            end
+        end)
     end
 
     -- 1-time setup
