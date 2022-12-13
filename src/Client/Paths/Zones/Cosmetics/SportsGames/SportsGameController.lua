@@ -11,13 +11,74 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local Limiter = require(Paths.Shared.Limiter)
 local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
 local NetworkOwnerUtil = require(Paths.Shared.Utils.NetworkOwnerUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+
+local WAIT_FOR_NETWORK_OWNERSHIP_TIMEOUT = 3
+local TWEEN_INFO_LOCAL_TO_SERVER = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+
+local localPlayer = Players.LocalPlayer
+
+local function hasNetworkOwnershipOfSportsEquipment(sportsEquipment: BasePart | Model)
+    for _, instance: BasePart in pairs(ArrayUtil.merge(sportsEquipment:GetDescendants(), { sportsEquipment })) do
+        if instance:IsA("BasePart") then
+            if NetworkOwnerUtil.getNetworkOwner(instance) == localPlayer then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+local function simulatePushEquipment(sportsEquipment: BasePart | Model)
+    -- Create Local Equipment
+    local localSportsEquipment = sportsEquipment:Clone()
+    localSportsEquipment.Name = ("%s (Local)"):format(localSportsEquipment.Name)
+    localSportsEquipment.Parent = sportsEquipment.Parent
+
+    -- Hide Server
+    local serverInstances = sportsEquipment:IsA("BasePart") and sportsEquipment or sportsEquipment:GetDescendants()
+    InstanceUtil.hide(serverInstances)
+
+    -- Push Local
+    SportsGamesUtil.pushEquipment(localPlayer, localSportsEquipment)
+
+    -- Yield until we get ownership / timeout
+    local yieldUntil = tick() + WAIT_FOR_NETWORK_OWNERSHIP_TIMEOUT
+    while tick() < yieldUntil do
+        if hasNetworkOwnershipOfSportsEquipment(sportsEquipment) then
+            break
+        end
+        task.wait()
+    end
+
+    -- Tween local version onto server version
+    local startPivot = localSportsEquipment:GetPivot()
+    TweenUtil.run(function(alpha)
+        -- RETURN: No sports equipment! (e.g., streamed out)
+        if not sportsEquipment then
+            return
+        end
+
+        -- Tween
+        local cframe = startPivot:Lerp(sportsEquipment:GetPivot(), alpha)
+        localSportsEquipment:PivotTo(cframe)
+
+        -- Revert
+        if alpha == 1 then
+            InstanceUtil.show(sportsEquipment)
+            localSportsEquipment:Destroy()
+        end
+    end, TWEEN_INFO_LOCAL_TO_SERVER)
+end
 
 local function setupSportsEquipment(sportsEquipment: BasePart | Model, maid: typeof(Maid.new()))
-    -- Network Ownership; whoever touches it then owns it
+    -- Kick it when we touch it
     maid:GiveTask(sportsEquipment.Touched:Connect(function(otherPart)
         -- RETURN: Not our local player
         local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
-        if not (player and player == Players.LocalPlayer) then
+        if not (player and player == localPlayer) then
             return
         end
 
@@ -27,19 +88,15 @@ local function setupSportsEquipment(sportsEquipment: BasePart | Model, maid: typ
             return
         end
 
-        -- RETURN: We don't have network ownership
-        local hasNetworkOwnership = false
-        for _, instance: BasePart in pairs(ArrayUtil.merge(sportsEquipment:GetDescendants(), { sportsEquipment })) do
-            if instance:IsA("BasePart") then
-                hasNetworkOwnership = hasNetworkOwnership or NetworkOwnerUtil.getNetworkOwner(instance) == player
-            end
-        end
-        if not hasNetworkOwnership then
+        -- If we have network ownership, apply directly
+        if hasNetworkOwnershipOfSportsEquipment(sportsEquipment) then
+            -- Apply Force locally!
+            SportsGamesUtil.pushEquipment(localPlayer, sportsEquipment)
             return
         end
 
-        -- Apply Force locally!
-        SportsGamesUtil.pushEquipment(player, sportsEquipment)
+        -- Else, simulate local version
+        simulatePushEquipment(sportsEquipment)
     end))
 end
 

@@ -121,11 +121,6 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
                         NetworkOwnerUtil.setNetworkOwner(instance, player)
                     end
                 end
-
-                -- Apply Force if we've just handed over ownership; any future forces will be applied clientside as they have ownership
-                if not alreadyHadOwnership then
-                    SportsGamesUtil.pushEquipment(player, currentSportsEquipment)
-                end
             end)
 
             -- Spawn
