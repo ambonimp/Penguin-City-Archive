@@ -61,19 +61,22 @@ local character: Model?
 local plot: Model?
 local plotCFrame: CFrame?
 
-local confirmChanged: boolean
+local confirmChanged: boolean --makes sure that a model was changed
 local lastItemPlaced: number --os.time() of last interaction with a selected item
-local colorNameSelected: string --name of Color selected "Color1", "Color2", etc
-local colorNum: number --index of color selected 1,2,3, etc
+local lastModelOriginalCFrame: CFrame | nil --original CF of model selected incase user cancels movement
+
+local model: Model --current model selected
 local name: string --the index in FurnitureConstants.Objects of current object selected
 local position: Vector3
 local normal: Vector3
 local rotationY: number
+
+local colorNameSelected: string --name of Color selected "Color1", "Color2", etc
+local colorNum: number --index of color selected 1,2,3, etc
 local color: { Color3? } --table of current model colors
-local model: Model --current model selected
 local colorToWidget: { [string]: Widget.Widget } --used for easily swapping a string Color3 for the corresponding widget
-local lastModelOriginalCFrame: CFrame | nil --original CF of model selected incase user cancels movement
 local colorWidgetSelected: Widget.Widget --current widget of color selected
+
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
@@ -169,7 +172,7 @@ do
             return
         end
 
-        if model then
+        if model and not confirmChanged then
             resetModel()
         end
 
