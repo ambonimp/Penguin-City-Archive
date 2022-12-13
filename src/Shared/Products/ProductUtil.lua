@@ -31,8 +31,8 @@ end
 --[[
     Some Products have a model linked to them (e.g., House Furniture)
 ]]
-function ProductUtil.getModel(product: Products.Product): Model | nil
-    return product.Metadata and product.Metadata.Model
+function ProductUtil.getModel(product: Products.Product): (Model | nil, CFrame | nil)
+    return product.Metadata and product.Metadata.Model, product.Metadata and product.Metadata.Rotation
 end
 
 function ProductUtil.getProductFromDeveloperProductId(developerProductId: number): Products.Product | nil

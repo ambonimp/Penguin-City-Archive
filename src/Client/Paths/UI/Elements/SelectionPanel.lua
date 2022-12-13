@@ -19,12 +19,14 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { {
-        WidgetName: string,
-        Selected: boolean,
-        Instance: Widget.Widget?,
-        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
-    } },
+    WidgetConstructors: {
+        {
+            WidgetName: string,
+            Selected: boolean,
+            Instance: Widget.Widget?,
+            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+        }
+    },
     Button: Button.Button | nil,
 }
 
@@ -75,8 +77,8 @@ function SelectionPanel.new()
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
-    local arrowVisible: boolean = true
-    local hiddenTabs: { string } = {}
+    local isArrowVisible: boolean = true
+    local hiddenTabNames: { string } = {}
     local tabsIndex = 1
 
     -------------------------------------------------------------------------------
@@ -99,14 +101,17 @@ function SelectionPanel.new()
         return TABS_PER_VIEW[alignment]
     end
 
+    local function isTabHidden(tabName: string): boolean
+        return table.find(hiddenTabNames, tabName) and true or false
+    end
+
     local function getMaxTabsIndex()
         return math.clamp(math.ceil(#tabs / getTabsPerView()), 1, math.huge)
     end
 
-    local function updateTabIndex(increaseBy: number)
-        tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
+    local function setTabIndex(set: number)
+        tabsIndex = set
 
-        -- Select last tab
         local lastOpenTabName = openTabNameByTabIndex[tabsIndex]
         if lastOpenTabName then
             selectionPanel:OpenTab(lastOpenTabName)
@@ -116,6 +121,11 @@ function SelectionPanel.new()
         -- Select new tab
         local tabIndex = ((tabsIndex - 1) * getTabsPerView()) + 1
         selectionPanel:OpenTab(tabs[tabIndex].Name)
+    end
+
+    local function updateTabIndex(increaseBy: number)
+        local newIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
+        setTabIndex(newIndex)
     end
 
     local function getTab(tabName: string)
@@ -264,7 +274,7 @@ function SelectionPanel.new()
                 button:GetButtonObject().LayoutOrder = index
                 button:GetButtonObject().Visible = not (openTabName == visibleTab.Name)
 
-                if table.find(hiddenTabs, visibleTab.Name) then
+                if isTabHidden(visibleTab.Name) then
                     button:GetButtonObject().Visible = false
                 end
                 -- Selected
@@ -291,7 +301,7 @@ function SelectionPanel.new()
             backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
 
-            if arrowVisible == false then
+            if isArrowVisible == false then
                 forwardArrow:GetButtonObject().Visible = false
             end
         end
@@ -370,18 +380,25 @@ function SelectionPanel.new()
     end
 
     function selectionPanel:HideForwardArrow()
-        if tabsIndex > 1 then
-            updateTabIndex(-1)
+        if not isArrowVisible then
+            return
         end
-        arrowVisible = false
+        if tabsIndex > 1 then --  checks if we are on a page greater than 1 for Tabs
+            setTabIndex(1) --go to page 1
+        end
+        isArrowVisible = false
     end
 
     function selectionPanel:ShowForwardArrow()
-        arrowVisible = true
+        isArrowVisible = true
     end
 
     function selectionPanel:GetOpenTabName()
         return openTabName
+    end
+
+    function selectionPanel:GetTabAmountFromAlignment()
+        return TABS_PER_VIEW[alignment]
     end
 
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
@@ -419,17 +436,17 @@ function SelectionPanel.new()
     end
 
     function selectionPanel:HideTab(tabName: string)
-        if table.find(hiddenTabs, tabName) then --already hidden
+        if isTabHidden(tabName) then --already hidden
             return
         end
-        table.insert(hiddenTabs, tabName)
+        table.insert(hiddenTabNames, tabName)
 
         draw()
     end
 
     function selectionPanel:ShowTab(tabName: string)
-        if table.find(hiddenTabs, tabName) then --is hidden
-            table.remove(hiddenTabs, table.find(hiddenTabs, tabName))
+        if isTabHidden(tabName) then --is hidden
+            table.remove(hiddenTabNames, table.find(hiddenTabNames, tabName))
 
             draw()
         end
@@ -607,6 +624,19 @@ function SelectionPanel.new()
 
     function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
         closeButtonFrame.Visible = isVisible
+    end
+
+    function selectionPanel:SetTabIndex(index: number)
+        setTabIndex(index)
+    end
+
+    function selectionPanel:SetScrollingframeAlignment(horizontal: Enum.HorizontalAlignment?, vertical: Enum.VerticalAlignment?)
+        if horizontal then
+            scrollingFrame.UIListLayout.HorizontalAlignment = horizontal
+        end
+        if vertical then
+            scrollingFrame.UIListLayout.VerticalAlignment = vertical
+        end
     end
 
     -------------------------------------------------------------------------------

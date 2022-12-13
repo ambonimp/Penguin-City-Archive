@@ -14,6 +14,7 @@ local Paths = require(ServerScriptService.Paths)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ProductService = require(Paths.Server.Products.ProductService)
 local Remotes = require(Paths.Shared.Remotes)
+local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -84,7 +85,7 @@ local function getPlot(player: Player, type: string): Model | nil
     return plots[type][player]
 end
 
-local function checkPositionIsWithinBounds(player: Player, position: Vector3): boolean
+local function isPositionInBoundsOfPlayersPlot(player: Player, position: Vector3): boolean
     local plot = getPlot(player, HousingConstants.InteriorType)
 
     local Floor = plot:FindFirstChildOfClass("Model")
@@ -106,9 +107,6 @@ end
 -------------------------------------------------------------------------------
 -- INTERIOR OBJECTS METHODS
 -------------------------------------------------------------------------------
-local function calculateCf(oldCf, surfacePos, normal)
-    return HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
-end
 
 local function placeFurniture(player, object: Model, metadata: FurnitureMetadata): boolean
     local plot = getPlot(player, HousingConstants.InteriorType)
@@ -123,7 +121,7 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
     local modelData = FurnitureConstants.Objects[metadata.Name]
 
     local cf = houseCFrame
-        * calculateCf(
+        * HousingUtil.CalculateObjectCFrame(
             CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0),
             position,
             normal
@@ -337,7 +335,7 @@ Remotes.bindEvents({
 
         -- Handlers
         if type == "Furniture" then
-            local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
+            local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
             if withinBounds then
                 local id = DataService.getAppendageKey(player, "House.Furniture")
                 local object = assets[type]:FindFirstChild(name):Clone()
@@ -376,7 +374,7 @@ Remotes.bindEvents({
         -- RETURN: Object does not exist
         if store[id] then
             local lastData = store[id]
-            local withinBounds = checkPositionIsWithinBounds(player, metadata.Position)
+            local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
             if withinBounds then
                 local object = plot.Furniture[id]
 

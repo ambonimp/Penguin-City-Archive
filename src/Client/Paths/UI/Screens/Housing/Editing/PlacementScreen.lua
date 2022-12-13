@@ -1,4 +1,4 @@
-local EditingScreen = {}
+local PlacementScreen = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -9,8 +9,8 @@ local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
@@ -25,14 +25,10 @@ local ProductController = require(Paths.Client.ProductController)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local Binder = require(Paths.Shared.Binder)
-local HousingController = require(Paths.Client.HousingController)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
-local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
-local WideButton = require(Paths.Client.UI.Elements.WideButton)
 
-local ATT_MODEL_INITALIZED = "Initialized"
+local ATTTRIBUTE_MODEL_INITALIZED = "Initialized"
 
 local CFRAME_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 local ROTATION_ADDEND = math.rad(45)
@@ -44,7 +40,6 @@ local ITEM_SELECT_DEBOUNCE = 0.1
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
 local colorPanel = SelectionPanel.new()
-local furniturePanel = SelectionPanel.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local templates: Folder = Paths.Templates.Housing
@@ -57,10 +52,6 @@ local rotateButton: TextButton = placementControls.Others.Buttons.Rotate
 local acceptButton: TextButton = placementControls.Others.Buttons.Accept
 local closeRemoveButton: TextButton = placementControls.Others.Buttons.CloseRemove
 
-local editToggleContainer: Frame = screenGui.EditToggle
-local editToggleButton: typeof(KeyboardButton.new())
-
-local editingSession = Maid.new()
 local placementSession = Maid.new()
 
 local player: Player = Players.LocalPlayer
@@ -78,21 +69,66 @@ local normal: Vector3
 local rotationY: number
 local color: { Color3? }
 local model: Model
-local uiColorSelected: { SetSelected: any? }
 local colorToWidget: {}
-local interiorPlot: Model?
-
+local lastModelOriginalCFrame: CFrame | nil
+local colorWidgetSelected: Widget.Widget
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
+local function resetModel()
+    if lastModelOriginalCFrame then
+        if model:GetAttribute(ATTTRIBUTE_MODEL_INITALIZED) then
+            model:SetAttribute(ATTTRIBUTE_MODEL_INITALIZED, false)
+
+            model:PivotTo(lastModelOriginalCFrame)
+        end
+    end
+end
+
+local function initilizeModel() --initializes the current selected model
+    if not model:GetAttribute(ATTTRIBUTE_MODEL_INITALIZED) then -- Allows model to be tweened
+        model:SetAttribute(ATTTRIBUTE_MODEL_INITALIZED, true)
+
+        local primaryPart = model.PrimaryPart
+        for _, basePart in pairs(model:GetDescendants()) do
+            if basePart:IsA("BasePart") and basePart ~= primaryPart then
+                basePart.Anchored = false
+                BasePartUtil.weld(primaryPart, basePart)
+            end
+        end
+    end
+
+    for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
+        if basePart:IsA("BasePart") then
+            Binder.bind(basePart, "PreSelectedProps", {
+                CanTouch = basePart.CanTouch,
+                CanCollide = basePart.CanCollide,
+            })
+
+            basePart.CanCollide = false
+            basePart.CanTouch = false
+        end
+    end
+
+    placementSession:GiveTask(function()
+        for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
+            if basePart:IsA("BasePart") then
+                local preSelectedProps = Binder.getBinded(basePart, "PreSelectedProps")
+                basePart.CanTouch = preSelectedProps.CanTouch
+                basePart.CanCollide = preSelectedProps.CanCollide
+            end
+        end
+    end)
+end
+
 local function isPartNotCollideable(part: BasePart)
     return part.Name == "Hitbox" or part.Name == "Spawn" or part.Transparency == 1
 end
 
 local function isModelColliding(model1: Model)
-    for _, part: BasePart in model1:GetDescendants() do
+    for _, part: BasePart in pairs(model1:GetDescendants()) do
         if part:IsA("BasePart") and not isPartNotCollideable(part) then
-            for _, collidingPart: BasePart in workspace:GetPartsInPart(part) do
+            for _, collidingPart: BasePart in pairs(workspace:GetPartsInPart(part)) do
                 if
                     not collidingPart:IsDescendantOf(model1)
                     and collidingPart:IsDescendantOf(plot.Furniture)
@@ -106,32 +142,14 @@ local function isModelColliding(model1: Model)
 
     return false
 end
-
-local function selectPaintColor(color_: Color3 | string)
-    color_ = tostring(color_)
-
-    local button = colorPanel:GetContainer():FindFirstChild(color_) -- Some colors stored in data might get discontinued
-    if button then
-        button.ColorSelected.Visible = true
-    end
-end
-
-local function deselectPaintColor(color_: Color3 | string)
-    color_ = tostring(color_)
-
-    local button = colorPanel:GetContainer():FindFirstChild(color_) -- Some colors stored in data might get discontinued
-    if button then
-        colorPanel:GetContainer()[color_].ColorSelected.Visible = false
-    end
-end
-
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------
-local function applyColor()
-    for _, part: BasePart in (model:GetDescendants()) do
-        if part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == colorNameSelected then
-            part.Color = color[colorNum]
+local function paintModel(primedModel: Model, paintName: string, paintColor: Color3)
+    for _, part: BasePart in pairs(primedModel:GetDescendants()) do
+        local doPaint = part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == paintName
+        if doPaint then
+            part.Color = paintColor
         end
     end
 end
@@ -139,24 +157,33 @@ end
 -- Register Placement UIStates
 do
     --Edit State
-    local function enterState(data)
+    local function boot(data: table)
         if DeviceUtil.isMobile() and (os.time() - (lastItemPlaced or 0) <= ITEM_SELECT_DEBOUNCE) then --prevents double clicking with mobile touches
             uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
             return
         end
+
+        if model then
+            resetModel()
+        end
+
+        plot = data.Plot
+        plotCFrame = data.PlotCFrame
+        local isNewObject = data.IsNewObject
         model = data.Object
 
+        local UP_VECTOR = Vector3.new(0, 1, 0)
         local modelData = FurnitureConstants.Objects[model.Name]
 
         if modelData == nil then
             local store = DataController.get("House.Furniture." .. model.Name)
             modelData = FurnitureConstants.Objects[store.Name]
         end
+
+        --wall objects are rotated different depending on the normal, thus requiring some height adjustments depending on normal rotation
         local isWallObject: boolean = table.find(modelData.Tags, FurnitureConstants.Tags.Wall) and true or false
         local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0)
             * (not isWallObject and CFrame.new(0, 0.05, 0) or CFrame.new(0, 0, -0.05))
-
-        local isNewObject = data.IsNewObject
 
         local selectionBox: SelectionBox = Instance.new("SelectionBox")
         selectionBox.Adornee = model
@@ -165,15 +192,12 @@ do
         placementSession:GiveTask(selectionBox)
 
         -- Modifiers
-        local function calculateCf(oldCf, surfacePos)
-            if normal == nil then
-                normal = Vector3.new(0, 1, 0)
-            end
-            return HousingConstants.CalculateObjectCFrame(oldCf, surfacePos, normal)
-        end
-
         local function applyCFrame()
-            local cf = calculateCf(CFrame.new(position) * CFrame.Angles(0, rotationY, 0), position) * heightOffset
+            local cf = HousingUtil.CalculateObjectCFrame(
+                CFrame.new(position) * CFrame.Angles(0, rotationY, 0),
+                position,
+                normal or UP_VECTOR
+            ) * heightOffset
             if isWallObject then
                 if normal == Vector3.new(0, 1, 0) then
                     local sizes = model:GetExtentsSize()
@@ -200,7 +224,7 @@ do
                 if color == nil then
                     color = {}
                 end
-                for i = 1, 10 do
+                for i = 1, HousingConstants.MaxColors do
                     if model:FindFirstChild("Color" .. i) then
                         local part = model:FindFirstChild("Color" .. i):FindFirstChildOfClass("BasePart")
                             or model:FindFirstChild("Color" .. i):FindFirstChildOfClass("MeshPart")
@@ -213,13 +237,13 @@ do
 
                 model:PivotTo(CFrame.new(position))
                 model.Parent = plot.Furniture
-
-                applyColor()
+                paintModel(model, colorNameSelected, color[colorNum])
                 applyCFrame() -- Just for the selection box
 
                 placementSession:GiveTask(model)
 
                 selectionBox.Color3 = INVALID_PLACEMENT_COLOR
+                lastModelOriginalCFrame = nil
             else
                 local store = DataController.get("House.Furniture." .. model.Name)
                 if color == nil then
@@ -232,45 +256,11 @@ do
                 rotationY = DataUtil.deserializeValue(store.Rotation, Vector3).Y
                 position = model.PrimaryPart.Position - heightOffset.Position
                 normal = DataUtil.deserializeValue(store.Normal, Vector3)
+                lastModelOriginalCFrame = model:GetPivot()
             end
         end
 
-        -- Initialize model
-        do
-            if not model:GetAttribute(ATT_MODEL_INITALIZED) then -- Allows model to be tweened
-                model:SetAttribute(ATT_MODEL_INITALIZED, true)
-
-                local primaryPart = model.PrimaryPart
-                for _, basePart in pairs(model:GetDescendants()) do
-                    if basePart:IsA("BasePart") and basePart ~= primaryPart then
-                        basePart.Anchored = false
-                        BasePartUtil.weld(primaryPart, basePart)
-                    end
-                end
-            end
-
-            for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
-                if basePart:IsA("BasePart") then
-                    Binder.bind(basePart, "PreSelectedProps", {
-                        CanTouch = basePart.CanTouch,
-                        CanCollide = basePart.CanCollide,
-                    })
-
-                    basePart.CanCollide = false
-                    basePart.CanTouch = false
-                end
-            end
-
-            placementSession:GiveTask(function()
-                for _, basePart in pairs(model:GetDescendants()) do -- Makes model ehterial
-                    if basePart:IsA("BasePart") then
-                        local preSelectedProps = Binder.getBinded(basePart, "PreSelectedProps")
-                        basePart.CanTouch = preSelectedProps.CanTouch
-                        basePart.CanCollide = preSelectedProps.CanCollide
-                    end
-                end
-            end)
-        end
+        initilizeModel()
 
         -- Placement controls
         do
@@ -282,14 +272,14 @@ do
             end)
 
             -- Moving
-            local moving
+            local moving: boolean = false
 
             local function closeMoving()
                 -- RETURN: Can't close something that isn't open
                 if not moving then
                     return
                 end
-                if DeviceUtil.isConsole() or DeviceUtil.isMobile() then
+                if DeviceUtil.isMobile() then
                     CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Custom)
                 end
 
@@ -306,7 +296,7 @@ do
 
             placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
                 moving = true
-                if DeviceUtil.isConsole() or DeviceUtil.isMobile() then
+                if DeviceUtil.isMobile() then
                     CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Scriptable)
                 end
 
@@ -384,27 +374,25 @@ do
         --hide or show tabs depending on if the model has "Color"..i
         for i = 2, HousingConstants.MaxColors do
             if model:FindFirstChild("Color" .. i) == nil then
-                if i > 5 then --TODO: make this dynamic in SelectionPanel element. If shown tabs is > 5 then 't show forwardarrow
+                if i > colorPanel:GetTabAmountFromAlignment() then
                     colorPanel:HideForwardArrow()
                 end
                 colorPanel:HideTab("Color" .. i)
             else
-                if i > 5 then --TODO: make this dynamic in SelectionPanel element. If shown tabs is <= 5 then don't show forwardarrow
+                if i > colorPanel:GetTabAmountFromAlignment() then
                     colorPanel:ShowForwardArrow()
                 end
                 colorPanel:ShowTab("Color" .. i)
             end
         end
 
-        local colorpicked = color[1]
-
-        if uiColorSelected then
-            uiColorSelected:SetSelected(false)
+        if colorWidgetSelected then
+            colorWidgetSelected:SetSelected(false)
         end
 
-        if colorToWidget[tostring(colorpicked)] then
-            uiColorSelected = colorToWidget[tostring(colorpicked)]
-            uiColorSelected:SetSelected(true)
+        if colorToWidget[color[1]] then
+            colorWidgetSelected = colorToWidget[color[1]]
+            colorWidgetSelected:SetSelected(true)
         end
 
         colorNameSelected = "Color1"
@@ -413,249 +401,27 @@ do
         ScreenUtil.inRight(colorPanel:GetContainer())
     end
 
-    local function closeState()
+    local function shutdown()
         placementSession:Cleanup()
         ScreenUtil.outLeft(colorPanel:GetContainer())
     end
 
-    local function minState()
-        ScreenUtil.outLeft(colorPanel:GetContainer())
-        placementControls.Enabled = false
-    end
-
-    local function openState()
+    local function maximize()
         ScreenUtil.inRight(colorPanel:GetContainer())
         placementControls.Enabled = true
     end
 
+    local function minimize()
+        ScreenUtil.outLeft(colorPanel:GetContainer())
+        placementControls.Enabled = false
+    end
+
     UIController.registerStateScreenCallbacks(UIConstants.States.FurniturePlacement, {
-        Boot = enterState,
-        Shutdown = closeState,
-        Maximize = openState,
-        Minimize = minState,
+        Boot = boot,
+        Shutdown = shutdown,
+        Maximize = maximize,
+        Minimize = minimize,
     })
-end
-
---HouseEditor UI state
-do
-    local function enterHouseEdit(_data)
-        screenGui.Enabled = true
-        ScreenUtil.inDown(editToggleContainer)
-        character = player.Character
-        ScreenUtil.inUp(furniturePanel:GetContainer())
-        -- See if we can get plot
-        local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
-        local thisPlot = HousingController.getPlotFromOwner(zoneOwner, HousingConstants.InteriorType)
-        thisPlot:FindFirstChildOfClass("Model").NoPlace.Transparency = 0.5
-        -- RETURN: There is nothing to edit off of
-        plot = thisPlot
-        if not plot then
-            warn("Had issue with getting plot")
-            UIController.getStateMachine():Remove(UIConstants.States.HouseEditor)
-            return
-        end
-        plotCFrame = CFrame.new(plot:WaitForChild("Origin").Position)
-
-        editingSession:GiveTask(InputController.CursorDown:Connect(function(gameProcessedEvent)
-            -- RETURN: Clicked something unrelated
-            if gameProcessedEvent then
-                return
-            end
-            -- RETURN: playing is teleport out of house
-            if ZoneController.checkIfTeleporting() then
-                return
-            end
-
-            -- Selecting an item to edit
-            local result = MouseUtil.getMouseTarget({ player.Character }, true)
-            local target = result.Instance
-
-            if target and target:IsDescendantOf(plot.Furniture) then
-                if string.find(target.Parent.Name, "Color") then
-                    target = target.Parent
-                end
-
-                local model_ = target.Parent
-                if uiStateMachine:GetState() == UIConstants.States.FurniturePlacement then
-                    if uiStateMachine:GetData().Object == model_ then
-                        return
-                    else
-                        uiStateMachine:Pop()
-                    end
-                end
-
-                uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
-                    Object = model_,
-                    IsNewObject = false,
-                })
-            end
-        end))
-
-        placementSession:GiveTask(function()
-            deselectPaintColor(color[1]) -- Reset colors
-        end)
-    end
-
-    local function exitHouseEdit()
-        plot:FindFirstChildOfClass("Model").NoPlace.Transparency = 1
-        plot = nil
-        character = nil
-        editingSession:Cleanup()
-        ScreenUtil.outDown(furniturePanel:GetContainer())
-        ScreenUtil.outUp(editToggleContainer)
-    end
-
-    local function maximizeHouseEdit()
-        ScreenUtil.inDown(editToggleContainer)
-        ScreenUtil.inUp(furniturePanel:GetContainer())
-    end
-
-    local function minimizeHouseEdit()
-        ScreenUtil.outUp(editToggleContainer)
-        ScreenUtil.outDown(furniturePanel:GetContainer())
-    end
-
-    UIController.registerStateScreenCallbacks(UIConstants.States.HouseEditor, {
-        Boot = enterHouseEdit,
-        Shutdown = exitHouseEdit,
-        Maximize = maximizeHouseEdit,
-        Minimize = minimizeHouseEdit,
-    })
-
-    UIUtil.offsetGuiInset(editToggleContainer)
-    editToggleButton = WideButton.red("Stop Edit")
-    editToggleButton.Pressed:Connect(function()
-        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
-            uiStateMachine:Remove(UIConstants.States.HouseEditor)
-        else
-            uiStateMachine:Push(UIConstants.States.HouseEditor, {
-                InteriorPlot = interiorPlot,
-            })
-        end
-    end)
-
-    editToggleButton:Mount(editToggleContainer, true)
-    ScreenUtil.outUp(editToggleContainer)
-
-    --furniture panel
-    do
-        furniturePanel:Mount(screenGui)
-
-        furniturePanel:SetAlignment("Bottom")
-        furniturePanel:SetSize(1)
-        furniturePanel.ClosePressed:Connect(function()
-            uiStateMachine:Remove(UIConstants.States.HouseEditor)
-        end)
-
-        local button: Frame = templates.BackButton:Clone()
-        button.Parent = furniturePanel:GetContainer().Background
-
-        local BackButton = KeyboardButton.new()
-        local ObjectsFrame: ScrollingFrame = templates.ObjectFrame:Clone()
-
-        BackButton:Mount(button, true)
-        BackButton:SetIcon(Images.Icons.LeftArrow)
-        BackButton:GetButtonObject().Parent.Visible = false
-        BackButton:GetButtonObject().Parent.Size = furniturePanel:GetContainer().Background.Side.ForwardArrow.Size
-
-        furniturePanel:HideForwardArrow()
-        ObjectsFrame.Parent = furniturePanel:GetContainer().Background.Back
-
-        local function setCategoryVisible(on: boolean, tag: string?)
-            ObjectsFrame.Visible = on
-            if tag == "Owned" then
-                BackButton:GetButtonObject().Parent.Visible = false
-            else
-                BackButton:GetButtonObject().Parent.Visible = on
-            end
-            furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
-        end
-
-        local function loadNewItems(tag: string, objects: { [string]: FurnitureConstants.Object })
-            for _, v in pairs(ObjectsFrame:GetChildren()) do
-                if not v:IsA("UIListLayout") then
-                    v:Destroy()
-                end
-            end
-
-            for objectKey, _objectInfo in objects do
-                local product = ProductUtil.getHouseObjectProduct("Furniture", objectKey)
-                local add = true
-                if tag == "Owned" then
-                    if not ProductController.hasProduct(product) then
-                        add = false
-                    end
-                end
-                if add then
-                    local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
-                    objectWidget:GetGuiObject().Parent = ObjectsFrame
-                end
-            end
-
-            setCategoryVisible(true, tag)
-        end
-
-        furniturePanel.TabChanged:Connect(function(_oldTab: string, newTab: string)
-            if newTab == "Owned" then
-                loadNewItems("Owned", FurnitureConstants.Objects)
-            else
-                setCategoryVisible(false)
-            end
-        end)
-
-        furniturePanel:GetContainer().Background.Back.ScrollingFrame.UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-
-        local function getObjectCount(objects: { string: FurnitureConstants.Object }): number
-            local count = 0
-            for _i, _v in objects do
-                count += 1
-            end
-            return count
-        end
-
-        local function addWidget(tabName: string, tag: string)
-            local objects = FurnitureConstants.GetObjectsFromTag(tag)
-            local count = getObjectCount(objects)
-            if count == 0 then
-                return
-            end
-            furniturePanel:AddWidgetConstructor(tabName, tag, false, function(parent, maid)
-                local widget = Widget.diverseWidget()
-                widget:DisableIcon()
-                widget:SetText(tag)
-
-                widget.Pressed:Connect(function()
-                    loadNewItems(tag, objects)
-                end)
-
-                widget:Mount(parent)
-                maid:GiveTask(widget)
-                return widget
-            end)
-        end
-
-        furniturePanel:AddTab("All", Images.Icons.Igloo)
-        for _, tag in FurnitureConstants.Tags do
-            addWidget("All", tag)
-        end
-        for tabName, info in FurnitureConstants.MainTabs do
-            local icon = info.Icon
-            local subtabs = info.SubTabs
-            furniturePanel:AddTab(tabName, icon)
-            for _, tag in subtabs do
-                addWidget(tabName, tag)
-            end
-        end
-        furniturePanel:AddTab("Owned", Images.Icons.Furniture)
-
-        BackButton.Pressed:Connect(function()
-            setCategoryVisible(false)
-        end)
-
-        setCategoryVisible(false)
-    end
-
-    ScreenUtil.outDown(furniturePanel:GetContainer())
 end
 
 -- Color Panel Setup
@@ -692,33 +458,33 @@ do
         button.MouseButton1Down:Connect(function()
             local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
             if isOwned then
+                if colorWidgetSelected then
+                    colorWidgetSelected:SetSelected(false)
+                end
                 colorNameSelected = colorPanel:GetOpenTabName()
                 colorNum = tonumber(string.sub(colorNameSelected, 6, 6))
                 if color ~= colorName then
-                    if uiColorSelected then
-                        uiColorSelected:SetSelected(false)
-                    end
-                    uiColorSelected = ColorWidget
-                    uiColorSelected:SetSelected(true)
-                    deselectPaintColor(color[1])
+                    ColorWidget:SetSelected(true)
+                    colorWidgetSelected = ColorWidget
                     color[colorNum] = colorValue
-                    selectPaintColor(colorValue)
-                    applyColor()
+                    paintModel(model, colorNameSelected, color[colorNum])
                 end
             end
         end)
     end
 
-    colorPanel.TabChanged:Connect(function(tabName: string)
+    colorPanel.TabChanged:Connect(function(_old: string, tabName: string)
         local colorId = tonumber(string.sub(tabName, 6, 6))
         local colorpicked = color[colorId]
-        if uiColorSelected then
-            uiColorSelected:SetSelected(false)
+        colorNameSelected = tabName
+        colorNum = colorId
+        if colorWidgetSelected then
+            colorWidgetSelected:SetSelected(false)
         end
 
         if colorToWidget[tostring(colorpicked)] then
-            uiColorSelected = colorToWidget[tostring(colorpicked)]
-            uiColorSelected:SetSelected(true)
+            colorWidgetSelected = colorToWidget[tostring(colorpicked)]
+            colorWidgetSelected:SetSelected(true)
         end
     end)
 
@@ -743,4 +509,4 @@ ZoneController.ZoneChanging:Connect(function(old, new)
     end
 end)
 
-return EditingScreen
+return PlacementScreen

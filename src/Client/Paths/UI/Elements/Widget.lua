@@ -138,13 +138,10 @@ function Widget.diverseWidgetFromProduct(
         widget:SetText(product.DisplayName)
     end
 
-    local model = ProductUtil.getModel(product)
+    local model, rotation = ProductUtil.getModel(product)
     if model then
-        if
-            FurnitureConstants.Objects[model.Name]
-            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
-        then
-            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
+        if rotation then
+            widget:SetViewport(model, rotation)
         else
             widget:SetViewport(model)
         end
@@ -211,29 +208,13 @@ function Widget.diverseWidgetFromProduct(
 end
 
 function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
-    local widget = Widget.diverseWidget()
-    local canPlaceProduct: boolean, _amountToPlace: number = nil, nil
-    -- Populate Widget
-    widget:SetText(product.DisplayName)
-
+    local widget = Widget.diverseWidgetFromProduct(product)
     local model = ProductUtil.getModel(product)
-    if model then
-        if
-            FurnitureConstants.Objects[model.Name]
-            and table.find(FurnitureConstants.Objects[model.Name].Tags, FurnitureConstants.Tags.Wall)
-        then
-            widget:SetViewport(model, CFrame.Angles(math.rad(-90), math.rad(90), 0))
-        else
-            widget:SetViewport(model)
-        end
-    else
-        widget:SetIcon(product.ImageId, product.ImageColor)
-    end
 
     local function updateWidget()
-        canPlaceProduct, _amountToPlace = ProductController.canPlaceHouseProduct(product)
+        local canPlaceProduct: boolean, amountToPlace: number = ProductController.canPlaceHouseProduct(product)
         if canPlaceProduct then
-            widget:SetNumberTag(_amountToPlace)
+            widget:SetNumberTag(amountToPlace)
             widget:SetFade(false)
             widget:SetPrice()
         else
@@ -345,29 +326,19 @@ function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string
     local product = ProductUtil.getHouseObjectProduct(category, objectKey)
     local widget = Widget.diverseWidgetFromHouseObjectProduct(product)
 
-    widget:GetGuiObject().Size = UDim2.new(0, 220, 1, 0)
+    widget:SetSize(UDim2.new(0, 220, 1, 0))
 
     return widget
 end
 
 function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3)
     local product = ProductUtil.getHouseColorProduct(colorName, color)
-    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = false })
+    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true })
 
     local ui = widget:GetGuiObject()
     ui.ZIndex = 50
 
     widget:SetIconColor(color)
-
-    local selected = templates.Housing.ColorSelected:Clone()
-    selected.Parent = ui.imageButton.icon.iconImageLabel
-
-    ui.imageButton.icon.iconImageLabel.ZIndex += 1
-    selected.ZIndex = ui.imageButton.icon.iconImageLabel.ZIndex - 1
-
-    function widget:SetSelected(on: boolean)
-        selected.Visible = on or false
-    end
 
     return widget
 end
@@ -735,6 +706,10 @@ function Widget.diverseWidget()
                 button:Destroy()
             end)
         end
+    end
+
+    function widget:SetSize(size: UDim2)
+        diverseWidget.Size = size
     end
 
     function widget:SetCornerRadius(cornerRadius: UDim)

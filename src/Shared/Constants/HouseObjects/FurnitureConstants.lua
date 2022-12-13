@@ -11,6 +11,7 @@ export type Object = {
     Icon: string,
     Interactable: boolean,
     Tags: { string },
+    Rotation: CFrame | nil,
 }
 
 local Tags = {
@@ -115,6 +116,7 @@ objects["VINYL_03"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Decorations, Tags.Entertainment, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["VINYL_02"] = {
     Name = "Vinyl",
@@ -123,6 +125,7 @@ objects["VINYL_02"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Decorations, Tags.Entertainment, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["VINYL_01"] = {
     Name = "Vinyl",
@@ -131,6 +134,7 @@ objects["VINYL_01"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Decorations, Tags.Entertainment, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["Table_Lamp_01"] = {
     Name = "Table Lamp",
@@ -155,6 +159,7 @@ objects["TV"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Entertainment, Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["TABLE_LAMP_02"] = {
     Name = "Table Lamp",
@@ -259,6 +264,7 @@ objects["SHELF_2"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Shelves, Tags.LivingRoom, Tags.BedRoom, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["Recliner"] = {
     Name = "Recliner",
@@ -515,6 +521,7 @@ objects["Cube_Shelf"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Shelves, Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["Couch_03"] = {
     Name = "Couch",
@@ -563,6 +570,7 @@ objects["Basketball_Net"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["Bean_Bag"] = {
     Name = "Bean Bag",
@@ -611,6 +619,7 @@ objects["CLOCK"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), math.rad(90), 0),
 }
 objects["CRATE_1"] = {
     Name = "Crate",
@@ -691,6 +700,7 @@ objects["MIRROR_1"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Bathroom, Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), 0, 0),
 }
 objects["BATHTUB_1"] = {
     Name = "Bathtub",
@@ -707,6 +717,7 @@ objects["TOWEL_RACK"] = {
     Icon = "",
     Interactable = false,
     Tags = { Tags.Bathroom, Tags.Decorations, Tags.Wall },
+    Rotation = CFrame.Angles(math.rad(-90), 0, 0),
 }
 objects["SHOWER_1"] = {
     Name = "Shower",
