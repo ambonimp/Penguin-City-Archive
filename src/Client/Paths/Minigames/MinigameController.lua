@@ -216,6 +216,8 @@ Remotes.bindEvents({
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
+        warn(id)
+
         tasks = Promise.new(function(resolve)
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()

@@ -274,7 +274,7 @@ function MinigameSession.new(
         local sortedScores = {}
         local unsorted = TableUtil.deepClone(scores)
 
-        for _ = 1, #participants do
+        for _ = 1, TableUtil.length(unsorted) do
             local minScore: number = math.huge
             local minPlayer: Player?
 
@@ -440,6 +440,7 @@ function MinigameSession.new(
     -- Leaving
     do
         janitor:Add(Remotes.bindEventTemp("MinigameExited", function(player)
+            warn(player, "pressed exit")
             minigameSession:RemoveParticipant(player)
         end))
 

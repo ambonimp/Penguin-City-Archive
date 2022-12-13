@@ -9,8 +9,8 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     MaxParticipants = 6,
     StrictlyEnforcePlayerCount = true,
     -- State lengths
-    IntermissionLength = 15,
-    CoreLength = 45,
+    IntermissionLength = 5,
+    CoreLength = 15,
     AwardShowLength = 5,
     CoreCountdown = true,
     -- Play types
