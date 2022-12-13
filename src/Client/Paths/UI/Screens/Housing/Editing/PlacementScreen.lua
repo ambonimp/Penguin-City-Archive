@@ -167,6 +167,7 @@ do
             resetModel()
         end
 
+        character = player.Character
         plot = data.Plot
         plotCFrame = data.PlotCFrame
         local isNewObject = data.IsNewObject

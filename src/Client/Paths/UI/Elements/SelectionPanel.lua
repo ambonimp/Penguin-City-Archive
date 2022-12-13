@@ -486,11 +486,15 @@ function SelectionPanel.new()
         if openTabName == tabName then
             for _, someTab in pairs(tabs) do
                 selectionPanel:OpenTab(someTab.Name)
+
+                draw()
                 return
             end
         end
 
         selectionPanel:OpenTab()
+
+        draw()
     end
 
     function selectionPanel:AddWidgetConstructor(
