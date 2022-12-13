@@ -88,15 +88,13 @@ local function setupSportsEquipment(sportsEquipment: BasePart | Model, maid: typ
             return
         end
 
-        -- If we have network ownership, apply directly
-        if hasNetworkOwnershipOfSportsEquipment(sportsEquipment) then
-            -- Apply Force locally!
-            SportsGamesUtil.pushEquipment(localPlayer, sportsEquipment)
-            return
-        end
+        -- Apply Force locally
+        SportsGamesUtil.pushEquipment(localPlayer, sportsEquipment)
 
-        -- Else, simulate local version
-        simulatePushEquipment(sportsEquipment)
+        -- If not owned yet, simulate a local version
+        if not hasNetworkOwnershipOfSportsEquipment(sportsEquipment) then
+            simulatePushEquipment(sportsEquipment)
+        end
     end))
 end
 
