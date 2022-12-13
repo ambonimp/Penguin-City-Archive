@@ -10,7 +10,11 @@ SportsGamesConstants.Tag = {
     SportsEquipment = "SportsEquipment",
 }
 SportsGamesConstants.Attribute = {
-    NetworkOwnerUserId = "NetworkOwnerUserId",
+    SportsEquipmentType = "SportsEquipmentType",
+}
+SportsGamesConstants.SportsEquipmentType = {
+    Football = "Football",
+    HockeyPuck = "HockeyPuck",
 }
 
 return SportsGamesConstants

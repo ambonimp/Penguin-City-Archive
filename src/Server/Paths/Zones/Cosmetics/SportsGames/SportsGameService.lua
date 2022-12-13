@@ -6,6 +6,7 @@ local Paths = require(ServerScriptService.Paths)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local SportsGame = require(Paths.Server.Zones.Cosmetics.SportsGames.SportsGame)
 local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
+local SportsGamesConstants = require(Paths.Shared.SportsGames.SportsGamesConstants)
 
 local footballModel = ReplicatedStorage.Assets.Misc.Football
 
@@ -67,7 +68,13 @@ function SportsGameService.zoneSetup()
         local schoolFootballArenaModel = game.Workspace.Rooms.School.FootballPitch
         local success, result = pcall(getArenaModelInstances, schoolFootballArenaModel)
         if success then
-            SportsGame.new("SchoolFootball", result.Cage, result.Spawnpoint, result.Goals, footballModel)
+            SportsGame.new(
+                "SchoolFootball",
+                result.Cage,
+                result.Spawnpoint,
+                result.Goals,
+                SportsGamesConstants.SportsEquipmentType.Football
+            )
         else
             error(("Error with School FootballPitch: %s"):format(result))
         end

@@ -14,6 +14,9 @@ local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local SportsGamesConstants = require(Paths.Shared.SportsGames.SportsGamesConstants)
 local SportsGamesUtil = require(Paths.Shared.SportsGames.SportsGamesUtil)
 local NetworkOwnerUtil = require(Paths.Shared.Utils.NetworkOwnerUtil)
+local Sound = require(Paths.Shared.Sound)
+
+local ZERO_VECTOR = Vector3.new(0, 0, 0)
 
 --[[
     - `name`: name for the game
@@ -22,10 +25,11 @@ local NetworkOwnerUtil = require(Paths.Shared.Utils.NetworkOwnerUtil)
     - `goals`: Parts that cause a win when `sportsEquipment` enters it - and resets
     - `sportsEquipment`: E.g., football, hockey puck
 ]]
-function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Part }, sportsEquipment: Model | BasePart)
+function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Part }, sportsEquipmentType: string)
     local sportsGame = {}
 
     -- ERROR: Sports equipment needs a PrimaryPart
+    local sportsEquipment = SportsGamesUtil.getSportsEquipment(sportsEquipmentType)
     if sportsEquipment:IsA("Model") and not sportsEquipment.PrimaryPart then
         error(("SportsEquipment %q needs PrimaryPart defined"):format(sportsEquipment:GetFullName()))
     end
@@ -48,8 +52,9 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
     -- Private Methods
     -------------------------------------------------------------------------------
 
-    local function spawnSportsEquipment()
+    local function resetSportsEquipment()
         currentSportsEquipment:PivotTo(spawnpoint.CFrame + SportsGamesConstants.SpawnpointOffset)
+        currentSportsEquipment.AssemblyLinearVelocity = ZERO_VECTOR
     end
 
     -- 1-time setup
@@ -66,8 +71,14 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
                     return
                 end
 
-                print(goalPart:GetFullName(), "touched", otherPart:GetFullName())
-                spawnSportsEquipment()
+                -- Audio Feedback
+                Sound.play("GoalScored", nil, goalPart)
+
+                -- Visual Feedback
+                --todo
+
+                -- Reset
+                resetSportsEquipment()
             end)
 
             goalPart.CanCollide = false
@@ -92,8 +103,11 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
         do
             -- Setup
             currentSportsEquipment = sportsEquipment:Clone()
+
+            currentSportsEquipment:SetAttribute(SportsGamesConstants.Attribute.SportsEquipmentType, sportsEquipmentType)
             CollectionService:AddTag(currentSportsEquipment, SportsGamesConstants.Tag.SportsEquipment)
             PhysicsService:SetPartCollisionGroup(currentSportsEquipment, CollisionsConstants.Groups.SportsEquipment)
+
             currentSportsEquipment.Name = ("%s_Sports_Equipment"):format(name)
             currentSportsEquipment.Anchored = false
             currentSportsEquipment.CanCollide = true
@@ -124,7 +138,7 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
             end)
 
             -- Spawn
-            spawnSportsEquipment()
+            resetSportsEquipment()
         end
     end
 
@@ -139,7 +153,7 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
     -------------------------------------------------------------------------------
 
     setup()
-    spawnSportsEquipment()
+    resetSportsEquipment()
 
     return sportsGame
 end

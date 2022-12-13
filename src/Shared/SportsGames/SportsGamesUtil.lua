@@ -27,4 +27,28 @@ function SportsGamesUtil.pushEquipment(player: Player, sportsEquipment: BasePart
     end
 end
 
+function SportsGamesUtil.getSportsEquipment(sportsEquipmentType: string): BasePart | Model
+    if sportsEquipmentType == SportsGamesConstants.SportsEquipmentType.Football then
+        return game.ReplicatedStorage.Assets.Misc.Football
+    end
+
+    if sportsEquipmentType == SportsGamesConstants.SportsEquipmentType.HockeyPuck then
+        return game.ReplicatedStorage.Assets.Misc.HockeyPuck
+    end
+
+    error(("Undefined equipment for type %q"):format(sportsEquipmentType))
+end
+
+function SportsGamesUtil.getPushSoundName(sportsEquipmentType: string)
+    if sportsEquipmentType == SportsGamesConstants.SportsEquipmentType.Football then
+        return "FootballPunt"
+    end
+
+    if sportsEquipmentType == SportsGamesConstants.SportsEquipmentType.HockeyPuck then
+        return "HockeyPuckHit"
+    end
+
+    error(("Undefined sound for type %q"):format(sportsEquipmentType))
+end
+
 return SportsGamesUtil
