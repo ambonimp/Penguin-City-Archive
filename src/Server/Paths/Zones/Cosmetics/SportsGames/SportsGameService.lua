@@ -79,6 +79,23 @@ function SportsGameService.zoneSetup()
             error(("Error with School FootballPitch: %s"):format(result))
         end
     end
+
+    -- Hockey Stadium
+    do
+        local hockeyArenaModel = game.Workspace.Rooms.HockeyStadium.HockeyArena
+        local success, result = pcall(getArenaModelInstances, hockeyArenaModel)
+        if success then
+            SportsGame.new(
+                "HockeyStadiumArena",
+                result.Cage,
+                result.Spawnpoint,
+                result.Goals,
+                SportsGamesConstants.SportsEquipmentType.HockeyPuck
+            )
+        else
+            error(("Error with HockeyStadium Arena: %s"):format(result))
+        end
+    end
 end
 
 return SportsGameService
