@@ -5,7 +5,7 @@ local SportsGamesConstants = require(ReplicatedStorage.Shared.SportsGames.Sports
 local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
 local Vector3Util = require(ReplicatedStorage.Shared.Utils.Vector3Util)
 
-function SportsGamesUtil.pushEquipment(player: Player, sportsEquipment: BasePart | Model)
+function SportsGamesUtil.pushEquipment(player: Player, sportsEquipmentType: string, sportsEquipment: BasePart | Model)
     -- RETURN: No character
     local character = player.Character
     if not character then
@@ -18,11 +18,12 @@ function SportsGamesUtil.pushEquipment(player: Player, sportsEquipment: BasePart
 
     -- Apply Force
     local primaryPart = sportsEquipment:IsA("BasePart") and sportsEquipment or sportsEquipment.PrimaryPart
+    local pushEquipmentForce = SportsGamesConstants.PushEquipmentForceByType[sportsEquipmentType]
     if primaryPart then
         primaryPart.AssemblyLinearVelocity = Vector3.new(
-            characterToEquipment.X * SportsGamesConstants.PushEquipmentForce.Horizontal,
-            SportsGamesConstants.PushEquipmentForce.Vertical,
-            characterToEquipment.Z * SportsGamesConstants.PushEquipmentForce.Horizontal
+            characterToEquipment.X * pushEquipmentForce.Horizontal,
+            pushEquipmentForce.Vertical,
+            characterToEquipment.Z * pushEquipmentForce.Horizontal
         )
     end
 end

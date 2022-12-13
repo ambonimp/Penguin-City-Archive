@@ -32,7 +32,7 @@ local function hasNetworkOwnershipOfSportsEquipment(sportsEquipment: BasePart | 
     return false
 end
 
-local function simulatePushEquipment(sportsEquipment: BasePart | Model)
+local function simulatePushEquipment(sportsEquipment: BasePart | Model, sportsEquipmentType: string)
     -- Create Local Equipment
     local localSportsEquipment = sportsEquipment:Clone()
     localSportsEquipment.Name = ("%s (Local)"):format(localSportsEquipment.Name)
@@ -43,7 +43,7 @@ local function simulatePushEquipment(sportsEquipment: BasePart | Model)
     InstanceUtil.hide(serverInstances)
 
     -- Push Local
-    SportsGamesUtil.pushEquipment(localPlayer, localSportsEquipment)
+    SportsGamesUtil.pushEquipment(localPlayer, sportsEquipmentType, localSportsEquipment)
 
     -- Yield until we get ownership / timeout
     local yieldUntil = tick() + WAIT_FOR_NETWORK_OWNERSHIP_TIMEOUT
@@ -90,14 +90,14 @@ local function setupSportsEquipment(sportsEquipment: BasePart | Model, sportsEqu
         end
 
         -- Apply Force locally
-        SportsGamesUtil.pushEquipment(localPlayer, sportsEquipment)
+        SportsGamesUtil.pushEquipment(localPlayer, sportsEquipmentType, sportsEquipment)
 
         -- Audio Feedback
         Sound.play(SportsGamesUtil.getPushSoundName(sportsEquipmentType))
 
         -- If not owned yet, simulate a local version
         if not hasNetworkOwnershipOfSportsEquipment(sportsEquipment) then
-            simulatePushEquipment(sportsEquipment)
+            simulatePushEquipment(sportsEquipment, sportsEquipmentType)
         end
     end))
 end
