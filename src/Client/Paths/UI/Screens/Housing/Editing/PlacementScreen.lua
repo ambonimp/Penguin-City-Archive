@@ -19,6 +19,7 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local Widget = require(Paths.Client.UI.Elements.Widget)
+local Button = require(Paths.Client.UI.Elements.Button)
 local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local ProductController = require(Paths.Client.ProductController)
@@ -47,10 +48,10 @@ local templates: Folder = Paths.Templates.Housing
 local screenGui: ScreenGui = Paths.UI.Housing
 
 local placementControls: BillboardGui = screenGui.PlacementControls
-local moveButton: TextButton = placementControls.Move
-local rotateButton: TextButton = placementControls.Others.Buttons.Rotate
-local acceptButton: TextButton = placementControls.Others.Buttons.Accept
-local closeRemoveButton: TextButton = placementControls.Others.Buttons.CloseRemove
+local moveButton: Button.Button = Button.new(placementControls.Move)
+local rotateButton: Button.Button = Button.new(placementControls.Others.Buttons.Rotate)
+local acceptButton: Button.Button = Button.new(placementControls.Others.Buttons.Accept)
+local closeRemoveButton: Button.Button = Button.new(placementControls.Others.Buttons.CloseRemove)
 
 local placementSession = Maid.new()
 
@@ -70,7 +71,7 @@ local normal: Vector3
 local rotationY: number
 local color: { Color3? } --table of current model colors
 local model: Model --current model selected
-local colorToWidget: { [Color3]: Widget.Widget } --used for easily swapping a Color3 for the corresponding widget
+local colorToWidget: { [string]: Widget.Widget } --used for easily swapping a string Color3 for the corresponding widget
 local lastModelOriginalCFrame: CFrame | nil --original CF of model selected incase user cancels movement
 local colorWidgetSelected: Widget.Widget --current widget of color selected
 -------------------------------------------------------------------------------
@@ -301,7 +302,7 @@ do
             placementSession:GiveTask(InputController.CursorUp:Connect(closeMoving))
             placementSession:GiveTask(closeMoving)
 
-            placementSession:GiveTask(moveButton.MouseButton1Down:Connect(function()
+            placementSession:GiveTask(moveButton.InternalPress:Connect(function()
                 moving = true
                 if DeviceUtil.isMobile() then
                     CameraUtil.setCametaType(workspace.CurrentCamera, Enum.CameraType.Scriptable)
@@ -331,13 +332,13 @@ do
             end))
 
             -- Rotating
-            placementSession:GiveTask(rotateButton.MouseButton1Down:Connect(function()
+            placementSession:GiveTask(rotateButton.Pressed:Connect(function()
                 rotationY = rotationY + ROTATION_ADDEND
                 applyCFrame()
             end))
 
             -- Accepting changes
-            placementSession:GiveTask(acceptButton.MouseButton1Down:Connect(function()
+            placementSession:GiveTask(acceptButton.Pressed:Connect(function()
                 -- RETURN: Cannot place item that is colliding
                 if selectionBox.Color3 == INVALID_PLACEMENT_COLOR then
                     return
@@ -368,7 +369,7 @@ do
             end))
 
             -- Closing / Selling
-            placementSession:GiveTask(closeRemoveButton.MouseButton1Down:Connect(function()
+            placementSession:GiveTask(closeRemoveButton.Pressed:Connect(function()
                 lastItemPlaced = os.time()
                 if not isNewObject then
                     Remotes.fireServer("RemoveFurniture", model.Name)
@@ -378,30 +379,14 @@ do
             end))
         end
 
-        -- Cover Color
-        --hide or show tabs depending on if the model has "Color"..i
-
-        --[[
-        for i = 2, HousingConstants.MaxColors do
-            if model:FindFirstChild("Color" .. i) == nil then
-                if i > colorPanel:GetTabAmountFromAlignment() then
-                    colorPanel:HideForwardArrow()
-                end
-                colorPanel:HideTab("Color" .. i)
-            else
-                if i > colorPanel:GetTabAmountFromAlignment() then
-                    colorPanel:ShowForwardArrow()
-                end
-                colorPanel:ShowTab("Color" .. i)
-            end
-        end]]
+        --ColorWidget handle
 
         if colorWidgetSelected then
             colorWidgetSelected:SetSelected(false)
         end
 
-        if colorToWidget[color[1]] then
-            colorWidgetSelected = colorToWidget[color[1]]
+        if colorToWidget[tostring(color[1])] then
+            colorWidgetSelected = colorToWidget[tostring(color[1])]
             colorWidgetSelected:SetSelected(true)
         end
 
@@ -452,15 +437,13 @@ do
 
     colorPanel:SetAlignment("Left")
     colorPanel:SetSize(1)
-    colorPanel:AddTab("Color1", Images.Icons.Paint)
-    colorPanel:OpenTab("Color1")
 
     colorPanel.ClosePressed:Connect(function()
         uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
     end)
     template.Parent = colorPanel:GetContainer()
 
-    colorToWidget = {}
+    colorToWidget = {} :: { [string]: Widget.Widget }
 
     for colorName, colorData in pairs(FurnitureConstants.Colors) do
         local product = ProductUtil.getHouseColorProduct(colorName, colorData.ImageColor)
