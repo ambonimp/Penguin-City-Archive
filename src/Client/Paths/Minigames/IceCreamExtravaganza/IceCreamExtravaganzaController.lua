@@ -71,21 +71,19 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
-    if MinigameController.isMultiplayer() then
-        SharedMinigameScreen.openStartMenu()
+    SharedMinigameScreen.openStartMenu()
 
-        SharedMinigameScreen.setStatusText("Intermission")
-        MinigameController.startCountdownAsync(
-            IceCreamExtravaganzaConstants.SessionConfig.IntermissionLength,
-            SharedMinigameScreen.setStatusCounter
-        )
-    end
+    SharedMinigameScreen.setStatusText("Intermission")
+    MinigameController.startCountdownAsync(
+        IceCreamExtravaganzaConstants.SessionConfig.IntermissionLength,
+        SharedMinigameScreen.setStatusCounter
+    )
 end, function()
-    SharedMinigameScreen.closeStartMenu()
     SharedMinigameScreen.hideStatus()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
+    SharedMinigameScreen.closeStartMenu()
     coreJanitor:Add(CollectableController.setup())
 
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)

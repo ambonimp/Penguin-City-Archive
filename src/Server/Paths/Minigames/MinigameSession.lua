@@ -1,3 +1,31 @@
+--[[
+    Each minigame inherits from this class.
+
+    A minigame session is built around a state machine. Client and client handlers listen to the following state changes and react accordingly:
+        - Nothing (Only runs once)
+            - In single-player minigames, the session remains in this still until the player presses play.
+            - On the client, its state is always run before any other state.
+            - Great for setting up things that will remain for the duration of the session like disabling jumping.
+        - Intermission (Multiplayer Only)
+            - A reset state, do things like reposition players for the new round
+            - Allows new players to join the session
+            - If the session doesn't have enough participants in the state, it will
+            - In single-player minigame states, this state is glossed over
+        - CoreCountdown
+            - 3, 2, 1, Go! -> Core
+            - Useful if you want to combat latency.
+                For example for a race, you would give the client ownership at this point while tracking that player doesn't move until the core state.
+                But this means that all clients will start at the same time.
+        - Core
+            - Gameplay state
+            - If the session config has StrictlyEnforcePlayerCount set to true, if the number of participants falls below the MinParticipants count, the state will end
+        - WaitingForPlayers
+            - Goes to intermission when enough players are in the session
+        - award shows
+            - Sends results to the client
+            - For multiplayer sessions, transitions to intermission when (AwardShowLength) time has passed.
+]]
+
 local MinigameSession = {}
 
 local Players = game:GetService("Players")
@@ -328,7 +356,11 @@ function MinigameSession.new(
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
-                    minigameSession:ChangeState(STATES.Intermission)
+                    if config.CoreCountdown then
+                        minigameSession:ChangeState(STATES.CoreCountdown)
+                    else
+                        minigameSession:ChangeState(STATES.Core)
+                    end
                 end
             end))
 
@@ -354,17 +386,15 @@ function MinigameSession.new(
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.Intermission, function()
-            if isMultiplayer then
-                -- RETURN: Waiting for more players
-                if #participants < config.MinParticipants then
-                    minigameSession:ChangeState(STATES.WaitingForPlayers)
-                    return
-                end
+            -- RETURN: Waiting for more players
+            if #participants < config.MinParticipants then
+                minigameSession:ChangeState(STATES.WaitingForPlayers)
+                return
+            end
 
-                -- RETURN: This is no longer the state
-                if not minigameSession:CountdownSync(config.IntermissionLength) then
-                    return
-                end
+            -- RETURN: This is no longer the state
+            if not minigameSession:CountdownSync(config.IntermissionLength) then
+                return
             end
 
             if config.CoreCountdown then
