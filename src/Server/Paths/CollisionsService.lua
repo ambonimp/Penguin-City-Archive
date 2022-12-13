@@ -64,7 +64,7 @@ setGroupCollideableWhitelist(groups.SledRaceCollectables, { groups.Default })
 setGroupCollideableWhitelist(groups.Pet, { groups.Default })
 
 -- Sports
-setGroupCollideableWhitelist(groups.SportsPitch, { groups.Default, groups.SportsPitch })
-setGroupCollideableWhitelist(groups.SportsEquipment, { groups.Default, groups.SportsPitch, groups.Characters })
+setGroupCollideableWhitelist(groups.SportsArena, { groups.Default, groups.SportsArena })
+setGroupCollideableWhitelist(groups.SportsEquipment, { groups.Default, groups.SportsArena, groups.Characters })
 
 return CollisionsService

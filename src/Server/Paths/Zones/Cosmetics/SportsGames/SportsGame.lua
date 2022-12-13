@@ -1,5 +1,6 @@
 local SportsGame = {}
 
+local CollectionService = game:GetService("CollectionService")
 local PhysicsService = game:GetService("PhysicsService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
@@ -7,8 +8,12 @@ local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
 local CollisionsConstants = require(Paths.Shared.Constants.CollisionsConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-
-local SPAWNPOINT_SPAWN_OFFSET = Vector3.new(0, 5, 0)
+local Limiter = require(Paths.Shared.Limiter)
+local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
+local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
+local SportsGamesConstants = require(Paths.Shared.SportsGames.SportsGamesConstants)
+local SportsGamesUtil = require(Paths.Shared.SportsGames.SportsGamesUtil)
+local NetworkOwnerUtil = require(Paths.Shared.Utils.NetworkOwnerUtil)
 
 --[[
     - `name`: name for the game
@@ -19,6 +24,11 @@ local SPAWNPOINT_SPAWN_OFFSET = Vector3.new(0, 5, 0)
 ]]
 function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Part }, sportsEquipment: Model | BasePart)
     local sportsGame = {}
+
+    -- ERROR: Sports equipment needs a PrimaryPart
+    if sportsEquipment:IsA("Model") and not sportsEquipment.PrimaryPart then
+        error(("SportsEquipment %q needs PrimaryPart defined"):format(sportsEquipment:GetFullName()))
+    end
 
     -------------------------------------------------------------------------------
     -- Private Members
@@ -39,35 +49,7 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
     -------------------------------------------------------------------------------
 
     local function spawnSportsEquipment()
-        -- Destroy current
-        if currentSportsEquipment then
-            currentSportsEquipment:Destroy()
-        end
-
-        -- Setup Equipment; pivot, properties etc
-        currentSportsEquipment = sportsEquipment:Clone()
-        PhysicsService:SetPartCollisionGroup(currentSportsEquipment, CollisionsConstants.Groups.SportsEquipment)
-        currentSportsEquipment.Name = ("%s_Sports_Equipment"):format(name)
-        currentSportsEquipment:PivotTo(spawnpoint.CFrame + SPAWNPOINT_SPAWN_OFFSET)
-        currentSportsEquipment.Anchored = false
-        currentSportsEquipment.CanCollide = true
-        currentSportsEquipment.Parent = game.Workspace
-
-        -- Network Ownership; whoever touches it then owns it
-        currentSportsEquipment.Touched:Connect(function(otherPart)
-            -- RETURN: Not a player
-            local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
-            if not player then
-                return
-            end
-
-            -- Set network ownership for every basepart
-            for _, instance: BasePart in pairs(ArrayUtil.merge(currentSportsEquipment:GetDescendants(), { currentSportsEquipment })) do
-                if instance:IsA("BasePart") then
-                    instance:SetNetworkOwner(player)
-                end
-            end
-        end)
+        currentSportsEquipment:PivotTo(spawnpoint.CFrame + SportsGamesConstants.SpawnpointOffset)
     end
 
     -- 1-time setup
@@ -94,7 +76,7 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
         -- Collisions
         for _, cagePart in pairs(cage:GetDescendants()) do
             if cagePart:IsA("BasePart") then
-                PhysicsService:SetPartCollisionGroup(cagePart, CollisionsConstants.Groups.SportsPitch)
+                PhysicsService:SetPartCollisionGroup(cagePart, CollisionsConstants.Groups.SportsArena)
             end
         end
         spawnpoint.CanCollide = false
@@ -104,6 +86,50 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
             if instance:IsA("BasePart") then
                 instance.Transparency = 1
             end
+        end
+
+        -- Equipment
+        do
+            -- Setup
+            currentSportsEquipment = sportsEquipment:Clone()
+            CollectionService:AddTag(currentSportsEquipment, SportsGamesConstants.Tag.SportsEquipment)
+            PhysicsService:SetPartCollisionGroup(currentSportsEquipment, CollisionsConstants.Groups.SportsEquipment)
+            currentSportsEquipment.Name = ("%s_Sports_Equipment"):format(name)
+            currentSportsEquipment.Anchored = false
+            currentSportsEquipment.CanCollide = true
+            currentSportsEquipment.Parent = cage
+
+            -- Network Ownership; whoever touches it then owns it
+            currentSportsEquipment.Touched:Connect(function(otherPart)
+                -- RETURN: Not a player
+                local player = CharacterUtil.getPlayerFromCharacterPart(otherPart)
+                if not player then
+                    return
+                end
+
+                -- RETURN: Touched by this player very recently
+                local isFree = Limiter.debounce("SportsGame", player, SportsGamesConstants.PlayerTouchDebounceTime)
+                if not isFree then
+                    return
+                end
+
+                -- Set network ownership for every basepart
+                local alreadyHadOwnership = false
+                for _, instance: BasePart in pairs(ArrayUtil.merge(currentSportsEquipment:GetDescendants(), { currentSportsEquipment })) do
+                    if instance:IsA("BasePart") then
+                        alreadyHadOwnership = alreadyHadOwnership or instance:GetNetworkOwner() == player
+                        NetworkOwnerUtil.setNetworkOwner(instance, player)
+                    end
+                end
+
+                -- Apply Force if we've just handed over ownership; any future forces will be applied clientside as they have ownership
+                if not alreadyHadOwnership then
+                    SportsGamesUtil.pushEquipment(player, currentSportsEquipment)
+                end
+            end)
+
+            -- Spawn
+            spawnSportsEquipment()
         end
     end
 

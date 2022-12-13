@@ -8,7 +8,7 @@ CollisionsConstants.Groups = {
     SledRaceSleds = "SledRaceSleds",
     SledRaceCollectables = "SledRaceObstacles",
     Pet = "Pet",
-    SportsPitch = "SportsPitch",
+    SportsArena = "SportsArena",
     SportsEquipment = "SportsEquipment",
 }
 
