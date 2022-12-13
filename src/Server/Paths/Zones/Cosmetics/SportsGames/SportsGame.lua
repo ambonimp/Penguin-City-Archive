@@ -15,8 +15,10 @@ local SportsGamesConstants = require(Paths.Shared.SportsGames.SportsGamesConstan
 local SportsGamesUtil = require(Paths.Shared.SportsGames.SportsGamesUtil)
 local NetworkOwnerUtil = require(Paths.Shared.Utils.NetworkOwnerUtil)
 local Sound = require(Paths.Shared.Sound)
+local Particles = require(Paths.Shared.Particles)
 
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
+local CONFETTI_DURATION = 2
 
 --[[
     - `name`: name for the game
@@ -75,7 +77,8 @@ function SportsGame.new(name: string, cage: Model, spawnpoint: Part, goals: { Pa
                 Sound.play("GoalScored", nil, goalPart)
 
                 -- Visual Feedback
-                --todo
+                local particles, adornee = Particles.playAtPosition("Confetti", otherPart:GetPivot().Position)
+                task.delay(CONFETTI_DURATION, Particles.remove, particles, adornee)
 
                 -- Reset
                 resetSportsEquipment()

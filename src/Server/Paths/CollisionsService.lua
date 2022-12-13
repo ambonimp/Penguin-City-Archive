@@ -67,4 +67,7 @@ setGroupCollideableWhitelist(groups.Pet, { groups.Default })
 setGroupCollideableWhitelist(groups.SportsArena, { groups.Default, groups.SportsArena })
 setGroupCollideableWhitelist(groups.SportsEquipment, { groups.Default, groups.SportsArena, groups.Characters })
 
+-- Nothing
+setGroupCollideableWhitelist(groups.Nothing, {})
+
 return CollisionsService

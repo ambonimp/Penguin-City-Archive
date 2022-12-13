@@ -10,6 +10,7 @@ CollisionsConstants.Groups = {
     Pet = "Pet",
     SportsArena = "SportsArena",
     SportsEquipment = "SportsEquipment",
+    Nothing = "Nothing",
 }
 
 return CollisionsConstants
