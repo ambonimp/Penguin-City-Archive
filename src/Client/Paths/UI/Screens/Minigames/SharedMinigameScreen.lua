@@ -85,13 +85,6 @@ local function getLogo(): string
     return Images[MinigameController.getMinigame()].Logo
 end
 
-local function getCameraGizmo(): Model?
-    local cameras = MinigameController.getMap():FindFirstChild("Cameras")
-    if cameras then
-        return cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
-    end
-end
-
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
@@ -153,9 +146,12 @@ function SharedMinigameScreen.openStartMenu()
         startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
         singlePlayerMenu.Logo.Image = getLogo()
 
-        local cameraGizmo = getCameraGizmo()
-        if cameraGizmo then
-            CameraController.viewCameraModel(cameraGizmo)
+        local cameras = MinigameController.getMap():FindFirstChild("Cameras")
+        if cameras then
+            local gizmo = cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
+            if gizmo then
+                CameraController.viewCameraModel(gizmo)
+            end
         end
 
         ScreenUtil.openBlur()
@@ -189,10 +185,8 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
         if not temporary then
             startMenus.BackgroundTransparency = 1
 
-            if getCameraGizmo() then
-                CameraController.setPlayerControl()
-                CameraController.alignCharacter()
-            end
+            CameraController.setPlayerControl()
+            CameraController.alignCharacter()
 
             if playTween then
                 playTween:Cancel()
