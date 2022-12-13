@@ -27,7 +27,7 @@ return {
     {
         Id = "events_playtime_streak1",
         DisplayName = "Welcome Back!",
-        Description = "Get a 1 day streak!",
+        Description = "Get a 2 day streak!",
         Type = "Events",
         Difficulty = "Easy",
         ImageId = Images.Stamps.Icons.WelcomeBack,
