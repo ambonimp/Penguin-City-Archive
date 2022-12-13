@@ -18,7 +18,7 @@ local Sound = require(Paths.Shared.Sound)
 local Particles = require(Paths.Shared.Particles)
 
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
-local CONFETTI_DURATION = 2
+local CONFETTI_DURATION = 1
 
 --[[
     - `name`: name for the game
