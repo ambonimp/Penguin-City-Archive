@@ -54,7 +54,7 @@ function MinigameSession.new(
     local scoreRange = { Min = 0, Max = math.huge }
 
     local config: MinigameConstants.SessionConfig =
-        TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
+        TableUtil.overwrite(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
 
     local defaultScore: number?
     local started: boolean = false

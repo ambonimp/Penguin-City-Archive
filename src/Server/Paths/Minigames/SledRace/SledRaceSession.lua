@@ -209,7 +209,7 @@ end
 for _, station in pairs(Workspace.Rooms.SkiHill.QueueStations:GetChildren()) do
     QueueStationService.resetStatusBoard(
         station,
-        TableUtil.merge(MinigameUtil.getsessionConfig("SledRace"), MinigameUtil.getSessionConfigFromQueueStation(station))
+        TableUtil.overwrite(MinigameUtil.getsessionConfig("SledRace"), MinigameUtil.getSessionConfigFromQueueStation(station))
     )
 end
 
