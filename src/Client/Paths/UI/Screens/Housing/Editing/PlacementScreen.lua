@@ -60,18 +60,19 @@ local character: Model?
 local plot: Model?
 local plotCFrame: CFrame?
 
-local lastItemPlaced: number
-local colorNameSelected: string
-local colorNum: number
-local name: string
+local confirmChanged: boolean
+local lastItemPlaced: number --os.time() of last interaction with a selected item
+local colorNameSelected: string --name of Color selected "Color1", "Color2", etc
+local colorNum: number --index of color selected 1,2,3, etc
+local name: string --the index in FurnitureConstants.Objects of current object selected
 local position: Vector3
 local normal: Vector3
 local rotationY: number
-local color: { Color3? }
-local model: Model
-local colorToWidget: {}
-local lastModelOriginalCFrame: CFrame | nil
-local colorWidgetSelected: Widget.Widget
+local color: { Color3? } --table of current model colors
+local model: Model --current model selected
+local colorToWidget: { [Color3]: Widget.Widget } --used for easily swapping a Color3 for the corresponding widget
+local lastModelOriginalCFrame: CFrame | nil --original CF of model selected incase user cancels movement
+local colorWidgetSelected: Widget.Widget --current widget of color selected
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
@@ -103,6 +104,7 @@ local function initilizeModel() --initializes the current selected model
             Binder.bind(basePart, "PreSelectedProps", {
                 CanTouch = basePart.CanTouch,
                 CanCollide = basePart.CanCollide,
+                Color = basePart.Color,
             })
 
             basePart.CanCollide = false
@@ -116,6 +118,9 @@ local function initilizeModel() --initializes the current selected model
                 local preSelectedProps = Binder.getBinded(basePart, "PreSelectedProps")
                 basePart.CanTouch = preSelectedProps.CanTouch
                 basePart.CanCollide = preSelectedProps.CanCollide
+                if not confirmChanged then
+                    basePart.Color = preSelectedProps.Color
+                end
             end
         end
     end)
@@ -167,6 +172,7 @@ do
             resetModel()
         end
 
+        confirmChanged = false
         character = player.Character
         plot = data.Plot
         plotCFrame = data.PlotCFrame
@@ -336,7 +342,7 @@ do
                 if selectionBox.Color3 == INVALID_PLACEMENT_COLOR then
                     return
                 end
-
+                confirmChanged = true
                 if isNewObject then
                     local metadata = {
                         Name = name,
@@ -363,6 +369,7 @@ do
 
             -- Closing / Selling
             placementSession:GiveTask(closeRemoveButton.MouseButton1Down:Connect(function()
+                lastItemPlaced = os.time()
                 if not isNewObject then
                     Remotes.fireServer("RemoveFurniture", model.Name)
                 end
@@ -373,6 +380,8 @@ do
 
         -- Cover Color
         --hide or show tabs depending on if the model has "Color"..i
+
+        --[[
         for i = 2, HousingConstants.MaxColors do
             if model:FindFirstChild("Color" .. i) == nil then
                 if i > colorPanel:GetTabAmountFromAlignment() then
@@ -385,7 +394,7 @@ do
                 end
                 colorPanel:ShowTab("Color" .. i)
             end
-        end
+        end]]
 
         if colorWidgetSelected then
             colorWidgetSelected:SetSelected(false)
@@ -396,6 +405,17 @@ do
             colorWidgetSelected:SetSelected(true)
         end
 
+        for i = 1, HousingConstants.MaxColors do
+            if model:FindFirstChild("Color" .. i) then
+                colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
+            end
+        end
+
+        placementSession:GiveTask(function()
+            colorPanel:ClearTabs()
+        end)
+
+        colorPanel:OpenTab("Color1")
         colorNameSelected = "Color1"
         colorNum = 1
         colorPanel:OpenTab(colorNameSelected)
@@ -432,11 +452,9 @@ do
 
     colorPanel:SetAlignment("Left")
     colorPanel:SetSize(1)
-    for i = 1, HousingConstants.MaxColors do
-        colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
-    end
-
+    colorPanel:AddTab("Color1", Images.Icons.Paint)
     colorPanel:OpenTab("Color1")
+
     colorPanel.ClosePressed:Connect(function()
         uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
     end)
@@ -475,17 +493,19 @@ do
     end
 
     colorPanel.TabChanged:Connect(function(_old: string, tabName: string)
-        local colorId = tonumber(string.sub(tabName, 6, 6))
-        local colorpicked = color[colorId]
-        colorNameSelected = tabName
-        colorNum = colorId
-        if colorWidgetSelected then
-            colorWidgetSelected:SetSelected(false)
-        end
+        if _old and tabName and model then
+            local colorId = tonumber(string.sub(tabName, 6, 6))
+            local colorpicked = color[colorId]
+            colorNameSelected = tabName
+            colorNum = colorId
+            if colorWidgetSelected then
+                colorWidgetSelected:SetSelected(false)
+            end
 
-        if colorToWidget[tostring(colorpicked)] then
-            colorWidgetSelected = colorToWidget[tostring(colorpicked)]
-            colorWidgetSelected:SetSelected(true)
+            if colorToWidget[tostring(colorpicked)] then
+                colorWidgetSelected = colorToWidget[tostring(colorpicked)]
+                colorWidgetSelected:SetSelected(true)
+            end
         end
     end)
 

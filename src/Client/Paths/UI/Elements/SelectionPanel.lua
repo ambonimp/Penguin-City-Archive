@@ -475,7 +475,27 @@ function SelectionPanel.new()
         draw()
     end
 
-    function selectionPanel:RemoveTab(tabName: string)
+    function selectionPanel:ClearTabs()
+        for _, tab in pairs(tabs) do
+            if tab.Button then
+                tab.Button:Destroy()
+                tab.Button = nil
+            end
+        end
+
+        tabs = {}
+        openTabName = nil
+        openTabNameByTabIndex = {}
+        sections = {}
+
+        isArrowVisible = true
+        hiddenTabNames = {}
+        tabsIndex = 1
+
+        draw()
+    end
+
+    function selectionPanel:RemoveTab(tabName: string, redraw: boolean?)
         for index, tab in pairs(tabs) do
             if tab.Name == tabName then
                 table.remove(tabs, index)
@@ -487,14 +507,18 @@ function SelectionPanel.new()
             for _, someTab in pairs(tabs) do
                 selectionPanel:OpenTab(someTab.Name)
 
-                draw()
+                if redraw == nil or redraw then
+                    draw()
+                end
                 return
             end
         end
 
         selectionPanel:OpenTab()
 
-        draw()
+        if redraw == nil or redraw then
+            draw()
+        end
     end
 
     function selectionPanel:AddWidgetConstructor(
