@@ -355,7 +355,7 @@ function KeyboardButton.new()
             icon.Size = ICON_SIZE
             icon.Position = ICON_POSITION
             icon.AnchorPoint = ICON_ANCHOR_POINT
-            icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+            icon.SizeConstraint = Enum.SizeConstraint.RelativeXY
             icon.ZIndex = textLabel.ZIndex
             icon.ScaleType = Enum.ScaleType.Fit
             icon.Parent = imageButton
@@ -417,7 +417,8 @@ function KeyboardButton.new()
     -------------------------------------------------------------------------------
 
     keyboardButton.InternalMount:Connect(function(parent: Instance, _hideParent: boolean?)
-        back.Parent = parent
+        -- back.Parent = parent
+
         if icon then
             icon.ZIndex = imageButton.ZIndex + 1
         end

@@ -3,18 +3,21 @@
 ]]
 local SelectionPanel = {}
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UIElement = require(script.Parent.UIElement)
-local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
+local Players = game:GetService("Players")
+local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(ReplicatedStorage.Packages.maid)
-local ExitButton = require(script.Parent.ExitButton)
-local Button = require(script.Parent.Button)
-local Signal = require(ReplicatedStorage.Shared.Signal)
-local Queue = require(ReplicatedStorage.Shared.Queue)
-local AnimatedButton = require(script.Parent.AnimatedButton)
-local Products = require(ReplicatedStorage.Shared.Products.Products)
-local ObjectPool = require(ReplicatedStorage.Shared.ObjectPool)
+local UIElement = require(Paths.Client.UI.Elements.UIElement)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local Button = require(Paths.Client.UI.Elements.Button)
+local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
+local Signal = require(Paths.Shared.Signal)
+local Queue = require(Paths.Shared.Queue)
+local AnimatedButton = require(Paths.Client.UI.Elements.AnimatedButton)
+local Products = require(Paths.Shared.Products.Products)
+local ObjectPool = require(Paths.Shared.ObjectPool)
+local Images = require(Paths.Shared.Images.Images)
+local Widget = require(Paths.Client.UI.Elements.Widget)
 
 type Maid = typeof(Maid.new())
 type Tab = {
@@ -24,17 +27,16 @@ type Tab = {
         {
             WidgetName: string,
             Selected: boolean,
-            Instance: Button.Button?,
-            Constructor: (widget: Button.Button) -> (),
+            Instance: KeyboardButton.KeyboardButton?,
+            Constructor: (widget: KeyboardButton.KeyboardButton) -> (),
         }
     },
-    Button: Button.Button?,
+    Button: (Button.Button)?,
 }
 
-local ACTIVE_ARROW_BUTTON = "rbxassetid://11447909821"
-local INACTIVE_ARROW_BUTTON = "rbxassetid://11807285632"
-
 local COLUMN_WIDTH_OFFSET = 178
+local CELL_SIZE = 166
+local PAGINATION_PADDING = 10
 
 local TABS_PER_VIEW = {
     Left = 5,
@@ -42,12 +44,12 @@ local TABS_PER_VIEW = {
     Bottom = 8,
 }
 
-local templateScreenGui: ScreenGui = game.StarterGui.SelectionPanel
+local templateScreenGui: ScreenGui = game.StarterGui.SelectionPanelTest
 
 SelectionPanel.Defaults = {
     Alignment = "Right",
     Columns = 1,
-    Rows = 1,
+    Rows = 10,
 }
 
 function SelectionPanel.new()
@@ -71,19 +73,28 @@ function SelectionPanel.new()
     local containerFrame: Frame
     local backgroundFrame: Frame
     local tabsFrame: Frame
+    local paginationFrame: Frame
     local scrollingFrame: Frame
     local closeButton: typeof(ExitButton.new())
     local closeButtonFrame: Frame
     local backwardArrow: AnimatedButton.AnimatedButton
     local forwardArrow: AnimatedButton.AnimatedButton
 
+    local nextPageButton: KeyboardButton.KeyboardButton
+    local prevPageButton: KeyboardButton.KeyboardButton
+
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
+    local scrollingFrameSize: UDim2
+
     local widgetPool = ObjectPool.new(size, function()
-        return { Widget = Button.new(Instance.new("ImageButton")) } :: ObjectPool.ObjectGroup
+        local button = KeyboardButton.new()
+        button:GetButtonObject().Size = UDim2.fromOffset(CELL_SIZE, CELL_SIZE)
+
+        return { Widget = button } :: ObjectPool.ObjectGroup
     end, function(group)
-        local widget: Button.Button = group.Widget
+        local widget: KeyboardButton.KeyboardButton = group.Widget
 
         widget.Pressed:DisconnectAll()
         widget.InternalEnter:DisconnectAll()
@@ -95,6 +106,7 @@ function SelectionPanel.new()
 
         widget:Mount()
     end)
+    selectionPanel:GetMaid():GiveTask(widgetPool)
 
     local tabsIndex = 1
     local pageIndex = 1
@@ -164,16 +176,20 @@ function SelectionPanel.new()
     local function resize()
         if alignment == "Left" then
             backgroundFrame.Position = defaultBackgroundPosition + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            scrollingFrameSize = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            paginationFrame.Size = UDim2.fromOffset(scrollingFrameSize.X.Offset, paginationFrame.Size.Y.Offset)
         elseif alignment == "Right" then
             backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            scrollingFrameSize = defaultScrollingFrameSize + UDim2.fromOffset((columns - 1) * COLUMN_WIDTH_OFFSET, 0)
+            paginationFrame.Size = UDim2.fromOffset(scrollingFrameSize.X.Offset, paginationFrame.Size.Y.Offset)
         elseif alignment == "Bottom" then
             backgroundFrame.Position = defaultBackgroundPosition - UDim2.fromOffset(0, (columns - 1) * COLUMN_WIDTH_OFFSET)
-            scrollingFrame.Size = defaultScrollingFrameSize + UDim2.fromOffset(0, (columns - 1) * COLUMN_WIDTH_OFFSET)
+            scrollingFrameSize = defaultScrollingFrameSize + UDim2.fromOffset(0, (columns - 1) * COLUMN_WIDTH_OFFSET)
         else
             error(("Missing edgecase for %q"):format(alignment))
         end
+
+        scrollingFrame.Size = scrollingFrameSize
     end
 
     local function createContainer()
@@ -221,10 +237,18 @@ function SelectionPanel.new()
         tabsFrame.Selected.Visible = false
         tabsFrame.template.Visible = false
 
+        -- Pages
+        paginationFrame = backgroundFrame.Back.Pagination
+        nextPageButton = KeyboardButton.new()
+        nextPageButton:SetIcon(Images.StampBook.NavigationArrowRight)
+        nextPageButton:Mount(paginationFrame.Next, true)
+
+        prevPageButton = KeyboardButton.new()
+        prevPageButton:SetIcon(Images.StampBook.NavigationArrowLeft)
+        prevPageButton:Mount(paginationFrame.Previous, true)
+
         -- Widgets
         scrollingFrame = backgroundFrame.Back.ScrollingFrame
-        scrollingFrame.sectionTemplate.Visible = false
-        scrollingFrame.sectionTemplate.template.Visible = false
 
         -- Misc
         defaultBackgroundPosition = backgroundFrame.Position
@@ -234,30 +258,39 @@ function SelectionPanel.new()
         resize()
     end
 
-    local function drawPage(tab: Tab)
-        widgetPool:ReleaseAll()
+    local function drawPage()
+        local widgetConstructors = getTab(openTabName).WidgetConstructors
+        local widgetCount = #widgetConstructors
 
-        local widgetConstructors = tab.WidgetConstructors
-
-        local indexStart = (pageIndex - 1) * size + 1
-        local indexEnd = math.min(size, #widgetConstructors - indexStart)
-        for i = indexStart, indexEnd do
-            local widget = widgetPool:GetObject()
-            widgetPool:Mount(scrollingFrame)
-
-            local widgetInfo = widgetConstructors[i]
-            widgetInfo.Instance = widget
-            widgetInfo.Constructor(widget)
+        -- RETURN: Nothing to draw
+        if widgetCount == 0 then
+            return
         end
 
+        local indexStart = (pageIndex - 1) * size + 1
+        local indexEnd = indexStart + math.min(size - 1, widgetCount - 1, math.max(0, widgetCount - indexStart))
+
+        widgetPool:Clear()
         widgetPool.Cleared:Once(function()
             for i = indexStart, indexEnd do
                 widgetConstructors[i].Instance = nil
             end
         end)
+
+        for i = indexStart, indexEnd do
+            local widgetGroup = widgetPool:Get()
+            local widget: KeyboardButton.KeyboardButton = widgetGroup.Widget
+            widget:Mount(scrollingFrame)
+
+            local widgetInfo = widgetConstructors[i]
+            widgetInfo.Instance = widget
+            widgetInfo.Constructor(widget)
+        end
     end
 
     local function draw(updatedAlignment: boolean?)
+        local queueNext = Queue.yield(selectionPanel)
+
         if updatedAlignment then
             createContainer()
         end
@@ -316,18 +349,57 @@ function SelectionPanel.new()
 
         -- Arrows
         do
-            backwardArrow:GetButtonObject().Image = if tabsIndex == 1 then ACTIVE_ARROW_BUTTON else INACTIVE_ARROW_BUTTON
-            forwardArrow:GetButtonObject().Image = if tabsIndex == getMaxTabsIndex() then ACTIVE_ARROW_BUTTON else INACTIVE_ARROW_BUTTON
+            backwardArrow:GetButtonObject().Image = if tabsIndex == 1
+                then Images.SelectionPanel.BlueArrow
+                else Images.SelectionPanel.GrayArrow
+            forwardArrow:GetButtonObject().Image = if tabsIndex == getMaxTabsIndex()
+                then Images.SelectionPanel.BlueArrow
+                else Images.SelectionPanel.GrayArrow
         end
 
         -- Widgets
         if openTab then
             pageIndex = 1
+            drawPage()
 
-            drawPage(openTab)
+            local widgetCount = #openTab.WidgetConstructors
+            local pageCount = math.ceil(widgetCount / size)
 
-            --TODO: If #openTab.WidgetConstructors > size then show navigation buttons which will invoke drawPage
+            if widgetCount > size then
+                paginationFrame.Visible = true
+                scrollingFrame.Size = scrollingFrameSize
+                    - (
+                        if alignment == "Bottom"
+                            then UDim2.fromOffset((paginationFrame.Previous.Size.X.Offset + PAGINATION_PADDING) * 2, 0)
+                            else UDim2.fromOffset(0, paginationFrame.Size.Y.Offset + PAGINATION_PADDING)
+                    )
+
+                local function updatePaginationText()
+                    if alignment ~= "Bottom" then
+                        paginationFrame.Text.Text = pageIndex .. "/" .. pageCount
+                    end
+                end
+
+                updatePaginationText()
+
+                drawMaid:GiveTask(nextPageButton.Pressed:Connect(function()
+                    pageIndex = if pageIndex == pageCount then 1 else pageIndex + 1
+                    updatePaginationText()
+                    drawPage()
+                end))
+
+                drawMaid:GiveTask(prevPageButton.Pressed:Connect(function()
+                    pageIndex = if pageIndex == 1 then pageCount else pageIndex - 1
+                    updatePaginationText()
+                    drawPage()
+                end))
+            else
+                paginationFrame.Visible = false
+                scrollingFrame.Size = scrollingFrameSize
+            end
         end
+
+        queueNext()
     end
 
     -------------------------------------------------------------------------------
@@ -357,7 +429,9 @@ function SelectionPanel.new()
     function selectionPanel:SetSize(newRows: number, newColumns: number)
         rows = newRows
         columns = newColumns
+        size = rows * columns
 
+        widgetPool:Resize(size)
         resize()
         draw()
     end
@@ -423,6 +497,27 @@ function SelectionPanel.new()
         selectionPanel:OpenTab()
     end
 
+    function selectionPanel:OpenTab(tabName: string?)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if tabName and not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        if openTabName then
+            for _, widgetInfo in pairs(getTab(openTabName).WidgetConstructors) do
+                widgetInfo.Instance = nil
+            end
+        end
+        selectionPanel.TabChanged:Fire(openTabName, tabName)
+
+        openTabName = tabName
+        openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
+
+        draw()
+    end
+
     -------------------------------------------------------------------------------
     -- Widget types
     -------------------------------------------------------------------------------
@@ -431,7 +526,7 @@ function SelectionPanel.new()
         tabName: string,
         widgetName: string,
         selected: boolean,
-        constructor: (widget: Button.Button) -> ()
+        constructor: (widget: KeyboardButton.KeyboardButton) -> ()
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -498,6 +593,12 @@ function SelectionPanel.new()
             draw()
         end
     end
+
+    -------------------------------------------------------------------------------
+    -- Setup
+    -------------------------------------------------------------------------------
+    draw(true)
+    selectionPanel:SetSize(rows, columns)
 
     return selectionPanel
 end

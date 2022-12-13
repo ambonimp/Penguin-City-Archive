@@ -14,8 +14,8 @@ function ObjectPool.new(size: number, template: Instance | () -> (ObjectGroup), 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local objects: { [ObjectGroup]: true }? = {}
-    local pool: { ObjectGroup }?
+    local objects: { ObjectGroup }? = {}
+    local pool: { ObjectGroup }? = {}
 
     -------------------------------------------------------------------------------
     -- PUBLIC MEMBERS
@@ -27,42 +27,47 @@ function ObjectPool.new(size: number, template: Instance | () -> (ObjectGroup), 
     -------------------------------------------------------------------------------
     local function createObject()
         local objectGroup = if typeof(template) == "Instance" then { template:Clone() } else template() :: ObjectGroup
-        objects[objectGroup] = true -- Indexing is faster
-        table.insert(pool, objectGroup)
+        table.insert(objects, objectGroup)
     end
 
     -------------------------------------------------------------------------------
     -- PUBLIC METHODS
     -------------------------------------------------------------------------------
-    function objectPool:GetObject(): ObjectGroup
-        local objectGroup = pool[#objects]
-
+    function objectPool:Get(): ObjectGroup
         -- ERROR: Empty pool
-        if objectGroup == nil then
+        if #objects == #pool then
+            print(#objects, #pool)
             error("ObjectGroup pool is empty, check size")
         end
 
-        return objectGroup
+        for _, objectGroup in pairs(objects) do
+            if not table.find(pool, objectGroup) then
+                table.insert(pool, objectGroup)
+                return objectGroup
+            end
+        end
     end
 
-    function objectPool:ReleaseObject(objectGroup: ObjectGroup)
-        if objects[objectGroup] then
+    function objectPool:Release(objectGroup: ObjectGroup)
+        if not table.find(objects, objectGroup) then
             error("Attempting to release an objectGroup that doesn't belong to the pool")
         end
 
-        if table.find(pool, objectGroup) then
+        local index = table.find(pool, objectGroup)
+        if not index then
             return
         end
 
         onRelease(objectGroup)
-        table.insert(pool, objects)
+        table.remove(pool, table.find(pool, index))
     end
 
     -- Release all objects
     function objectPool:Clear()
-        for objectGroup in pairs(objects) do
-            objectPool:ReleaseObject(objectGroup)
+        for _, objectGroup in pairs(pool) do
+            onRelease(objectGroup)
         end
+        pool = {}
     end
 
     -- WARNING: Releases all objects
@@ -79,29 +84,24 @@ function ObjectPool.new(size: number, template: Instance | () -> (ObjectGroup), 
             return
         end
 
-        objectPool:ReleaseAll()
+        objectPool:Clear()
 
         if difference > 0 then
             for _ = 1, difference do
                 createObject()
             end
         else
-            difference = math.abs(difference)
-            for objectGroup in pairs(objects) do
-                if difference == 0 then
-                    return
-                end
-
-                objects[objectGroup] = nil
-                difference -= 1
+            local currentSize = #objects
+            for i = currentSize, currentSize + difference do
+                table.remove(objects, i)
             end
         end
     end
 
     function objectPool:Destroy()
-        objectPool:ReleaseAll()
+        objectPool:Clear()
 
-        for objectGroup in pairs(objects) do
+        for _, objectGroup in pairs(objects) do
             for _, object in pairs(objectGroup) do
                 object:Destroy()
             end

@@ -143,6 +143,7 @@ Images.IceCreamExtravaganza = {
 Images.SelectionPanel = {
     Gloss = "http://www.roblox.com/asset/?id=11122230877",
     BlueArrow = "rbxassetid://11447909821",
+    GrayArrow = "rbxassetid://11807285632",
     BeigeArrow = "rbxassetid://11447909674",
 }
 --#region Shirts

@@ -41,7 +41,7 @@ function Signal.new()
     --[[
         Same as :Connect, but will disconnect itself after the first time `handler` is ran
     ]]
-    function Signal:Once(handler: (...any) -> ())
+    function signal:Once(handler: (...any) -> ())
         local connection: Connection
         return Connection.new(function()
             connection:Disconnect()
@@ -65,7 +65,7 @@ function Signal.new()
         resumeAllThreads()
     end
 
-    function Signal:DisconnectAll()
+    function signal:DisconnectAll()
         signal:Destroy()
     end
 
