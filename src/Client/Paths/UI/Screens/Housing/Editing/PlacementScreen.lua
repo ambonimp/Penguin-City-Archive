@@ -151,9 +151,7 @@ local function isModelColliding(model1: Model)
 
     return false
 end
--------------------------------------------------------------------------------
--- LOGIC
--------------------------------------------------------------------------------
+
 local function paintModel(primedModel: Model, paintName: string, paintColor: Color3)
     for _, part: BasePart in pairs(primedModel:GetDescendants()) do
         local doPaint = part:IsA("BasePart") and part ~= model.PrimaryPart and part.Parent.Name == paintName
@@ -162,6 +160,9 @@ local function paintModel(primedModel: Model, paintName: string, paintColor: Col
         end
     end
 end
+-------------------------------------------------------------------------------
+-- LOGIC
+-------------------------------------------------------------------------------
 
 -- Register Placement UIStates
 do
