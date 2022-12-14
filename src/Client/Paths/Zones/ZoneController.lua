@@ -21,6 +21,7 @@ local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController: typeof(require(Paths.Client.UI.UIController))
 local Scope = require(Paths.Shared.Scope)
 local Queue = require(Paths.Shared.Queue)
 
@@ -44,6 +45,7 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
+    UIController = require(Paths.Client.UI.UIController)
 end
 
 function ZoneController.Start()
@@ -189,9 +191,6 @@ function ZoneController.transitionToZone(
     teleportResult: () -> (boolean, CFrame?),
     blinkOptions: (Transitions.BlinkOptions)?
 )
-    -- Circular Dependencies
-    local UIController = require(Paths.Client.UI.UIController)
-
     -- Init variables
     isTransitioningToZone = true
     transitionToZoneScope:NewScope()
