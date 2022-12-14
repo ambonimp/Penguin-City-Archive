@@ -268,15 +268,11 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
         if not someInstance:IsA("BasePart") then
             local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
 
-            -- WARN: Querying a non-initiated structure
-            if not serverTotal then
-                warn(("ZoneUtil.areAllBasePartsLoaded called on non-initiated instance %q"):format(someInstance:GetFullName()))
-            end
-
             -- Query + Compare if more than 0
             if serverTotal and serverTotal > 0 then
                 local clientTotal = countBasePartsUnderInstance(someInstance)
                 if serverTotal > clientTotal then
+                    print(someInstance:GetFullName(), ("not fully loaded. missing %d"):format(serverTotal - clientTotal))
                     return false
                 end
             end

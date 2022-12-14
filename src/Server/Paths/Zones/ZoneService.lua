@@ -14,7 +14,7 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 
 type TeleportData = {
-    InvokedServerTime: number?,
+    IsClientRequest: boolean?,
 }
 
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
@@ -25,7 +25,6 @@ local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.defaultZone()
 
 ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
-ZoneService.PlayerTeleported = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
 
 function ZoneService.Start()
     -- Setup Cosmetics
@@ -171,32 +170,35 @@ end
 --[[
     Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
+
+    Returns true if successful
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
 
+    -- Read Data
     teleportData = teleportData or {}
-    local invokedServerTime = teleportData.InvokedServerTime or game.Workspace:GetServerTimeNow()
+    local isClientRequest = teleportData.IsClientRequest
 
     -- WARN: No character!
     local character = player.Character
     if not character then
         warn(("%s has no Character!"):format(player.Name))
-        return nil
+        return false
     end
 
     -- WARN: No zone model!
     local zoneModel = ZoneUtil.getZoneModel(zone)
     if not zoneModel then
         warn(("No zone model for %s.%s"):format(zone.ZoneCategory, zone.ZoneType))
-        return nil
+        return false
     end
 
     -- WARN: No player zone state!
     local playerZoneState = ZoneService.getPlayerZoneState(player)
     if not playerZoneState then
         warn(("No player zone state for %q"):format(player.Name))
-        return
+        return false
     end
 
     -- Update State
@@ -209,12 +211,9 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         playerZoneState.MinigameZone = zone
     else
         warn(("Unknown zonetype %s"):format(zone.ZoneCategory))
-        return nil
+        return false
     end
     playerZoneState.TotalTeleports += 1
-
-    -- Inform Server
-    ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
     -- Get spawnpoint + content Streaming
     local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
@@ -222,22 +221,12 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
 
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
-    local timeElapsedSinceInvoke = (game.Workspace:GetServerTimeNow() - invokedServerTime)
-    local teleportBuffer = math.max(0.1, ZoneConstants.TeleportBuffer - timeElapsedSinceInvoke)
-    task.delay(teleportBuffer, function()
+    task.defer(function()
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
-            -- Jump to detach from seat
-            local humanoid = character:FindFirstChild("Humanoid")
-            if humanoid and humanoid.Sit then
-                humanoid.Jump = true
-            end
-
             -- Disable Collisions
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 
-            -- Teleport
-            CharacterUtil.standOn(player.Character, spawnpoint, true)
-            ZoneService.PlayerTeleported:Fire(player, oldZone, zone)
+            --TODO DETECT WHEN PLAYER HAS TELEPORTED!
 
             -- Wait to re-enable collisions (while we're still on the same request!)
             local zoneSettings = ZoneUtil.getSettings(zone)
@@ -254,10 +243,15 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         end
     end)
 
-    -- Inform Client
-    Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId, teleportBuffer)
+    -- Inform Server
+    ZoneService.ZoneChanged:Fire(player, oldZone, zone)
 
-    return teleportBuffer
+    if not isClientRequest then
+        -- Inform Client
+        Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId)
+    end
+
+    return true
 end
 Remotes.declareEvent("ZoneTeleport")
 
@@ -271,9 +265,7 @@ function ZoneService.loadPlayer(player: Player)
     }
 
     -- Send to zone
-    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
-        InvokedServerTime = 0,
-    }) -- invokedTime of 0 to immediately move the player Character
+    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player))
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()
@@ -284,14 +276,13 @@ end
 -- Communcation
 do
     Remotes.bindFunctions({
-        RoomZoneTeleportRequest = function(player: Player, dirtyZoneCategory: any, dirtyZoneType: any, dirtyInvokedServerTime: any)
+        RoomZoneTeleportRequest = function(player: Player, dirtyZoneCategory: any, dirtyZoneType: any)
             -- Clean data
             local zoneCategory = TypeUtil.toString(dirtyZoneCategory)
             local zoneType = TypeUtil.toString(dirtyZoneType)
-            local invokedServerTime = TypeUtil.toNumber(dirtyInvokedServerTime)
 
             -- RETURN: Bad data
-            if not (zoneCategory and zoneType and invokedServerTime) then
+            if not (zoneCategory and zoneType) then
                 return
             end
 
@@ -301,19 +292,11 @@ do
                 return nil
             end
 
-            -- RETURN: Bad invokedServerTime
-            if not invokedServerTime then
-                return nil
-            end
-
             return ZoneService.teleportPlayerToZone(player, zone, {
-                InvokedServerTime = invokedServerTime,
+                IsClientRequest = true,
             })
         end,
     })
 end
-
--- See Cmdr TeleportServer
-Remotes.declareEvent("CmdrRoomTeleport")
 
 return ZoneService

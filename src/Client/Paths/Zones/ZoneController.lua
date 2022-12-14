@@ -21,6 +21,7 @@ local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local Scope = require(Paths.Shared.Scope)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -34,10 +35,10 @@ local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
-local isPlayingTransition = false
+local isTransitioningToZone = false
 local onZoneUpdateMaid = Maid.new()
+local transitionToZoneScope = Scope.new()
 
-ZoneController.ZoneChanging = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone is changing, but not confirmed
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
 function ZoneController.Init()
@@ -173,40 +174,23 @@ local function setupTeleporters()
 end
 
 function ZoneController.checkIfTeleporting()
-    return isPlayingTransition or isRunningTeleportToRoomRequest
-end
-
--- Only invoked when the server has forcefully teleported us somewhere
-function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneCategory, zone.ZoneType)
-
-    local blinkDuration = math.min(teleportBuffer, Transitions.BLINK_TWEEN_INFO.Time)
-    ZoneController.transitionToZone(zone, function()
-        -- Wait to be teleported
-        task.wait(teleportBuffer - blinkDuration)
-    end, nil, { TweenTime = blinkDuration })
+    return isTransitioningToZone or isRunningTeleportToRoomRequest
 end
 
 --[[
-    Centralised logic for playing a transition mid-teleport, when we're not sure if the teleport will be granted - and then runs internal routines!
-    - `yielder`: Stop yielding this function when we can exit the transition (e.g., have recieved server response, has been teleported)
-    - `verifier` (optional): Return true. Returning false indicates the teleport was aborted, and will not run internal routines
+    Centralised logic for playing a transition, and consequently teleporting the character - with the option for it to be cancelled!
+    - `doTeleport`: If true, good to go ahead with the teleport. False, abort. Expect it to yield!
 
-    Yields.
+    Yields until everything is done.
 ]]
-function ZoneController.transitionToZone(
-    toZone: ZoneConstants.Zone,
-    yielder: () -> nil,
-    verifier: (() -> boolean)?,
-    blinkOptions: (Transitions.BlinkOptions)?
-)
+function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, doTeleport: () -> boolean, blinkOptions: (Transitions.BlinkOptions)?)
     -- Circular Dependencies
     local UIController = require(Paths.Client.UI.UIController)
 
-    -- RETURN: Already playing
-    if isPlayingTransition then
-        return
-    end
+    -- Init variables
+    isTransitioningToZone = true
+    transitionToZoneScope:NewScope()
+    local thisScopeId = transitionToZoneScope:GetId()
 
     -- Ensure player is not sitting
     local character = Players.LocalPlayer.Character
@@ -220,69 +204,74 @@ function ZoneController.transitionToZone(
     blinkOptions = blinkOptions or {}
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
-    isPlayingTransition = true
-    ZoneController.ZoneChanging:Fire(currentZone, toZone)
-
+    -- Blink!
     Transitions.blink(function()
-        yielder()
+        -- RETURN: Teleport was cancelled
+        local canTeleport = doTeleport()
+        if not canTeleport then
+            return
+        end
 
-        if not verifier or verifier() == true then
-            -- Init character
-            if character then
-                character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
-                CharacterUtil.anchor(character)
+        -- YIELD: Wait for zone to load (possible RETURN if not loaded)
+        local didLoad = ZoneController.waitForZoneToLoad(toZone)
+        if not didLoad then
+            warn("Zone Loading Timed Out")
+            return
+        end
+
+        -- RETURN: No character?
+        if not character then
+            return
+        end
+
+        -- RETURN: Old scope
+        if not transitionToZoneScope:Matches(thisScopeId) then
+            return
+        end
+
+        -- Setup character for teleport
+        character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
+        CharacterUtil.anchor(character)
+
+        -- Remove "zone-locked" states
+        for _, uiState in pairs(UIConstants.RemoveStatesOnZoneTeleport) do
+            UIController.getStateMachine():Remove(uiState)
+        end
+
+        -- Run Arrival Logic
+        do
+            -- Clean up old zone
+            zoneMaid:Cleanup()
+
+            -- Init zone variables
+            local oldZone = currentZone
+            currentZone = toZone
+            if currentZone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
+                currentRoomZone = currentZone
             end
 
-            -- Remove "zone-locked" states
-            for _, uiState in pairs(UIConstants.RemoveStatesOnZoneTeleport) do
-                UIController.getStateMachine():Remove(uiState)
-            end
+            -- Zone Settings
+            ZoneController.applySettings(toZone)
+            zoneMaid:GiveTask(function()
+                ZoneController.revertSettings(toZone)
+            end)
 
-            -- Wait for zone to load
-            local didLoad = ZoneController.waitForZoneToLoad(toZone)
-            if not didLoad then
-                warn("Zone Loading Timed Out")
-            end
+            -- Character
+            local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, toZone)
+            CharacterUtil.standOn(character, spawnpoint, true)
+            CharacterUtil.unanchor(character)
 
-            -- Revert character
-            if character then
-                CharacterUtil.unanchor(character)
-            end
+            -- Setup
+            setupTeleporters()
 
-            -- Announce Arrival
-            ZoneController.arrivedAtZone(toZone)
-        else
-            -- Was cancelled
-            ZoneController.ZoneChanged:Fire(currentZone, currentZone)
+            -- Inform Client
+            ZoneController.ZoneChanged:Fire(oldZone, toZone)
         end
     end, blinkOptions)
 
-    isPlayingTransition = false
-end
-
-function ZoneController.arrivedAtZone(zone: ZoneConstants.Zone)
-    Output.doDebug(ZoneConstants.DoDebug, "arrivedAtZone", zone.ZoneCategory, zone.ZoneType)
-
-    -- Clean up old zone
-    zoneMaid:Cleanup()
-
-    -- Init new Zone
-    local oldZone = currentZone
-    currentZone = zone
-    if currentZone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
-        currentRoomZone = currentZone
+    if transitionToZoneScope:Matches(thisScopeId) then
+        isTransitioningToZone = false
     end
-
-    -- Zone Settings
-    ZoneController.applySettings(zone)
-    zoneMaid:GiveTask(function()
-        ZoneController.revertSettings(zone)
-    end)
-
-    setupTeleporters()
-
-    -- Inform Client
-    ZoneController.ZoneChanged:Fire(oldZone, currentZone)
 end
 
 -------------------------------------------------------------------------------
@@ -291,9 +280,9 @@ end
 
 -- Returns our Assume object
 function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
-    -- WARN: Already requesting
+    -- RETURN: Already requesting
     if isRunningTeleportToRoomRequest then
-        warn("Already running a teleport request!")
+        warn("Already running a teleportToRoomRequest!")
         return
     end
     isRunningTeleportToRoomRequest = true
@@ -303,31 +292,22 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
         error("Not passed a room zone!")
     end
 
-    print(debug.traceback())
+    -- Request Assume
     local requestAssume = Assume.new(function()
-        local teleportBuffer: number? =
-            Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, game.Workspace:GetServerTimeNow())
-        return teleportBuffer
+        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType) and true or false
     end)
-    requestAssume:Check(function(teleportBuffer: number)
-        return teleportBuffer and true or false
+    requestAssume:Check(function(isAccepted: boolean)
+        return isAccepted
     end)
     requestAssume:Run(function()
         task.spawn(function()
             ZoneController.transitionToZone(roomZone, function()
                 -- Wait for Response
-                local teleportBuffer = requestAssume:Await()
-                if teleportBuffer then
-                    -- Wait for teleport
-                    local validationFinishedOffset = requestAssume:GetValidationFinishTimeframe()
-                    task.wait(math.max(0, teleportBuffer - validationFinishedOffset))
-                end
-            end, function()
-                local teleportBuffer = requestAssume:Await()
-                return teleportBuffer and true or false
-            end)
+                local isAccepted = requestAssume:Await()
+                return isAccepted
+            end) -- Yields
 
-            -- Finished
+            -- Stop yielding teleportToRoomRequest
             isRunningTeleportToRoomRequest = false
         end)
     end)
@@ -409,12 +389,10 @@ end
 -- Communication
 do
     Remotes.bindEvents({
-        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, teleportBuffer: number)
-            ZoneController.teleportingToZoneIn(ZoneUtil.zone(zoneCategory, zoneType, zoneId), teleportBuffer)
-        end,
-        CmdrRoomTeleport = function(roomType: string)
-            local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, roomType)
-            ZoneController.teleportToRoomRequest(roomZone)
+        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?)
+            ZoneController.transitionToZone(ZoneUtil.zone(zoneCategory, zoneType, zoneId), function()
+                return true
+            end)
         end,
     })
 end
