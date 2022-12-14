@@ -25,10 +25,9 @@ local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.Furniture
 local ProductController = require(Paths.Client.ProductController)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Binder = require(Paths.Shared.Binder)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
-local ZoneController = require(Paths.Client.Zones.ZoneController)
-
 local ATTTRIBUTE_MODEL_INITALIZED = "Initialized"
 
 local CFRAME_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
@@ -205,7 +204,7 @@ do
 
         -- Modifiers
         local function applyCFrame()
-            local cf = HousingUtil.CalculateObjectCFrame(
+            local cf = HousingUtil.calculateObjectCFrame(
                 CFrame.new(position) * CFrame.Angles(0, rotationY, 0),
                 position,
                 normal or UP_VECTOR
@@ -468,7 +467,7 @@ do
                     colorWidgetSelected:SetSelected(false)
                 end
                 colorNameSelected = colorPanel:GetOpenTabName()
-                colorNum = tonumber(string.sub(colorNameSelected, 6, 6))
+                colorNum = tonumber(StringUtil.chopStart(colorNameSelected, "Color"))
                 if color ~= colorName then
                     ColorWidget:SetSelected(true)
                     colorWidgetSelected = ColorWidget
@@ -481,7 +480,7 @@ do
 
     colorPanel.TabChanged:Connect(function(_old: string, tabName: string)
         if _old and tabName and model then
-            local colorId = tonumber(string.sub(tabName, 6, 6))
+            local colorId = tonumber(StringUtil.chopStart(tabName, "Color"))
             local colorpicked = color[colorId]
             colorNameSelected = tabName
             colorNum = colorId
@@ -498,23 +497,5 @@ do
 
     ScreenUtil.outLeft(colorPanel:GetContainer())
 end
-
-ZoneController.ZoneChanging:Connect(function(old, new)
-    if tostring(old.ZoneType) == tostring(player.UserId) and tostring(new.ZoneType) ~= tostring(player.UserId) then
-        if uiStateMachine:HasState(UIConstants.States.HouseEditor) then
-            uiStateMachine:Remove(UIConstants.States.HouseEditor)
-        end
-        if uiStateMachine:HasState(UIConstants.States.FurniturePlacement) then
-            uiStateMachine:Remove(UIConstants.States.FurniturePlacement)
-        end
-    elseif tonumber(new.ZoneType) then --remove house setting state when entering house
-        if uiStateMachine:HasState(UIConstants.States.PlotSettings) then
-            uiStateMachine:Remove(UIConstants.States.PlotSettings)
-        end
-        if uiStateMachine:HasState(UIConstants.States.HouseSelectionUI) then
-            uiStateMachine:Remove(UIConstants.States.HouseSelectionUI)
-        end
-    end
-end)
 
 return PlacementScreen

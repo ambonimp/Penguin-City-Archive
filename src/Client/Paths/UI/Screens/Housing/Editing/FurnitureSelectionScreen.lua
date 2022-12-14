@@ -153,7 +153,6 @@ do
         BackButton:GetButtonObject().Parent.Visible = false
         BackButton:GetButtonObject().Parent.Size = furniturePanel:GetContainer().Background.Side.ForwardArrow.Size
 
-        furniturePanel:HideForwardArrow()
         ObjectsFrame.Parent = furniturePanel:GetContainer().Background.Back
 
         local function setCategoryVisible(on: boolean, tag: string?)

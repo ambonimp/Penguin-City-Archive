@@ -1,7 +1,7 @@
 local HousingUtil = {}
 
 --Calculates a CFrame taking into account the normal of the surface an object is trying to be placed on
-function HousingUtil.CalculateObjectCFrame(oldCf, surfacePos, normal)
+function HousingUtil.calculateObjectCFrame(oldCf: CFrame, surfacePos: Vector3, normal: Vector3)
     local oldUpVec = oldCf.UpVector
     local oldRot = oldCf - oldCf.Position
     local newPos = surfacePos -- + normal

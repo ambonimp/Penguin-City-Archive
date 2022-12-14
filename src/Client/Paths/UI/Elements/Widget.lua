@@ -19,6 +19,10 @@ local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local HousingController = require(Paths.Client.HousingController)
+local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
@@ -211,6 +215,9 @@ function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
     local widget = Widget.diverseWidgetFromProduct(product)
     local model = ProductUtil.getModel(product)
 
+    local zoneOwner = ZoneUtil.getHouseInteriorZoneOwner(ZoneController.getCurrentZone())
+    local plot = HousingController.getPlotFromOwner(zoneOwner, HousingConstants.InteriorType)
+
     local function updateWidget()
         local canPlaceProduct: boolean, amountToPlace: number = ProductController.canPlaceHouseProduct(product)
         if canPlaceProduct then
@@ -233,6 +240,8 @@ function Widget.diverseWidgetFromHouseObjectProduct(product: Products.Product)
             uiStateMachine:Push(UIConstants.States.FurniturePlacement, {
                 Object = model:Clone(),
                 IsNewObject = true,
+                Plot = plot,
+                PlotCFrame = CFrame.new(plot:WaitForChild("Origin").Position),
             })
         else
             ProductController.prompt(product)
