@@ -254,7 +254,7 @@ function readStampData()
     cover.PlayerName.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
 
     cover.TotalStamps.Text = ("TOTAL: %s/%s"):format(
-        currentStampData.IsLoading and "?" or tostring(#currentStampData.OwnedStamps),
+        currentStampData.IsLoading and "?" or tostring(TableUtil.length(currentStampData.OwnedStamps)),
         StampUtil.getTotalStamps()
     )
     cover.TotalStamps.TextColor3 = StampConstants.StampBook.TextColor[currentStampData.StampBook.TextColor]
