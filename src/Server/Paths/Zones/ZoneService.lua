@@ -171,7 +171,7 @@ end
     Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 
-    Returns true if successful
+    Returns true, characterCFrame if successful
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
     Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
@@ -218,6 +218,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Get spawnpoint + content Streaming
     local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
+    local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
 
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
@@ -248,10 +249,10 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
 
     if not isClientRequest then
         -- Inform Client
-        Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId)
+        Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId, newCharacterCFrame)
     end
 
-    return true
+    return true, newCharacterCFrame
 end
 Remotes.declareEvent("ZoneTeleport")
 

@@ -264,6 +264,9 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     local instances: { Instance } = instance:GetDescendants()
     table.insert(instances, 1, instance)
 
+    local countedServerTotal = 0
+    local countedClientTotal = 0
+    local isLoaded = true
     for _, someInstance in pairs(instances) do
         if not someInstance:IsA("BasePart") then
             local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
@@ -272,14 +275,17 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
             if serverTotal and serverTotal > 0 then
                 local clientTotal = countBasePartsUnderInstance(someInstance)
                 if serverTotal > clientTotal then
-                    print(someInstance:GetFullName(), ("not fully loaded. missing %d"):format(serverTotal - clientTotal))
-                    return false
+                    isLoaded = false
                 end
+
+                countedServerTotal += serverTotal
+                countedClientTotal += clientTotal
             end
         end
     end
 
-    return true
+    local percentageLoaded = countedClientTotal / countedServerTotal
+    return isLoaded, percentageLoaded
 end
 
 --[[
@@ -288,19 +294,29 @@ end
     Returns true if success; false otherwise
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
-function ZoneUtil.waitForInstanceToLoad(instance: Instance, customYieldTime: number?)
+function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     -- ERROR: Client Only
     if not RunService:IsClient() then
         return
     end
 
-    local endTick = tick() + (customYieldTime or MAX_YIELD_TIME_INSTANCE_LOADING)
+    local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
+    local lastPercentageLoaded = -1
     while tick() < endTick do
-        local isLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        local isLoaded, percentageLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+
+        -- Loaded!
         if isLoaded then
             task.wait() -- Give client threads time to catch up
             return true
         end
+
+        -- Has begun unloading..
+        if percentageLoaded < lastPercentageLoaded then
+            return false
+        end
+
+        lastPercentageLoaded = percentageLoaded
         task.wait(1)
     end
 

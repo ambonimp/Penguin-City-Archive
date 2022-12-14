@@ -179,11 +179,15 @@ end
 
 --[[
     Centralised logic for playing a transition, and consequently teleporting the character - with the option for it to be cancelled!
-    - `doTeleport`: If true, good to go ahead with the teleport. False, abort. Expect it to yield!
+    - `teleportResult`: If true, good to go ahead with the teleport. False, abort. Expect it to yield!
 
     Yields until everything is done.
 ]]
-function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, doTeleport: () -> boolean, blinkOptions: (Transitions.BlinkOptions)?)
+function ZoneController.transitionToZone(
+    toZone: ZoneConstants.Zone,
+    teleportResult: () -> (boolean, CFrame?),
+    blinkOptions: (Transitions.BlinkOptions)?
+)
     -- Circular Dependencies
     local UIController = require(Paths.Client.UI.UIController)
 
@@ -204,18 +208,19 @@ function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, doTeleport:
     blinkOptions = blinkOptions or {}
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
+    local function resetCharacter(toCFrame: CFrame?)
+        if toCFrame then
+            character:PivotTo(toCFrame)
+        end
+
+        CharacterUtil.unanchor(character)
+    end
+
     -- Blink!
     Transitions.blink(function()
         -- RETURN: Teleport was cancelled
-        local canTeleport = doTeleport()
-        if not canTeleport then
-            return
-        end
-
-        -- YIELD: Wait for zone to load (possible RETURN if not loaded)
-        local didLoad = ZoneController.waitForZoneToLoad(toZone)
-        if not didLoad then
-            warn("Zone Loading Timed Out")
+        local canTeleport, newCharacterCFrame = teleportResult()
+        if not (canTeleport and newCharacterCFrame) then
             return
         end
 
@@ -224,14 +229,25 @@ function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, doTeleport:
             return
         end
 
-        -- RETURN: Old scope
-        if not transitionToZoneScope:Matches(thisScopeId) then
+        -- Impromptu character teleport/setup
+        local oldCharacterCFrame = character:GetPivot()
+        character:PivotTo(newCharacterCFrame)
+        character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
+        CharacterUtil.anchor(character)
+
+        -- YIELD: Wait for zone to load (possible RETURN if not loaded)
+        local didLoad = ZoneController.waitForZoneToLoad(toZone)
+        if not didLoad then
+            warn("Zone Loading Timed Out")
+            resetCharacter(oldCharacterCFrame)
             return
         end
 
-        -- Setup character for teleport
-        character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
-        CharacterUtil.anchor(character)
+        -- RETURN: Old scope
+        if not transitionToZoneScope:Matches(thisScopeId) then
+            resetCharacter(oldCharacterCFrame)
+            return
+        end
 
         -- Remove "zone-locked" states
         for _, uiState in pairs(UIConstants.RemoveStatesOnZoneTeleport) do
@@ -257,9 +273,7 @@ function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, doTeleport:
             end)
 
             -- Character
-            local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, toZone)
-            CharacterUtil.standOn(character, spawnpoint, true)
-            CharacterUtil.unanchor(character)
+            resetCharacter()
 
             -- Setup
             setupTeleporters()
@@ -294,17 +308,17 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
 
     -- Request Assume
     local requestAssume = Assume.new(function()
-        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType) and true or false
+        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType)
     end)
-    requestAssume:Check(function(isAccepted: boolean)
-        return isAccepted
+    requestAssume:Check(function(isAccepted: boolean?, _newCharacterCFrame: CFrame?)
+        return isAccepted and true or false
     end)
     requestAssume:Run(function()
         task.spawn(function()
             ZoneController.transitionToZone(roomZone, function()
                 -- Wait for Response
-                local isAccepted = requestAssume:Await()
-                return isAccepted
+                local isAccepted, newCharacterCFrame = requestAssume:Await()
+                return isAccepted and true or false, newCharacterCFrame
             end) -- Yields
 
             -- Stop yielding teleportToRoomRequest
@@ -389,9 +403,9 @@ end
 -- Communication
 do
     Remotes.bindEvents({
-        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?)
+        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, newCharacterCFrame: CFrame)
             ZoneController.transitionToZone(ZoneUtil.zone(zoneCategory, zoneType, zoneId), function()
-                return true
+                return true, newCharacterCFrame
             end)
         end,
     })
