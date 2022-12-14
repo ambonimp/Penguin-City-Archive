@@ -64,11 +64,15 @@ local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
 local COLOR_WHITE = Color3.fromRGB(251, 252, 255)
 local SELECTED_COLOR = Color3.fromRGB(255, 245, 154)
 local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
+local TOOL_OUTLINE_COLOR = Color3.fromRGB(0, 25, 95)
+local TOOL_OUTLINE_THICKNESS = 4
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
     TextStrokeColor = Color3.fromRGB(38, 71, 118),
     ImageColor = Color3.fromRGB(255, 255, 255),
+    OutlineColor = Color3.fromRGB(59, 148, 0),
+    OutlineThickness = 10,
 }
 
 -------------------------------------------------------------------------------
@@ -105,7 +109,9 @@ function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
     -- Manage equipped feedback
     do
         local function update(isEquipped: boolean, holsteredIndex: number?)
-            widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+            local outlineColor = isEquipped and EQUIPPED_COLOR or TOOL_OUTLINE_COLOR
+            local outlineThickness = isEquipped and Widget.Defaults.OutlineThickness or TOOL_OUTLINE_THICKNESS
+            widget:SetOutline(outlineColor, outlineThickness)
 
             widget:SetNumberTag(holsteredIndex, {
                 Position = "Bottom",
@@ -413,8 +419,8 @@ function Widget.diverseWidget()
 
     local outlineStroke = Instance.new("UIStroke")
     outlineStroke.Name = "outlineStroke"
-    outlineStroke.Color = Color3.fromRGB(59, 148, 0)
-    outlineStroke.Thickness = 10
+    outlineStroke.Color = Widget.Defaults.OutlineColor
+    outlineStroke.Thickness = Widget.Defaults.OutlineThickness
     outlineStroke.Enabled = false
     outlineStroke.Parent = imageButton
 
@@ -543,10 +549,11 @@ function Widget.diverseWidget()
         imageButton.BackgroundColor3 = color or COLOR_WHITE
     end
 
-    function widget:SetOutline(color: Color3?)
-        if color then
+    function widget:SetOutline(color: Color3?, thickness: number?)
+        if color or thickness then
             outlineStroke.Enabled = true
-            outlineStroke.Color = color
+            outlineStroke.Color = color or outlineStroke.Color
+            outlineStroke.Thickness = thickness or outlineStroke.Thickness
         else
             outlineStroke.Enabled = false
         end
