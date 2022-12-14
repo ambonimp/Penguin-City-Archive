@@ -138,6 +138,14 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConst
                 danceFloorHitbox:AddPart(hitboxPart)
             end
         end
+
+        -- Listen for new pets!
+        maid:GiveTask(PetController.PetCreated:Connect(function()
+            local clientPet = PetController.getClientPet()
+            if clientPet and danceFloorHitbox:IsPlayerInside(Players.LocalPlayer) then
+                clientPet:PlayAnimation(PetConstants.AnimationNames.Trick)
+            end
+        end))
     end
 end
 
