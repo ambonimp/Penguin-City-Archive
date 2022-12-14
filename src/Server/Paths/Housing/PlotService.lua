@@ -8,6 +8,7 @@
 
 local PlotService = {}
 
+local CollectionService = game:GetService("CollectionService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
@@ -233,6 +234,10 @@ local function loadHouse(player: Player, plot: Model, type: string, firstLoad: b
             entrancePart:Destroy()
             spawnPart:Destroy()
         end)
+
+        CollectionService:AddTag(plot.Mailbox, "Plot")
+        CollectionService:AddTag(plot.Mailbox, "House")
+        CollectionService:AddTag(plot.Mailbox, tostring(player.UserId))
     end
 end
 
@@ -249,6 +254,9 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
         if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
             plot:FindFirstChild(oldBlueprint):Destroy()
         end
+        CollectionService:RemoveTag(plot.Mailbox, tostring(player.UserId))
+        CollectionService:RemoveTag(plot.Mailbox, "Plot")
+        CollectionService:RemoveTag(plot.Mailbox, "House")
     else
         if plot:FindFirstChild("Furniture") then
             plot.Furniture:ClearAllChildren()

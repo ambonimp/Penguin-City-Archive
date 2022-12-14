@@ -1,11 +1,13 @@
 local PlotChangerScreen = {}
-
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local UIController = require(Paths.Client.UI.UIController)
+local InteractionController = require(Paths.Client.Interactions.InteractionController)
+local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Button = require(Paths.Client.UI.Elements.Button)
@@ -30,6 +32,7 @@ local screenGui: ScreenGui = Paths.UI.PlotChanger
 local frame: Frame = screenGui.PlotChanger
 local ownerLabel: TextLabel = frame.Owner
 local setButtonContainer: Frame = frame.ChangePlot
+local currentPlayerPlot: Instance
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -42,6 +45,10 @@ local function preview()
         setButtonContainer.Visible = false
 
         CameraUtil.lookAt(camera, plot.WorldPivot, PLOT_OWNED_CAMERA_OFFSET, CAMERA_TWEEN_INFO)
+
+        if ownerId == player.UserId then
+            currentPlayerPlot = plot
+        end
     else
         ownerLabel.Text = "Empty"
         setButtonContainer.Visible = true
@@ -109,9 +116,14 @@ do
     changePlotButton.Pressed:Connect(function()
         local plot: Model = plots[previewingIndex]
 
-        if plot and not plot:GetAttribute(HousingConstants.PlotOwner) then
-            Remotes.fireServer("ChangePlot", plot) -- TODO: Teleport them infront of new plot
+        if plot and not plot:GetAttribute(HousingConstants.PlotOwner) and plot ~= currentPlayerPlot then
             uiStateMachine:PopTo(UIConstants.States.HUD)
+            Remotes.fireServer("ChangePlot", plot)
+            currentPlayerPlot = plot
+
+            TransitionFX.blink(function()
+                player.Character:PivotTo(currentPlayerPlot.Origin.CFrame * CFrame.new(0, player.Character:GetExtentsSize().Y * 0.8, -15))
+            end)
         end
     end)
     changePlotButton:Mount(setButtonContainer, true)

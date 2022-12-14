@@ -64,6 +64,7 @@ do --Add House products
         local product = ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", name))
         local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true }, function(button)
             button.Pressed:Connect(function()
+                uiStateMachine:PopTo(UIConstants.States.HUD)
                 Remotes.fireServer("ChangeBlueprint", name)
             end)
         end)
