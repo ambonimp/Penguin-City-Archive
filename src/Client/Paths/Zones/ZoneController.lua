@@ -20,6 +20,7 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -198,9 +199,20 @@ function ZoneController.transitionToZone(
     verifier: (() -> boolean)?,
     blinkOptions: (Transitions.BlinkOptions)?
 )
+    -- Circular Dependencies
+    local UIController = require(Paths.Client.UI.UIController)
+
     -- RETURN: Already playing
     if isPlayingTransition then
         return
+    end
+
+    -- Ensure player is not sitting
+    local character = Players.LocalPlayer.Character
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    local seatPart = humanoid and humanoid.SeatPart :: Seat
+    if seatPart then
+        humanoid.Sit = false
     end
 
     -- Populate blink options
@@ -215,10 +227,14 @@ function ZoneController.transitionToZone(
 
         if not verifier or verifier() == true then
             -- Init character
-            local character = localPlayer.Character
             if character then
                 character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
                 CharacterUtil.anchor(character)
+            end
+
+            -- Remove "zone-locked" states
+            for _, uiState in pairs(UIConstants.RemoveStatesOnZoneTeleport) do
+                UIController.getStateMachine():Remove(uiState)
             end
 
             -- Wait for zone to load

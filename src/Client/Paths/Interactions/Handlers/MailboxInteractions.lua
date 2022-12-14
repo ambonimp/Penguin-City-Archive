@@ -22,28 +22,21 @@ local uiStateMachine = UIController.getStateMachine()
 --     end
 -- end)
 
-InteractionController.registerInteraction("Plot", function(instance, prompt)
+local function isUIStateInHousingContext()
     local state = uiStateMachine:GetState()
-    if
-        not (
-            state == UIConstants.States.PlotSettings
-            or state == UIConstants.States.HouseSelectionUI
-            or state == UIConstants.States.PlotChanger
-        )
-    then
+    return state == UIConstants.States.PlotSettings
+        or state == UIConstants.States.HouseSelectionUI
+        or state == UIConstants.States.PlotChanger
+end
+
+InteractionController.registerInteraction("Plot", function(instance, prompt)
+    if not isUIStateInHousingContext() then
         uiStateMachine:Push(UIConstants.States.PlotChanger, { Instance = instance, Prompt = prompt, PlotAt = prompt.Parent.Parent })
     end
 end)
 
 InteractionController.registerInteraction("House", function(instance, prompt)
-    local state = uiStateMachine:GetState()
-    if
-        not (
-            state == UIConstants.States.PlotSettings
-            or state == UIConstants.States.HouseSelectionUI
-            or state == UIConstants.States.PlotChanger
-        )
-    then
+    if not isUIStateInHousingContext() then
         uiStateMachine:Push(UIConstants.States.HouseSelectionUI, { Instance = instance, Prompt = prompt, PlotAt = prompt.Parent.Parent })
     end
 end)

@@ -17,6 +17,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
+local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -217,6 +218,8 @@ Remotes.bindEvents({
         currentIsMultiplayer = isMultiplayer
 
         tasks = Promise.new(function(resolve)
+            ToolController.unequip()
+
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end

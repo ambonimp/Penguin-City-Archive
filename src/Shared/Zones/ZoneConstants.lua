@@ -56,16 +56,27 @@ ZoneConstants.ZoneCategory = {
     Room = "Room",
     Minigame = "Minigame",
 }
+setmetatable(ZoneConstants.ZoneCategory, {
+    __index = function(_, index)
+        warn(("Bad ZoneCategory %q"):format(index))
+    end,
+})
+
 ZoneConstants.ZoneType = {
     Room = getRoomTypes(),
     Minigame = MinigameConstants.Minigames,
 }
+setmetatable(ZoneConstants.ZoneCategory, {
+    __index = function(_, index)
+        warn(("Bad ZoneType %q"):format(index))
+    end,
+})
 
 ZoneConstants.ZoneInstances = {
     FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
 }
 
-ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.IceCreamShop
+ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.Town
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
 ZoneConstants.StreamingTargetRadius = 5300

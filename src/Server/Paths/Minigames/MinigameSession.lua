@@ -405,7 +405,7 @@ function MinigameSession.new(
                 local player = scoreInfo.Player
                 local score = scoreInfo.Score
 
-                CurrencyService.addCoins(player, config.Reward(placement, score))
+                CurrencyService.addCoins(player, config.Reward(placement, score), true)
 
                 local recordAddress = "MinigameRecords." .. minigameName
                 local highscore = DataService.get(player, recordAddress) or defaultScore
