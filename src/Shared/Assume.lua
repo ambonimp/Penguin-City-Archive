@@ -50,7 +50,7 @@ function Assume.new(validationFunction: () -> (...any))
     function assume:Then(onCorrect: (...any) -> nil)
         if assume:IsValidationFinished() then
             if assume.checkerFunction(assume:Await()) == true then
-                onCorrect(assume:Await())
+                task.spawn(onCorrect, assume:Await())
             end
             return
         end
@@ -63,13 +63,19 @@ function Assume.new(validationFunction: () -> (...any))
     function assume:Else(onWrong: (...any) -> nil)
         if assume:IsValidationFinished() then
             if assume.checkerFunction(assume:Await()) == false then
-                onWrong(assume:Await())
+                task.spawn(onWrong, assume:Await())
             end
             return
         end
 
         table.insert(assume.onWrong, onWrong)
         return self
+    end
+
+    -- Adds a function that will be called regardless
+    function assume:ThenOrElse(callback: (...any) -> nil)
+        assume:Then(callback)
+        assume:Else(callback)
     end
 
     --[[

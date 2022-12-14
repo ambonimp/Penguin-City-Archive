@@ -22,6 +22,7 @@ local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindContr
 local Loader = require(Paths.Client.Loader)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Scope = require(Paths.Shared.Scope)
+local Queue = require(Paths.Shared.Queue)
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -295,14 +296,11 @@ end
 --[[
     - `ignoreFromZone`: If true, will teleport directly to origin spawnpoint.
 
-    Returns our Assume object
+    Yields *if* multiple `teleportToRoomRequest` have been called simultaneously
+    Returns our Assume object.
 ]]
 function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, ignoreFromZone: boolean?)
-    -- RETURN: Already requesting
-    if isRunningTeleportToRoomRequest then
-        warn("Already running a teleportToRoomRequest!")
-        return
-    end
+    local nextteleportToRoomRequestPlease = Queue.yield("ZoneController.teleportToRoomRequest")
     isRunningTeleportToRoomRequest = true
 
     -- ERROR: Not a room!
@@ -326,10 +324,12 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
                 local isAccepted, newCharacterCFrame = requestAssume:Await()
                 return isAccepted and true or false, newCharacterCFrame
             end) -- Yields
-
-            -- Stop yielding teleportToRoomRequest
-            isRunningTeleportToRoomRequest = false
         end)
+    end)
+    requestAssume:ThenOrElse(function()
+        -- Stop yielding teleportToRoomRequest after we get response
+        isRunningTeleportToRoomRequest = false
+        nextteleportToRoomRequestPlease()
     end)
 
     return requestAssume
