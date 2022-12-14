@@ -23,10 +23,10 @@ local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 local plots = workspace.Rooms.Neighborhood.HousingPlots
-local total = #plots:GetChildren()
+local TOTAL_PLOTS = HousingConstants.Plots
 local previewingIndex: number
 
-local screenGui: ScreenGui = Paths.UI.Housing
+local screenGui: ScreenGui = Paths.UI.PlotChanger
 local frame: Frame = screenGui.PlotChanger
 local ownerLabel: TextLabel = frame.Owner
 local setButtonContainer: Frame = frame.ChangePlot
@@ -52,35 +52,41 @@ end
 
 -- Register UIState
 do
-    local function open(data)
+    local function boot(data)
         previewingIndex = tonumber(data.PlotAt.Name)
         preview()
-
+        screenGui.Enabled = true
         CharacterUtil.freeze(player.Character)
         ScreenUtil.sizeIn(frame)
     end
 
-    local function close()
+    local function shutdown()
         CameraController.setPlayerControl()
         CharacterUtil.unfreeze(player.Character)
-
         ScreenUtil.sizeOut(frame)
     end
-    uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, open, close)
+
+    --uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, open, close)
+    UIController.registerStateScreenCallbacks(UIConstants.States.PlotChanger, {
+        Boot = boot,
+        Shutdown = shutdown,
+        Maximize = nil,
+        Minimize = nil,
+    })
 end
 
 -- Manipulate UIState
 do
-    local exitButton = ExitButton.new()
+    local exitButton = ExitButton.new(UIConstants.States.PlotChanger)
     exitButton:Mount(frame.ExitButton, true)
     exitButton.Pressed:Connect(function()
-        uiStateMachine:Pop()
+        uiStateMachine:PopTo(UIConstants.States.HUD)
     end)
 end
 
 do
     Button.new(frame.Next).Pressed:Connect(function()
-        if previewingIndex + 1 > total then
+        if previewingIndex + 1 > TOTAL_PLOTS then
             previewingIndex = 1
         else
             previewingIndex += 1
@@ -91,7 +97,7 @@ do
 
     Button.new(frame.Previous).Pressed:Connect(function()
         if previewingIndex - 1 < 1 then
-            previewingIndex = total
+            previewingIndex = TOTAL_PLOTS
         else
             previewingIndex -= 1
         end
@@ -105,7 +111,7 @@ do
 
         if plot and not plot:GetAttribute(HousingConstants.PlotOwner) then
             Remotes.fireServer("ChangePlot", plot) -- TODO: Teleport them infront of new plot
-            uiStateMachine:PopTo(UIConstants.States.Nothing) --  TODO: Set this to the HUD when it's complete
+            uiStateMachine:PopTo(UIConstants.States.HUD)
         end
     end)
     changePlotButton:Mount(setButtonContainer, true)

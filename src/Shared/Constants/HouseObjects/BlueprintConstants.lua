@@ -7,17 +7,18 @@ export type Object = {
     Name: string,
     Price: number,
     Icon: string,
+    Rotation: CFrame | nil,
 }
 
 local objects: { [string]: Object } = {}
 objects["Default"] = {
-    Name = "Default",
+    Name = "Igloo",
     Price = 0,
     Icon = "",
 }
-objects["House"] = {
-    Name = "House",
-    Price = 0,
+objects["Dojo"] = {
+    Name = "Dojo",
+    Price = 200,
     Icon = "",
 }
 

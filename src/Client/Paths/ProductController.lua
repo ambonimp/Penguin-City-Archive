@@ -41,6 +41,16 @@ function ProductController.getOwnedProducts()
     return ownedProducts
 end
 
+function ProductController.canPlaceHouseProduct(product: Products.Product)
+    local owns: boolean = ProductController.hasProduct(product)
+    local amount: number = ProductController.getProductCount(product)
+    if owns and amount > 0 then
+        return true, amount
+    else
+        return false
+    end
+end
+
 -- Returns a boolean whether we can afford it or not. Returns nil if product cannot be purchased with coins
 function ProductController.canAffordInCoins(product: Products.Product)
     if product.CoinData then

@@ -12,27 +12,33 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
+local ProductService = require(Paths.Server.Products.ProductService)
 local Remotes = require(Paths.Shared.Remotes)
+local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local DataService = require(Paths.Server.Data.DataService)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local Signal = require(Paths.Shared.Signal)
 
-type FurnitureMetadata = {
+export type FurnitureMetadata = {
     Name: string,
     Position: Vector3,
     Rotation: Vector3,
-    Color: Color3,
+    Color: { Color3 },
+    Normal: Vector3,
 }
 
-type WallpaperMetadata = {
+export type WallpaperMetadata = {
     Name: string,
 }
-type FloorMetadata = {
+export type FloorMetadata = {
     Name: string,
 }
 
@@ -43,9 +49,13 @@ local plots: { [string]: { [Player]: Model } } = {
     Interior = {},
 }
 
+local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
+
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
 local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
+PlotService.ObjectPlaced = Signal.new()
+PlotService.ObjectUpdated = Signal.new()
 -------------------------------------------------------------------------------
 -- PLOT METHODS
 -------------------------------------------------------------------------------
@@ -75,9 +85,29 @@ local function getPlot(player: Player, type: string): Model | nil
     return plots[type][player]
 end
 
+local function isPositionInBoundsOfPlayersPlot(player: Player, position: Vector3): boolean
+    local plot = getPlot(player, HousingConstants.InteriorType)
+
+    local Floor = plot:FindFirstChildOfClass("Model")
+    if Floor then
+        Floor = Floor.Floor
+    end
+    local houseCFrame = CFrame.new(plot.Origin.Position)
+
+    position = (houseCFrame * CFrame.new(position)).Position
+
+    local boundsMin = Floor.Position - Vector3.new((Floor.Size.X / 2 + 10), 15, (Floor.Size.Z / 2) + 10)
+    local boundsMax = Floor.Position + Vector3.new((Floor.Size.X / 2 + 10), 300, (Floor.Size.Z / 2) + 10)
+
+    return (position.X >= boundsMin.X and position.X <= boundsMax.X)
+        and (position.Y >= boundsMin.Y and position.Y <= boundsMax.Y)
+        and (position.Z >= boundsMin.Z and position.Z <= boundsMax.Z)
+end
+
 -------------------------------------------------------------------------------
 -- INTERIOR OBJECTS METHODS
 -------------------------------------------------------------------------------
+
 local function placeFurniture(player, object: Model, metadata: FurnitureMetadata): boolean
     local plot = getPlot(player, HousingConstants.InteriorType)
 
@@ -85,32 +115,53 @@ local function placeFurniture(player, object: Model, metadata: FurnitureMetadata
 
     local position = metadata.Position -- Local, relative to house cframe
     local rotation = metadata.Rotation
-    local color = metadata.Color
+    local colors = metadata.Color
+    local normal = metadata.Normal
 
-    if position.Magnitude < 150 then -- TODO: swap to InBounds method
-        object:PivotTo(houseCFrame * CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0))
-        object.Parent = plot.Furniture
+    local modelData = FurnitureConstants.Objects[metadata.Name]
 
-        for _, part: BasePart in pairs(object:GetDescendants()) do
-            if part:IsA("BasePart") and part.Parent.Name == "CanColor" then
-                part.Color = color
+    local cf = houseCFrame
+        * HousingUtil.calculateObjectCFrame(
+            CFrame.new(position) * CFrame.Angles(0, rotation.Y, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0),
+            position,
+            normal
+        )
+
+    if table.find(modelData.Tags, FurnitureConstants.Tags.Wall) then
+        if normal == Vector3.new(0, 1, 0) then
+            cf = cf * CFrame.Angles(math.rad(90), 0, 0) * CFrame.new(0, object:GetExtentsSize().Y / 2, 0)
+        end
+    end
+    object:PivotTo(cf)
+    object.Parent = plot.Furniture
+
+    for id, color in colors do
+        if object:FindFirstChild("Color" .. id) then
+            for _, part: BasePart in pairs(object:FindFirstChild("Color" .. id):GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Color = color
+                end
             end
         end
-
-        return true
-    else
-        return false
     end
+
+    return true
 end
 
 local function updateFurniture(player, object: Model, metadata: FurnitureMetadata): DataUtil.Store?
     if placeFurniture(player, object, metadata) then
-        return {
+        local data = {
             Name = metadata.Name,
             Position = DataUtil.serializeValue(metadata.Position),
             Rotation = DataUtil.serializeValue(metadata.Rotation),
-            Color = DataUtil.serializeValue(metadata.Color),
+            Color = {},
+            Normal = DataUtil.serializeValue(metadata.Normal),
         }
+
+        for _, color in metadata.Color do
+            table.insert(data.Color, DataUtil.serializeValue(color))
+        end
+        return data
     end
 end
 
@@ -118,7 +169,7 @@ end
 -- HOUSE METHODS
 -------------------------------------------------------------------------------
 -- Loads a house interior or exterior inside their plot
-local function loadHouse(player: Player, plot: Model, type: string)
+local function loadHouse(player: Player, plot: Model, type: string, firstLoad: boolean?)
     plot:SetAttribute(HousingConstants.PlotOwner, player.UserId)
     plots[type][player] = plot
 
@@ -132,6 +183,14 @@ local function loadHouse(player: Player, plot: Model, type: string)
     player:SetAttribute(type, model.Spawn.Position)
 
     if type == HousingConstants.InteriorType then
+        if not firstLoad then --blueprint swapped
+            local exitPart = plot:FindFirstChildOfClass("Model").Exit
+            exitPart.Name = ZoneConstants.ZoneType.Room.Neighborhood
+            exitPart.Parent = ZoneUtil.getZoneInstances(ZoneUtil.houseInteriorZone(player)).RoomDepartures
+
+            newSpawnTable[player](plot:FindFirstChildOfClass("Model").Spawn)
+        end
+
         -- Load objects in the house
         for id, store in pairs(DataService.get(player, "House.Furniture")) do
             local name = store.Name
@@ -140,13 +199,17 @@ local function loadHouse(player: Player, plot: Model, type: string)
             if objectTemplate then
                 local object = objectTemplate:Clone()
                 object.Name = id
-
-                placeFurniture(player, object, {
+                local data = {
                     Name = store.Name,
                     Position = DataUtil.deserializeValue(store.Position, Vector3),
                     Rotation = DataUtil.deserializeValue(store.Rotation, Vector3),
-                    Color = DataUtil.deserializeValue(store.Position, Color3),
-                })
+                    Color = {},
+                    Normal = DataUtil.deserializeValue(store.Normal, Vector3),
+                }
+                for _, color in pairs(store.Color) do
+                    table.insert(data.Color, DataUtil.deserializeValue(color, Color3))
+                end
+                placeFurniture(player, object, data)
             else
                 warn(("Furniture %s did not load because model no longer exists"):format(name))
             end
@@ -174,8 +237,7 @@ local function loadHouse(player: Player, plot: Model, type: string)
 end
 
 -- Unloads  a house interior or exterior
--- IsChange guarantees that another player can't snatch your plot if the hosue is being changed
-local function unloadHouse(player: Player, plot: Model, type: string, isChange: true?)
+local function unloadHouse(player: Player, plot: Model, type: string, oldBlueprint: string?)
     -- RETURN: Nothing to unload
     if not plot then
         return
@@ -183,24 +245,23 @@ local function unloadHouse(player: Player, plot: Model, type: string, isChange: 
 
     -- HousingConstants.InteriorType is handled by the ZoneService
     if type == HousingConstants.ExteriorType then
-        if plot then
-            if not isChange then
-                plot:SetAttribute(HousingConstants.PlotOwner, nil)
-            end
-
-            if plot:FindFirstChildOfClass("Model") then
-                plot:FindFirstChildOfClass("Model"):Destroy()
-            end
+        plot:SetAttribute(HousingConstants.PlotOwner, nil)
+        if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
+            plot:FindFirstChild(oldBlueprint):Destroy()
         end
     else
         if plot:FindFirstChild("Furniture") then
             plot.Furniture:ClearAllChildren()
         end
+        if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
+            plot:FindFirstChild(oldBlueprint):Destroy()
+        end
+        if plot.Parent.ZoneInstances.RoomDepartures:FindFirstChild("Neighborhood") then --remove exit part
+            plot.Parent.ZoneInstances.RoomDepartures:FindFirstChild("Neighborhood"):Destroy()
+        end
     end
 
-    if not isChange then
-        plots[type][player] = nil
-    end
+    plots[type][player] = nil
 end
 
 -------------------------------------------------------------------------------
@@ -211,29 +272,43 @@ function PlotService.loadPlayer(player: Player)
     local exteriorPlot: Model = findEmptyPlot(HousingConstants.ExteriorType)
     local interiorPlot: Model = findEmptyPlot(HousingConstants.InteriorType)
 
-    loadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
-    loadHouse(player, interiorPlot, HousingConstants.InteriorType)
+    loadHouse(player, exteriorPlot, HousingConstants.ExteriorType, true)
+    loadHouse(player, interiorPlot, HousingConstants.InteriorType, true)
 
     -- Create zone for interior
     local houseInteriorZone = ZoneUtil.houseInteriorZone(player)
 
     local spawnPart = interiorPlot:FindFirstChildOfClass("Model").Spawn
 
-    local destroyFunction = ZoneService.createZone(houseInteriorZone, { interiorPlot }, spawnPart)
+    local destroyFunction, _, changeSpawn = ZoneService.createZone(houseInteriorZone, { interiorPlot }, spawnPart)
     PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
 
     local exitPart = interiorPlot:FindFirstChildOfClass("Model").Exit
     exitPart.Name = ZoneConstants.ZoneType.Room.Neighborhood
     exitPart.Parent = ZoneUtil.getZoneInstances(houseInteriorZone).RoomDepartures
+
+    newSpawnTable[player] = changeSpawn
+
+    local didStartingObjects = DataService.get(player, "House.DidStartingObjects")
+    if didStartingObjects == nil then
+        DataService.set(player, "House.DidStartingObjects", true)
+        for itemName, amount in FurnitureConstants.StartingObjects do
+            local product = ProductUtil.getHouseObjectProduct("Furniture", itemName)
+            ProductService.addProduct(player, product, amount)
+        end
+    end
 end
 
 --Handles removing models and resetting plots on leave
 function PlotService.unloadPlayer(player: Player)
     local exteriorPlot: Model = getPlot(player, HousingConstants.ExteriorType)
     local interiorPlot: Model = getPlot(player, HousingConstants.InteriorType)
+    local bprint = DataService.get(player, "House.Blueprint")
 
-    unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
-    unloadHouse(player, interiorPlot, HousingConstants.InteriorType)
+    unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType, bprint)
+    unloadHouse(player, interiorPlot, HousingConstants.InteriorType, bprint)
+
+    newSpawnTable[player] = nil
 end
 
 -------------------------------------------------------------------------------
@@ -241,6 +316,10 @@ end
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
     PlaceHouseObject = function(player: Player, type: string, metadata: FurnitureMetadata | WallpaperMetadata | FloorMetadata)
+        local product = ProductUtil.getHouseObjectProduct("Furniture", metadata.Name)
+        if not ProductService.canPlaceHouseProduct(player, product) then
+            return -- doesn't have enough of the iem to place
+        end
         local typeConstants = HouseObjects[type]
         -- RETURN: Object isn't valid
         if not typeConstants then
@@ -256,13 +335,18 @@ Remotes.bindEvents({
 
         -- Handlers
         if type == "Furniture" then
-            local id = DataService.getAppendageKey(player, "House.Furniture")
-            local object = assets[type]:FindFirstChild(name):Clone()
-            object.Name = id
+            local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
+            if withinBounds then
+                local id = DataService.getAppendageKey(player, "House.Furniture")
+                local object = assets[type]:FindFirstChild(name):Clone()
 
-            local store = updateFurniture(player, object, metadata) -- Flag for valid placement
-            if store then
-                DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                object.Name = id
+                ProductService.addProduct(player, product, -1)
+                local store = updateFurniture(player, object, metadata)
+                if store then
+                    DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                    PlotService.ObjectPlaced:Fire(player, type, metadata)
+                end
             end
         end
     end,
@@ -276,7 +360,8 @@ Remotes.bindEvents({
         if not store[id] then
             return
         end
-
+        local product = ProductUtil.getHouseObjectProduct("Furniture", store[id].Name)
+        ProductService.addProduct(player, product, 1)
         plot.Furniture[id]:Destroy()
         DataService.set(player, "House.Furniture." .. id, nil, "OnFurnitureRemoved", {
             Id = id,
@@ -287,38 +372,63 @@ Remotes.bindEvents({
         local store = DataService.get(player, "House.Furniture")
 
         -- RETURN: Object does not exist
-        if not store[id] then
-            local object = plot.Furniture[id]
+        if store[id] then
+            local lastData = store[id]
+            local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
+            if withinBounds then
+                local object = plot.Furniture[id]
 
-            local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
-            if newStore then
-                DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
+                if newStore then
+                    DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                    PlotService.ObjectUpdated:Fire(player, lastData, newStore)
+                end
             end
         end
     end,
 
     -- Blueprint
-    ChangeBlueprint = function(player: Player, name: string) -- TODO: Check for ownership
-        local interiorPlot = getPlot(player, HousingConstants.ExteriorType)
-        local exteriorPlot = getPlot(player, HousingConstants.InteriorType)
-
-        -- Teleport player our of house interior if they're there
-        if ZoneUtil.zonesMatch(ZoneService.getPlayerZone(player), ZoneUtil.houseInteriorZone(player)) then
-            -- RETURN: Teleport not a success
-            if not ZoneService.teleportPlayerToZone(player, neighborhoodZone) then
-                return
-            end
+    ChangeBlueprint = function(player: Player, name: string)
+        local current = DataService.get(player, "House.Blueprint")
+        if current == name then
+            return --don't change if same
         end
+        local product = ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", name))
+        if not (ProductService.hasProduct(player, product) or ProductUtil.isFree(product)) then
+            return --doesn't own
+        end
+        local interiorPlot = getPlot(player, HousingConstants.InteriorType)
+        local exteriorPlot = getPlot(player, HousingConstants.ExteriorType)
 
-        local blueprintInfo = HouseObjects.Blueprint[name]
+        local blueprintInfo = HouseObjects.Blueprint.Objects[name]
         if blueprintInfo then
-            unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType, true)
-            unloadHouse(player, interiorPlot, HousingConstants.InteriorType, true)
+            unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType, current)
+            unloadHouse(player, interiorPlot, HousingConstants.InteriorType, current)
 
             DataService.set(player, "House.Blueprint", name, "HouseBlueprintUpdated")
+
+            local objectsPlaced = DataService.get(player, "House.Furniture")
+
+            for _id, data in objectsPlaced do
+                local objectProduct = ProductUtil.getHouseObjectProduct("Furniture", data.Name)
+                ProductService.addProduct(player, objectProduct, 1)
+            end
+
+            DataService.set(player, "House.Furniture", {})
+
             loadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
-            loadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
+            loadHouse(player, interiorPlot, HousingConstants.InteriorType)
         end
+    end,
+
+    ChangePlot = function(player: Player, plot: Model)
+        if plot:GetAttribute(HousingConstants.PlotOwner) then
+            return
+        end
+        local exteriorPlot: Model = getPlot(player, HousingConstants.ExteriorType)
+
+        unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType, DataService.get(player, "House.Blueprint"))
+        loadHouse(player, plot, HousingConstants.ExteriorType)
     end,
 })
 

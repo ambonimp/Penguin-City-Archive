@@ -170,6 +170,10 @@ local function setupTeleporters()
     end
 end
 
+function ZoneController.isTeleporting()
+    return isPlayingTransition or isRunningTeleportToRoomRequest
+end
+
 -- Only invoked when the server has forcefully teleported us somewhere
 function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
     Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneCategory, zone.ZoneType)
