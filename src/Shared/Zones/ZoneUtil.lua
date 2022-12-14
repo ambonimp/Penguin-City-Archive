@@ -18,17 +18,22 @@ export type ZoneInstances = {
 }
 
 local MAX_YIELD_TIME_INSTANCE_LOADING = 20
+local ZONE_METATABLE = {
+    __eq = function(zone1, zone2)
+        return ZoneUtil.zonesMatch(zone1, zone2)
+    end,
+}
 
 -------------------------------------------------------------------------------
 -- Zone Datastructure Generators
 -------------------------------------------------------------------------------
 
 function ZoneUtil.zone(zoneCategory: string, zoneType: string, zoneId: string?)
-    local zone: ZoneConstants.Zone = {
+    local zone = setmetatable({
         ZoneCategory = zoneCategory,
         ZoneType = zoneType,
         ZoneId = zoneId,
-    }
+    }, ZONE_METATABLE) :: ZoneConstants.Zone
 
     return zone
 end

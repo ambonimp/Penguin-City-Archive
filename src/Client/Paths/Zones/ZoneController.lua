@@ -21,6 +21,7 @@ local PropertyStack = require(Paths.Shared.PropertyStack)
 local WindController: typeof(require(Paths.Client.Zones.Cosmetics.Wind.WindController))
 local Loader = require(Paths.Client.Loader)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController: typeof(require(Paths.Client.UI.UIController))
 
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
@@ -42,6 +43,7 @@ ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZo
 
 function ZoneController.Init()
     WindController = require(Paths.Client.Zones.Cosmetics.Wind.WindController)
+    UIController = require(Paths.Client.UI.UIController)
 end
 
 function ZoneController.Start()
@@ -90,9 +92,10 @@ function ZoneController.Start()
         local zoneModel = ZoneUtil.getZoneModel(currentZone)
         for _, descendant in pairs(Paths.Client.Zones.Cosmetics:GetDescendants()) do
             if descendant:IsA("ModuleScript") then
-                local onZoneUpdateCallback = require(descendant).onZoneUpdate
+                local module = require(descendant)
+                local onZoneUpdateCallback = typeof(module) == "table" and module.onZoneUpdate
                 if onZoneUpdateCallback then
-                    onZoneUpdateCallback(onZoneUpdateMaid, zoneModel)
+                    onZoneUpdateCallback(onZoneUpdateMaid, currentZone, zoneModel)
                 end
             end
         end
@@ -199,9 +202,6 @@ function ZoneController.transitionToZone(
     verifier: (() -> boolean)?,
     blinkOptions: (Transitions.BlinkOptions)?
 )
-    -- Circular Dependencies
-    local UIController = require(Paths.Client.UI.UIController)
-
     -- RETURN: Already playing
     if isPlayingTransition then
         return

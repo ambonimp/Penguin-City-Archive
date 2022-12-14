@@ -156,8 +156,80 @@ function InstanceUtil.onDestroyed(instance: Instance, callback: () -> nil)
     return connection
 end
 
+local function doesChildHaveNameAndOrClassName(child: Instance, childName: string?, childClassName: string?)
+    local hasChildName = child.Name == childName
+    local hasChildClassName = child.ClassName == childClassName
+
+    -- If passed both, both must match
+    if childName and childClassName then
+        return hasChildName and hasChildClassName and true or false
+    end
+
+    return hasChildName or hasChildClassName and true or false
+end
+
 --[[
-    More mature WaitForChild implementation
+    More mature FindFirstChild implementation.
+
+    - Can pass both `ChildName` and `ChildClassName`, must match both
+    - `Recurse` declares whether to look for children or descendants
+]]
+function InstanceUtil.findFirstChild(
+    instance: Instance,
+    config: {
+        ChildName: string?,
+        ChildClassName: string?,
+        Recurse: boolean?,
+    }
+)
+    -- ERROR: Needs name or class
+    if not (config.ChildName or config.ChildClassName) then
+        error("Supply ChildName or ChildClassName")
+    end
+
+    local instancesToCheck = config.Recurse and instance:GetDescendants() or instance:GetChildren()
+    for _, child in pairs(instancesToCheck) do
+        if doesChildHaveNameAndOrClassName(child, config.ChildName, config.ChildClassName) then
+            return child
+        end
+    end
+
+    return nil
+end
+
+--[[
+    Ditto to `InstanceUtil.findFirstChild`, but returns an array of children that matched the search
+]]
+function InstanceUtil.findChildren(
+    instance: Instance,
+    config: {
+        ChildName: string?,
+        ChildClassName: string?,
+        Recurse: boolean?,
+    }
+)
+    -- ERROR: Needs name or class
+    if not (config.ChildName or config.ChildClassName) then
+        error("Supply ChildName or ChildClassName")
+    end
+
+    local instancesToCheck = config.Recurse and instance:GetDescendants() or instance:GetChildren()
+    local results: { Instance } = {}
+    for _, child in pairs(instancesToCheck) do
+        if doesChildHaveNameAndOrClassName(child, config.ChildName, config.ChildClassName) then
+            table.insert(results, child)
+        end
+    end
+
+    return results
+end
+
+--[[
+    More mature WaitForChild implementation.
+
+    - Can pass both `ChildName` and `ChildClassName`, must match both
+    - `Timeout` is an exercise left to the reader
+    - `Recurse` declares whether to look for children or descendants
 ]]
 function InstanceUtil.waitForChild(
     instance: Instance,
@@ -165,6 +237,7 @@ function InstanceUtil.waitForChild(
         ChildName: string?,
         ChildClassName: string?,
         Timeout: number?,
+        Recurse: boolean?,
     }
 )
     -- ERROR: Needs name or class
@@ -173,25 +246,16 @@ function InstanceUtil.waitForChild(
     end
 
     local stopAtTick = tick() + (config.Timeout or math.huge)
+
+    local findFirstChildConfig = {
+        ChildName = config.ChildName,
+        ChildClassName = config.ChildClassName,
+        Recurse = config.Recurse,
+    }
     while tick() < stopAtTick do
-        for _, child in pairs(instance:GetChildren()) do
-            -- Both
-            if
-                config.ChildName
-                and config.ChildClassName
-                and config.ChildName == child.Name
-                and config.ChildClassName == child.ClassName
-            then
-                return child
-            end
-
-            if config.ChildName and config.ChildName == child.Name then
-                return child
-            end
-
-            if config.ChildClassName and config.ChildClassName == child.ClassName then
-                return child
-            end
+        local result = InstanceUtil.findFirstChild(instance, findFirstChildConfig)
+        if result then
+            return result
         end
     end
 end

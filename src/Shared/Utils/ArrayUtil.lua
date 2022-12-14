@@ -64,4 +64,16 @@ function ArrayUtil.toDict(tbl: { any })
     return dict
 end
 
+-- Inserts all values of all passed tables into a new array
+function ArrayUtil.merge(...: table)
+    local daddyTable = {}
+    for _, tbl in pairs({ ... }) do
+        for _, value in pairs(tbl) do
+            table.insert(daddyTable, value)
+        end
+    end
+
+    return daddyTable
+end
+
 return ArrayUtil

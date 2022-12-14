@@ -218,11 +218,11 @@ Remotes.bindEvents({
         currentIsMultiplayer = isMultiplayer
 
         tasks = Promise.new(function(resolve)
-            ToolController.unequip()
-
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
+
+            ToolController.unequip()
 
             if state.Name ~= INITIALIZATION_STATE.Name then
                 setState(INITIALIZATION_STATE)
