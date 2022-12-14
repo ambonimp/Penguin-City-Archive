@@ -26,8 +26,12 @@ local functionHandlers: { [string]: FunctionHandler } = {}
 local rateLimitsByPlayer: { [Player]: number } = {}
 local communicationFolder: Folder, functionFolder: Folder, eventFolder: Folder
 
+local function getRateLimit(player: Player)
+    return rateLimitsByPlayer[player] or 0
+end
+
 local function addRateLimit(player: Player)
-    rateLimitsByPlayer[player] = rateLimitsByPlayer[player] + 1
+    rateLimitsByPlayer[player] = getRateLimit(player) + 1
     task.delay(1, function()
         if rateLimitsByPlayer[player] then
             rateLimitsByPlayer[player] = rateLimitsByPlayer[player] - 1
@@ -35,12 +39,8 @@ local function addRateLimit(player: Player)
     end)
 end
 
-local function getRateLimit(player: Player)
-    return rateLimitsByPlayer[player]
-end
-
 local function isRateLimited(player: Player)
-    return rateLimitsByPlayer[player] > RATE_LIMITS_PER_SECOND
+    return getRateLimit(player) > RATE_LIMITS_PER_SECOND
 end
 
 local function getFunctionHandler(name: string): FunctionHandler
