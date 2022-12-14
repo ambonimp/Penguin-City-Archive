@@ -174,7 +174,7 @@ local function setupTeleporters()
     end
 end
 
-function ZoneController.checkIfTeleporting()
+function ZoneController.isTeleporting()
     return isPlayingTransition or isRunningTeleportToRoomRequest
 end
 

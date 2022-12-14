@@ -23,7 +23,7 @@ local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 local plots = workspace.Rooms.Neighborhood.HousingPlots
-local total = 50
+local TOTAL_PLOTS = HousingConstants.Plots
 local previewingIndex: number
 
 local screenGui: ScreenGui = Paths.UI.PlotChanger
@@ -52,7 +52,7 @@ end
 
 -- Register UIState
 do
-    local function open(data)
+    local function boot(data)
         previewingIndex = tonumber(data.PlotAt.Name)
         preview()
         screenGui.Enabled = true
@@ -60,7 +60,7 @@ do
         ScreenUtil.sizeIn(frame)
     end
 
-    local function close()
+    local function shutdown()
         CameraController.setPlayerControl()
         CharacterUtil.unfreeze(player.Character)
         ScreenUtil.sizeOut(frame)
@@ -68,8 +68,8 @@ do
 
     --uiStateMachine:RegisterStateCallbacks(UIConstants.States.PlotChanger, open, close)
     UIController.registerStateScreenCallbacks(UIConstants.States.PlotChanger, {
-        Boot = open,
-        Shutdown = close,
+        Boot = boot,
+        Shutdown = shutdown,
         Maximize = nil,
         Minimize = nil,
     })
@@ -77,7 +77,7 @@ end
 
 -- Manipulate UIState
 do
-    local exitButton = ExitButton.new()
+    local exitButton = ExitButton.new(UIConstants.States.PlotChanger)
     exitButton:Mount(frame.ExitButton, true)
     exitButton.Pressed:Connect(function()
         uiStateMachine:PopTo(UIConstants.States.HUD)
@@ -86,7 +86,7 @@ end
 
 do
     Button.new(frame.Next).Pressed:Connect(function()
-        if previewingIndex + 1 > total then
+        if previewingIndex + 1 > TOTAL_PLOTS then
             previewingIndex = 1
         else
             previewingIndex += 1
@@ -97,7 +97,7 @@ do
 
     Button.new(frame.Previous).Pressed:Connect(function()
         if previewingIndex - 1 < 1 then
-            previewingIndex = total
+            previewingIndex = TOTAL_PLOTS
         else
             previewingIndex -= 1
         end
