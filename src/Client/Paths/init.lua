@@ -59,7 +59,7 @@ task.delay(0, function()
         require(client.UnitTestingController),
     }
 
-    PathsUtil.runInitAndStart(requiredModulesInOrder)
+    task.defer(PathsUtil.runInitAndStart, requiredModulesInOrder)
 end)
 
 -- Detect deprecated framework usage
