@@ -231,14 +231,14 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 
             -- Yield until we have teleported
-            while cachedTotalTeleports == playerZoneState.TotalTeleports do
-                if character then
-                    local distance = (character:GetPivot().Position - newCharacterCFrame.Position).Magnitude
-                    local hasTeleported = distance <= HAS_TELEPORTED_DISTANCE_EPISLON
-                    if hasTeleported then
-                        break
-                    end
+            while character and cachedTotalTeleports == playerZoneState.TotalTeleports do
+                local distance = (character:GetPivot().Position - newCharacterCFrame.Position).Magnitude
+                local hasTeleported = distance <= HAS_TELEPORTED_DISTANCE_EPISLON
+                if hasTeleported then
+                    break
                 end
+
+                task.wait()
             end
 
             -- Wait to re-enable collisions (while we're still on the same request!)
