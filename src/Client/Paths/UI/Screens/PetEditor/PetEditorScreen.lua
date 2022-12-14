@@ -30,13 +30,64 @@ local closeButton = ExitButton.new(UIConstants.States.PetEditor)
 local openMaid = Maid.new()
 
 local isFiltering = false
+local wasLastNameFiltered = false
 local newName: string | nil
+local currentPetData: PetConstants.PetData | nil
 local currentPetDataIndex: string | nil
+local lastBootData: table | nil
+local widget: Widget.Widget
+
+local function unfocus()
+    if textBox:IsFocused() then
+        textBox:ReleaseFocus()
+    end
+end
+
+local function yieldWhileFiltering()
+    while isFiltering do
+        task.wait()
+    end
+end
+
+local function filterAndUpdateNameFromTextbox()
+    -- RETURN: Currently filtering
+    if isFiltering then
+        return
+    end
+    isFiltering = true
+
+    unfocus()
+
+    local newDirtyName = textBox.Text
+
+    local filteredName = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
+    local wasFiltered = (filteredName == nil) or TextFilterUtil.wasFiltered(newDirtyName, filteredName)
+
+    unfocus()
+
+    textBox.Text = filteredName
+    widget:SetText(filteredName)
+
+    local isNewNameDifferentAndGood = not wasFiltered and filteredName ~= currentPetData.Name
+    if isNewNameDifferentAndGood then
+        newName = filteredName
+    end
+
+    wasLastNameFiltered = wasFiltered
+    isFiltering = false
+end
 
 function PetEditorScreen.Init()
     local function exitState()
+        -- If filtering, we revert back to this state if it was filtered!
         if isFiltering then
-            return
+            task.defer(function()
+                yieldWhileFiltering()
+
+                if wasLastNameFiltered and lastBootData then
+                    UIController.getStateMachine():Push(UIConstants.States.PetEditor, lastBootData)
+                end
+            end)
         end
 
         UIController.getStateMachine():Remove(UIConstants.States.PetEditor)
@@ -48,7 +99,15 @@ function PetEditorScreen.Init()
         leftButton:SetColor(Color3.fromRGB(229, 142, 237))
         leftButton:Mount(leftButtonFrame, true)
         leftButton.Pressed:Connect(function()
+            -- Update internal name if we were typing when we pressed
+            if textBox:IsFocused() then
+                filterAndUpdateNameFromTextbox()
+            end
+            yieldWhileFiltering()
+
+            -- Name / Equip
             if newName and currentPetDataIndex then
+                print("request", newName)
                 PetController.requestSetPetName(newName, currentPetDataIndex)
             end
             PetController.equipPetRequest(currentPetDataIndex)
@@ -60,7 +119,15 @@ function PetEditorScreen.Init()
         rightButton:SetColor(Color3.fromRGB(50, 195, 185))
         rightButton:Mount(rightButtonFrame, true)
         rightButton.Pressed:Connect(function()
+            -- Update internal name if we were typing when we pressed
+            if textBox:IsFocused() then
+                filterAndUpdateNameFromTextbox()
+            end
+            yieldWhileFiltering()
+
+            -- Name
             if newName and currentPetDataIndex then
+                print("request", newName)
                 PetController.requestSetPetName(newName, currentPetDataIndex)
             end
 
@@ -81,50 +148,27 @@ function PetEditorScreen.Init()
 end
 
 function PetEditorScreen.boot(data: table)
+    lastBootData = data
+
+    -- Read Data
     local petData: PetConstants.PetData = data.PetData
     local petDataIndex: string = data.PetDataIndex
 
+    currentPetData = petData
     currentPetDataIndex = petDataIndex
 
     openMaid:Cleanup()
 
     -- Setup UI
-    local widget = Widget.diverseWidgetFromPetData(petData)
+    widget = Widget.diverseWidgetFromPetData(petData)
     widget:Mount(widgetHolder, true)
     openMaid:GiveTask(widget)
 
-    local currentName = petData.Name
-    textBox.Text = currentName
+    -- Init Textbox
+    textBox.Text = petData.Name
 
     -- Handle name editing
-    openMaid:GiveTask(textBox.FocusLost:Connect(function()
-        -- RETURN: Currently filtering
-        if isFiltering then
-            return
-        end
-
-        local newDirtyName = textBox.Text
-
-        isFiltering = true
-        local filteredName = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
-        local wasFiltered = (filteredName == nil) or TextFilterUtil.wasFiltered(newDirtyName, filteredName)
-        isFiltering = false
-
-        textBox.Text = filteredName
-        if not wasFiltered then
-            currentName = filteredName
-
-            newName = currentName
-            widget:SetText(currentName)
-        end
-    end))
-
-    openMaid:GiveTask(textBox.Focused:Connect(function()
-        -- Don't allow new entry if currently filtering
-        if isFiltering then
-            textBox:ReleaseFocus()
-        end
-    end))
+    openMaid:GiveTask(textBox.FocusLost:Connect(filterAndUpdateNameFromTextbox))
 end
 
 function PetEditorScreen.shutdown()
