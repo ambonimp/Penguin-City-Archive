@@ -8,9 +8,9 @@ local Maid = require(Paths.Packages.maid)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 
-local MAX_SPEED = 10
-local MAX_ANGLE = 70
-local ANGLE_EXPONENT = 1 / 3
+local MAX_SPEED = 7
+local MAX_ANGLE = 90
+local ANGLE_EXPONENT = 1 / 2
 
 local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstraint, angleDegrees: number)
     -- Get throttle

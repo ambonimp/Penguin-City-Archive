@@ -7,6 +7,7 @@ export type Object = {
     Name: string,
     Price: number,
     Icon: string,
+    Rotation: CFrame | nil,
 }
 
 local objects: { [string]: Object } = {}

@@ -14,6 +14,7 @@ type Object = {
     Price: number,
     Icon: string,
     Interactable: boolean?, -- Furniture
+    Rotation: CFrame | nil,
 }
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

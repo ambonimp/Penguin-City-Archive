@@ -16,18 +16,20 @@ local frame: Frame = screenGui.ChangeHouse
 
 local uiStateMachine = UIController.getStateMachine()
 
+local HOUSE_WIDGET_SIZE = UDim2.new(0.65, 0, 0, 267)
+
 local plotAt: Model
 
 -- Register UIState
 do
-    local function open(data)
+    local function boot(data)
         screenGui.Enabled = true
         plotAt = data.PlotAt
 
         ScreenUtil.sizeIn(frame)
     end
 
-    local function close()
+    local function shutdown()
         ScreenUtil.sizeOut(frame)
     end
 
@@ -41,8 +43,8 @@ do
 
     --uiStateMachine:RegisterStateCallbacks(UIConstants.States.HouseSelectionUI, open, close)
     UIController.registerStateScreenCallbacks(UIConstants.States.HouseSelectionUI, {
-        Boot = open,
-        Shutdown = close,
+        Boot = boot,
+        Shutdown = shutdown,
         Maximize = maximize,
         Minimize = minimize,
     })
@@ -50,7 +52,7 @@ end
 
 -- Manipulate UIState
 do
-    local exitButton = ExitButton.new()
+    local exitButton = ExitButton.new(UIConstants.States.HouseSelectionUI)
     exitButton.Pressed:Connect(function()
         uiStateMachine:PopTo(UIConstants.States.HUD)
     end)
@@ -60,14 +62,14 @@ end
 do --Add House products
     for name, _info in BlueprintConstants.Objects do
         local product = ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", name))
-        local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true, ShowTotals = false }, function(button)
+        local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true }, function(button)
             button.Pressed:Connect(function()
                 Remotes.fireServer("ChangeBlueprint", name)
             end)
         end)
 
         widget:GetGuiObject().Parent = frame.Center.Houses
-        widget:GetGuiObject().Size = UDim2.new(0.65, 0, 0, 267)
+        widget:SetSize(HOUSE_WIDGET_SIZE)
     end
 end
 
