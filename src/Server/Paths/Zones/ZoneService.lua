@@ -21,6 +21,7 @@ type TeleportData = {
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
+local HAS_TELEPORTED_DISTANCE_EPISLON = 50
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.defaultZone()
@@ -229,7 +230,16 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
             -- Disable Collisions
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
 
-            --TODO DETECT WHEN PLAYER HAS TELEPORTED!
+            -- Yield until we have teleported
+            while cachedTotalTeleports == playerZoneState.TotalTeleports do
+                if character then
+                    local distance = (character:GetPivot().Position - newCharacterCFrame.Position).Magnitude
+                    local hasTeleported = distance <= HAS_TELEPORTED_DISTANCE_EPISLON
+                    if hasTeleported then
+                        break
+                    end
+                end
+            end
 
             -- Wait to re-enable collisions (while we're still on the same request!)
             local zoneSettings = ZoneUtil.getSettings(zone)
