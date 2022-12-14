@@ -209,16 +209,23 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
         error("Server Only")
     end
 
+    -- ERROR: Is a BasePart
+    if instance:IsA("BasePart") then
+        error(("Don't write BasepartTotals onto a BasePart! (%s)"):format(instance:GetFullName()))
+    end
+
     -- Tot up our baseparts
     local totalBaseParts = 0
     for _, child in pairs(instance:GetChildren()) do
         if child:IsA("BasePart") then
             totalBaseParts += 1
 
-            -- ERROR: Nested Basepart!
-            local nestedBasePart = child:FindFirstAncestorWhichIsA("BasePart")
-            if nestedBasePart then
-                error(("%s has nested BasePart(s) (%s)"):format(instance:GetFullName(), nestedBasePart:GetFullName()))
+            -- ERROR: Nested Basepart (only errror in Studio for performance)
+            if RunService:IsStudio() then
+                local nestedBasePart = child:FindFirstAncestorWhichIsA("BasePart")
+                if nestedBasePart then
+                    error(("%s has nested BasePart(s) (%s)"):format(instance:GetFullName(), nestedBasePart:GetFullName()))
+                end
             end
         else
             ZoneUtil.writeBasepartTotals(child)
@@ -230,6 +237,8 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
 
     -- Handle new/old children
     if not instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
+        instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
+
         instance.ChildAdded:Connect(function()
             task.wait() -- Breathing room for full heirachy to get loaded
             ZoneUtil.writeBasepartTotals(instance)
@@ -237,15 +246,13 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
         instance.ChildRemoved:Connect(function()
             ZoneUtil.writeBasepartTotals(instance)
         end)
-
-        instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
     end
 end
 
 --[[
     **Client Only**
 
-    Returns true if everything under this instance is loaded!
+    Returns true if all descendants under this instance is loaded!
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
 function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
@@ -260,6 +267,11 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     for _, someInstance in pairs(instances) do
         if not someInstance:IsA("BasePart") then
             local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
+
+            -- WARN: Querying a non-initiated structure
+            if not serverTotal then
+                warn(("ZoneUtil.areAllBasePartsLoaded called on non-initiated instance %q"):format(someInstance:GetFullName()))
+            end
 
             -- Query + Compare if more than 0
             if serverTotal and serverTotal > 0 then
@@ -280,13 +292,13 @@ end
     Returns true if success; false otherwise
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
-function ZoneUtil.waitForInstanceToLoad(instance: Instance)
+function ZoneUtil.waitForInstanceToLoad(instance: Instance, customYieldTime: number?)
     -- ERROR: Client Only
     if not RunService:IsClient() then
         return
     end
 
-    local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
+    local endTick = tick() + (customYieldTime or MAX_YIELD_TIME_INSTANCE_LOADING)
     while tick() < endTick do
         local isLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
         if isLoaded then
