@@ -49,6 +49,15 @@ function ZoneController.Init()
 end
 
 function ZoneController.Start()
+    -- Communication
+    Remotes.bindEvents({
+        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, newCharacterCFrame: CFrame)
+            ZoneController.transitionToZone(ZoneUtil.zone(zoneCategory, zoneType, zoneId), function()
+                return true, newCharacterCFrame
+            end)
+        end,
+    })
+
     -- SOS if we go too far from the zone
     task.spawn(function()
         local beenLostSinceTick: number | nil
@@ -176,7 +185,7 @@ local function setupTeleporters()
     end
 end
 
-function ZoneController.checkIfTeleporting()
+function ZoneController.isTeleporting()
     return isTransitioningToZone or isRunningTeleportToRoomRequest
 end
 
@@ -404,17 +413,6 @@ end
 -------------------------------------------------------------------------------
 -- Logic
 -------------------------------------------------------------------------------
-
--- Communication
-do
-    Remotes.bindEvents({
-        ZoneTeleport = function(zoneCategory: string, zoneType: string, zoneId: string?, newCharacterCFrame: CFrame)
-            ZoneController.transitionToZone(ZoneUtil.zone(zoneCategory, zoneType, zoneId), function()
-                return true, newCharacterCFrame
-            end)
-        end,
-    })
-end
 
 -- Load Default Zone
 Loader.giveTask("Zones", "DefaultZone", function()
