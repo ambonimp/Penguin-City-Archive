@@ -42,8 +42,8 @@ function ProductController.getOwnedProducts()
 end
 
 function ProductController.canPlaceHouseProduct(product: Products.Product)
-    local owns = ProductController.hasProduct(product)
-    local amount = ProductController.getProductCount(product)
+    local owns: boolean = ProductController.hasProduct(product)
+    local amount: number = ProductController.getProductCount(product)
     if owns and amount > 0 then
         return true, amount
     else

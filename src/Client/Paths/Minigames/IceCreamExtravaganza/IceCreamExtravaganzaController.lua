@@ -55,6 +55,10 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
 
+    minigameJanitor:Add(function()
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+    end)
+
     MinigameController.playMusic("Intermission")
 end)
 
