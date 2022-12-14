@@ -14,7 +14,8 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 
 type TeleportData = {
-    IsClientRequest: boolean?,
+    IsClientRequest: boolean?, -- Dictates whether to inform client of teleport
+    IgnoreFromZone: boolean?, -- Helps choose what spawnpoint to send the player to
 }
 
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
@@ -179,6 +180,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Read Data
     teleportData = teleportData or {}
     local isClientRequest = teleportData.IsClientRequest
+    local ignoreFromZone = teleportData.IgnoreFromZone
 
     -- WARN: No character!
     local character = player.Character
@@ -216,7 +218,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     playerZoneState.TotalTeleports += 1
 
     -- Get spawnpoint + content Streaming
-    local spawnpoint = ZoneUtil.getSpawnpoint(oldZone, zone)
+    local spawnpoint = ignoreFromZone and ZoneUtil.getZoneInstances(zone).Spawnpoint or ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
     local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
 
@@ -277,7 +279,7 @@ end
 -- Communcation
 do
     Remotes.bindFunctions({
-        RoomZoneTeleportRequest = function(player: Player, dirtyZoneCategory: any, dirtyZoneType: any)
+        RoomZoneTeleportRequest = function(player: Player, dirtyZoneCategory: any, dirtyZoneType: any, dirtyTeleportData: any)
             -- Clean data
             local zoneCategory = TypeUtil.toString(dirtyZoneCategory)
             local zoneType = TypeUtil.toString(dirtyZoneType)
@@ -287,15 +289,21 @@ do
                 return
             end
 
+            -- Scrub teleport data; easier to scrub rather than reject a bad table
+            dirtyTeleportData = typeof(dirtyTeleportData) == "table" and dirtyTeleportData or {}
+            local teleportData: TeleportData = {}
+            if teleportData then
+                teleportData.IsClientRequest = true
+                teleportData.IgnoreFromZone = TypeUtil.toBoolean(dirtyTeleportData.IgnoreFromZone)
+            end
+
             -- RETURN: Bad Zone
             local zone = ZoneUtil.zone(zoneCategory, zoneType)
             if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end
 
-            return ZoneService.teleportPlayerToZone(player, zone, {
-                IsClientRequest = true,
-            })
+            return ZoneService.teleportPlayerToZone(player, zone, teleportData)
         end,
     })
 end

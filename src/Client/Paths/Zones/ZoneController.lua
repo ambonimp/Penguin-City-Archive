@@ -292,8 +292,12 @@ end
 -- Teleports
 -------------------------------------------------------------------------------
 
--- Returns our Assume object
-function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
+--[[
+    - `ignoreFromZone`: If true, will teleport directly to origin spawnpoint.
+
+    Returns our Assume object
+]]
+function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, ignoreFromZone: boolean?)
     -- RETURN: Already requesting
     if isRunningTeleportToRoomRequest then
         warn("Already running a teleportToRoomRequest!")
@@ -308,7 +312,9 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone)
 
     -- Request Assume
     local requestAssume = Assume.new(function()
-        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType)
+        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
+            IgnoreFromZone = ignoreFromZone,
+        })
     end)
     requestAssume:Check(function(isAccepted: boolean?, _newCharacterCFrame: CFrame?)
         return isAccepted and true or false
