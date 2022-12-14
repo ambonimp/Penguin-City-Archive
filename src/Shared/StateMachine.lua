@@ -6,6 +6,7 @@ StateMachine.__index = StateMachine
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Signal = require(ReplicatedStorage.Shared.Signal)
+local Queue = require(ReplicatedStorage.Shared.Queue)
 
 type Operation = string
 
@@ -130,9 +131,12 @@ end
     Internal function for running large logic
 ]]
 function StateMachine:_RunOperation(operation, state, data)
+    local runNextOperation = Queue.yield("StateMachine:_RunOperation")
+
     -- ERROR: Extra Data is an object or instance
     data = data or {}
     if typeof(data) ~= "table" then
+        runNextOperation()
         prettyError(operation, state, ("Invalid ExtraData. A vanilla table was expected, but got a %q"):format(typeof(data)))
     end
 
@@ -145,6 +149,7 @@ function StateMachine:_RunOperation(operation, state, data)
 
     -- Asset state is valid
     if operation ~= OPERATION_POP and not self:IsStateValid(state) then
+        runNextOperation()
         prettyError(operation, state, ("The given state is not valid: " .. tostring(state)))
     end
 
@@ -153,6 +158,7 @@ function StateMachine:_RunOperation(operation, state, data)
         for i = #self.stateStack - 1, 1, -1 do
             local stackedState = self.stateStack[i]
             if stackedState == state then
+                runNextOperation()
                 prettyError(operation, state, "State is already present in the stack. Try :PopTo instead.")
             end
         end
@@ -161,6 +167,7 @@ function StateMachine:_RunOperation(operation, state, data)
     -- ERROR: State is empty, or will become empty
     if operation == OPERATION_POP then
         if #self.stateStack < 2 then
+            runNextOperation()
             prettyError(operation, state, "Stack is empty, or would become empty after the operation. Try :Replace instead.")
         end
     end
@@ -179,6 +186,7 @@ function StateMachine:_RunOperation(operation, state, data)
     -- ERROR: State is not present in the stack (PopTo)
     if operation == OPERATION_POP_TO then
         if popToIndex < 1 then
+            runNextOperation()
             prettyError(operation, state, "State is not present in the stack. Try :PopToAndPush instead.")
         end
     end
@@ -186,6 +194,7 @@ function StateMachine:_RunOperation(operation, state, data)
     -- SILENT ERROR: State is not present in the stack (Remove)
     if operation == OPERATION_REMOVE then
         if not self:HasState(state) then
+            runNextOperation()
             return
         end
     end
@@ -193,6 +202,7 @@ function StateMachine:_RunOperation(operation, state, data)
     -- ERROR: Cannot PopTo top state
     if operation == OPERATION_POP_TO or operation == OPERATION_POP_TO_AND_PUSH then
         if popToIndex >= #self.stateStack then
+            runNextOperation()
             prettyError(operation, state, "State is already at the top.")
         end
     end
@@ -227,6 +237,8 @@ function StateMachine:_RunOperation(operation, state, data)
         prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
         self.eventGlobal:Fire(oldState, currentState, data)
     end
+
+    runNextOperation()
 end
 
 --[[
