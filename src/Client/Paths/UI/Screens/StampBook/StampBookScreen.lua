@@ -211,6 +211,8 @@ function readStampData()
 
                         widget:Mount(parent)
                         maid:GiveTask(widget)
+
+                        return widget
                     end)
                 end
             end
@@ -224,6 +226,8 @@ function readStampData()
 
             widget:Mount(parent)
             maid:GiveTask(widget)
+
+            return widget
         end)
     end
 
