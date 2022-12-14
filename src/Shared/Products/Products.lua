@@ -104,7 +104,7 @@ local products: { [string]: { [string]: Product } } = {
             ImageId = "rbxassetid://11152355811",
             RobuxData = {
                 Cost = 1600,
-                DeveloperProductId = 1341513286,
+                DeveloperProductId = 1341513362,
             },
             Metadata = {
                 AddCoins = 3750,
