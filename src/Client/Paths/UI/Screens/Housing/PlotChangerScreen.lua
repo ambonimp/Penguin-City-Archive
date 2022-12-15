@@ -119,8 +119,8 @@ do
         local plot: Model = plots[previewingIndex]
 
         if plot and not plot:GetAttribute(HousingConstants.PlotOwner) and plot ~= currentPlayerPlot then
-            if currentPlayerPlot and currentPlayerPlot.Origin:FindFirstChild("IglooIcon") then
-                currentPlayerPlot.Origin:FindFirstChild("IglooIcon").Enabled = false
+            if currentPlayerPlot and currentPlayerPlot:FindFirstChild("IglooIcon") then
+                currentPlayerPlot:FindFirstChild("IglooIcon").Enabled = false
             end
             uiStateMachine:PopTo(UIConstants.States.HUD)
             Remotes.fireServer("ChangePlot", plot)
@@ -128,8 +128,8 @@ do
 
             TransitionFX.blink(function()
                 player.Character:PivotTo(currentPlayerPlot.Origin.CFrame * CFrame.new(0, player.Character:GetExtentsSize().Y * 0.8, -15))
-                if currentPlayerPlot and currentPlayerPlot.Origin:FindFirstChild("IglooIcon") then
-                    currentPlayerPlot.Origin:FindFirstChild("IglooIcon").Enabled = true
+                if currentPlayerPlot and currentPlayerPlot:FindFirstChild("IglooIcon") then
+                    currentPlayerPlot:FindFirstChild("IglooIcon").Enabled = true
                 end
             end)
         end
@@ -140,7 +140,7 @@ do
         if newZone.ZoneType == "Neighborhood" then
             currentPlayerPlot = HousingController.getPlotFromOwner(player, HousingConstants.ExteriorType)
 
-            if currentPlayerPlot and currentPlayerPlot.Origin:FindFirstChild("IglooIcon") then
+            if currentPlayerPlot and currentPlayerPlot:FindFirstChild("IglooIcon") then
                 currentPlayerPlot.Origin:FindFirstChild("IglooIcon").Enabled = true
             end
         end
