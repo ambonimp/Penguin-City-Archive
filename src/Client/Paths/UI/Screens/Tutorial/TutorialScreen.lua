@@ -11,6 +11,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local UIActions = require(Paths.Client.UI.UIActions)
 local Queue = require(Paths.Shared.Queue)
+local TutorialController = require(Paths.Client.Tutorial.TutorialController)
 
 local screenGui: ScreenGui = Paths.UI.Tutorial
 local skipButtonFrame: Frame = screenGui.SkipButton
@@ -34,9 +35,9 @@ function TutorialScreen.Init()
         skipButton:SetColor(UIConstants.Colors.Buttons.EditOrange)
         skipButton:Mount(skipButtonFrame, true)
         skipButton.Pressed:Connect(function()
-            warn("todo skip logic")
             UIActions.prompt("Skip Tutorial", "Are you sure you want to skip the tutorial?", nil, {
                 Text = "Skip",
+                Callback = TutorialController.skipTutorial,
             }, {
                 Text = "No, wait..",
             })
@@ -58,14 +59,15 @@ function TutorialScreen.Init()
     end
 end
 
-function TutorialScreen.boot(data: table?)
-    -- Read Data
-
-    --todo
+function TutorialScreen.boot()
+    -- Hide prompt by default
+    ScreenUtil.outDown(promptFrame)
 end
 
 function TutorialScreen.shutdown()
-    --todo
+    -- Ensure prompt is somewhat cleaned up
+    nextButton.Pressed:Fire() -- hacky solution but works
+    isShowingPrompt = false
 end
 
 function TutorialScreen.maximize()
@@ -101,6 +103,7 @@ function TutorialScreen.prompt(promptText: string)
 
     -- YIELD: Wait for next to be pressed
     nextButton.Pressed:Wait()
+    task.wait() -- Need this here to stop .Pressed propogating to the next `prompt` call
 
     -- Exit Screen
     ScreenUtil.outDown(promptFrame)
@@ -109,12 +112,5 @@ function TutorialScreen.prompt(promptText: string)
     isShowingPrompt = false
     nextPrompt()
 end
-
--------------------------------------------------------------------------------
--- Logic
--------------------------------------------------------------------------------
-
--- Hide prompt by default
-ScreenUtil.outDown(promptFrame)
 
 return TutorialScreen

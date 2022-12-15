@@ -11,6 +11,8 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local CharacterItemService = require(Paths.Server.Characters.CharacterItemService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
+local PetService = require(Paths.Server.Pets.PetService)
+local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 
 function TutorialService.completedTask(player: Player, task: string)
     -- RETURN: Already completed!
@@ -69,7 +71,12 @@ Remotes.bindEvents({
             return
         end
 
-        ProductService.addProduct(player, ProductUtil.getPetEggProduct("Common"))
+        -- Give Egg
+        PetService.addPetEgg(
+            player,
+            TutorialConstants.StarterEgg.PetEggName,
+            TimeUtil.minutesToSeconds(TutorialConstants.StarterEgg.HatchTimeMinutes)
+        )
 
         -- Task done!
         TutorialService.completedTask(player, TutorialConstants.Tasks.StarterPetEgg)

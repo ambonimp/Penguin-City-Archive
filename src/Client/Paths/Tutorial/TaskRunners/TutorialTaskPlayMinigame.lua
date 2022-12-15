@@ -31,8 +31,13 @@ return function()
         task.wait()
     end
 
-    -- Start minigame for user
+    -- Start minigame request for user
     MinigameController.playRequest(MinigameConstants.Minigames.PizzaFiasco, false)
+
+    -- Wait for user to start minigame
+    while not (ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame) do
+        task.wait()
+    end
 
     -- Wait for user to finish minigame
     while ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame do

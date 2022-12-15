@@ -30,7 +30,6 @@ end
 -- Returns true if started next task
 local function startNextTask()
     for _, someTask in pairs(TutorialConstants.TaskOrder) do
-        print(someTask, "completed", TutorialController.isTaskCompleted(someTask))
         if not TutorialController.isTaskCompleted(someTask) then
             TutorialController.StartTask:Fire(someTask)
             return true
@@ -94,7 +93,6 @@ function TutorialController.Start()
                 UIController.getStateMachine():Push(UIConstants.States.Tutorial)
             end
 
-            print("call task callback", task)
             taskCallback()
         end)
     end
@@ -103,17 +101,34 @@ function TutorialController.Start()
     startNextTask()
 end
 
+function TutorialController.skipTutorial()
+    -- Run all necessary custom task helpers
+    -- Okay if these get run twice, as we have installed anti-cheat on the server
+    do
+        TutorialController.giveStarterPetEgg()
+    end
+
+    -- Complete all tasks
+    for _, task in pairs(TutorialConstants.Tasks) do
+        if not TutorialController.isTaskCompleted(task, true) then
+            TutorialController.taskCompleted(task, true)
+        end
+    end
+
+    -- Tutorial is finished!
+    UIController.getStateMachine():Remove(UIConstants.States.Tutorial)
+end
+
 -------------------------------------------------------------------------------
 -- Setters / Getters
 -------------------------------------------------------------------------------
 
--- Set a task as completely locally for immediate feedback to client for prime UX
-function TutorialController.taskCompleted(task: string)
-    warn("TASK COMPLETED", task, debug.traceback())
+-- Set a task as completely locally for immediate feedback to client for prime UX (and then informs server as well)
+function TutorialController.taskCompleted(task: string, dontStartNextTask: boolean?)
     assertTask(task)
 
-    -- ERROR: Already completed
-    if TutorialController.isTaskCompleted(task) then
+    -- ERROR: Already completed locally
+    if TutorialController.isTaskCompleted(task, true) then
         error(("Task %q already completed!"):format(task))
     end
 
@@ -123,17 +138,20 @@ function TutorialController.taskCompleted(task: string)
     -- Inform Server
     Remotes.fireServer("TutorialTaskCompleted", task)
 
-    local didStartNextTask = startNextTask()
-    if not didStartNextTask then
-        warn("todo completed all tasks")
+    if not dontStartNextTask then
+        local didStartNextTask = startNextTask()
+        if not didStartNextTask then
+            -- Tutorial is finished!
+            UIController.getStateMachine():Remove(UIConstants.States.Tutorial)
+        end
     end
 end
 
--- Queries local and server cache
-function TutorialController.isTaskCompleted(task: string)
+-- Queries local cache (and server cache if `locally` ~= true)
+function TutorialController.isTaskCompleted(task: string, locally: boolean?)
     assertTask(task)
 
-    return (locallyCompletedTasks[task] or DataController.get(TutorialUtil.getTaskDataAddress(task))) and true or false
+    return (locallyCompletedTasks[task] or (not locally and DataController.get(TutorialUtil.getTaskDataAddress(task)))) and true or false
 end
 
 -------------------------------------------------------------------------------
