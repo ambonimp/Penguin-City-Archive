@@ -89,12 +89,12 @@ end
 -------------------------------------------------------------------------------
 
 -- Yields until prompt has been dismissed. Allows stacking of multiple calls
-function TutorialScreen.prompt(body: string)
+function TutorialScreen.prompt(promptText: string)
     local nextPrompt = Queue.yield("TutorialScreen.prompt")
 
     -- Update State + text
     isShowingPrompt = true
-    bodyLabel.Text = body
+    bodyLabel.Text = promptText
 
     -- Enter Screen
     ScreenUtil.inUp(promptFrame)
@@ -109,5 +109,12 @@ function TutorialScreen.prompt(body: string)
     isShowingPrompt = false
     nextPrompt()
 end
+
+-------------------------------------------------------------------------------
+-- Logic
+-------------------------------------------------------------------------------
+
+-- Hide prompt by default
+ScreenUtil.outDown(promptFrame)
 
 return TutorialScreen

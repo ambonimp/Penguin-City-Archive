@@ -29,7 +29,21 @@ end
 
 -- Communication
 Remotes.bindEvents({
+    TutorialTaskCompleted = function(player: Player, dirtyTask: any)
+        -- Clean Data
+        local task = TutorialConstants.Tasks[TypeUtil.toString(dirtyTask)]
+        if not task then
+            return
+        end
+
+        TutorialService.completedTask(player, task)
+    end,
     SetStartingAppearance = function(player: Player, dirtyColorIndex: any, dirtyOutfitIndex: any)
+        -- RETURN: Already completed this task! Stops user from getting loads of free items.
+        if TutorialService.isTaskCompleted(player, TutorialConstants.Tasks.StartingAppearance) then
+            return
+        end
+
         -- Clean Data
         local colorIndex = MathUtil.wrapAround(TypeUtil.toNumber(dirtyColorIndex, 1), #TutorialConstants.StartingAppearance.Colors)
         local outfitIndex = MathUtil.wrapAround(TypeUtil.toNumber(dirtyOutfitIndex, 1), #TutorialConstants.StartingAppearance.Outfits)
@@ -48,6 +62,17 @@ Remotes.bindEvents({
 
         -- Task done!
         TutorialService.completedTask(player, TutorialConstants.Tasks.StartingAppearance)
+    end,
+    GiveStarterPetEgg = function(player: Player)
+        -- RETURN: Already completed this task! Stops user from getting multiple starter eggs
+        if TutorialService.isTaskCompleted(player, TutorialConstants.Tasks.StarterPetEgg) then
+            return
+        end
+
+        ProductService.addProduct(player, ProductUtil.getPetEggProduct("Common"))
+
+        -- Task done!
+        TutorialService.completedTask(player, TutorialConstants.Tasks.StarterPetEgg)
     end,
 })
 

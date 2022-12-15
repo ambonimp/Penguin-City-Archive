@@ -34,6 +34,7 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.Paycheck,
+        UIConstants.States.Tutorial,
     },
 }
 

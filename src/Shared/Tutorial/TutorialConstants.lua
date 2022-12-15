@@ -2,6 +2,16 @@ local TutorialConstants = {}
 
 TutorialConstants.Tasks = {
     StartingAppearance = "StartingAppearance",
+    CustomiseIgloo = "CustomiseIgloo",
+    PlayMinigame = "PlayMinigame",
+    StarterPetEgg = "StarterPetEgg",
+}
+
+TutorialConstants.TaskOrder = {
+    TutorialConstants.Tasks.StartingAppearance,
+    TutorialConstants.Tasks.CustomiseIgloo,
+    TutorialConstants.Tasks.PlayMinigame,
+    TutorialConstants.Tasks.StarterPetEgg,
 }
 
 TutorialConstants.StartingAppearance = {
