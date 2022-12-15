@@ -141,7 +141,7 @@ do
             currentPlayerPlot = HousingController.getPlotFromOwner(player, HousingConstants.ExteriorType)
 
             if currentPlayerPlot and currentPlayerPlot:FindFirstChild("IglooIcon") then
-                currentPlayerPlot.Origin:FindFirstChild("IglooIcon").Enabled = true
+                currentPlayerPlot:FindFirstChild("IglooIcon").Enabled = true
             end
         end
     end)
