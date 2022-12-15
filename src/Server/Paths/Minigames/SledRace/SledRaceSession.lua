@@ -108,6 +108,10 @@ function SledRaceSession.new(...: any)
         stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
             for participant, data in pairs(participantData) do
                 local character = participant.Character
+                -- CONTINUE: Player left minigame
+                if not character then
+                    continue
+                end
 
                 local position: Vector3 = character.PrimaryPart.Position
                 local velocity: number = (mapDirection:PointToObjectSpace(position - data.Position) * XY).Magnitude / dt

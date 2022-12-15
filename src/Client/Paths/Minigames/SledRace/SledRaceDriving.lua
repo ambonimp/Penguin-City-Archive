@@ -30,7 +30,7 @@ local MAX_STEER_ANGLE = SledRaceConstants.MaxSteerAngle
 local MAX_SEAT_LEAN_ANGLE = math.rad(75)
 
 local MAX_FORCE = 1000
-local MAX_ANGULAR_ALIGNMENT_TORQUE = 90000
+local MAX_ANGULAR_ALIGNMENT_TORQUE = 900000
 local MAX_STEER_TORQUE = 400
 
 local BASE_FOV = 70

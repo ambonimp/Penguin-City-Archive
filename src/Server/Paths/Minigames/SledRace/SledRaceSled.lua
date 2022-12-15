@@ -45,20 +45,42 @@ end
 -- TEMPLATE
 -------------------------------------------------------------------------------
 do
-    -- Initialize runner template
     local cframe: CFrame, size: Vector3 = sledTemplate:GetBoundingBox()
 
+    -- Create collider
     local physicsPart = Instance.new("Part")
     physicsPart.Name = "Physics"
     physicsPart.CFrame = cframe
-    physicsPart.Size = size
+    physicsPart.Size = size - Vector3.new(0, 0, size.X)
     physicsPart.CanCollide = true
     physicsPart.Anchored = true
     physicsPart.Color = Color3.fromRGB(255, 0, 0)
-    physicsPart.Transparency = 1
+    physicsPart.Transparency = 0
     PhysicsService:SetPartCollisionGroup(physicsPart, CollisionsConstants.Groups.SledRaceSleds)
     physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
 
+    for _, displayPart in pairs(sledTemplate:GetChildren()) do
+        displayPart.Massless = true
+        displayPart.CanCollide = false
+        displayPart.CanTouch = false
+        displayPart.CanQuery = false
+        BasePartUtil.weld(displayPart, physicsPart)
+    end
+
+    for i = 1, 2 do
+        local bumper = Instance.new("Part")
+        bumper.Shape = Enum.PartType.Cylinder
+        bumper.Transparency = 0
+        bumper.Size = Vector3.new(size.Y, size.X, size.X)
+        bumper.CFrame = cframe * CFrame.new(0, 0, (if i == 1 then -1 else 1) * (size.Z / 2 - size.X / 2)) * CFrame.Angles(0, 0, math.pi / 2)
+        bumper.Anchored = false
+        bumper.Massless = true
+        physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
+        BasePartUtil.weld(bumper, physicsPart)
+        bumper.Parent = sledTemplate
+    end
+
+    -- Create actuators
     local attachment = Instance.new("Attachment")
     attachment.Parent = physicsPart
 
@@ -81,14 +103,6 @@ do
     alignRotation.Attachment0 = attachment
     alignRotation.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
     alignRotation.Parent = physicsPart
-
-    for _, displayPart in pairs(sledTemplate:GetChildren()) do
-        displayPart.Massless = true
-        displayPart.CanCollide = false
-        displayPart.CanTouch = false
-        displayPart.CanQuery = false
-        BasePartUtil.weld(displayPart, physicsPart)
-    end
 
     physicsPart.Parent = sledTemplate
     sledTemplate.PrimaryPart = physicsPart
