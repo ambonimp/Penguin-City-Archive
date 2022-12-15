@@ -8,6 +8,8 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
+local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
+local UIActions = require(Paths.Client.UI.UIActions)
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -24,12 +26,16 @@ return function()
 
     TutorialController.prompt("You are in your igloo. Let's customize it!")
 
-    warn("TODO highlight edit button")
+    -- Highlight Igloo Edit Button
+    local iglooButton = HUDScreen.getIglooButton()
+    local hideFocalPoint = UIActions.focalPoint(iglooButton:GetButtonObject())
 
     -- Wait for user to enter editing
     while not (uiStateMachine:HasState(UIConstants.States.HouseEditor)) do
         task.wait()
     end
+
+    hideFocalPoint()
 
     -- Wait for user to exit editing
     while uiStateMachine:HasState(UIConstants.States.HouseEditor) do

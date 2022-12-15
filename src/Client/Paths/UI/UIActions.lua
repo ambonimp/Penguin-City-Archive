@@ -63,6 +63,30 @@ function UIActions.showStampInfo(stampId: string, progress: number?)
     })
 end
 
+--[[
+    Puts a focal point on the screen at a position - this is the same as thats used in the tutorial!
+
+    Returns a callback that when invoked will hide the focal point
+]]
+function UIActions.focalPoint(positionOrGuiObject: UDim2 | GuiObject, size: UDim2?)
+    local position: UDim2
+    if typeof(position) == "UDim2" then
+        position = positionOrGuiObject
+    else
+        local middlePosition = positionOrGuiObject.AbsolutePosition + positionOrGuiObject.AbsoluteSize / 2
+        position = UDim2.fromOffset(middlePosition.X, middlePosition.Y)
+    end
+
+    UIController.getStateMachine():Push(UIConstants.States.FocalPoint, {
+        Position = position,
+        Size = size,
+    })
+
+    return function()
+        UIController.getStateMachine():Remove(UIConstants.States.FocalPoint)
+    end
+end
+
 -------------------------------------------------------------------------------
 -- Notifications
 -------------------------------------------------------------------------------
