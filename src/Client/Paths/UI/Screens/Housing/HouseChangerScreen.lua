@@ -69,6 +69,7 @@ do --Add House products
             end)
         end)
 
+        widget:GetGuiObject().LayoutOrder = product.CoinData.Cost
         widget:GetGuiObject().Parent = frame.Center.Houses
         widget:SetSize(HOUSE_WIDGET_SIZE)
     end
