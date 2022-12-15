@@ -62,6 +62,7 @@ function Signal.new()
 	]]
     function signal:Destroy()
         connections = {}
+        signal = {}
         resumeAllThreads()
     end
 

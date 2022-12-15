@@ -437,6 +437,7 @@ end
 ]]
 function StateMachine:Destroy()
     self.eventGlobal:Destroy()
+    self.eventGlobal = nil
 end
 
 return StateMachine

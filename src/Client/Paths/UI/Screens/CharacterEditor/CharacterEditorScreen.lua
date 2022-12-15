@@ -1,7 +1,7 @@
 local CharacterEditorScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
 local Promise = require(Paths.Packages.promise)
 local Remotes = require(Paths.Shared.Remotes)
@@ -38,7 +38,7 @@ panel:Mount(screen)
 panel:GetContainer().Visible = false
 local equipSlots: Frame = screen.EquipSlots
 
-local tabJanitor = Janitor.new()
+local tabMaid = Maid.new()
 
 local previewCharacter, previewMaid
 local equippedItems: { [string]: EquippedItems } = {}
@@ -150,12 +150,12 @@ do
                                 slot:SetCornerButton(unequipButton)
                                 slot:Mount(equipSlots)
 
-                                tabJanitor:Add(function()
+                                tabMaid:GiveTask(function()
                                     slot:Destroy()
                                     unequipButton:GetMaid():Cleanup()
                                 end, nil, slotTask)
                             else
-                                tabJanitor:Remove(slotTask)
+                                tabMaid:Remove(slotTask)
                             end
                         end)
                     end
@@ -170,7 +170,7 @@ do
     end
 
     panel.TabChanged:Connect(function()
-        tabJanitor:Cleanup()
+        tabMaid:Cleanup()
     end)
 end
 

@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -53,9 +53,9 @@ function IceCreamExtravaganzaSession.new(...: any)
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local coreJanitor = Janitor.new()
-    local minigameJanitor = minigameSession:GetJanitor()
-    minigameJanitor:Add(minigameJanitor)
+    local coreMaid = Maid.new()
+    local minigameMaid = minigameSession:GetMaid()
+    minigameMaid:GiveTask(minigameMaid)
 
     local map = minigameSession:GetMap()
     local collectableSpawns = map.CollectableSpawns:GetChildren()
@@ -141,7 +141,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         local inviciblePlayers = {}
 
         -- Spawn collectables
-        coreJanitor:Add(task.spawn(function()
+        local collectaleSpawningThread = task.spawn(function()
             while true do
                 idCounter += 1
 
@@ -168,9 +168,13 @@ function IceCreamExtravaganzaSession.new(...: any)
 
                 task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
             end
-        end))
+        end)
 
-        coreJanitor:Add(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
+        coreMaid:GiveTask(function()
+            task.cancel(collectaleSpawningThread)
+        end)
+
+        coreMaid:GiveTask(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
             local character: Model = player.Character
 
             -- RETURN: Wrong session
@@ -242,7 +246,10 @@ function IceCreamExtravaganzaSession.new(...: any)
                         end
                     end
 
-                    coreJanitor:Add(task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player]))
+                    local revertThread = task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player])
+                    coreMaid:GiveTask(function()
+                        task.cancel(revertThread)
+                    end)
                 else
                     local scoreAddend = if collectableType == "Regular" then 1 else 2
 
@@ -280,13 +287,13 @@ function IceCreamExtravaganzaSession.new(...: any)
             end)
         end))
 
-        coreJanitor:Add(function()
+        coreMaid:GiveTask(function()
             for _, invicibleReverter in pairs(inviciblePlayers) do
                 invicibleReverter()
             end
         end)
 
-        coreJanitor:Add(minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
+        coreMaid:GiveTask(minigameSession.ParticipantRemoved:Connect(function(participant: Player, stillInGame: boolean)
             local invicibleReverter = inviciblePlayers[participant]
             if stillInGame and invicibleReverter then
                 invicibleReverter()
@@ -296,7 +303,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         --
     end, function()
         if minigameSession:GetState() ~= MinigameConstants.States.Core then
-            coreJanitor:Cleanup()
+            coreMaid:Cleanup()
         end
     end)
 

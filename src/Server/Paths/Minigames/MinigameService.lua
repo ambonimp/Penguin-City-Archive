@@ -25,7 +25,7 @@ local function createSession(minigame: string, participants: { Player }, isMulti
 
     local session = sessionClasses[minigame].new(minigame, id, participants, isMultiplayer, queueStation)
     activeSessions[minigame][id] = session
-    session:GetJanitor():Add(function()
+    session:GetMaid():GiveTask(function()
         activeSessions[minigame][id] = nil
     end)
 end
@@ -85,7 +85,7 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             queueJoining:AddParticipant(player)
         else
             queueJoining = MinigameQueue.new(minigame, queueStation)
-            queueJoining:GetJanitor():Add(function()
+            queueJoining:GetMaid():GiveTask(function()
                 task.defer(function()
                     table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
                     createSession(minigame, queueJoining:GetParticipants(), true, queueStation)

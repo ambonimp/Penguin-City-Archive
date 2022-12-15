@@ -28,7 +28,7 @@ local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agre
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local minigameJanitor = MinigameController.getMinigameJanitor()
+local minigameMaid = MinigameController.getMinigameMaid()
 local runner: typeof(PizzaFiascoRunner.new(Instance.new("Model"), {}, function() end)) | nil
 
 -------------------------------------------------------------------------------
@@ -46,16 +46,20 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     SharedMinigameScreen.openStartMenu()
 
     -- Disable movement
-    minigameJanitor:Add(task.spawn(function()
+    local movementDisablingThread = task.spawn(function()
         if ZoneController.getCurrentZone().ZoneCategory ~= ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
 
         CharacterUtil.anchor(player.Character)
-    end))
+    end)
+
+    minigameMaid:GiveTask(function()
+        task.cancel(movementDisablingThread)
+    end)
 
     -- Revert changes
-    minigameJanitor:Add(function()
+    minigameMaid:GiveTask(function()
         CameraController.resetFov()
         CameraController.setPlayerControl()
 
@@ -69,7 +73,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     runner = PizzaFiascoRunner.new(MinigameController.getMap(), FILLER_RECIPE_ORDER, function()
         Remotes.fireServer("PizzaMinigameRoundFinished")
     end)
-    minigameJanitor:Add(stopRunner, nil, RUNNER_JANITOR_INDEX)
+    minigameMaid:GiveTask(stopRunner, nil, RUNNER_JANITOR_INDEX)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
@@ -85,7 +89,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     Confetti.play()
 
     local stats = runner:GetStats()
-    minigameJanitor:Remove(RUNNER_JANITOR_INDEX)
+    minigameMaid:RemoveTask(RUNNER_JANITOR_INDEX)
 
     SharedMinigameScreen.openResults({
         { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
