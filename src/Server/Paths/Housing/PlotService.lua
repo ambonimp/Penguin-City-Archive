@@ -16,6 +16,7 @@ local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ProductService = require(Paths.Server.Products.ProductService)
 local Remotes = require(Paths.Shared.Remotes)
 local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -238,6 +239,11 @@ local function loadHouse(player: Player, plot: Model, type: string, firstLoad: b
         CollectionService:AddTag(plot.Mailbox, "Plot")
         CollectionService:AddTag(plot.Mailbox, "House")
         CollectionService:AddTag(plot.Mailbox, tostring(player.UserId))
+
+        local newLabel = assets.PlayerName:Clone()
+
+        newLabel.PlayerLabel.Text = StringUtil.possessiveName(player.DisplayName) .. " House"
+        newLabel.Parent = plot.Mailbox
     end
 end
 
@@ -257,6 +263,10 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
         CollectionService:RemoveTag(plot.Mailbox, tostring(player.UserId))
         CollectionService:RemoveTag(plot.Mailbox, "Plot")
         CollectionService:RemoveTag(plot.Mailbox, "House")
+
+        if plot.Mailbox:FindFirstChild("PlayerName") then
+            plot.Mailbox:FindFirstChild("PlayerName"):Destroy()
+        end
     else
         if plot:FindFirstChild("Furniture") then
             plot.Furniture:ClearAllChildren()
