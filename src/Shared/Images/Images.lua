@@ -335,6 +335,10 @@ Images.Map = {
     },
 }
 --#endregion
+Images.Tutorial = {
+    FocalPoint = "rbxassetid://11825341688",
+    Arrow = "rbxassetid://11825347445",
+}
 
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 

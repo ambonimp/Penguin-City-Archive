@@ -25,6 +25,7 @@ UIConstants.States = {
     StampInfo = "StampInfo",
     StartingAppearance = "StartingAppearance",
     Map = "Map",
+    Tutorial = "Tutorial",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
