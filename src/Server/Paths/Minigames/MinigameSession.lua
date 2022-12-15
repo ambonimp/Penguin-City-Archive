@@ -6,11 +6,11 @@
             - In single-player minigames, the session remains in this still until the player presses play.
             - On the client, its state is always run before any other state.
             - Great for setting up things that will remain for the duration of the session like disabling jumping.
-        - Intermission (Multiplayer Only)
+        - Intermission
             - A reset state, do things like reposition players for the new round
-            - Allows new players to join the session
-            - If the session doesn't have enough participants in the state, it will
-            - In single-player minigame states, this state is glossed over
+            - Allows new players to join the session (Multiplayer)
+            - If the session doesn't have enough participants in the state, it will go to WaitingForPlayers ((Multiplayer)
+            - If single player than this opens and closes instantly, stil nice for initializing certain things each round
         - CoreCountdown
             - 3, 2, 1, Go! -> Core
             - Useful if you want to combat latency.
@@ -356,11 +356,7 @@ function MinigameSession.new(
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
-                    if config.CoreCountdown then
-                        minigameSession:ChangeState(STATES.CoreCountdown)
-                    else
-                        minigameSession:ChangeState(STATES.Core)
-                    end
+                    minigameSession:ChangeState(STATES.Intermission)
                 end
             end))
 
@@ -386,17 +382,18 @@ function MinigameSession.new(
         end)
 
         stateMachine:RegisterStateCallbacks(STATES.Intermission, function()
-            -- RETURN: Waiting for more players
-            if #participants < config.MinParticipants then
-                minigameSession:ChangeState(STATES.WaitingForPlayers)
-                return
-            end
+            if isMultiplayer then
+                -- RETURN: Waiting for more players
+                if #participants < config.MinParticipants then
+                    minigameSession:ChangeState(STATES.WaitingForPlayers)
+                    return
+                end
 
-            -- RETURN: This is no longer the state
-            if not minigameSession:CountdownSync(config.IntermissionLength) then
-                return
+                -- RETURN: This is no longer the state
+                if not minigameSession:CountdownSync(config.IntermissionLength) then
+                    return
+                end
             end
-
             if config.CoreCountdown then
                 minigameSession:ChangeState(STATES.CoreCountdown)
             else

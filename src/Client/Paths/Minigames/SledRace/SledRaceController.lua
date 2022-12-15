@@ -52,16 +52,18 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Intermission, function()
-    SharedMinigameScreen.openStartMenu()
+    if MinigameController.isMultiplayer() then
+        SharedMinigameScreen.openStartMenu()
 
-    SharedMinigameScreen.setStatusText("Intermission")
-    MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.IntermissionLength, SharedMinigameScreen.setStatusCounter)
+        SharedMinigameScreen.setStatusText("Intermission")
+        MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.IntermissionLength, SharedMinigameScreen.setStatusCounter)
+    end
 end, function()
+    SharedMinigameScreen.closeStartMenu()
     SharedMinigameScreen.hideStatus()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
-    SharedMinigameScreen.closeStartMenu()
     MinigameController.stopMusic("Intermission")
 
     raceJanitor:Add(CollectableController.setup())

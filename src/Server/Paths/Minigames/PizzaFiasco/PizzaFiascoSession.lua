@@ -151,6 +151,7 @@ function PizzaFiascoSession.new(...: any)
             local recipeTypeOrder = participantData.RecipeTypeOrder
             for pizzaNumber = 1, totalPizzas do
                 local recipe = recipeTypeOrder[pizzaNumber]
+                print(recipe, pizzaNumber)
                 local recipeMinTime = MIN_RECIPE_TIMES[recipe]
                 minimumTime += recipeMinTime
             end
