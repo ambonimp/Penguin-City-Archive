@@ -59,48 +59,41 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         end
 
         -- Search for existing session
-        local potentialactiveSessions = {}
-        for _, sessions in pairs(activeSessions) do
-            for _, session in pairs(sessions) do
-                if session:IsAcceptingNewParticipants() then
-                    table.insert(potentialactiveSessions, session)
-                end
+        for _, session in pairs(activeSessions[minigame]) do
+            if session:IsAcceptingNewParticipants() then
+                session:AddParticipant(player)
+                Remotes.fireClient(player, "MinigameQueueExited")
+                return
             end
         end
 
-        if #potentialactiveSessions == 0 then
-            local queueJoining
-            local potentialQueues = activeQueues[minigame]
+        -- Couldn't find any, look for queues
+        local queueJoining
+        local potentialQueues = activeQueues[minigame]
 
-            if queueStation then
-                for _, queue in pairs(potentialQueues) do
-                    if queue:GetStation() == queueStation then
-                        queueJoining = queue
-                    end
+        if queueStation then
+            for _, queue in pairs(potentialQueues) do
+                if queue:GetStation() == queueStation then
+                    queueJoining = queue
                 end
-            else
-                queueJoining = potentialQueues[1]
-            end
-
-            if queueJoining then
-                queueJoining:AddParticipant(player)
-            else
-                queueJoining = MinigameQueue.new(minigame, queueStation)
-                queueJoining:GetJanitor():Add(function()
-                    task.defer(function()
-                        table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
-                        createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
-                    end)
-                end)
-
-                table.insert(potentialQueues, queueJoining)
-                queueJoining:AddParticipant(player)
             end
         else
-            local session = potentialactiveSessions[1]
-            session:AddParticipant(player)
+            queueJoining = potentialQueues[1]
+        end
 
-            Remotes.fireClient(player, "MinigameQueueExited")
+        if queueJoining then
+            queueJoining:AddParticipant(player)
+        else
+            queueJoining = MinigameQueue.new(minigame, queueStation)
+            queueJoining:GetJanitor():Add(function()
+                task.defer(function()
+                    table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
+                    createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
+                end)
+            end)
+
+            table.insert(potentialQueues, queueJoining)
+            queueJoining:AddParticipant(player)
         end
     else
         -- RETURN: No single player support
