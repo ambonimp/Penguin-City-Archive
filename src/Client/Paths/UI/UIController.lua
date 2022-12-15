@@ -68,27 +68,29 @@ do
     end)
 
     -- Manage State Callbacks
-    stateMachine:RegisterGlobalCallback(function(_fromState: string, toState: string, data: table?)
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string, data: table?)
+        -- Manage Invisible States: Get a list of invisible states on the top, and as such the "visible" state on top!
+        local currentStack = stateMachine:GetStack()
+        local topState: string?
+        local invisibleStates: { string } = {}
+        for i = #currentStack, 1, -1 do
+            local state = currentStack[i]
+            local isInvisible = table.find(UIConstants.InvisibleStates, state) and true or false
+            if isInvisible then
+                table.insert(invisibleStates, state)
+            else
+                topState = state
+                break
+            end
+        end
+
         -- Iterate screenData
         for someState, screenData in pairs(stateScreenData) do
             -- Check if we are on top or not
-            local isOnTop = (toState == someState or UIUtil.getPseudoState(someState))
+            local isInvisible = table.find(invisibleStates, someState)
+            local isOnTop = isInvisible or UIUtil.getPseudoState(someState, topState)
 
-            -- Custom UIConstants Behaviour
-            if not isOnTop then
-                -- Check if states above us are "invisible"
-                local statesAbove = stateMachine:GetStatesAbove(someState)
-                if statesAbove then
-                    local allInvisible = true
-                    for _, aboveState in pairs(statesAbove) do
-                        if not table.find(UIConstants.InvisibleStates, aboveState) then
-                            allInvisible = false
-                            break
-                        end
-                    end
-                    isOnTop = allInvisible
-                end
-            end
+            -- Run Logic
 
             -- Shutdown and Minimize
             if not isOnTop then
