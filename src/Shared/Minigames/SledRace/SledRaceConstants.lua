@@ -21,16 +21,18 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     ScoreFormatter = function(score: number): string
         return (score / 10 ^ 2) .. "s"
     end,
-    Reward = function(placement): number
-        if placement == 1 then
-            return 35
-        elseif placement == 2 then
-            return 25
-        elseif placement == 3 then
-            return 15
-        else
-            return 10
+    Reward = function(placement, _, isMultiplayer): number
+        if isMultiplayer then
+            if placement == 1 then
+                return 35
+            elseif placement == 2 then
+                return 25
+            elseif placement == 3 then
+                return 15
+            end
         end
+
+        return 10
     end,
 }
 

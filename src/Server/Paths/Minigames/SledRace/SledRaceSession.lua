@@ -17,6 +17,7 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local QueueStationService = require(Paths.Server.Minigames.QueueStationService)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
@@ -188,6 +189,12 @@ function SledRaceSession.new(...: any)
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
+        for participant, data in pairs(participantData) do
+            local coins = data.Coins
+            if coins then
+                CurrencyService.addCoins(participant, coins, true)
+            end
+        end
         stateJanitor:Cleanup()
         participantData = {}
     end, function()
