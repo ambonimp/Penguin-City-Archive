@@ -45,9 +45,9 @@ end
 -- TEMPLATE
 -------------------------------------------------------------------------------
 do
-    -- Initialize runner template
     local cframe: CFrame, size: Vector3 = sledTemplate:GetBoundingBox()
 
+    -- Create collider
     local physicsPart = Instance.new("Part")
     physicsPart.Name = "Physics"
     physicsPart.CFrame = cframe
@@ -59,6 +59,15 @@ do
     PhysicsService:SetPartCollisionGroup(physicsPart, CollisionsConstants.Groups.SledRaceSleds)
     physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
 
+    for _, displayPart in pairs(sledTemplate:GetChildren()) do
+        displayPart.Massless = true
+        displayPart.CanCollide = false
+        displayPart.CanTouch = false
+        displayPart.CanQuery = false
+        BasePartUtil.weld(displayPart, physicsPart)
+    end
+
+    -- Create actuators
     local attachment = Instance.new("Attachment")
     attachment.Parent = physicsPart
 
@@ -70,25 +79,14 @@ do
     move.ApplyAtCenterOfMass = true
     move.Parent = physicsPart
 
-    local steer = Instance.new("Torque")
-    steer.Name = "Steer"
-    steer.Attachment0 = attachment
-    steer.RelativeTo = Enum.ActuatorRelativeTo.World
-    steer.Parent = physicsPart
-
-    local alignRotation = Instance.new("AngularVelocity")
-    alignRotation.Name = "AlignRotation"
-    alignRotation.Attachment0 = attachment
-    alignRotation.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
-    alignRotation.Parent = physicsPart
-
-    for _, displayPart in pairs(sledTemplate:GetChildren()) do
-        displayPart.Massless = true
-        displayPart.CanCollide = false
-        displayPart.CanTouch = false
-        displayPart.CanQuery = false
-        BasePartUtil.weld(displayPart, physicsPart)
-    end
+    local alignOrientation = Instance.new("AlignOrientation")
+    alignOrientation.Name = "AlignOrientation"
+    alignOrientation.Attachment0 = attachment
+    alignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+    alignOrientation.ReactionTorqueEnabled = true
+    alignOrientation.MaxTorque = math.huge
+    alignOrientation.Responsiveness = 20
+    alignOrientation.Parent = physicsPart
 
     physicsPart.Parent = sledTemplate
     sledTemplate.PrimaryPart = physicsPart

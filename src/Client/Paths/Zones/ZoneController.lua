@@ -12,7 +12,7 @@ local Signal = require(Paths.Shared.Signal)
 local Maid = require(Paths.Packages.maid)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local Assume = require(Paths.Shared.Assume)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local Limiter = require(Paths.Shared.Limiter)
@@ -214,7 +214,7 @@ end
 function ZoneController.transitionToZone(
     toZone: ZoneConstants.Zone,
     teleportResult: () -> (boolean, CFrame?),
-    blinkOptions: (Transitions.BlinkOptions)?
+    blinkOptions: (BlinkTransition.Options)?
 )
     -- Init variables
     transitioningToZone = toZone
@@ -253,7 +253,7 @@ function ZoneController.transitionToZone(
     end
 
     -- Blink!
-    Transitions.blink(function()
+    BlinkTransition.play(function()
         Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "blink call")
         -- RETURN: Teleport was cancelled
         local canTeleport, newCharacterCFrame = teleportResult()

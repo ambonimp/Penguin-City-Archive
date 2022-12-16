@@ -18,11 +18,6 @@ version = "3.2.2"
 dependencies = []
 
 [[package]]
-name = "howmanysmall/janitor"
-version = "1.14.2"
-dependencies = []
-
-[[package]]
 name = "voldex/penguincity"
 version = "0.1.0"
-dependencies = [["cmdr", "evaera/cmdr@1.9.0"], ["janitor", "howmanysmall/janitor@1.14.2"], ["maid", "flamenco687/maid@3.2.2"], ["promise", "evaera/promise@4.0.0"]]
+dependencies = [["cmdr", "evaera/cmdr@1.9.0"], ["maid", "flamenco687/maid@3.2.2"], ["promise", "evaera/promise@4.0.0"]]

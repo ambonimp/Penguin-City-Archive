@@ -13,7 +13,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
@@ -85,13 +85,6 @@ local function getLogo(): string
     return Images[MinigameController.getMinigame()].Logo
 end
 
-local function getCameraGizmo(): Model?
-    local cameras = MinigameController.getMap():FindFirstChild("Cameras")
-    if cameras then
-        return cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
-    end
-end
-
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
@@ -153,9 +146,12 @@ function SharedMinigameScreen.openStartMenu()
         startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
         singlePlayerMenu.Logo.Image = getLogo()
 
-        local cameraGizmo = getCameraGizmo()
-        if cameraGizmo then
-            CameraController.viewCameraModel(cameraGizmo)
+        local cameras = MinigameController.getMap():FindFirstChild("Cameras")
+        if cameras then
+            local gizmo = cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
+            if gizmo then
+                CameraController.viewCameraModel(gizmo)
+            end
         end
 
         ScreenUtil.openBlur()
@@ -189,10 +185,8 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
         if not temporary then
             startMenus.BackgroundTransparency = 1
 
-            if getCameraGizmo() then
-                CameraController.setPlayerControl()
-                CameraController.alignCharacter()
-            end
+            CameraController.setPlayerControl()
+            CameraController.alignCharacter()
 
             if playTween then
                 playTween:Cancel()
@@ -210,7 +204,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
     startMenus.Visible = false
     menu.Visible = false
 
-    Transitions.closeBlink()
+    BlinkTransition.close()
 end
 
 function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)
@@ -353,7 +347,7 @@ end
 do
     playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        Transitions.openBlink()
+        BlinkTransition.open()
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")

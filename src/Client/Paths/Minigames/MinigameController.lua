@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Promise = require(Paths.Packages.promise)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
@@ -12,6 +12,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local MinigameQueueScreen = require(Paths.Client.UI.Screens.Minigames.MinigameQueueScreen)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
@@ -39,7 +40,7 @@ local currentIsMultiplayer: boolean?
 
 local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = {}
 
-local janitor = Janitor.new()
+local maid = Maid.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local music: { [string]: Sound } = {}
@@ -141,8 +142,8 @@ function MinigameController.getMinigame(): string?
     return currentMinigame
 end
 
-function MinigameController.getMinigameJanitor()
-    return janitor
+function MinigameController.getMinigameMaid()
+    return maid
 end
 
 function MinigameController.isMultiplayer(): boolean
@@ -216,6 +217,8 @@ end
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
     MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
+        MinigameQueueScreen.close()
+
         currentMinigame = minigame
         currentZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
@@ -249,7 +252,7 @@ Remotes.bindEvents({
                 ZoneController.ZoneChanged:Wait()
             end
 
-            janitor:Cleanup()
+            maid:Cleanup()
             uiStateMachine:Pop()
 
             task.defer(function()

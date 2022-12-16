@@ -20,7 +20,6 @@ local Output = require(Paths.Shared.Output)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
 local MINIGAME_NAME = "PizzaFiasco"
-local RUNNER_JANITOR_INDEX = "Runner"
 local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 -------------------------------------------------------------------------------
@@ -28,15 +27,17 @@ local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agre
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local minigameJanitor = MinigameController.getMinigameJanitor()
+local minigameMaid = MinigameController.getMinigameMaid()
 local runner: typeof(PizzaFiascoRunner.new(Instance.new("Model"), {}, function() end)) | nil
 
+local runnerTask
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
 local function stopRunner()
     runner:Stop()
     runner = nil
+    runnerTask = nil
 end
 
 -------------------------------------------------------------------------------
@@ -46,16 +47,20 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     SharedMinigameScreen.openStartMenu()
 
     -- Disable movement
-    minigameJanitor:Add(task.spawn(function()
+    local movementDisablingThread = task.spawn(function()
         if ZoneController.getCurrentZone().ZoneCategory ~= ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
 
         CharacterUtil.anchor(player.Character)
-    end))
+    end)
+
+    minigameMaid:GiveTask(function()
+        task.cancel(movementDisablingThread)
+    end)
 
     -- Revert changes
-    minigameJanitor:Add(function()
+    minigameMaid:GiveTask(function()
         CameraController.resetFov()
         CameraController.setPlayerControl()
 
@@ -69,7 +74,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     runner = PizzaFiascoRunner.new(MinigameController.getMap(), FILLER_RECIPE_ORDER, function()
         Remotes.fireServer("PizzaMinigameRoundFinished")
     end)
-    minigameJanitor:Add(stopRunner, nil, RUNNER_JANITOR_INDEX)
+    runnerTask = minigameMaid:GiveTask(stopRunner)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
@@ -85,7 +90,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     Confetti.play()
 
     local stats = runner:GetStats()
-    minigameJanitor:Remove(RUNNER_JANITOR_INDEX)
+    minigameMaid:RemoveTask(runnerTask)
 
     SharedMinigameScreen.openResults({
         { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
