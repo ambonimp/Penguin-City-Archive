@@ -52,7 +52,7 @@ task.delay(0, function()
         require(client.Pets.PetController),
         require(client.StampController),
         require(client.PlayerChatController),
-        require(client.TutorialController),
+        require(client.Tutorial.TutorialController),
         require(client.Tools.ToolController),
 
         -- UnitTest

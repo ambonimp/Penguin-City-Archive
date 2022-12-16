@@ -12,8 +12,6 @@ local FADE_CLASSNAME_BY_PROPERTY = {
     TextStrokeTransparency = { "TextLabel", "TextButton" },
     ImageTransparency = { "ImageLabel", "ImageButton", "ViewportFrame" },
 }
-local FADE_TWEEN_INFO = TweenInfo.new(0.5)
-local ATTRIBUTE_FADE_FORMAT = "_InstanceUtilFade_%s"
 
 -- Wrapper for creating an instance and defining some basic property values
 function InstanceUtil.new(className, name: string, parent: Instance)
@@ -104,8 +102,6 @@ function InstanceUtil.hide(instanceOrInstances: Instance | { Instance }, tweenIn
                     else
                         PropertyStack.setProperty(instance, fadeProperty, 1, "InstanceUtilHide")
                     end
-
-                    break
                 end
             end
         end
@@ -132,8 +128,6 @@ function InstanceUtil.show(instanceOrInstances: Instance | { Instance }, tweenIn
                     else
                         PropertyStack.clearProperty(instance, fadeProperty, "InstanceUtilHide")
                     end
-
-                    break
                 end
             end
         end

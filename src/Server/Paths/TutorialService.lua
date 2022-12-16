@@ -11,6 +11,8 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local CharacterItemService = require(Paths.Server.Characters.CharacterItemService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
+local PetService = require(Paths.Server.Pets.PetService)
+local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 
 function TutorialService.completedTask(player: Player, task: string)
     -- RETURN: Already completed!
@@ -29,7 +31,21 @@ end
 
 -- Communication
 Remotes.bindEvents({
+    TutorialTaskCompleted = function(player: Player, dirtyTask: any)
+        -- Clean Data
+        local task = TutorialConstants.Tasks[TypeUtil.toString(dirtyTask)]
+        if not task then
+            return
+        end
+
+        TutorialService.completedTask(player, task)
+    end,
     SetStartingAppearance = function(player: Player, dirtyColorIndex: any, dirtyOutfitIndex: any)
+        -- RETURN: Already completed this task! Stops user from getting loads of free items.
+        if TutorialService.isTaskCompleted(player, TutorialConstants.Tasks.StartingAppearance) then
+            return
+        end
+
         -- Clean Data
         local colorIndex = MathUtil.wrapAround(TypeUtil.toNumber(dirtyColorIndex, 1), #TutorialConstants.StartingAppearance.Colors)
         local outfitIndex = MathUtil.wrapAround(TypeUtil.toNumber(dirtyOutfitIndex, 1), #TutorialConstants.StartingAppearance.Outfits)
@@ -48,6 +64,22 @@ Remotes.bindEvents({
 
         -- Task done!
         TutorialService.completedTask(player, TutorialConstants.Tasks.StartingAppearance)
+    end,
+    GiveStarterPetEgg = function(player: Player)
+        -- RETURN: Already completed this task! Stops user from getting multiple starter eggs
+        if TutorialService.isTaskCompleted(player, TutorialConstants.Tasks.StarterPetEgg) then
+            return
+        end
+
+        -- Give Egg
+        PetService.addPetEgg(
+            player,
+            TutorialConstants.StarterEgg.PetEggName,
+            TimeUtil.minutesToSeconds(TutorialConstants.StarterEgg.HatchTimeMinutes)
+        )
+
+        -- Task done!
+        TutorialService.completedTask(player, TutorialConstants.Tasks.StarterPetEgg)
     end,
 })
 

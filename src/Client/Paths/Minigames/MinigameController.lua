@@ -115,6 +115,11 @@ function MinigameController.Start()
     end
 end
 
+-- Yields
+function MinigameController.playRequest(minigame: string, isMultiplayer: boolean, queueStation: Model?)
+    Remotes.invokeServer("MinigamePlayRequested", minigame, isMultiplayer, queueStation)
+end
+
 function MinigameController.registerStateCallback(minigame: string, state: string, onOpen: StateCallback?, onClose: StateCallback?)
     local minigameCallbacks = stateCallbacks[minigame]
     if not minigameCallbacks then

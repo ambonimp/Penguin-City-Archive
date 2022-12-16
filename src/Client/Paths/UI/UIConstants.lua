@@ -25,6 +25,8 @@ UIConstants.States = {
     StampInfo = "StampInfo",
     StartingAppearance = "StartingAppearance",
     Map = "Map",
+    Tutorial = "Tutorial",
+    FocalPoint = "FocalPoint",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -33,10 +35,11 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.Paycheck,
+        UIConstants.States.Tutorial,
     },
 }
 
-UIConstants.InteractionPermissiveStates = { [UIConstants.States.HUD] = true }
+UIConstants.InteractionPermissiveStates = { UIConstants.States.HUD, UIConstants.States.Tutorial }
 
 UIConstants.RemoveStatesOnZoneTeleport = {
     UIConstants.States.HouseEditor,
@@ -47,7 +50,7 @@ UIConstants.RemoveStatesOnZoneTeleport = {
 }
 
 -- If any states in here are on the top of the stack, the next visible state below will *also* be treated as being on top of the stack
-UIConstants.InvisibleStates = { UIConstants.States.StampInfo }
+UIConstants.InvisibleStates = { UIConstants.States.StampInfo, UIConstants.States.FocalPoint }
 
 UIConstants.Keybinds = {
     StateCloseCallback = {
