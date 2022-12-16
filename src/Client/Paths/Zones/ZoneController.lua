@@ -200,6 +200,8 @@ function ZoneController.transitionToZone(
     teleportResult: () -> (boolean, CFrame?),
     blinkOptions: (Transitions.BlinkOptions)?
 )
+    Output.debug("ZoneController.transitionToZone", toZone.ZoneCategory, toZone.ZoneType)
+
     -- Init variables
     isTransitioningToZone = true
     transitionToZoneScope:NewScope()
@@ -218,6 +220,7 @@ function ZoneController.transitionToZone(
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
     local function resetCharacter(toCFrame: CFrame?)
+        Output.debug("ZoneController.transitionToZone", "reset character")
         if toCFrame then
             character:PivotTo(toCFrame)
         end
@@ -308,8 +311,10 @@ end
     Returns our Assume object.
 ]]
 function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, ignoreFromZone: boolean?)
+    Output.debug("ZoneController.teleportToRoomRequest", roomZone.ZoneCategory, roomZone.ZoneType, ignoreFromZone, debug.traceback())
     local nextteleportToRoomRequestPlease = Queue.yield("ZoneController.teleportToRoomRequest")
     isRunningTeleportToRoomRequest = true
+    Output.debug("ZoneController.teleportToRoomRequest", "GO")
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
@@ -318,9 +323,12 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
 
     -- Request Assume
     local requestAssume = Assume.new(function()
-        return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
+        local response = table.pack(Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
             IgnoreFromZone = ignoreFromZone,
-        })
+        }))
+        Output.debug("ZoneController.teleportToRoomRequest", "Request Assume", response)
+
+        return table.unpack(response)
     end)
     requestAssume:Check(function(isAccepted: boolean?, _newCharacterCFrame: CFrame?)
         return isAccepted and true or false
