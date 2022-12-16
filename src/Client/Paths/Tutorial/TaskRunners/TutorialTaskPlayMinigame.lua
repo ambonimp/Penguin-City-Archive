@@ -15,6 +15,9 @@ local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
 local NavigationArrow = require(Paths.Shared.NavigationArrow)
+local InteractionController = require(Paths.Client.Interactions.InteractionController)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
+local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
 local BOARDWALK_FOCAL_POINT_POSITION = UDim2.fromScale(0.51, 0.814)
 
@@ -160,7 +163,27 @@ return function(taskMaid: typeof(Maid.new()))
 
                     -- PizzaPlace -> PizzaFiasco
                     if ZoneUtil.zonesMatch(toZone, pizzaPlaceZone) then
-                        warn("todo navigation arrow")
+                        -- Get MinigameInteractions
+                        local minigameInteractionInstances =
+                            InteractionController.getAllInteractionInstancesOfType("MinigamePrompt", ZoneUtil.getZoneModel(pizzaPlaceZone))
+
+                        -- Get PizzaFiasco MinigameInteraction
+                        local pizzaFiascoInteractionInstance: Instance
+                        for _, minigameInteractionInstance in pairs(minigameInteractionInstances) do
+                            local minigamePromptData =
+                                InteractionUtil.getMinigamePromptDataFromInteractionInstance(minigameInteractionInstance)
+                            if minigamePromptData.Minigame == MinigameConstants.Minigames.PizzaFiasco then
+                                pizzaFiascoInteractionInstance = minigameInteractionInstance
+                                break
+                            end
+                        end
+                        -- WARN: Could not find minigame interaction
+                        if not pizzaFiascoInteractionInstance then
+                            warn("Could not find PizzaFiasco MinigamePrompt")
+                            return
+                        end
+
+                        navigationArrow:GuidePlayer(Players.LocalPlayer, pizzaFiascoInteractionInstance)
                         return
                     end
                 end))

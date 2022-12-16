@@ -5,7 +5,7 @@
 
     Each task has a "task runner": a callback that is invoked that runs the logic for that task. That runner must return a `Promise`! See the existing tasks
     for their implementation, but this helps us to skip the tutorial at any stage during a task.
-    Pass tasks to the `taskMaid` to cleanup stuff when a task is discarded.
+    Pass tasks to the `taskMaid` to cleanup stuff when a task is finished with.
 ]]
 local TutorialController = {}
 

@@ -70,18 +70,6 @@ function NavigationArrow.new()
     local maid = Maid.new()
 
     -------------------------------------------------------------------------------
-    -- Public Members
-    -------------------------------------------------------------------------------
-
-    --todo
-
-    -------------------------------------------------------------------------------
-    -- Private Methods
-    -------------------------------------------------------------------------------
-
-    --todo
-
-    -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
 
@@ -113,8 +101,6 @@ function NavigationArrow.new()
         -- Beam
         local beam = createBeam(fromAttachment, toAttachment)
         maid:GiveTask(beam)
-
-        print(beam:GetFullName(), fromAttachment:GetFullName(), toAttachment:GetFullName())
     end
 
     -- Clears beam
@@ -126,12 +112,6 @@ function NavigationArrow.new()
     function navigationArrow:Destroy()
         maid:Cleanup()
     end
-
-    -------------------------------------------------------------------------------
-    -- Logic
-    -------------------------------------------------------------------------------
-
-    --todo
 
     return navigationArrow
 end

@@ -5,16 +5,15 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local InteractionController = require(Paths.Client.Interactions.InteractionController)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 
 InteractionController.registerInteraction("MinigamePrompt", function(instance)
-    local queueStation = instance.Parent
-    local isMultiplayer = queueStation:GetAttribute("Multiplayer")
-    local minigame: string = queueStation:GetAttribute("Minigame")
+    local minigamePromptData = InteractionUtil.getMinigamePromptDataFromInteractionInstance(instance)
 
-    MinigameController.playRequest(minigame, isMultiplayer, instance.Parent)
+    MinigameController.playRequest(minigamePromptData.Minigame, minigamePromptData.IsMultiplayer, instance.Parent)
 
-    if isMultiplayer then
-        local prompts = InteractionController.getAllPromptsOfType("MinigamePrompt")
+    if minigamePromptData.IsMultiplayer then
+        local prompts = InteractionController.getAllProximityPromptsOfType("MinigamePrompt")
         for _, prompt in pairs(prompts) do
             prompt.Enabled = false
         end
