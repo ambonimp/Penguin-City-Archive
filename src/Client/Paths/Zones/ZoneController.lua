@@ -40,6 +40,7 @@ local isRunningTeleportToRoomRequest = false
 local isTransitioningToZone = false
 local onZoneUpdateMaid = Maid.new()
 local transitionToZoneScope = Scope.new()
+local lockedToRoomZone: ZoneConstants.Zone | nil
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
@@ -316,6 +317,12 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
         error("Not passed a room zone!")
     end
 
+    -- WARN: Locked out!
+    if lockedToRoomZone and not ZoneUtil.zonesMatch(lockedToRoomZone, roomZone) then
+        warn(("Cannot teleport; currently locked to room %s"):format(lockedToRoomZone.ZoneType))
+        return
+    end
+
     -- Request Assume
     local requestAssume = Assume.new(function()
         return Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
@@ -356,6 +363,21 @@ function ZoneController.teleportToRandomRoom()
     local zoneType = TableUtil.getRandom(ZoneConstants.ZoneType.Room)
     local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType)
     ZoneController.teleportToRoomRequest(roomZone)
+end
+
+--[[
+    User cannot leave this zone, and will be teleported to it if they are not there. Pass `nil` to unlock
+
+    Yields if/when teleporting
+]]
+function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil)
+    lockedToRoomZone = zone
+
+    if zone then
+        if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), zone) then
+            ZoneController.teleportToRoomRequest(zone):Await()
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
