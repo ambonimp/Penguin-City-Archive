@@ -157,10 +157,13 @@ function MinigameSession.new(
 
     function minigameSession:AddParticipant(player: Player)
         -- RETURN: Unsuccessful teleport
-        local didTeleport = ZoneService.teleportPlayerToZone(player, zone)
+        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone)
         if not didTeleport then
             return
         end
+
+        -- Wait for character to be pivoted
+        characterPivotedSignal:Wait()
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)
