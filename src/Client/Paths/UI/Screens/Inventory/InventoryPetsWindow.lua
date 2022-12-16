@@ -106,7 +106,7 @@ function InventoryPetsWindow.new(
                     end)
 
                     -- Widget
-                    local widget = Widget.diverseWidgetFromPetData(petData)
+                    local widget = Widget.diverseWidgetFromPetDataIndex(petDataIndex)
                     widget:SetCornerButton(button)
 
                     return widget

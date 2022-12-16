@@ -29,7 +29,7 @@ local petId: number | nil
 local pet: ClientPet.ClientPet | nil
 local cachedEquippedPetDataIndex: string | nil
 
-PetController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string }
+PetController.PetNameChanged = Signal.new() -- { petName: string, petDataIndex: string, wasFiltered: boolean }
 PetController.PetUpdated = Signal.new() -- Added/Removed { petDataIndex: string }
 PetController.PetEggUpdated = Signal.new() -- Added/Removed { petEggDataIndex: string, isNewEgg: boolean? }
 PetController.PetCreated = Signal.new() -- { petDataIndex: string }
@@ -177,7 +177,7 @@ function PetController.requestSetPetName(petName: string, petDataIndex: string)
         PetController.PetNameChanged:Fire(petName, petDataIndex)
     end)
     assume:Else(function()
-        PetController.PetNameChanged:Fire(oldName, petDataIndex)
+        PetController.PetNameChanged:Fire(oldName, petDataIndex, true)
     end)
 
     return assume
@@ -192,8 +192,12 @@ function PetController.getCachedEquippedPetDataIndex()
     return cachedEquippedPetDataIndex
 end
 
--- Returns true if successful. Yields.
 function PetController.equipPetRequest(petDataIndex: string)
+    -- RETURN: Already equipped!
+    if cachedEquippedPetDataIndex == petDataIndex then
+        return
+    end
+
     local assume = Assume.new(function()
         return Remotes.invokeServer("EquipRequest", petDataIndex)
     end)
@@ -206,10 +210,16 @@ function PetController.equipPetRequest(petDataIndex: string)
     assume:Else(function()
         cachedEquippedPetDataIndex = nil
     end)
+
+    return assume
 end
 
--- Returns true if successful. Yields.
 function PetController.unequipPetRequest()
+    -- RETURN: Nothing equipped!
+    if not cachedEquippedPetDataIndex then
+        return
+    end
+
     task.spawn(Remotes.invokeServer, "EquipRequest", nil)
     cachedEquippedPetDataIndex = nil
 end

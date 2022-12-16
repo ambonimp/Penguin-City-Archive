@@ -26,8 +26,8 @@ local screenGui: ScreenGui
 local openMaid = Maid.new()
 local tabbedWindow: typeof(TabbedWindow.new())
 
-local petShopZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, "PetShop")
-local hoverboardShopZone = ZoneUtil.zone(ZoneConstants.ZoneType.Room, "HoverboardShop")
+local petShopZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, "PetShop")
+local hoverboardShopZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, "HoverboardShop")
 
 function InventoryScreen.Init()
     -- Setup Tabbed Window

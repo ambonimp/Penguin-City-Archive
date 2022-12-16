@@ -321,6 +321,10 @@ function SelectionPanel.new()
                 widgetFrame.Background:Destroy()
 
                 local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
+                if not widget then
+                    error(("WidgetConstructor not return a Widget! TabName: %q WidgetName: %q"):format(openTabName, widgetInfo.WidgetName))
+                end
+
                 widget:SetSelected(widgetInfo.Selected)
                 widgetInfo.Instance = widget
             end

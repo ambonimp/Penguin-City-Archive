@@ -15,6 +15,7 @@ local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
 
 local WIDGET_RESOLUTION = UDim2.fromOffset(123, 123)
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
@@ -115,10 +116,22 @@ function PetEggDisplays.update()
     for _, displayPart in pairs(CollectionService:GetTagged("PetEgg")) do
         -- ERROR: Not a part!
         if not displayPart:IsA("BasePart") then
-            error(("Got a DisplayInstace (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
-            if displayPart:IsDescendantOf(zoneModel) then
-                PetEggDisplays.createDisplay(displayPart.Name:gsub("Egg", ""), displayPart)
-            end
+            error(("PetEgg DisplayInstance (%s) that is not a BasePart!"):format(displayPart:GetFullName()))
+        end
+
+        -- ERROR: Bad displayPart name
+        local petEggName = StringUtil.chopEnd(displayPart.Name, "Egg")
+        if not (petEggName and PetConstants.PetEggs[petEggName]) then
+            error(
+                ("PetEgg DisplayInstance (%s) is a bad name! Must be named `<PET_EGG_NAME>Egg`. Got PetEggName %q"):format(
+                    displayPart:GetFullName(),
+                    tostring(petEggName)
+                )
+            )
+        end
+
+        if displayPart:IsDescendantOf(zoneModel) then
+            PetEggDisplays.createDisplay(petEggName, displayPart)
         end
     end
 end

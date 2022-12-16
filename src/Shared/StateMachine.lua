@@ -6,6 +6,7 @@ StateMachine.__index = StateMachine
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Signal = require(ReplicatedStorage.Shared.Signal)
+local Queue = require(ReplicatedStorage.Shared.Queue)
 
 type Operation = string
 
@@ -130,105 +131,114 @@ end
     Internal function for running large logic
 ]]
 function StateMachine:_RunOperation(operation, state, data)
-    task.defer(function() -- Things run in order
-        -- ERROR: Extra Data is an object or instance
-        data = data or {}
-        if typeof(data) ~= "table" then
-            prettyError(operation, state, ("Invalid ExtraData. A vanilla table was expected, but got a %q"):format(typeof(data)))
-        end
+    local runNextOperation = Queue.yield("StateMachine:_RunOperation")
 
-        -- Update cached extraData
-        self.lastData = data
+    -- ERROR: Extra Data is an object or instance
+    data = data or {}
+    if typeof(data) ~= "table" then
+        runNextOperation()
+        prettyError(operation, state, ("Invalid ExtraData. A vanilla table was expected, but got a %q"):format(typeof(data)))
+    end
 
-        -- Get current state
-        local oldState = self:GetState()
-        local oldStackSize = #self.stateStack
+    -- Update cached extraData
+    self.lastData = data
 
-        -- Asset state is valid
-        if operation ~= OPERATION_POP and not self:IsStateValid(state) then
-            prettyError(operation, state, ("The given state is not valid: " .. tostring(state)))
-        end
+    -- Get current state
+    local oldState = self:GetState()
+    local oldStackSize = #self.stateStack
 
-        -- ERROR: State is already present in the stack.
-        if operation == OPERATION_PUSH or operation == OPERATION_REPLACE then
-            for i = #self.stateStack - 1, 1, -1 do
-                local stackedState = self.stateStack[i]
-                if stackedState == state then
-                    prettyError(operation, state, "State is already present in the stack. Try :PopTo instead.")
-                end
+    -- Asset state is valid
+    if operation ~= OPERATION_POP and not self:IsStateValid(state) then
+        runNextOperation()
+        prettyError(operation, state, ("The given state is not valid: " .. tostring(state)))
+    end
+
+    -- ERROR: State is already present in the stack.
+    if operation == OPERATION_PUSH or operation == OPERATION_REPLACE then
+        for i = #self.stateStack - 1, 1, -1 do
+            local stackedState = self.stateStack[i]
+            if stackedState == state then
+                runNextOperation()
+                prettyError(operation, state, "State is already present in the stack. Try :PopTo instead.")
             end
         end
+    end
 
-        -- ERROR: State is empty, or will become empty
-        if operation == OPERATION_POP then
-            if #self.stateStack < 2 then
-                prettyError(operation, state, "Stack is empty, or would become empty after the operation. Try :Replace instead.")
+    -- ERROR: State is empty, or will become empty
+    if operation == OPERATION_POP then
+        if #self.stateStack < 2 then
+            runNextOperation()
+            prettyError(operation, state, "Stack is empty, or would become empty after the operation. Try :Replace instead.")
+        end
+    end
+
+    -- Calculate index to pop to
+    local popToIndex = -1
+    if operation == OPERATION_POP_TO or operation == OPERATION_POP_TO_AND_PUSH then
+        for i, stackedState in pairs(self.stateStack) do
+            if stackedState == state then
+                popToIndex = i
+                break
             end
         end
+    end
 
-        -- Calculate index to pop to
-        local popToIndex = -1
-        if operation == OPERATION_POP_TO or operation == OPERATION_POP_TO_AND_PUSH then
-            for i, stackedState in pairs(self.stateStack) do
-                if stackedState == state then
-                    popToIndex = i
-                    break
-                end
-            end
+    -- ERROR: State is not present in the stack (PopTo)
+    if operation == OPERATION_POP_TO then
+        if popToIndex < 1 then
+            runNextOperation()
+            prettyError(operation, state, "State is not present in the stack. Try :PopToAndPush instead.")
         end
+    end
 
-        -- ERROR: State is not present in the stack (PopTo)
-        if operation == OPERATION_POP_TO then
-            if popToIndex < 1 then
-                prettyError(operation, state, "State is not present in the stack. Try :PopToAndPush instead.")
-            end
+    -- SILENT ERROR: State is not present in the stack (Remove)
+    if operation == OPERATION_REMOVE then
+        if not self:HasState(state) then
+            runNextOperation()
+            return
         end
+    end
 
-        -- SILENT ERROR: State is not present in the stack (Remove)
-        if operation == OPERATION_REMOVE then
-            if not self:HasState(state) then
-                return
-            end
+    -- ERROR: Cannot PopTo top state
+    if operation == OPERATION_POP_TO or operation == OPERATION_POP_TO_AND_PUSH then
+        if popToIndex >= #self.stateStack then
+            runNextOperation()
+            prettyError(operation, state, "State is already at the top.")
         end
+    end
 
-        -- ERROR: Cannot PopTo top state
-        if operation == OPERATION_POP_TO or operation == OPERATION_POP_TO_AND_PUSH then
-            if popToIndex >= #self.stateStack then
-                prettyError(operation, state, "State is already at the top.")
-            end
-        end
+    -- Print traceback
+    if self.isDebugPrintingEnabled and SHOW_TRACEBACK_IN_DEBUG then
+        prettyDebug("Traceback:", debug.traceback())
+    end
 
-        -- Print traceback
-        if self.isDebugPrintingEnabled and SHOW_TRACEBACK_IN_DEBUG then
-            prettyDebug("Traceback:", debug.traceback())
-        end
+    -- Print state changes (before)
+    if self.isDebugPrintingEnabled then
+        prettyDebug("Stack before operation:", table.concat(self.stateStack, " -> "))
+        prettyDebug(("-> Operation: %s, State: %s"):format(operation, state or "nil"))
+    end
 
-        -- Print state changes (before)
-        if self.isDebugPrintingEnabled then
-            prettyDebug("Stack before operation:", table.concat(self.stateStack, " -> "))
-            prettyDebug(("-> Operation: %s, State: %s"):format(operation, state or "nil"))
-        end
+    -- Change state
+    self:_ChangeState(operation, state, popToIndex)
 
-        -- Change state
-        self:_ChangeState(operation, state, popToIndex)
+    -- Print state changes (after)
+    if self.isDebugPrintingEnabled then
+        prettyDebug("-> Stack after operation:", table.concat(self.stateStack, " -> "))
+    end
 
-        -- Print state changes (after)
-        if self.isDebugPrintingEnabled then
-            prettyDebug("-> Stack after operation:", table.concat(self.stateStack, " -> "))
-        end
+    -- Get current state
+    local currentState = self:GetState()
+    local currentStackSize = #self.stateStack
+    local hasStateChanged = oldState ~= currentState
+    local _isOldStateDiscarded = hasStateChanged and oldStackSize >= currentStackSize
 
-        -- Get current state
-        local currentState = self:GetState()
-        local currentStackSize = #self.stateStack
-        local hasStateChanged = oldState ~= currentState
-        local _isOldStateDiscarded = hasStateChanged and oldStackSize >= currentStackSize
+    -- Fire global callback
+    if self.eventGlobal then
+        prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
+        self.eventGlobal:Fire(oldState, currentState, data)
+    end
 
-        -- Fire global callback
-        if self.eventGlobal then
-            prettyDebug(("FireEvent | OldState: %s, CurrentState: %s"):format(oldState, currentState))
-            self.eventGlobal:Fire(oldState, currentState, data)
-        end
-    end)
+    runNextOperation()
 end
 
 --[[
