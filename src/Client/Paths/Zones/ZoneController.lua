@@ -25,6 +25,7 @@ local UIController: typeof(require(Paths.Client.UI.UIController))
 local Scope = require(Paths.Shared.Scope)
 local Queue = require(Paths.Shared.Queue)
 
+local DEFAULT_ZONE_HITBOX_DEBOUNCE = 2
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
 local SAVE_SOUL_AFTER_BEING_LOST_FOR = 1
@@ -157,6 +158,10 @@ local function setupTeleporter(teleporter: BasePart, zoneCategory: string)
         zoneMaid:GiveTask(teleporterHitbox)
 
         teleporterHitbox.PlayerEntered:Connect(function(player: Player)
+            local isFree = Limiter.debounce("TeleportHitbox", zoneType, DEFAULT_ZONE_HITBOX_DEBOUNCE)
+            if not isFree then
+                return
+            end
             -- RETURN: Not local player
             if player ~= Players.LocalPlayer then
                 return
