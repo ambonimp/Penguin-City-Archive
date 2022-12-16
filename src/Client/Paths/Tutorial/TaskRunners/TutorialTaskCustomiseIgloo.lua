@@ -10,37 +10,46 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local UIActions = require(Paths.Client.UI.UIActions)
+local Maid = require(Paths.Packages.maid)
 
 local uiStateMachine = UIController.getStateMachine()
 
-return function()
+return function(_taskMaid: typeof(Maid.new()))
     TutorialController.prompt("Looking Good!")
 
-    -- Ensure player is in their igloo
-    local iglooZone = ZoneUtil.houseInteriorZone(Players.LocalPlayer)
-    local isInIglooZone = ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), iglooZone)
-    if not isInIglooZone then
-        local teleportAssume = ZoneController.teleportToRoomRequest(iglooZone)
-        teleportAssume:Await() -- Yield for Server/Client replication lag
-    end
+    TutorialController.prompt("In Penguin City, you have your own igloo! Let's go there now..")
 
-    TutorialController.prompt("You are in your igloo. Let's customize it!")
+    -- Highlight Igloo Button
+    local hideIglooFocalPoint = UIActions.focalPoint(HUDScreen.getIglooButton():GetButtonObject())
+
+    -- Wait for user to go to their igloo
+    local iglooZone = ZoneUtil.houseInteriorZone(Players.LocalPlayer)
+    while not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), iglooZone)) do
+        task.wait()
+    end
+    hideIglooFocalPoint()
+
+    -- Lock player to their igloo
+    ZoneController.lockToRoomZone(iglooZone)
+
+    TutorialController.prompt("This is your igloo... let's customize it!")
 
     -- Highlight Igloo Edit Button
-    local iglooButton = HUDScreen.getIglooButton()
-    local hideFocalPoint = UIActions.focalPoint(iglooButton:GetButtonObject())
+    local hideFocalPoint = UIActions.focalPoint(HUDScreen.getIglooButton():GetButtonObject())
 
     -- Wait for user to enter editing
     while not (uiStateMachine:HasState(UIConstants.States.HouseEditor)) do
         task.wait()
     end
-
     hideFocalPoint()
 
     -- Wait for user to exit editing
     while uiStateMachine:HasState(UIConstants.States.HouseEditor) do
         task.wait()
     end
+
+    -- Unlock player
+    ZoneController.lockToRoomZone()
 
     -- Task Completed
     TutorialController.taskCompleted(TutorialConstants.Tasks.CustomiseIgloo)
