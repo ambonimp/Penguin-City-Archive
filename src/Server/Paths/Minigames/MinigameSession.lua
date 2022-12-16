@@ -24,6 +24,8 @@ type Participants = { Player }
 
 local STATES = MinigameConstants.States
 
+MinigameSession.MinigameFinished = Signal.new() -- { sortedScores: MinigameConstants.SortedScored }
+
 local assets = ServerStorage.Minigames
 
 function MinigameSession.new(
@@ -425,6 +427,9 @@ function MinigameSession.new(
 
             -- Relay to client
             stateMachine:GetData().Scores = sortedScores
+
+            -- Relay to server
+            MinigameSession.MinigameFinished:Fire(sortedScores)
 
             -- Cleanup
             scores = nil
