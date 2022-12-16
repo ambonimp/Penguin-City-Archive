@@ -49,6 +49,13 @@ function UIUtil.getPseudoState(pseudoState: string, topState: string?)
 end
 
 --[[
+    Returns true if we are allowed to show ProximityPrompts in this UIState
+]]
+function UIUtil.isStateInteractionPermissive(state: string)
+    return table.find(UIConstants.InteractionPermissiveStates, state) and true or false
+end
+
+--[[
     Will return a Promise that is resolved when we are in the HUD UIState and are in a Room Zone
 
     - `timeSeconds`: If passed, will ensure this state has been held for `timeSeconds` before resolving

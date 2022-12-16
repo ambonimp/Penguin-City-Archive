@@ -16,6 +16,7 @@ local InputConstants = require(Paths.Client.Input.InputConstants)
 local Toggle = require(Paths.Shared.Toggle)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local MAX_PROMPTS_VISIBLE = 5
 local GAMEPAD_KEY_CODE = Enum.KeyCode.ButtonX
@@ -302,8 +303,8 @@ function InteractionController.Init()
 
     -- Disable interactions for certain ui states
     local PlayerMenuController = require(Paths.Client.PlayerMenuController)
-    UIController.getStateMachine():RegisterGlobalCallback(function(_, toState)
-        if UIConstants.InteractionPermissiveStates[toState] then
+    UIController.getStateMachine():RegisterGlobalCallback(function(_fromState, toState)
+        if UIUtil.isStateInteractionPermissive(toState) then
             ProximityPromptService.Enabled = true
             PlayerMenuController.close()
         else
