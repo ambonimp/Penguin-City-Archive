@@ -14,6 +14,7 @@ local UIActions = require(Paths.Client.UI.UIActions)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
+local NavigationArrow = require(Paths.Shared.NavigationArrow)
 
 local BOARDWALK_FOCAL_POINT_POSITION = UDim2.fromScale(0.51, 0.814)
 
@@ -21,6 +22,9 @@ local boardwalkZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstan
 local pizzaPlaceZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.PizzaPlace)
 
 return function(taskMaid: typeof(Maid.new()))
+    local navigationArrow = NavigationArrow.new()
+    taskMaid:GiveTask(navigationArrow)
+
     local isTutorialSkipped = false
     return Promise.new(function(resolve, _reject, onCancel)
         onCancel(function()
@@ -127,6 +131,39 @@ return function(taskMaid: typeof(Maid.new()))
                     end
                 end))
                 boardwalkFocus(UIController.isStateMaximized(UIConstants.States.Map))
+
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -------------------------------------------------------------------------------
+                -- NAVIGATION ARROWS
+                -------------------------------------------------------------------------------
+
+                taskMaid:GiveTask(ZoneController.ZoneChanged:Connect(function(_fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+                    -- Clear arrow on teleport
+                    navigationArrow:Clear()
+
+                    -- Boardwalk -> PizzaPlace
+                    if ZoneUtil.zonesMatch(toZone, boardwalkZone) then
+                        -- WARN: Could not get teleporter
+                        local pizzaPlaceTeleporter = ZoneUtil.getZoneInstances(boardwalkZone).RoomDepartures:FindFirstChild("PizzaPlace")
+                        if not pizzaPlaceTeleporter then
+                            warn("Could not find pizza place teleporter")
+                            return
+                        end
+
+                        navigationArrow:GuidePlayer(Players.LocalPlayer, pizzaPlaceTeleporter)
+                        return
+                    end
+
+                    -- PizzaPlace -> PizzaFiasco
+                    if ZoneUtil.zonesMatch(toZone, pizzaPlaceZone) then
+                        warn("todo navigation arrow")
+                        return
+                    end
+                end))
 
                 resolve()
             end)

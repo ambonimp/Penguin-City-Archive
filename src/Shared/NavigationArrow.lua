@@ -48,7 +48,7 @@ local function createBeam(fromAttachment: Attachment, toAttachment: Attachment)
     beam.Texture = "rbxassetid://11832262566"
     beam.TextureLength = 5
     beam.TextureMode = Enum.TextureMode.Static
-    beam.TextureSpeed = -0.2
+    beam.TextureSpeed = -0.6
     beam.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 0.2),
         NumberSequenceKeypoint.new(1, 0.2),
