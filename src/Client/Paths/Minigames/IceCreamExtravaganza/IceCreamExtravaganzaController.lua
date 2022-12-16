@@ -26,7 +26,9 @@ local player = Players.LocalPlayer
 
 local coreMaid = Maid.new()
 local minigameMaid = MinigameController.getMinigameMaid()
-minigameMaid:GiveTask(coreMaid, "Cleanup")
+minigameMaid:GiveTask(function()
+    coreMaid:Cleanup()
+end)
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
