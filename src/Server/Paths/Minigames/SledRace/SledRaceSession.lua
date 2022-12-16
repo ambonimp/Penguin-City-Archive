@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
@@ -17,6 +17,7 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local QueueStationService = require(Paths.Server.Minigames.QueueStationService)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
@@ -33,8 +34,8 @@ function SledRaceSession.new(...: any)
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
     local mapDirection: CFrame = mapOrigin.Rotation
 
-    local stateJanitor = Janitor.new()
-    minigameSession:GetJanitor():Add(stateJanitor)
+    local stateMaid = Maid.new()
+    minigameSession:GetMaid():GiveTask(stateMaid)
 
     local participantData: {
         [Player]: {
@@ -104,9 +105,13 @@ function SledRaceSession.new(...: any)
         end
 
         -- Validate speeds
-        stateJanitor:Add(RunService.Heartbeat:Connect(function(dt)
+        stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
             for participant, data in pairs(participantData) do
                 local character = participant.Character
+                -- CONTINUE: Player left minigame
+                if not character then
+                    continue
+                end
 
                 local position: Vector3 = character.PrimaryPart.Position
                 local velocity: number = (mapDirection:PointToObjectSpace(position - data.Position) * XY).Magnitude / dt
@@ -119,7 +124,7 @@ function SledRaceSession.new(...: any)
         end))
 
         collectables = SledRaceMap.loadCollectables(map)
-        stateJanitor:Add(collectables)
+        stateMaid:GiveTask(collectables)
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
@@ -130,7 +135,7 @@ function SledRaceSession.new(...: any)
             SledRaceUtil.unanchorSled(partipant)
         end
 
-        stateJanitor:Add(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
+        stateMaid:GiveTask(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
             -- RETURN: Collectable has already been collected or doesn't exist anymore
             if collectable.Parent ~= collectables then
                 return
@@ -170,7 +175,7 @@ function SledRaceSession.new(...: any)
             end
         end))
 
-        stateJanitor:Add(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+        stateMaid:GiveTask(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
             if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
                 table.insert(finished, player)
@@ -184,11 +189,17 @@ function SledRaceSession.new(...: any)
             end
         end))
     end, function()
-        stateJanitor:Cleanup()
+        stateMaid:Cleanup()
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
-        stateJanitor:Cleanup()
+        for participant, data in pairs(participantData) do
+            local coins = data.Coins
+            if coins then
+                CurrencyService.addCoins(participant, coins, true)
+            end
+        end
+        stateMaid:Cleanup()
         participantData = {}
     end, function()
         -- Respawn at spawn points

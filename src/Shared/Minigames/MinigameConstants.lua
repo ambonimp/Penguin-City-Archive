@@ -26,7 +26,7 @@ export type SessionConfig = {
     --
     HigherScoreWins: boolean,
     ScoreFormatter: ((number) -> (number | string))?,
-    Reward: (placement: number, score: number) -> (number)?,
+    Reward: (placement: number, score: number, isMultiplayer: boolean) -> (number)?,
 }
 
 MinigameConstants.MaximumSufficientlyFilledQueueLength = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 5 else 15

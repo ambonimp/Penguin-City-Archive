@@ -3,7 +3,7 @@ local IceCreamExtravaganzaController = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -24,9 +24,9 @@ local RESTART_DELAY = 0.2
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local coreJanitor = Janitor.new()
-local minigameJanitor = MinigameController.getMinigameJanitor()
-minigameJanitor:Add(coreJanitor, "Cleanup")
+local coreMaid = Maid.new()
+local minigameMaid = MinigameController.getMinigameMaid()
+minigameMaid:GiveTask(coreMaid, "Cleanup")
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -44,18 +44,18 @@ end
 -------------------------------------------------------------------------------
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Nothing, function()
     SharedMinigameScreen.openStartMenu()
-    minigameJanitor:Add(CameraController.setup())
+    minigameMaid:GiveTask(CameraController.setup())
 
     -- Disable walking
     anchorCharacter()
 
     -- Disable jumping
     local humanoid: Humanoid = player.Character.Humanoid
-    minigameJanitor:Add(UserInputService.JumpRequest:Connect(function()
+    minigameMaid:GiveTask(UserInputService.JumpRequest:Connect(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
 
-    minigameJanitor:Add(function()
+    minigameMaid:GiveTask(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
     end)
 
@@ -86,7 +86,7 @@ end, function()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
-    coreJanitor:Add(CollectableController.setup())
+    coreMaid:GiveTask(CollectableController.setup())
 
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
 
@@ -102,7 +102,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     MinigameController.startCountdownAsync(IceCreamExtravaganzaConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
     SharedMinigameScreen.hideStatus()
-    coreJanitor:Cleanup()
+    coreMaid:Cleanup()
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)

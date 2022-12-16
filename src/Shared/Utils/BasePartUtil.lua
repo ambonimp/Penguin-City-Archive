@@ -49,6 +49,21 @@ function BasePartUtil.getGlobalExtentsSize(part: PsuedoBasePart, offset: CFrame?
     return Vector3.new(extentSize.X, extentSize.Y, extentSize.Z)
 end
 
+-- Return's the center point of a basepart's face
+function BasePartUtil.getSurfacePosition(part: PsuedoBasePart, surfaceDirection: Vector3)
+    local size = part.Size
+    return part.CFrame:PointToWorldSpace((size / 2 * surfaceDirection * Vector3.new(1, 1, -1)))
+end
+
+-- Return's the size basepart's face
+function BasePartUtil.getGlobalSurfaceExtentSize(part: PsuedoBasePart, surfaceDirection: Vector3, offset: CFrame?)
+    local size = part.Size
+    return BasePartUtil.getGlobalExtentsSize({
+        Size = size * Vector3.new(1 - math.abs(surfaceDirection.X), 1 - math.abs(surfaceDirection.Y), 1 - math.abs(surfaceDirection.Z)),
+        CFrame = part.CFrame:ToWorldSpace(CFrame.new(size / 2 * surfaceDirection * Vector3.new(1, 1, -1))),
+    }, offset)
+end
+
 -- Get's the closest point on (part0) relative to (part1)
 function BasePartUtil.closestPoint(part0: PsuedoBasePart, part1: PsuedoBasePart): Vector3
     local closestPoint: Vector3

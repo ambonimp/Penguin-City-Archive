@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -24,7 +24,7 @@ local player = Players.LocalPlayer
 local assets: BasePart = Paths.Assets.Minigames.IceCreamExtravaganza
 
 function IceCreamExtravaganzaCollectables.setup()
-    local janitor = Janitor.new()
+    local maid = Maid.new()
 
     local map = MinigameController.getMap()
     local floor: BasePart = map.Floor
@@ -43,7 +43,7 @@ function IceCreamExtravaganzaCollectables.setup()
         table.insert(participatingCharacters, participant.Character)
     end
 
-    janitor:Add(
+    maid:GiveTask(
         Remotes.bindEventTemp("IceCreamExtravaganzaCollectableSpawned", function(id: string, modelTemplate: Model, dropOrigin: CFrame)
             local dropOriginXZ = Vector3Util.getXZComponents(dropOrigin.Position)
 
@@ -140,9 +140,7 @@ function IceCreamExtravaganzaCollectables.setup()
                     ),
                 }),
             }):finally(function()
-                if janitor:Get(id) then
-                    janitor:Remove(id)
-                end
+                maid:RemoveTask()
 
                 model:Destroy()
                 shadowPart:Destroy()
@@ -150,16 +148,16 @@ function IceCreamExtravaganzaCollectables.setup()
                 drops[id] = nil
             end)
 
-            janitor:Add(function()
+            maid:GiveTask(function()
                 local tweenPromise = drops[id]
                 if tweenPromise then
                     tweenPromise:cancel()
                 end
-            end, nil, id)
+            end)
         end)
     )
 
-    return janitor
+    return maid
 end
 
 return IceCreamExtravaganzaCollectables

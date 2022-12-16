@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -51,8 +51,8 @@ function PizzaFiascoSession.new(...: any)
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local coreJanitor = Janitor.new()
-    minigameSession:GetJanitor():Add(coreJanitor)
+    local coreMaid = Maid.new()
+    minigameSession:GetMaid():GiveTask(coreMaid)
 
     local participantData: {
         RecipeTypeOrder: { string },
@@ -99,7 +99,7 @@ function PizzaFiascoSession.new(...: any)
         -- Inform client of their recipe order
         minigameSession:RelayToParticipants("PizzaFiascoRecipeTypeOrder", participantData.RecipeTypeOrder)
 
-        coreJanitor:Add(
+        coreMaid:GiveTask(
             Remotes.bindEventTemp("PizzaFiascoPizzaCompleted", function(player: Player, dirtyWasCorrect: any, dirtyDoSubtractMistake: any)
                 -- RETURN: Wrong session
                 if not minigameSession:IsPlayerParticipant(player) then
@@ -126,7 +126,7 @@ function PizzaFiascoSession.new(...: any)
             end)
         )
 
-        coreJanitor:Add(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
+        coreMaid:GiveTask(Remotes.bindEventTemp("PizzaMinigameRoundFinished", function(player: Player)
             -- RETURN: Wrong session
             if not minigameSession:IsPlayerParticipant(player) then
                 return
@@ -157,6 +157,7 @@ function PizzaFiascoSession.new(...: any)
             local recipeTypeOrder = participantData.RecipeTypeOrder
             for pizzaNumber = 1, totalPizzas do
                 local recipe = recipeTypeOrder[pizzaNumber]
+                print(recipe, pizzaNumber)
                 local recipeMinTime = MIN_RECIPE_TIMES[recipe]
 
                 --!! temp testing
@@ -196,7 +197,7 @@ function PizzaFiascoSession.new(...: any)
         end))
     end, function()
         participantData = nil
-        coreJanitor:Cleanup()
+        coreMaid:Cleanup()
     end)
 
     minigameSession:SetDefaultScore(0)
