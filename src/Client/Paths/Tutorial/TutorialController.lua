@@ -208,6 +208,14 @@ function TutorialController.giveStarterPetEgg()
     Remotes.fireServer("GiveStarterPetEgg")
 end
 
+-- Wrapper for TutorialScreen.prompt. Yields until finished
+function TutorialController.tweenPetEggIntoInventory()
+    -- Circular Dependency
+    local TutorialScreen = require(Paths.Client.UI.Screens.Tutorial.TutorialScreen)
+
+    TutorialScreen.egg(TutorialConstants.StarterEgg.PetEggName)
+end
+
 --[[
     - Sets the task as completed
     - Applies the actual selected appearance to the players character, data etc..

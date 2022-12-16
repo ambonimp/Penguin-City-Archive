@@ -15,6 +15,8 @@ local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
 
+local PAUSE_AFTER_EGG = 0.8
+
 return function(_taskMaid: typeof(Maid.new()))
     local _isTutorialSkipped = false
     return Promise.new(function(resolve, _reject, onCancel)
@@ -34,7 +36,8 @@ return function(_taskMaid: typeof(Maid.new()))
         end)
         :andThen(function()
             return Promise.new(function(resolve)
-                warn("TODO tween pet egg into inventory button on hud")
+                TutorialController.tweenPetEggIntoInventory()
+                task.wait(PAUSE_AFTER_EGG)
 
                 resolve()
             end)
