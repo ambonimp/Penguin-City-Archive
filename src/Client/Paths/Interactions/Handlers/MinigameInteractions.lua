@@ -45,10 +45,10 @@ InteractionController.registerInteraction("MinigamePrompt", function(instance)
         --[[
         task.wait(0.2)
         MinigameQueueScreen.open( minigameName, false) *]]
+    end
 
-        if uiStateMachine:GetState() ~= UIConstants.States then
-            disconnect = uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, reenablePrompts)
-        end
+    if uiStateMachine:GetState() ~= UIConstants.States then
+        disconnect = uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, reenablePrompts)
     end
 
     MinigameController.playRequest(minigamePromptData.Minigame, minigamePromptData.IsMultiplayer, instance.Parent)
