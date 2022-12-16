@@ -17,9 +17,8 @@ local Promise = require(Paths.Packages.promise)
 local NavigationArrow = require(Paths.Shared.NavigationArrow)
 local InteractionController = require(Paths.Client.Interactions.InteractionController)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
-local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 
-local BOARDWALK_FOCAL_POINT_POSITION = UDim2.fromScale(0.51, 0.814)
+local BOARDWALK_FOCAL_POINT_POSITION = UDim2.fromScale(0.505, 0.82)
 
 local boardwalkZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Boardwalk)
 local pizzaPlaceZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.PizzaPlace)

@@ -5,6 +5,7 @@ TutorialConstants.Tasks = {
     CustomiseIgloo = "CustomiseIgloo",
     PlayMinigame = "PlayMinigame",
     StarterPetEgg = "StarterPetEgg",
+    TutorialCompleted = "TutorialCompleted",
 }
 
 TutorialConstants.TaskOrder = {
@@ -12,6 +13,7 @@ TutorialConstants.TaskOrder = {
     TutorialConstants.Tasks.CustomiseIgloo,
     TutorialConstants.Tasks.PlayMinigame,
     TutorialConstants.Tasks.StarterPetEgg,
+    TutorialConstants.Tasks.TutorialCompleted,
 }
 
 TutorialConstants.StartingAppearance = {

@@ -14,8 +14,11 @@ local UIActions = require(Paths.Client.UI.UIActions)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
+local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
-return function(_taskMaid: typeof(Maid.new()))
+local PAUSE_TIME = 3
+
+return function(taskMaid: typeof(Maid.new()))
     local _isTutorialSkipped = false
     return Promise.new(function(resolve, _reject, onCancel)
         onCancel(function()
@@ -25,23 +28,30 @@ return function(_taskMaid: typeof(Maid.new()))
     end)
         :andThen(function()
             return Promise.new(function(resolve)
-                TutorialController.prompt("You are all set! Here is a Pet Egg to get you started..")
+                TutorialController.prompt("Congratulations! You completed the tutorial.")
 
-                TutorialController.giveStarterPetEgg()
-
-                resolve()
-            end)
-        end)
-        :andThen(function()
-            return Promise.new(function(resolve)
-                warn("TODO tween pet egg into inventory button on hud")
+                Confetti.play()
 
                 resolve()
             end)
         end)
         :andThen(function()
             return Promise.new(function(resolve)
-                TutorialController.prompt(("You can hatch your egg in %d minutes!"):format(TutorialConstants.StarterEgg.HatchTimeMinutes))
+                task.wait(PAUSE_TIME)
+
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                TutorialController.prompt("Check out the Stamp Book to see all the things you can achieve!")
+
+                TutorialController.prompt("Have fun and welcome to Penguin City :)")
+
+                local hideStampBookFocalPoint = UIActions.focalPoint(HUDScreen.getStampBookButton():GetButtonObject())
+                taskMaid:GiveTask(hideStampBookFocalPoint)
+
+                task.wait(PAUSE_TIME)
 
                 resolve()
             end)
