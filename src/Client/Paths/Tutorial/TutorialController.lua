@@ -25,6 +25,7 @@ local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
 
 TutorialController.StartTask = Signal.new() -- { task: string } used to kickstart the next tutorial task
+TutorialController.TutorialSkipped = Signal.new()
 
 local locallyCompletedTasks: { [string]: true } = {}
 local taskMaid = Maid.new()
@@ -154,6 +155,8 @@ function TutorialController.skipTutorial()
 
     -- Tutorial is finished!
     UIController.getStateMachine():Remove(UIConstants.States.Tutorial)
+
+    TutorialController.TutorialSkipped:Fire()
 end
 
 -------------------------------------------------------------------------------
