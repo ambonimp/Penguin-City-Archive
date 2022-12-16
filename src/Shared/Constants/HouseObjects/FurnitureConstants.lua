@@ -39,11 +39,11 @@ FurnitureConstants.MainTabs = {
         SubTabs = { Tags.Couches, Tags.Chairs, Tags.Desks, Tags.Beds },
     },
     Furniture = {
-        Icon = Images.Icons.Furniture,
-        SubTabs = { Tags.LivingRoom, Tags.BedRoom, Tags.DiningRoom, Tags.Bathroom, Tags.Kitchen, Tags.Tables, Tags.Desks },
+        Icon = Images.Icons.FloorCarpet,
+        SubTabs = { Tags.LivingRoom, Tags.BedRoom, Tags.DiningRoom, Tags.Bathroom, Tags.Kitchen },
     },
     Decoration = {
-        Icon = Images.Icons.Furniture,
+        Icon = Images.Icons.WindowDoor,
         SubTabs = { Tags.Lights, Tags.Shelves, Tags.Tables, Tags.Desks, Tags.Cabinet, Tags.Wall, Tags.Decorations, Tags.Entertainment },
     },
 }

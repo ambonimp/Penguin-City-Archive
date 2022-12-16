@@ -73,15 +73,23 @@ local function getAttachedInteractions(instance: PVInstance): { string }
 end
 
 local function createPrompt(instance: PVInstance)
-    if not instance:FindFirstChildOfClass("ProximityPrompt") then
-        local proximityPrompt = Instance.new("ProximityPrompt")
-        proximityPrompt.Style = Enum.ProximityPromptStyle.Custom
-        proximityPrompt.KeyboardKeyCode = KEYBOARD_KEY_CODE
-        proximityPrompt.GamepadKeyCode = GAMEPAD_KEY_CODE
-        proximityPrompt.MaxActivationDistance = MAX_ACTIVATION_DISTANCE
-        proximityPrompt.Parent = instance
-        proximityPrompt.RequiresLineOfSight = false
-        proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+    --local prompts, if an instance has tag "PlayerId", make sure it has a tag of the userid
+    if CollectionService:HasTag(instance, "PlayerId") and not CollectionService:HasTag(instance, tostring(player.UserId)) then
+        return
+    elseif
+        not CollectionService:HasTag(instance, "PlayerId")
+        or (CollectionService:HasTag(instance, "PlayerId") and CollectionService:HasTag(instance, tostring(player.UserId)))
+    then
+        if not instance:FindFirstChildOfClass("ProximityPrompt") then
+            local proximityPrompt = Instance.new("ProximityPrompt")
+            proximityPrompt.Style = Enum.ProximityPromptStyle.Custom
+            proximityPrompt.KeyboardKeyCode = KEYBOARD_KEY_CODE
+            proximityPrompt.GamepadKeyCode = GAMEPAD_KEY_CODE
+            proximityPrompt.MaxActivationDistance = MAX_ACTIVATION_DISTANCE
+            proximityPrompt.Parent = instance
+            proximityPrompt.RequiresLineOfSight = false
+            proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+        end
     end
 end
 
@@ -234,7 +242,7 @@ function InteractionController.registerInteraction(interaction: string, handler:
 
     -- Removing
     CollectionService:GetInstanceRemovedSignal(interaction):Connect(function(instance)
-        if #getAttachedInteractions(instance) == 0 then
+        if #getAttachedInteractions(instance) == 0 and instance:FindFirstChildOfClass("ProximityPrompt") then
             instance:FindFirstChildOfClass("ProximityPrompt"):Destroy()
         end
     end)

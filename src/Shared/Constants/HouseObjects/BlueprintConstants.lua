@@ -16,9 +16,15 @@ objects["Default"] = {
     Price = 0,
     Icon = "",
 }
+objects["CircusTent"] = {
+    Name = "Circus Tent",
+    Price = 400,
+    Icon = "",
+}
+
 objects["Dojo"] = {
     Name = "Dojo",
-    Price = 200,
+    Price = 1000,
     Icon = "",
 }
 
