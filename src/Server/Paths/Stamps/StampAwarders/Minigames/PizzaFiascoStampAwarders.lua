@@ -10,6 +10,7 @@ local TimeUtil = require(Paths.Shared.Utils.TimeUtil)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoConstants)
+local PizzaFiascoSession = require(Paths.Server.Minigames.PizzaFiasco.PizzaFiascoSession)
 
 local pizzaPlayStamp = StampUtil.getStampFromId("minigame_pizza_play")
 local pizzaLoseStamp = StampUtil.getStampFromId("minigame_pizza_lose")
@@ -30,6 +31,36 @@ MinigameSession.MinigameFinished:Connect(function(sortedScores: MinigameConstant
         if didLose then
             StampService.addStamp(scoreData.Player, pizzaLoseStamp.Id)
         end
+    end
+end)
+
+-- pizzaCorrect5Stamp, pizzaCorrect25Stamp, pizzaExraLifeStamp
+PizzaFiascoSession.RecipeRecordUpdated:Connect(function(player: Player, recipeRecords: { PizzaFiascoSession.RecipeRecord })
+    -- Get how many correct in a row
+    local totalCorrectPizzasInARow = 0
+    for i = #recipeRecords, 1, -1 do
+        local recipeRecord = recipeRecords[i]
+        if recipeRecord.WasCorrect or recipeRecord.DoSubtractMistake then
+            totalCorrectPizzasInARow += 1
+        else
+            break
+        end
+    end
+
+    -- Was the latest recipe record a subtraction / extra life?
+    local didUseExtraLife = recipeRecords[#recipeRecords].DoSubtractMistake
+
+    -- Award Stamps
+    if totalCorrectPizzasInARow >= 5 then
+        StampService.addStamp(player, pizzaCorrect5Stamp.Id)
+    end
+
+    if totalCorrectPizzasInARow >= 25 then
+        StampService.addStamp(player, pizzaCorrect25Stamp.Id)
+    end
+
+    if didUseExtraLife then
+        StampService.addStamp(player, pizzaExraLifeStamp.Id)
     end
 end)
 
