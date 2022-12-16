@@ -13,7 +13,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
@@ -204,7 +204,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
     startMenus.Visible = false
     menu.Visible = false
 
-    Transitions.closeBlink()
+    BlinkTransition.close()
 end
 
 function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)
@@ -347,7 +347,7 @@ end
 do
     playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        Transitions.openBlink()
+        BlinkTransition.open()
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")

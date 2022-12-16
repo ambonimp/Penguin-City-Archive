@@ -12,7 +12,7 @@ local Signal = require(Paths.Shared.Signal)
 local Maid = require(Paths.Packages.maid)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local Assume = require(Paths.Shared.Assume)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local BooleanUtil = require(Paths.Shared.Utils.BooleanUtil)
 local Limiter = require(Paths.Shared.Limiter)
@@ -174,7 +174,7 @@ end
 function ZoneController.teleportingToZoneIn(zone: ZoneConstants.Zone, teleportBuffer: number)
     Output.doDebug(ZoneConstants.DoDebug, "teleportingToZoneIn", teleportBuffer, zone.ZoneCategory, zone.ZoneType)
 
-    local blinkDuration = math.min(teleportBuffer, Transitions.BLINK_TWEEN_INFO.Time)
+    local blinkDuration = math.max(teleportBuffer, BlinkTransition.TWEEN_INFO.Time)
     ZoneController.transitionToZone(zone, function()
         -- Wait to be teleported
         task.wait(teleportBuffer - blinkDuration)
@@ -192,7 +192,7 @@ function ZoneController.transitionToZone(
     toZone: ZoneConstants.Zone,
     yielder: () -> nil,
     verifier: (() -> boolean)?,
-    blinkOptions: (Transitions.BlinkOptions)?
+    blinkOptions: (BlinkTransition.Options)?
 )
     -- RETURN: Already playing
     if isPlayingTransition then
@@ -206,7 +206,7 @@ function ZoneController.transitionToZone(
     isPlayingTransition = true
     ZoneController.ZoneChanging:Fire(currentZone, toZone)
 
-    Transitions.blink(function()
+    BlinkTransition.play(function()
         yielder()
 
         if not verifier or verifier() == true then

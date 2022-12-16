@@ -62,7 +62,6 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         for _, session in pairs(activeSessions[minigame]) do
             if session:IsAcceptingNewParticipants() then
                 session:AddParticipant(player)
-                Remotes.fireClient(player, "MinigameQueueExited")
                 return
             end
         end

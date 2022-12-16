@@ -13,6 +13,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local MinigameQueueScreen = require(Paths.Client.UI.Screens.Minigames.MinigameQueueScreen)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
@@ -211,6 +212,8 @@ end
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
     MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
+        MinigameQueueScreen.close()
+
         currentMinigame = minigame
         currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
