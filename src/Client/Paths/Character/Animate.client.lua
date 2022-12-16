@@ -47,7 +47,17 @@ local animTable = {}
 
 -- Existance in this list signifies that it is an emote, the value indicates if it is a looping emote
 -- Emotes: wave, point, dance, dance2, dance3, laugh, cheer
-local emoteNames = { Wave = false, Point = false, Cheer = false }
+local emoteNames = {
+    Wave = false,
+    Point = false,
+    Cheer = false,
+    Dance = false,
+    Dance1 = false,
+    Dance2 = false,
+    Dance3 = false,
+    Dance4 = false,
+    Angry = false,
+}
 
 math.randomseed(tick())
 
