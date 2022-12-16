@@ -1,3 +1,12 @@
+--[[
+    Welcome to the tutorial scope!
+
+    TutorialConstants contains the names for all of the tasks, and the order in which they will be completed.
+
+    Each task has a "task runner": a callback that is invoked that runs the logic for that task. That runner must return a `Promise`! See the existing tasks
+    for their implementation, but this helps us to skip the tutorial at any stage during a task.
+    Pass tasks to the `taskMaid` to cleanup stuff when a task is discarded.
+]]
 local TutorialController = {}
 
 local Players = game:GetService("Players")
@@ -12,10 +21,14 @@ local UIController = require(Paths.Client.UI.UIController)
 local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local Signal = require(Paths.Shared.Signal)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
+local Maid = require(Paths.Packages.maid)
+local Promise = require(Paths.Packages.promise)
 
 TutorialController.StartTask = Signal.new() -- { task: string } used to kickstart the next tutorial task
 
 local locallyCompletedTasks: { [string]: true } = {}
+local taskMaid = Maid.new()
+local currentTaskPromise = nil or Promise.new() -- type hack
 
 -------------------------------------------------------------------------------
 -- Private Methods
@@ -47,7 +60,7 @@ function TutorialController.Start()
     -- Hook up TaskRunners
     do
         -- Get task runner callbacks
-        local taskRunners: { [string]: () -> any } = {}
+        local taskRunners: { [string]: (taskMaid: typeof(Maid.new())) -> typeof(currentTaskPromise) } = {}
         for _, moduleScript in pairs(Paths.Client.Tutorial.TaskRunners:GetChildren()) do
             -- ERROR: Bad naming
             local taskName = StringUtil.chopStart(moduleScript.Name, "TutorialTask")
@@ -93,7 +106,17 @@ function TutorialController.Start()
                 UIController.getStateMachine():Push(UIConstants.States.Tutorial)
             end
 
-            taskCallback()
+            -- Cleanup last task
+            if currentTaskPromise then
+                currentTaskPromise:cancel()
+            end
+            taskMaid:Cleanup()
+
+            -- Start new task
+            -- Chained Promises that can be cancelled at any time if the user skips the tutorial
+            currentTaskPromise = taskCallback(taskMaid):andThen(function()
+                taskMaid:Cleanup()
+            end)
         end)
     end
 
@@ -114,6 +137,12 @@ function TutorialController.skipTutorial()
             TutorialController.taskCompleted(task, true)
         end
     end
+
+    -- Cleanup existing task
+    if currentTaskPromise then
+        currentTaskPromise:cancel()
+    end
+    taskMaid:Cleanup()
 
     -- Tutorial is finished!
     UIController.getStateMachine():Remove(UIConstants.States.Tutorial)
