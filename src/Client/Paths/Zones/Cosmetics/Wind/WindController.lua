@@ -76,7 +76,7 @@ local function createAnimatedFlag(markerFlag: BasePart, maid: typeof(Maid.new())
     maid:GiveTask(sound)
 end
 
-function WindController.onZoneUpdate(maid: typeof(Maid.new()), _zoneModel: Model)
+function WindController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, _zoneModel: Model)
     -- Flags
     local animatedFlags: { BasePart } = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.AnimatedFlag)
     for _, animatedFlag in pairs(animatedFlags) do

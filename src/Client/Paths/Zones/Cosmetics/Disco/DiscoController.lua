@@ -28,7 +28,7 @@ local DISCO_BALL_ROTATION_PER_SECOND = 45
 
 local colorParts: { [BasePart]: number } = {} -- Values are index offset
 
-function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model)
+function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
     -- ColorParts
     do
         -- Cache Cleanup
@@ -138,6 +138,14 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
                 danceFloorHitbox:AddPart(hitboxPart)
             end
         end
+
+        -- Listen for new pets!
+        maid:GiveTask(PetController.PetCreated:Connect(function()
+            local clientPet = PetController.getClientPet()
+            if clientPet and danceFloorHitbox:IsPlayerInside(Players.LocalPlayer) then
+                clientPet:PlayAnimation(PetConstants.AnimationNames.Trick)
+            end
+        end))
     end
 end
 

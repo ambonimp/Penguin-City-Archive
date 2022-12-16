@@ -52,4 +52,18 @@ function Vector3Util.nextVector(min: number, max: number)
     return Vector3.new(x, y, z)
 end
 
+--[[
+    https://www.mathworks.com/matlabcentral/answers/501449-angle-betwen-two-3d-vectors-in-the-range-0-360-degree
+    
+    Returns the angle (in degrees) between these 2 vectors [-180, 180]
+]]
+function Vector3Util.getFullAngle(v0: Vector3, v1: Vector3, normal: Vector3)
+    local d = v0:Dot(v1)
+    local c = v0:Cross(v1)
+    local angle = math.acos(d)
+    local dir = c:Dot(normal)
+    angle = (dir > 0 and angle or -angle)
+    return math.deg(angle)
+end
+
 return Vector3Util

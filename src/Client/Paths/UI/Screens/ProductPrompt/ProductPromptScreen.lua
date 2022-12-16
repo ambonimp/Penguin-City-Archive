@@ -57,7 +57,7 @@ function ProductPromptScreen.Init()
                 leaveState()
                 ProductController.purchase(currentProduct, "Coins")
             else
-                warn("todo prompt coin purchase to afford")
+                UIController.getStateMachine():Push(UIConstants.States.Shop)
             end
         end)
     end

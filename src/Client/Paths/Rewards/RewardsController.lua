@@ -229,12 +229,12 @@ function RewardsController.paycheckReceived(paycheckAmount: number, totalPaychec
             Amount = paycheckAmount,
             TotalPaychecks = totalPaychecks,
         })
-    end)
 
-    -- Add Coins after it's been cashed out
-    UIController.getStateMachine():InvokeInState(function()
-        CurrencyController.addCoins(paycheckAmount)
-    end, UIConstants.States.HUD)
+        -- Add Coins after it's been cashed out
+        UIController.getStateMachine():InvokeInState(function()
+            CurrencyController.addCoins(paycheckAmount)
+        end, UIConstants.States.HUD)
+    end)
 end
 
 -------------------------------------------------------------------------------

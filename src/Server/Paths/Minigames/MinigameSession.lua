@@ -54,7 +54,7 @@ function MinigameSession.new(
     local scoreRange = { Min = 0, Max = math.huge }
 
     local config: MinigameConstants.SessionConfig =
-        TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
+        TableUtil.overwrite(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
 
     local defaultScore: number?
     local started: boolean = false
@@ -156,13 +156,11 @@ function MinigameSession.new(
     end
 
     function minigameSession:AddParticipant(player: Player)
-        local teleportBuffer = ZoneService.teleportPlayerToZone(player, zone)
-        -- RETURN: Player could not be teleported to map
-        if not teleportBuffer then
+        -- RETURN: Unsuccessful teleport
+        local didTeleport = ZoneService.teleportPlayerToZone(player, zone)
+        if not didTeleport then
             return
         end
-
-        task.wait(teleportBuffer)
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)

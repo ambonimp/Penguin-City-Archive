@@ -8,7 +8,6 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
--- require(Paths.Shared.Zones.ZoneConstants) -- So that getRoomTypes runs
 
 local GRID_PADDING = 128
 local GRID_RAISE_EVERY = 100 -- 10x10

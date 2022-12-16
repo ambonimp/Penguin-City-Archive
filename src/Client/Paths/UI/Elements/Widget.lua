@@ -64,14 +64,16 @@ local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
 local COLOR_WHITE = Color3.fromRGB(251, 252, 255)
 local SELECTED_COLOR = Color3.fromRGB(255, 245, 154)
 local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
+local TOOL_OUTLINE_COLOR = Color3.fromRGB(0, 25, 95)
+local TOOL_OUTLINE_THICKNESS = 4
 
 Widget.Defaults = {
     TextColor = Color3.fromRGB(255, 255, 255),
     TextStrokeColor = Color3.fromRGB(38, 71, 118),
     ImageColor = Color3.fromRGB(255, 255, 255),
+    OutlineColor = Color3.fromRGB(59, 148, 0),
+    OutlineThickness = 10,
 }
-
-local templates: Folder = Paths.Templates
 
 -------------------------------------------------------------------------------
 -- Misc Widgets
@@ -96,6 +98,7 @@ end
 function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
     local toolProduct = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
     local widget = Widget.diverseWidgetFromProduct(toolProduct)
+    local maid = widget:GetMaid()
 
     local closeButton = ExitButton.new()
 
@@ -105,21 +108,35 @@ function Widget.diverseWidgetFromTool(tool: ToolUtil.Tool)
 
     -- Manage equipped feedback
     do
-        local function update(isEquipped: boolean)
-            widget:SetOutline(isEquipped and EQUIPPED_COLOR)
+        local function update(isEquipped: boolean, holsteredIndex: number?)
+            local outlineColor = isEquipped and EQUIPPED_COLOR or TOOL_OUTLINE_COLOR
+            local outlineThickness = isEquipped and Widget.Defaults.OutlineThickness or TOOL_OUTLINE_THICKNESS
+            widget:SetOutline(outlineColor, outlineThickness)
+
+            widget:SetNumberTag(holsteredIndex, {
+                Position = "Bottom",
+                SizeOffset = Vector2.new(40, 40),
+                BorderThickness = 0,
+            })
         end
 
-        ToolController.ToolEquipped:Connect(function(equippedTool)
+        maid:GiveTask(ToolController.ToolEquipped:Connect(function(equippedTool)
             if ToolUtil.toolsMatch(equippedTool, tool) then
-                update(true)
+                update(true, ToolController.getHolsterSlot(tool))
             end
-        end)
-        ToolController.ToolUnequipped:Connect(function(unequippedTool)
+        end))
+        maid:GiveTask(ToolController.ToolUnequipped:Connect(function(unequippedTool)
             if ToolUtil.toolsMatch(unequippedTool, tool) then
-                update(false)
+                update(false, ToolController.getHolsterSlot(tool))
             end
-        end)
-        update(ToolController.isEquipped(tool))
+        end))
+        maid:GiveTask(ToolController.ToolHolstered:Connect(function()
+            update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
+        end))
+        maid:GiveTask(ToolController.ToolUnholstered:Connect(function()
+            update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
+        end))
+        update(ToolController.isEquipped(tool), ToolController.getHolsterSlot(tool))
     end
 
     return widget, closeButton
@@ -402,8 +419,8 @@ function Widget.diverseWidget()
 
     local outlineStroke = Instance.new("UIStroke")
     outlineStroke.Name = "outlineStroke"
-    outlineStroke.Color = Color3.fromRGB(59, 148, 0)
-    outlineStroke.Thickness = 10
+    outlineStroke.Color = Widget.Defaults.OutlineColor
+    outlineStroke.Thickness = Widget.Defaults.OutlineThickness
     outlineStroke.Enabled = false
     outlineStroke.Parent = imageButton
 
@@ -455,9 +472,12 @@ function Widget.diverseWidget()
     local priceLabel: TextLabel | nil
     local priceUIStroke: UIStroke | nil
 
-    local cornerMaid = Maid.new()
-    widget:GetMaid():GiveTask(cornerMaid)
+    local cornerButtonMaid = Maid.new()
+    widget:GetMaid():GiveTask(cornerButtonMaid)
     local cornerFade: (() -> nil) | nil
+
+    local numberTagMaid = Maid.new()
+    widget:GetMaid():GiveTask(numberTagMaid)
 
     local transparency = 0
 
@@ -529,10 +549,11 @@ function Widget.diverseWidget()
         imageButton.BackgroundColor3 = color or COLOR_WHITE
     end
 
-    function widget:SetOutline(color: Color3?)
-        if color then
+    function widget:SetOutline(color: Color3?, thickness: number?)
+        if color or thickness then
             outlineStroke.Enabled = true
-            outlineStroke.Color = color
+            outlineStroke.Color = color or outlineStroke.Color
+            outlineStroke.Thickness = thickness or outlineStroke.Thickness
         else
             outlineStroke.Enabled = false
         end
@@ -613,17 +634,36 @@ function Widget.diverseWidget()
         end
     end
 
-    function widget:SetNumberTag(number: number?)
-        cornerMaid:Cleanup()
+    function widget:SetNumberTag(
+        number: number?,
+        config: {
+            Position: "Bottom" | "Right" | nil,
+            SizeOffset: Vector2?,
+            BorderColor: Color3?,
+            BorderThickness: number?,
+        }?
+    )
+        numberTagMaid:Cleanup()
 
         if number then
+            -- Read Config
+            config = config or {}
+
+            local position = config.Position == "Bottom" and UDim2.fromScale(0.5, 1)
+                or (config.Position == "Right" or not config.Position) and UDim2.fromScale(1, 0)
+            local anchorPoint = config.Position == "Bottom" and Vector2.new(0.5, 0.7)
+                or (config.Position == "Right" or not config.Position) and Vector2.new(0.7, 0.3)
+            local size = config.SizeOffset and UDim2.fromOffset(config.SizeOffset.X, config.SizeOffset.Y) or UDim2.fromOffset(50, 50)
+            local borderColor = config.BorderColor or Color3.fromRGB(26, 49, 81)
+            local borderThickness = config.BorderThickness or 4
+
             --#region Create UI
             local numberTagFrame = Instance.new("Frame")
             numberTagFrame.Name = "numberTagFrame"
-            numberTagFrame.AnchorPoint = Vector2.new(0.7, 0.3)
+            numberTagFrame.AnchorPoint = anchorPoint
             numberTagFrame.BackgroundColor3 = COLOR_WHITE
-            numberTagFrame.Position = UDim2.fromScale(1, 0)
-            numberTagFrame.Size = UDim2.fromOffset(50, 50)
+            numberTagFrame.Position = position
+            numberTagFrame.Size = size
             numberTagFrame.Visible = false
 
             local numberTagUICorner = Instance.new("UICorner")
@@ -633,8 +673,8 @@ function Widget.diverseWidget()
 
             local numberTagUIStroke = Instance.new("UIStroke")
             numberTagUIStroke.Name = "numberTagUIStroke"
-            numberTagUIStroke.Color = Color3.fromRGB(26, 49, 81)
-            numberTagUIStroke.Thickness = 4
+            numberTagUIStroke.Color = borderColor
+            numberTagUIStroke.Thickness = borderThickness
             numberTagUIStroke.Transparency = 0.5
             numberTagUIStroke.Parent = numberTagFrame
 
@@ -666,7 +706,7 @@ function Widget.diverseWidget()
             numberTagFrame.Visible = true
             numberTagLabel.Text = tostring(number)
 
-            cornerMaid:GiveTask(function()
+            numberTagMaid:GiveTask(function()
                 numberTagFrame:Destroy()
                 cornerFade = nil
             end)
@@ -692,7 +732,7 @@ function Widget.diverseWidget()
     end
 
     function widget:SetCornerButton(button: typeof(KeyboardButton.new())?)
-        cornerMaid:Cleanup()
+        cornerButtonMaid:Cleanup()
 
         if button then
             --#region Create UI
@@ -710,7 +750,7 @@ function Widget.diverseWidget()
             button:GetButtonObject().Size = UDim2.fromScale(1, 1)
             button:Mount(cornerButtonFrame)
 
-            cornerMaid:GiveTask(function()
+            cornerButtonMaid:GiveTask(function()
                 cornerButtonFrame:Destroy()
                 button:Destroy()
             end)

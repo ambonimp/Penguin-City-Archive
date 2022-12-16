@@ -272,6 +272,10 @@ end
 
 -- Moves a character so that they're standing above a part, usefull for spawning
 function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPosition: boolean?)
+    character:PivotTo(CharacterUtil.getStandOnCFrame(character, platform, useRandomPosition))
+end
+
+function CharacterUtil.getStandOnCFrame(character: Model, platform: BasePart, useRandomPosition: boolean?)
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     character.WorldPivot = humanoidRootPart.CFrame
@@ -289,7 +293,8 @@ function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPo
         pivotCFrame =
             platform.CFrame:ToWorldSpace(CFrame.new(0, character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2, 0))
     end
-    character:PivotTo(pivotCFrame)
+
+    return pivotCFrame
 end
 
 function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)

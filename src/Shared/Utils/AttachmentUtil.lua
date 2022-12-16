@@ -13,4 +13,12 @@ function AttachmentUtil.getWorldCFrame(attachment: Attachment)
     return cframe
 end
 
+--[[
+    Will translate `attachment` to the same world cframe as `pivot`, within the context they are both under
+]]
+function AttachmentUtil.pivot(attachment: Attachment, pivot: Attachment)
+    attachment.WorldPosition = pivot.WorldPosition
+    attachment.WorldOrientation = pivot.WorldOrientation
+end
+
 return AttachmentUtil

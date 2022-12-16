@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
+local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 
 return {
     Name = "teleport",
@@ -13,13 +14,9 @@ return {
             Description = "The players to teleport",
         },
         {
-            Type = "zoneCategory",
-            Name = "zoneCategory",
-            Description = "zoneCategory",
+            Type = ZoneUtil.getZoneTypeCmdrTypeName(ZoneConstants.ZoneCategory.Room),
+            Name = "roomType",
+            Description = "Room / Zone",
         },
-        function(context)
-            local zoneCategoryArgument = context:GetArgument(2)
-            return ZoneUtil.getZoneTypeCmdrArgument(zoneCategoryArgument)
-        end,
     },
 }
