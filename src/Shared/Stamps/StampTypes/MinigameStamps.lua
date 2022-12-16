@@ -50,7 +50,7 @@ return {
     {
         Id = "minigame_pizza_correct25",
         DisplayName = "Line Cook",
-        Description = "Make 25 Pizzas without any Errors. (Or 50% of Max Amount)",
+        Description = "Make 25 correct pizzas in a row!",
         Type = "Minigame",
         Difficulty = "Medium",
         ImageId = Images.Stamps.Icons.LineCook,

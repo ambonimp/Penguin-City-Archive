@@ -32,6 +32,8 @@ local petEggImageLabel: ImageLabel = screenGui.PetEgg
 local skipButton = KeyboardButton.new()
 local nextButton = KeyboardButton.new()
 local isShowingPrompt = false
+local totalNextButtonPresses = 0
+local isBooted = false
 
 -------------------------------------------------------------------------------
 -- Internals
@@ -55,6 +57,9 @@ function TutorialScreen.Init()
         nextButton:SetText("Next")
         nextButton:SetColor(UIConstants.Colors.Buttons.NextGreen)
         nextButton:Mount(nextButtonFrame, true)
+        nextButton.Pressed:Connect(function()
+            totalNextButtonPresses += 1
+        end)
     end
 
     -- Register UIState
@@ -69,15 +74,15 @@ function TutorialScreen.Init()
 end
 
 function TutorialScreen.boot()
+    isBooted = true
+
     -- Hide stuff by default
     ScreenUtil.outDown(promptFrame)
     petEggImageLabel.Visible = false
 end
 
 function TutorialScreen.shutdown()
-    -- Ensure prompt is somewhat cleaned up
-    nextButton.Pressed:Fire() -- hacky solution but works
-    isShowingPrompt = false
+    isBooted = false
 end
 
 function TutorialScreen.maximize()
@@ -100,9 +105,22 @@ end
 -- API
 -------------------------------------------------------------------------------
 
+local function waitForNextButtonPressed()
+    local needAmount = totalNextButtonPresses + 1
+    while isBooted and totalNextButtonPresses < needAmount do
+        task.wait()
+    end
+end
+
 -- Yields until prompt has been dismissed. Allows stacking of multiple calls
 function TutorialScreen.prompt(promptText: string)
     local nextPrompt = Queue.yield("TutorialScreen.prompt")
+
+    -- RETURN: Not booted
+    if not isBooted then
+        nextPrompt()
+        return
+    end
 
     -- Update State + text
     isShowingPrompt = true
@@ -112,8 +130,7 @@ function TutorialScreen.prompt(promptText: string)
     ScreenUtil.inUp(promptFrame)
 
     -- YIELD: Wait for next to be pressed
-    nextButton.Pressed:Wait()
-    task.wait() -- Need this here to stop .Pressed propogating to the next `prompt` call
+    waitForNextButtonPressed()
 
     -- Exit Screen
     ScreenUtil.outDown(promptFrame)

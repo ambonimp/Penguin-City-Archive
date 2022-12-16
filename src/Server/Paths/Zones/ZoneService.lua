@@ -173,10 +173,16 @@ end
     Returns teleportBuffer if successful (how many seconds until we pivot the players character to its destination)
     - `invokedServerTime` is used to help offset the TeleportBuffer if this was from a client request (rather than server)
 
-    Returns true, characterCFrame if successful
+    Success returns:
+    - `true`: boolean
+    - `characterCFrame`: CFrame, where the character is being pivoted to
+    - `characterPivotedSignal`: Signal, fired when the server is informed that the client has pivoted their character
+
+    Failure returns:
+    - `false`: boolean
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
 
     -- Read Data
     teleportData = teleportData or {}
@@ -222,6 +228,10 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local spawnpoint = ignoreFromZone and ZoneUtil.getZoneInstances(zone).Spawnpoint or ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
     local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", "requested streaming")
+
+    -- Signal for server detecting when character has been pivoted
+    local characterPivotedSignal = Signal.new()
 
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
@@ -229,6 +239,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
             -- Disable Collisions
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, "disable collisions")
 
             -- Yield until we have teleported
             while character and cachedTotalTeleports == playerZoneState.TotalTeleports do
@@ -241,6 +252,9 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
                 task.wait()
             end
 
+            -- Inform
+            characterPivotedSignal:Fire()
+
             -- Wait to re-enable collisions (while we're still on the same request!)
             local zoneSettings = ZoneUtil.getSettings(zone)
             local collisionsAreDisabled = zoneSettings and zoneSettings.DisableCollisions
@@ -249,6 +263,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
                     task.wait(CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY)
                     if not (player.Character and CharacterUtil.isCollidingWithOtherCharacter(player.Character)) then
                         CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_TELEPORTS)
+                        Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, "reenable collisions")
                         break
                     end
                 end
@@ -264,7 +279,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         Remotes.fireClient(player, "ZoneTeleport", zone.ZoneCategory, zone.ZoneType, zone.ZoneId, newCharacterCFrame)
     end
 
-    return true, newCharacterCFrame
+    return true, newCharacterCFrame, characterPivotedSignal
 end
 Remotes.declareEvent("ZoneTeleport")
 
@@ -312,6 +327,8 @@ do
             if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end
+
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneService", "RoomZoneTeleportRequest", player, zoneCategory, zoneType, teleportData)
 
             return ZoneService.teleportPlayerToZone(player, zone, teleportData)
         end,

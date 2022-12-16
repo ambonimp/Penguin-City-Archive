@@ -7,9 +7,8 @@ local Promise = require(Paths.Packages.promise)
 local Janitor = require(Paths.Packages.janitor)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
@@ -34,7 +33,7 @@ local player = Players.LocalPlayer
 
 local currentMinigame: string?
 local currentState: State?
-local currentZone: ZoneConstans.Zone?
+local currentZone: ZoneConstants.Zone?
 local currentParticipants: Participants?
 local currentIsMultiplayer: boolean?
 
@@ -161,12 +160,12 @@ function MinigameController.getData(): StateData
     return currentState.Data
 end
 
-function MinigameController.getZone(): ZoneConstans.Zone
+function MinigameController.getZone(): ZoneConstants.Zone | nil
     assertActiveMinigame()
     return currentZone
 end
 
-function MinigameController.getMap(): Model
+function MinigameController.getMap(): Model | nil
     assertActiveMinigame()
     return ZoneUtil.getZoneModel(currentZone):WaitForChild("Map")
 end
@@ -218,7 +217,7 @@ end
 Remotes.bindEvents({
     MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
         currentMinigame = minigame
-        currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
+        currentZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
@@ -255,7 +254,7 @@ Remotes.bindEvents({
 
             task.defer(function()
                 currentMinigame = nil
-                currentZone = nil :: ZoneConstans.Zone -- ahh
+                currentZone = nil :: ZoneConstants.Zone -- ahh
                 currentState = nil
                 currentParticipants = nil
                 currentIsMultiplayer = nil

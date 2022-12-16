@@ -16,21 +16,13 @@ local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
-local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
-local DONT_LOAD_DATA = true -- A value for testing purposes. Will only work in Studio.
+local DONT_SAVE_DATA = true -- Studio Only for testing
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
 
 local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
-    -- EDGE CASE: Not loading data!
-    if DONT_LOAD_DATA and RunService:IsStudio() then
-        for k, v in pairs(default) do
-            data[k] = typeof(v) == "table" and TableUtil.deepClone(v) or v
-        end
-    end
-
     for k, v in pairs(default) do
         if not tonumber(k) and data[k] == nil then
             data[k] = v
@@ -157,6 +149,11 @@ end
 function DataService.unloadPlayer(player)
     local profile = DataService.Profiles[player]
     if profile then
+        -- EDGE CASE: Data saving disabled in studio; wipe it!
+        if DONT_SAVE_DATA and RunService:IsStudio() then
+            DataService.wipe(player)
+        end
+
         -- Data was wiped, reconcile so that stuff unloads properly
         if not profile.Data then
             profile.Data = {}

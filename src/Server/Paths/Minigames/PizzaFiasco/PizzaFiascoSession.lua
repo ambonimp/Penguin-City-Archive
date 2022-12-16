@@ -152,6 +152,13 @@ function PizzaFiascoSession.new(...: any)
             for pizzaNumber = 1, totalPizzas do
                 local recipe = recipeTypeOrder[pizzaNumber]
                 local recipeMinTime = MIN_RECIPE_TIMES[recipe]
+
+                --!! temp testing
+                if not recipeMinTime then
+                    warn(("No recipe min time for recipe %q"):format(tostring(recipe)))
+                    recipeMinTime = 0
+                end
+
                 minimumTime += recipeMinTime
             end
             local firstPizzaTime = MIN_RECIPE_TIMES[PizzaFiascoConstants.FirstRecipe]
