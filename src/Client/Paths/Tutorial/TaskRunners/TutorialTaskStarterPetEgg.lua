@@ -17,7 +17,7 @@ local Promise = require(Paths.Packages.promise)
 
 return function(taskMaid: typeof(Maid.new()))
     local isTutorialSkipped = false
-    Promise.new(function(resolve, _reject, onCancel)
+    return Promise.new(function(resolve, _reject, onCancel)
         onCancel(function()
             isTutorialSkipped = true
         end)

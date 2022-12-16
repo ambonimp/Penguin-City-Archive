@@ -73,7 +73,6 @@ return function(taskMaid: typeof(Maid.new()))
                 -- Map Focus Callbacks
                 taskMaid:GiveTask(UIController.StateMaximized:Connect(function(state)
                     if state == UIConstants.States.HUD then
-                        task.wait(1) --!! temp
                         mapFocus(true)
                     end
                 end))
@@ -134,37 +133,6 @@ return function(taskMaid: typeof(Maid.new()))
         end)
         :andThen(function()
             return Promise.new(function(resolve)
-                -- Wait for user to get to the boardwalk
-                while (isTutorialSkipped == false) and not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), pizzaPlaceZone)) do
-                    task.wait()
-                end
-
-                -- Lock them to the boardwalk
-                local unlock = ZoneController.lockToRoomZone(boardwalkZone)
-                taskMaid:GiveTask(unlock())
-
-                resolve()
-            end)
-        end)
-        :andThen(function()
-            return Promise.new(function(resolve)
-                -- Wait for user to be inside the pizza place
-                while (isTutorialSkipped == false) and not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), pizzaPlaceZone)) do
-                    task.wait()
-                end
-
-                -- Lock them to pizza place
-                local unlock = ZoneController.lockToRoomZone(pizzaPlaceZone)
-                taskMaid:GiveTask(unlock)
-
-                resolve()
-            end)
-        end)
-        :andThen(function()
-            return Promise.new(function(resolve)
-                -- Start minigame request for user
-                MinigameController.playRequest(MinigameConstants.Minigames.PizzaFiasco, false)
-
                 -- Wait for user to start minigame
                 while
                     (isTutorialSkipped == false)

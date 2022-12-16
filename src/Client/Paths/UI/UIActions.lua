@@ -71,19 +71,11 @@ end
     Returns a callback that when invoked will hide the focal point from this call only!
 ]]
 function UIActions.focalPoint(positionOrGuiObject: UDim2 | GuiObject, size: UDim2?)
-    local position: UDim2
-    if typeof(positionOrGuiObject) == "UDim2" then
-        position = positionOrGuiObject
-    else
-        local middlePosition = positionOrGuiObject.AbsolutePosition + positionOrGuiObject.AbsoluteSize / 2
-        position = UDim2.fromOffset(middlePosition.X, middlePosition.Y)
-    end
-
     local scopeId = focalPointScope:NewScope()
 
     UIController.getStateMachine():Remove(UIConstants.States.FocalPoint) -- Remove any old focal points
     UIController.getStateMachine():Push(UIConstants.States.FocalPoint, {
-        Position = position,
+        PositionOrGuiObject = positionOrGuiObject,
         Size = size,
     })
 

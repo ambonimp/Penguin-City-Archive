@@ -23,7 +23,8 @@ local TRANSPARENCY = 0.2
 
 local screenGui: ScreenGui?
 
-local currentState: { FocalPoint: Frame, Size: UDim2 }
+local currentState: { FocalPoint: Frame, Size: UDim2, PositionOrGuiObject: GuiObject | UDim2 }
+local bootMaid = Maid.new()
 
 function FocalPointScreen.Init()
     -- Register UIState
@@ -37,9 +38,25 @@ function FocalPointScreen.Init()
     end
 end
 
+local function updateFocalPointPosition()
+    if not currentState then
+        return
+    end
+
+    local position: UDim2
+    if typeof(currentState.PositionOrGuiObject) == "UDim2" then
+        position = currentState.PositionOrGuiObject
+    else
+        local middlePosition = currentState.PositionOrGuiObject.AbsolutePosition + currentState.PositionOrGuiObject.AbsoluteSize / 2
+        position = UDim2.fromOffset(middlePosition.X, middlePosition.Y)
+    end
+
+    currentState.FocalPoint.Position = position
+end
+
 function FocalPointScreen.boot(data: table)
     -- Read Data
-    local position: UDim2 = data.Position
+    local positionOrGuiObject: UDim2 | GuiObject = data.PositionOrGuiObject
     local size: UDim2 = data.Size or DEFAULT_SIZE
 
     --#region Create UI
@@ -52,7 +69,6 @@ function FocalPointScreen.boot(data: table)
     focalPoint.Name = "focalPoint"
     focalPoint.AnchorPoint = Vector2.new(0.5, 0.5)
     focalPoint.BackgroundTransparency = 1
-    focalPoint.Position = position
     focalPoint.Parent = screenGui
 
     local viewport = Instance.new("ImageLabel")
@@ -113,12 +129,25 @@ function FocalPointScreen.boot(data: table)
     InstanceUtil.hide(screenGui:GetDescendants())
 
     currentState = {
+        PositionOrGuiObject = positionOrGuiObject,
         FocalPoint = focalPoint,
         Size = size,
     }
+
+    -- Position
+    updateFocalPointPosition()
+
+    -- If GuiObject moves, so do we!
+    if not (typeof(positionOrGuiObject) == "UDim2") then
+        bootMaid:GiveTask(function()
+            positionOrGuiObject.Changed:Connect(updateFocalPointPosition)
+        end)
+    end
 end
 
 function FocalPointScreen.shutdown()
+    bootMaid:Cleanup()
+
     local thisScreenGui = screenGui
     if thisScreenGui then
         task.delay(TWEEN_INFO_SHOW_HIDE.Time, function()
