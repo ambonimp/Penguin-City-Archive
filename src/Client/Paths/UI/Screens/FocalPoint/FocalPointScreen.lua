@@ -11,12 +11,15 @@ local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 
 local DEFAULT_SIZE = UDim2.fromOffset(250, 250)
-local SCREEN_GUI_DISPLAY_ORDER = 1000
+local SCREEN_GUI_DISPLAY_ORDER = 2
 local COLOR = Color3.fromRGB(38, 71, 118)
 local BIG_OFFSET = 10000
-local TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local TWEEN_INFO_IN = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local TWEEN_INFO_SHOW_HIDE = TweenInfo.new(0.2, Enum.EasingStyle.Linear)
+local TRANSPARENCY = 0.2
 
 local screenGui: ScreenGui?
 
@@ -53,7 +56,7 @@ function FocalPointScreen.boot(data: table)
     local viewport = Instance.new("ImageLabel")
     viewport.Name = "viewport"
     viewport.Image = "rbxassetid://11825341688"
-    viewport.ImageTransparency = 0.4
+    viewport.ImageTransparency = TRANSPARENCY
     viewport.BackgroundTransparency = 1
     viewport.BorderSizePixel = 0
     viewport.Size = UDim2.fromScale(1, 1)
@@ -67,7 +70,7 @@ function FocalPointScreen.boot(data: table)
     top.Name = "top"
     top.AnchorPoint = Vector2.new(0.5, 1)
     top.BackgroundColor3 = COLOR
-    top.BackgroundTransparency = 0.4
+    top.BackgroundTransparency = TRANSPARENCY
     top.BorderSizePixel = 0
     top.Position = UDim2.fromScale(0.5, 0)
     top.Size = UDim2.new(1, 0, 0, BIG_OFFSET)
@@ -77,7 +80,7 @@ function FocalPointScreen.boot(data: table)
     bottom.Name = "bottom"
     bottom.AnchorPoint = Vector2.new(0.5, 0)
     bottom.BackgroundColor3 = COLOR
-    bottom.BackgroundTransparency = 0.4
+    bottom.BackgroundTransparency = TRANSPARENCY
     bottom.BorderSizePixel = 0
     bottom.Position = UDim2.fromScale(0.5, 1)
     bottom.Size = UDim2.new(1, 0, 0, BIG_OFFSET)
@@ -87,7 +90,7 @@ function FocalPointScreen.boot(data: table)
     left.Name = "left"
     left.AnchorPoint = Vector2.new(1, 0.5)
     left.BackgroundColor3 = COLOR
-    left.BackgroundTransparency = 0.4
+    left.BackgroundTransparency = TRANSPARENCY
     left.BorderSizePixel = 0
     left.Position = UDim2.fromScale(0, 0.5)
     left.Size = UDim2.fromOffset(BIG_OFFSET, BIG_OFFSET)
@@ -97,12 +100,15 @@ function FocalPointScreen.boot(data: table)
     right.Name = "right"
     right.AnchorPoint = Vector2.new(0, 0.5)
     right.BackgroundColor3 = COLOR
-    right.BackgroundTransparency = 0.4
+    right.BackgroundTransparency = TRANSPARENCY
     right.BorderSizePixel = 0
     right.Position = UDim2.fromScale(1, 0.5)
     right.Size = UDim2.fromOffset(BIG_OFFSET, BIG_OFFSET)
     right.Parent = focalPoint
     --#endregion
+
+    -- Default hidden
+    InstanceUtil.hide(screenGui:GetDescendants())
 
     -- Animate in new thread so `maximize` has been called
     task.defer(function()
@@ -111,29 +117,34 @@ function FocalPointScreen.boot(data: table)
         local startSize = (math.max(viewportSize.X, viewportSize.Y) * 2) / uiScale
 
         focalPoint.Size = UDim2.fromOffset(startSize, startSize)
-        TweenUtil.tween(focalPoint, TWEEN_INFO, {
+        TweenUtil.tween(focalPoint, TWEEN_INFO_IN, {
             Size = size,
         })
     end)
 end
 
 function FocalPointScreen.shutdown()
-    if screenGui then
-        screenGui:Destroy()
-        screenGui = nil
+    local thisScreenGui = screenGui
+    if thisScreenGui then
+        task.delay(TWEEN_INFO_SHOW_HIDE.Time, function()
+            thisScreenGui:Destroy()
+
+            if screenGui == thisScreenGui then
+                screenGui = nil
+            end
+        end)
     end
 end
 
 function FocalPointScreen.maximize()
-    if screenGui then
-        screenGui.Enabled = true
-    end
+    print("maximize focal")
+    screenGui.Enabled = true
+    InstanceUtil.show(screenGui:GetDescendants(), TWEEN_INFO_SHOW_HIDE)
 end
 
 function FocalPointScreen.minimize()
-    if screenGui then
-        screenGui.Enabled = false
-    end
+    print("minimze focal")
+    InstanceUtil.hide(screenGui:GetDescendants(), TWEEN_INFO_SHOW_HIDE)
 end
 
 return FocalPointScreen

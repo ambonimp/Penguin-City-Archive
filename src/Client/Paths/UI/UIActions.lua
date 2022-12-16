@@ -70,7 +70,7 @@ end
 ]]
 function UIActions.focalPoint(positionOrGuiObject: UDim2 | GuiObject, size: UDim2?)
     local position: UDim2
-    if typeof(position) == "UDim2" then
+    if typeof(positionOrGuiObject) == "UDim2" then
         position = positionOrGuiObject
     else
         local middlePosition = positionOrGuiObject.AbsolutePosition + positionOrGuiObject.AbsoluteSize / 2
