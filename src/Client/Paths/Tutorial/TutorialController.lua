@@ -28,7 +28,7 @@ TutorialController.StartTask = Signal.new() -- { task: string } used to kickstar
 
 local locallyCompletedTasks: { [string]: true } = {}
 local taskMaid = Maid.new()
-local currentTaskPromise = nil or Promise.new() -- type hack
+local currentTaskPromise: typeof(Promise.new(function() end)) | nil
 
 -------------------------------------------------------------------------------
 -- Private Methods
@@ -114,8 +114,16 @@ function TutorialController.Start()
 
             -- Start new task
             -- Chained Promises that can be cancelled at any time if the user skips the tutorial
-            currentTaskPromise = taskCallback(taskMaid):andThen(function()
+
+            -- ERROR: Not a promise!
+            local returnedPromise = taskCallback(taskMaid)
+            if not Promise.is(returnedPromise) then
+                error(("TaskRunner %q did not return a Promise!"):format(task))
+            end
+
+            currentTaskPromise = returnedPromise:andThen(function()
                 taskMaid:Cleanup()
+                TutorialController.taskCompleted(task)
             end)
         end)
     end
