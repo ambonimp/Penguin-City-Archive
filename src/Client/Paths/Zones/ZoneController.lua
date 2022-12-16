@@ -221,7 +221,15 @@ function ZoneController.transitionToZone(
     transitionToZoneScope:NewScope()
     local thisScopeId = transitionToZoneScope:GetId()
 
-    Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, toZone.ZoneCategory, toZone.ZoneType)
+    Output.doDebug(
+        ZoneConstants.DoDebug,
+        "ZoneController.transitionToZone",
+        thisScopeId,
+        toZone.ZoneCategory,
+        toZone.ZoneType,
+        "\n",
+        debug.traceback()
+    )
 
     -- Ensure player is not sitting
     local character = Players.LocalPlayer.Character
@@ -364,7 +372,7 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
     )
     local nextteleportToRoomRequestPlease = Queue.yield("ZoneController.teleportToRoomRequest")
     isRunningTeleportToRoomRequest = true
-    Output.doDebug(ZoneConstants.DoDebug, "ZoneController.teleportToRoomRequest", "GO")
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneController.teleportToRoomRequest", "GO", "\n", debug.traceback())
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
