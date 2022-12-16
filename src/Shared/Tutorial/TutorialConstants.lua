@@ -2,6 +2,18 @@ local TutorialConstants = {}
 
 TutorialConstants.Tasks = {
     StartingAppearance = "StartingAppearance",
+    CustomiseIgloo = "CustomiseIgloo",
+    PlayMinigame = "PlayMinigame",
+    StarterPetEgg = "StarterPetEgg",
+    TutorialCompleted = "TutorialCompleted",
+}
+
+TutorialConstants.TaskOrder = {
+    TutorialConstants.Tasks.StartingAppearance,
+    TutorialConstants.Tasks.CustomiseIgloo,
+    TutorialConstants.Tasks.PlayMinigame,
+    TutorialConstants.Tasks.StarterPetEgg,
+    TutorialConstants.Tasks.TutorialCompleted,
 }
 
 TutorialConstants.StartingAppearance = {
@@ -29,6 +41,11 @@ TutorialConstants.StartingAppearance = {
             Shoes = { "Red_Sneakers" },
         },
     },
+}
+
+TutorialConstants.StarterEgg = {
+    PetEggName = "Common",
+    HatchTimeMinutes = 10,
 }
 
 return TutorialConstants

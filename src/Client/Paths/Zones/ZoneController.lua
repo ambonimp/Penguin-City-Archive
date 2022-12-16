@@ -41,6 +41,8 @@ local isRunningTeleportToRoomRequest = false
 local transitioningToZone: ZoneConstants.Zone | nil
 local onZoneUpdateMaid = Maid.new()
 local transitionToZoneScope = Scope.new()
+local lockedToRoomZone: ZoneConstants.Zone | nil
+local lockToRoomZoneScope = Scope.new()
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
@@ -364,6 +366,12 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
         error("Not passed a room zone!")
     end
 
+    -- WARN: Locked out!
+    if lockedToRoomZone and not ZoneUtil.zonesMatch(lockedToRoomZone, roomZone) then
+        warn(("Cannot teleport; currently locked to room %s"):format(lockedToRoomZone.ZoneType))
+        return
+    end
+
     -- Request Assume
     local requestAssume = Assume.new(function()
         local response = table.pack(Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
@@ -407,6 +415,31 @@ function ZoneController.teleportToRandomRoom()
     local zoneType = TableUtil.getRandom(ZoneConstants.ZoneType.Room)
     local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType)
     ZoneController.teleportToRoomRequest(roomZone)
+end
+
+--[[
+    User cannot leave this zone, and will be teleported to it if they are not there. Pass `nil` to unlock
+
+    Returns a function that will unlock if and only if a zone was passed, and no new locking calls have happened since
+]]
+function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil)
+    lockedToRoomZone = zone
+
+    local scopeId = lockToRoomZoneScope:NewScope()
+
+    task.defer(function()
+        if zone then
+            if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), zone) then
+                ZoneController.teleportToRoomRequest(zone):Await()
+            end
+        end
+    end)
+
+    return function()
+        if zone and lockToRoomZoneScope:Matches(scopeId) then
+            ZoneController.lockToRoomZone()
+        end
+    end
 end
 
 -------------------------------------------------------------------------------

@@ -259,19 +259,36 @@ function InteractionController.detachAllInteractions(instance: PVInstance)
     end
 end
 
-function InteractionController.getAllPromptsOfType(interaction: string): { ProximityPrompt }
+--[[
+    Returns all ProximityPrompts found to prompt `interaction`
+
+    - `ancestor`: If passed, will only return ProximityPrompts with this Instance as an ancestor!
+]]
+function InteractionController.getAllProximityPromptsOfType(interaction: string, ancestor: Instance?)
+    local instances = InteractionController.getAllInteractionInstancesOfType(interaction, ancestor)
+
+    local proximityPrompts: { ProximityPrompt } = {}
+    for _, instance in pairs(instances) do
+        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+    end
+
+    return proximityPrompts
+end
+
+function InteractionController.getAllInteractionInstancesOfType(interaction: string, ancestor: Instance?)
     -- ERROR: Interaction hasn't been registered
     if not interactions[interaction] then
         error(("Attempt to get proximity prompts of an unregistered interaction"):format(interaction))
     end
 
-    local proximityPrompts = {}
-
+    local instances: { Instance } = {}
     for _, instance in pairs(CollectionService:GetTagged(interaction)) do
-        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+        if (not ancestor) or (instance:IsDescendantOf(ancestor)) then
+            table.insert(instances, instance)
+        end
     end
 
-    return proximityPrompts
+    return instances
 end
 
 -------------------------------------------------------------------------------
