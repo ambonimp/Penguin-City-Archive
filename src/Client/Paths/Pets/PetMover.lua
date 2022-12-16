@@ -3,6 +3,7 @@
 ]]
 local PetMover = {}
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local RunService = game:GetService("RunService")
@@ -17,6 +18,7 @@ local CFrameUtil = require(Paths.Shared.Utils.CFrameUtil)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local AttachmentUtil = require(Paths.Shared.Utils.AttachmentUtil)
 local Signal = require(Paths.Shared.Signal)
+local RaycastConstants = require(Paths.Shared.Constants.RaycastConstants)
 
 export type PetMover = typeof(PetMover.new())
 
@@ -157,7 +159,10 @@ function PetMover.new(model: Model)
             },
             RAYCAST_LENGTH,
             function(hitInstance: BasePart)
-                return hitInstance.CanCollide
+                -- Good: Collideable AND Visible, OR has a special tag
+                local isGoodInstance = (hitInstance.CanCollide == true and hitInstance.Transparency < 1)
+                    or CollectionService:HasTag(hitInstance, RaycastConstants.Tag.GroundRaycast)
+                return isGoodInstance
             end
         )
 
