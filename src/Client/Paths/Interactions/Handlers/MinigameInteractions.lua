@@ -9,15 +9,14 @@ local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local Signal = require(Paths.Shared.Signal)
 local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
+local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
+local MinigameController = require(Paths.Client.Minigames.MinigameController)
 
 local uiStateMachine = UIController.getStateMachine()
 
 InteractionController.registerInteraction("MinigamePrompt", function(instance)
-    local queueStation = instance.Parent
-    local isMultiplayer = queueStation:GetAttribute("Multiplayer")
-    local minigameName = queueStation:GetAttribute("Minigame")
-
-    local prompts = InteractionController.getAllPromptsOfType("MinigamePrompt")
+    local minigamePromptData = InteractionUtil.getMinigamePromptDataFromInteractionInstance(instance)
+    local prompts = InteractionController.getAllProximityPromptsOfType("MinigamePrompt")
     for _, prompt in pairs(prompts) do
         prompt.Enabled = false
     end
@@ -36,7 +35,7 @@ InteractionController.registerInteraction("MinigamePrompt", function(instance)
         end
     end
 
-    if isMultiplayer then
+    if minigamePromptData.IsMultiplayer then
         disconnect = Remotes.bindEventTemp("MinigameQueueExited", reenablePrompts)
     else
         -- Mask latency
@@ -52,7 +51,7 @@ InteractionController.registerInteraction("MinigamePrompt", function(instance)
         end
     end
 
-    Remotes.invokeServer("MinigamePlayRequested", minigameName, isMultiplayer, instance.Parent)
+    MinigameController.playRequest(minigamePromptData.Minigame, minigamePromptData.IsMultiplayer, instance.Parent)
 end, "Play Minigame")
 
 return MinigamePromptInteraction

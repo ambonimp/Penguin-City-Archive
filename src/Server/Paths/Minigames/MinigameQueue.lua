@@ -19,7 +19,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
     local maid = Maid.new()
 
     local sessionConfig =
-        TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(station))
+        TableUtil.overwrite(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(station))
 
     local participants: { Player } = {}
     local minigameStartThread: thread?

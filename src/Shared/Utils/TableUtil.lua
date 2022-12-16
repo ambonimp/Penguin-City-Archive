@@ -18,7 +18,10 @@ function TableUtil.shallowClone(tbl: table)
     return clone
 end
 
-function TableUtil.merge(tbl1: table, tbl2: table?)
+--[[
+    Will overwrite all key,value pairs of `tbl2` into `tbl1`
+]]
+function TableUtil.overwrite(tbl1: table, tbl2: table?)
     if tbl2 then
         for i, v in tbl2 do
             tbl1[i] = v

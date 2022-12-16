@@ -31,7 +31,7 @@ end
     Locks the camera and pans over to the subject
 ]]
 function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame, tweenInfo: TweenInfo?): (Tween, CFrame)
-    camera.CameraType = Enum.CameraType.Scriptable
+    CameraUtil.setCametaType(camera, Enum.CameraType.Scriptable)
 
     offset = offset or Vector3.new(0, 0, 10)
     tweenInfo = tweenInfo or TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
@@ -43,7 +43,12 @@ function CameraUtil.lookAt(camera: Camera, subjectCFrame: CFrame, offset: CFrame
     return tween, goal
 end
 
-function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
+function CameraUtil.setCametaType(camera: Camera, cameraType: Enum.CameraType)
+    camera.CameraType = cameraType
+end
+
+function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model, rotation: CFrame?)
+    local rot = rotation or CFrame.Angles(0, 0, 0)
     local camera = viewport.CurrentCamera or Instance.new("Camera")
     camera.Parent = viewport
     viewport.CurrentCamera = camera
@@ -51,9 +56,10 @@ function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model)
     local _, size = model:GetBoundingBox()
     local clone = model:Clone()
     clone.Parent = viewport
-
     local fitDepth = CameraUtil.getFitDepth(camera.ViewportSize, camera.FieldOfView, size) -- +offset
     camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
+
+    clone:PivotTo(model:GetPivot() * rot)
 end
 
 return CameraUtil

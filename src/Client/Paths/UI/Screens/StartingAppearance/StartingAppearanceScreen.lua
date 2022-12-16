@@ -14,12 +14,15 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
-local TutorialController = require(Paths.Client.TutorialController)
+local TutorialController = require(Paths.Client.Tutorial.TutorialController)
 local UIActions = require(Paths.Client.UI.UIActions)
 local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
 local CharacterPreview = require(Paths.Client.Character.CharacterPreview)
 
-local CHARACTER_PREVIEW_CONFIG = {}
+local CHARACTER_PREVIEW_CONFIG = {
+    SubjectScale = 14,
+}
+local COLOR_TAB_NAME = "Color"
 
 local screenGui: ScreenGui = Paths.UI.StartingAppearance
 local container: Frame = screenGui.Container
@@ -48,6 +51,10 @@ local function updateOutfitIndex(indexAdd: number)
     hasMadeChange = true
 
     updateAppearance()
+end
+
+local function getColorWidgetNameFromColorIndex(colorIndex: number)
+    return tostring(colorIndex)
 end
 
 function StartingAppearanceScreen.Init()
@@ -86,7 +93,7 @@ function StartingAppearanceScreen.Init()
                         local imageLabel = Instance.new("ImageLabel")
                         imageLabel.Size = UDim2.fromScale(1, 1)
                         imageLabel.BackgroundTransparency = 1
-                        imageLabel.Image = Images.PizzaMinigame.Doodle3
+                        imageLabel.Image = Images.PizzaFiasco.Doodle3
                         imageLabel.ScaleType = Enum.ScaleType.Fit
                         imageLabel.Parent = parent
 
@@ -116,12 +123,23 @@ function StartingAppearanceScreen.Init()
         colorPanel:SetSize(1)
         colorPanel:SetCloseButtonVisibility(false)
 
-        colorPanel:AddTab("Color", Images.Icons.PaintBucket)
+        colorPanel:AddTab(COLOR_TAB_NAME, Images.Icons.PaintBucket)
         for colorIndex, colorName in pairs(TutorialConstants.StartingAppearance.Colors) do
             local product = ProductUtil.getCharacterItemProduct("FurColor", colorName)
-            colorPanel:AddWidgetFromProduct("Color", colorName, false, product, nil, function()
+            colorPanel:AddWidgetFromProduct(COLOR_TAB_NAME, getColorWidgetNameFromColorIndex(colorIndex), false, product, nil, function()
+                -- RETURN: Already selected!
+                if currentColorIndex == colorIndex then
+                    return
+                end
+
+                -- Toggle selected widgets
+                colorPanel:SetWidgetSelected(COLOR_TAB_NAME, getColorWidgetNameFromColorIndex(currentColorIndex), false)
+                colorPanel:SetWidgetSelected(COLOR_TAB_NAME, getColorWidgetNameFromColorIndex(colorIndex), true)
+
+                -- Update variables
                 currentColorIndex = colorIndex
                 hasMadeChange = true
+
                 updateAppearance()
             end)
         end
@@ -140,10 +158,14 @@ end
 
 function StartingAppearanceScreen.boot()
     -- Init
-    currentColorIndex = 1
+    currentColorIndex = math.random(1, #TutorialConstants.StartingAppearance.Colors) -- Random Color
     currentOutfitIndex = 1
     hasMadeChange = false
 
+    -- Select initial color widget
+    colorPanel:SetWidgetSelected(COLOR_TAB_NAME, getColorWidgetNameFromColorIndex(currentColorIndex), true)
+
+    -- Character Preview
     local previewCharacter, previewMaid = CharacterPreview.preview(CHARACTER_PREVIEW_CONFIG)
     character = previewCharacter
     bootMaid:GiveTask(previewMaid)

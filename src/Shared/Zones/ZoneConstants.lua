@@ -56,16 +56,27 @@ ZoneConstants.ZoneCategory = {
     Room = "Room",
     Minigame = "Minigame",
 }
+setmetatable(ZoneConstants.ZoneCategory, {
+    __index = function(_, index)
+        warn(("Bad ZoneCategory %q"):format(index))
+    end,
+})
+
 ZoneConstants.ZoneType = {
     Room = getRoomTypes(),
     Minigame = MinigameConstants.Minigames,
 }
+setmetatable(ZoneConstants.ZoneCategory, {
+    __index = function(_, index)
+        warn(("Bad ZoneType %q"):format(index))
+    end,
+})
 
 ZoneConstants.ZoneInstances = {
     FolderNames = { "MinigameDepartures", "MinigameArrivals", "RoomArrivals", "RoomDepartures" },
 }
 
-ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.SkiHill
+ZoneConstants.PlayerDefaultRoom = ZoneConstants.ZoneType.Room.Town
 
 --!! Must be manually defined, we cannot read this property on Workspace (so clever Roblox well done)
 ZoneConstants.StreamingTargetRadius = 5300
@@ -75,7 +86,7 @@ ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
-ZoneConstants.DoDebug = false
+ZoneConstants.DoDebug = true
 
 -------------------------------------------------------------------------------
 -- Cosmetics
@@ -87,6 +98,7 @@ ZoneConstants.Cosmetics = {
         WaterAnimator = "AnimateWater",
         DiscoBall = "DiscoBall",
         DanceFloor = "DanceFloor",
+        Swing = "Swing",
     },
     Disco = {
         ColorPartName = "ColorPart",

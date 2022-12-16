@@ -7,9 +7,8 @@ local Promise = require(Paths.Packages.promise)
 local Maid = require(Paths.Packages.maid)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
@@ -18,6 +17,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
+local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -34,7 +34,7 @@ local player = Players.LocalPlayer
 
 local currentMinigame: string?
 local currentState: State?
-local currentZone: ZoneConstans.Zone?
+local currentZone: ZoneConstants.Zone?
 local currentParticipants: Participants?
 local currentIsMultiplayer: boolean?
 
@@ -115,6 +115,11 @@ function MinigameController.Start()
     end
 end
 
+-- Yields
+function MinigameController.playRequest(minigame: string, isMultiplayer: boolean, queueStation: Model?)
+    Remotes.invokeServer("MinigamePlayRequested", minigame, isMultiplayer, queueStation)
+end
+
 function MinigameController.registerStateCallback(minigame: string, state: string, onOpen: StateCallback?, onClose: StateCallback?)
     local minigameCallbacks = stateCallbacks[minigame]
     if not minigameCallbacks then
@@ -156,12 +161,12 @@ function MinigameController.getData(): StateData
     return currentState.Data
 end
 
-function MinigameController.getZone(): ZoneConstans.Zone
+function MinigameController.getZone(): ZoneConstants.Zone | nil
     assertActiveMinigame()
     return currentZone
 end
 
-function MinigameController.getMap(): Model
+function MinigameController.getMap(): Model | nil
     assertActiveMinigame()
     return ZoneUtil.getZoneModel(currentZone):WaitForChild("Map")
 end
@@ -215,7 +220,7 @@ Remotes.bindEvents({
         MinigameQueueScreen.close()
 
         currentMinigame = minigame
-        currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
+        currentZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
@@ -225,6 +230,8 @@ Remotes.bindEvents({
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
+
+            ToolController.unequip()
 
             if state.Name ~= INITIALIZATION_STATE.Name then
                 setState(INITIALIZATION_STATE)
@@ -252,7 +259,7 @@ Remotes.bindEvents({
 
             task.defer(function()
                 currentMinigame = nil
-                currentZone = nil :: ZoneConstans.Zone -- ahh
+                currentZone = nil :: ZoneConstants.Zone -- ahh
                 currentState = nil
                 currentParticipants = nil
                 currentIsMultiplayer = nil

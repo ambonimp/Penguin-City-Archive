@@ -27,11 +27,13 @@ Images.Icons = {
     AddFriend = "rbxassetid://11152372782",
     Add = "rbxassetid://11501070397",
     Badge = "rbxassetid://11152372668",
+    BackArrow = "rbxassetid://11826396673",
     Bag = "rbxassetid://11152372582",
     Book = "rbxassetid://11152372490",
     Checkmark = "rbxassetid://11374895711",
     Close = "rbxassetid://11152372397",
     CoinWhite = "rbxassetid://11374896378",
+    DecorationTab = "rbxassetid://11834522980",
     Egg = "rbxassetid://11563573619",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
@@ -63,11 +65,14 @@ Images.Icons = {
     Robux = "rbxassetid://11333748345",
     Roleplay = "rbxassetid://11505042951",
     Rotate = "rbxassetid://11152369890",
+    RoomTab = "rbxassetid://11834522821",
     RightArrow = "rbxassetid://6583638192",
     Seal = "rbxassetid://11152369785",
     Search = "rbxassetid://11152369702",
     Shirt = "rbxassetid://11152369627",
     Stamp = "rbxassetid://11250982379",
+    StorageBox = "rbxassetid://11826396813",
+    TrashCan = "rbxassetid://11826396510",
     Text = "rbxassetid://11152369398",
     Toy = "rbxassetid://11505042821",
     VoldexLogo = "rbxassetid://11250982454",
@@ -335,6 +340,11 @@ Images.Map = {
     },
 }
 --#endregion
+Images.Tutorial = {
+    FocalPoint = "rbxassetid://11825341688",
+    Arrow = "rbxassetid://11832252404",
+    ArrowPadded = "rbxassetid://11832262566",
+}
 
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 

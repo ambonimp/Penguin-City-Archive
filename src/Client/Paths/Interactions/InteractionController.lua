@@ -16,6 +16,7 @@ local InputConstants = require(Paths.Client.Input.InputConstants)
 local Toggle = require(Paths.Shared.Toggle)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 
 local MAX_PROMPTS_VISIBLE = 5
 local GAMEPAD_KEY_CODE = Enum.KeyCode.ButtonX
@@ -73,15 +74,23 @@ local function getAttachedInteractions(instance: PVInstance): { string }
 end
 
 local function createPrompt(instance: PVInstance)
-    if not instance:FindFirstChildOfClass("ProximityPrompt") then
-        local proximityPrompt = Instance.new("ProximityPrompt")
-        proximityPrompt.Style = Enum.ProximityPromptStyle.Custom
-        proximityPrompt.KeyboardKeyCode = KEYBOARD_KEY_CODE
-        proximityPrompt.GamepadKeyCode = GAMEPAD_KEY_CODE
-        proximityPrompt.MaxActivationDistance = MAX_ACTIVATION_DISTANCE
-        proximityPrompt.Parent = instance
-        proximityPrompt.RequiresLineOfSight = false
-        proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+    --local prompts, if an instance has tag "PlayerId", make sure it has a tag of the userid
+    if CollectionService:HasTag(instance, "PlayerId") and not CollectionService:HasTag(instance, tostring(player.UserId)) then
+        return
+    elseif
+        not CollectionService:HasTag(instance, "PlayerId")
+        or (CollectionService:HasTag(instance, "PlayerId") and CollectionService:HasTag(instance, tostring(player.UserId)))
+    then
+        if not instance:FindFirstChildOfClass("ProximityPrompt") then
+            local proximityPrompt = Instance.new("ProximityPrompt")
+            proximityPrompt.Style = Enum.ProximityPromptStyle.Custom
+            proximityPrompt.KeyboardKeyCode = KEYBOARD_KEY_CODE
+            proximityPrompt.GamepadKeyCode = GAMEPAD_KEY_CODE
+            proximityPrompt.MaxActivationDistance = MAX_ACTIVATION_DISTANCE
+            proximityPrompt.Parent = instance
+            proximityPrompt.RequiresLineOfSight = false
+            proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+        end
     end
 end
 
@@ -234,7 +243,7 @@ function InteractionController.registerInteraction(interaction: string, handler:
 
     -- Removing
     CollectionService:GetInstanceRemovedSignal(interaction):Connect(function(instance)
-        if #getAttachedInteractions(instance) == 0 then
+        if #getAttachedInteractions(instance) == 0 and instance:FindFirstChildOfClass("ProximityPrompt") then
             instance:FindFirstChildOfClass("ProximityPrompt"):Destroy()
         end
     end)
@@ -259,19 +268,36 @@ function InteractionController.detachAllInteractions(instance: PVInstance)
     end
 end
 
-function InteractionController.getAllPromptsOfType(interaction: string): { ProximityPrompt }
+--[[
+    Returns all ProximityPrompts found to prompt `interaction`
+
+    - `ancestor`: If passed, will only return ProximityPrompts with this Instance as an ancestor!
+]]
+function InteractionController.getAllProximityPromptsOfType(interaction: string, ancestor: Instance?)
+    local instances = InteractionController.getAllInteractionInstancesOfType(interaction, ancestor)
+
+    local proximityPrompts: { ProximityPrompt } = {}
+    for _, instance in pairs(instances) do
+        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+    end
+
+    return proximityPrompts
+end
+
+function InteractionController.getAllInteractionInstancesOfType(interaction: string, ancestor: Instance?)
     -- ERROR: Interaction hasn't been registered
     if not interactions[interaction] then
         error(("Attempt to get proximity prompts of an unregistered interaction"):format(interaction))
     end
 
-    local proximityPrompts = {}
-
+    local instances: { Instance } = {}
     for _, instance in pairs(CollectionService:GetTagged(interaction)) do
-        table.insert(proximityPrompts, instance:FindFirstChildOfClass("ProximityPrompt"))
+        if (not ancestor) or (instance:IsDescendantOf(ancestor)) then
+            table.insert(instances, instance)
+        end
     end
 
-    return proximityPrompts
+    return instances
 end
 
 -------------------------------------------------------------------------------
@@ -285,8 +311,8 @@ function InteractionController.Init()
 
     -- Disable interactions for certain ui states
     local PlayerMenuController = require(Paths.Client.PlayerMenuController)
-    UIController.getStateMachine():RegisterGlobalCallback(function(_, toState)
-        if UIConstants.InteractionPermissiveStates[toState] then
+    UIController.getStateMachine():RegisterGlobalCallback(function(_fromState, toState)
+        if UIUtil.isStateInteractionPermissive(toState) then
             ProximityPromptService.Enabled = true
             PlayerMenuController.close()
         else

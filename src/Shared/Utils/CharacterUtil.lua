@@ -12,7 +12,7 @@ local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
-local VectorUtil = require(ReplicatedStorage.Shared.Utils.VectorUtil)
+local Vector3Util = require(ReplicatedStorage.Shared.Utils.Vector3Util)
 local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 
@@ -272,6 +272,10 @@ end
 
 -- Moves a character so that they're standing above a part, usefull for spawning
 function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPosition: boolean?)
+    character:PivotTo(CharacterUtil.getStandOnCFrame(character, platform, useRandomPosition))
+end
+
+function CharacterUtil.getStandOnCFrame(character: Model, platform: BasePart, useRandomPosition: boolean?)
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     character.WorldPivot = humanoidRootPart.CFrame
@@ -289,12 +293,13 @@ function CharacterUtil.standOn(character: Model, platform: BasePart, useRandomPo
         pivotCFrame =
             platform.CFrame:ToWorldSpace(CFrame.new(0, character.Humanoid.HipHeight + (platform.Size + humanoidRootPart.Size).Y / 2, 0))
     end
-    character:PivotTo(pivotCFrame)
+
+    return pivotCFrame
 end
 
 function CharacterUtil.faceDirection(character: Model, direction: Vector3, tweenInfo: TweenInfo?)
     local startCFrame = character:GetPivot()
-    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + VectorUtil.getXZComponents(direction))
+    local goalCFrame = CFrame.new(startCFrame.Position, startCFrame.Position + Vector3Util.getXZComponents(direction))
 
     if tweenInfo then
         TweenUtil.run(function(alpha)

@@ -8,6 +8,7 @@ local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
+local Output = require(ReplicatedStorage.Shared.Output)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
@@ -18,17 +19,22 @@ export type ZoneInstances = {
 }
 
 local MAX_YIELD_TIME_INSTANCE_LOADING = 20
+local ZONE_METATABLE = {
+    __eq = function(zone1, zone2)
+        return ZoneUtil.zonesMatch(zone1, zone2)
+    end,
+}
 
 -------------------------------------------------------------------------------
 -- Zone Datastructure Generators
 -------------------------------------------------------------------------------
 
 function ZoneUtil.zone(zoneCategory: string, zoneType: string, zoneId: string?)
-    local zone: ZoneConstants.Zone = {
+    local zone = setmetatable({
         ZoneCategory = zoneCategory,
         ZoneType = zoneType,
         ZoneId = zoneId,
-    }
+    }, ZONE_METATABLE) :: ZoneConstants.Zone
 
     return zone
 end
@@ -96,8 +102,8 @@ function ZoneUtil.getZoneCategoryDirectory(zoneCategory: string)
     end
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory)[ZoneUtil.getZoneName(zone)]
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone): Model | nil
+    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone))
 end
 
 function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
@@ -204,16 +210,23 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
         error("Server Only")
     end
 
+    -- ERROR: Is a BasePart
+    if instance:IsA("BasePart") then
+        error(("Don't write BasepartTotals onto a BasePart! (%s)"):format(instance:GetFullName()))
+    end
+
     -- Tot up our baseparts
     local totalBaseParts = 0
     for _, child in pairs(instance:GetChildren()) do
         if child:IsA("BasePart") then
             totalBaseParts += 1
 
-            -- ERROR: Nested Basepart!
-            local nestedBasePart = child:FindFirstAncestorWhichIsA("BasePart")
-            if nestedBasePart then
-                error(("%s has nested BasePart(s) (%s)"):format(instance:GetFullName(), nestedBasePart:GetFullName()))
+            -- ERROR: Nested Basepart (only errror in Studio for performance)
+            if RunService:IsStudio() then
+                local nestedBasePart = child:FindFirstAncestorWhichIsA("BasePart")
+                if nestedBasePart then
+                    error(("%s has nested BasePart(s) (%s)"):format(instance:GetFullName(), nestedBasePart:GetFullName()))
+                end
             end
         else
             ZoneUtil.writeBasepartTotals(child)
@@ -225,6 +238,8 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
 
     -- Handle new/old children
     if not instance:GetAttribute(ZoneConstants.AttributeIsProcessed) then
+        instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
+
         instance.ChildAdded:Connect(function()
             task.wait() -- Breathing room for full heirachy to get loaded
             ZoneUtil.writeBasepartTotals(instance)
@@ -232,15 +247,13 @@ function ZoneUtil.writeBasepartTotals(instance: Instance)
         instance.ChildRemoved:Connect(function()
             ZoneUtil.writeBasepartTotals(instance)
         end)
-
-        instance:SetAttribute(ZoneConstants.AttributeIsProcessed, true)
     end
 end
 
 --[[
     **Client Only**
 
-    Returns true if everything under this instance is loaded!
+    Returns true if all descendants under this instance is loaded!
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
 function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
@@ -252,6 +265,9 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     local instances: { Instance } = instance:GetDescendants()
     table.insert(instances, 1, instance)
 
+    local countedServerTotal = 0
+    local countedClientTotal = 0
+    local isLoaded = true
     for _, someInstance in pairs(instances) do
         if not someInstance:IsA("BasePart") then
             local serverTotal = someInstance:GetAttribute(ZoneConstants.AttributeBasePartTotal)
@@ -260,13 +276,24 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
             if serverTotal and serverTotal > 0 then
                 local clientTotal = countBasePartsUnderInstance(someInstance)
                 if serverTotal > clientTotal then
-                    return false
+                    isLoaded = false
                 end
+
+                countedServerTotal += serverTotal
+                countedClientTotal += clientTotal
             end
         end
     end
 
-    return true
+    Output.doDebug(
+        ZoneConstants.DoDebug,
+        "ZoneUtil.areAllBasePartsLoaded",
+        instance:GetFullName(),
+        ("  Parts Missing: %d"):format(countedServerTotal - countedClientTotal)
+    )
+
+    local percentageLoaded = countedClientTotal / countedServerTotal
+    return isLoaded, percentageLoaded
 end
 
 --[[
@@ -282,12 +309,30 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     end
 
     local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
+    local lastPercentageLoaded = -1
     while tick() < endTick do
-        local isLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        local isLoaded, percentageLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        Output.doDebug(
+            ZoneConstants.DoDebug,
+            "ZoneUtil.waitForInstanceToLoad",
+            instance:GetFullName(),
+            " percent loaded:",
+            percentageLoaded
+        )
+
+        -- Loaded!
         if isLoaded then
             task.wait() -- Give client threads time to catch up
             return true
         end
+
+        -- Has begun unloading..
+        if percentageLoaded < lastPercentageLoaded then
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneUtil.waitForInstanceToLoad", instance:GetFullName(), "began unloading..")
+            return false
+        end
+
+        lastPercentageLoaded = percentageLoaded
         task.wait(1)
     end
 

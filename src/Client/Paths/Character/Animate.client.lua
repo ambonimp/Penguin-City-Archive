@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local TextChatService = game:GetService("TextChatService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 
@@ -569,13 +570,18 @@ Humanoid.Seated:Connect(onSeated)
 Humanoid.PlatformStanding:Connect(onPlatformStanding)
 Humanoid.Swimming:Connect(onSwimming)
 
--- setup emote chat hook
-Players.LocalPlayer.Chatted:Connect(function(msg)
+if Character.Parent ~= nil then
+    -- initialize to idle
+    playAnimation("Idle", 0.1, Humanoid)
+    pose = "Standing"
+end
+
+TextChatService.TextChatCommands.Emote.Triggered:Connect(function(_, message)
     local emote = ""
-    if string.sub(msg, 1, 3) == "/e " then
-        emote = string.sub(msg, 4)
-    elseif string.sub(msg, 1, 7) == "/emote " then
-        emote = string.sub(msg, 8)
+    if string.sub(message, 1, 3) == "/e " then
+        emote = string.sub(message, 4)
+    elseif string.sub(message, 1, 7) == "/emote " then
+        emote = string.sub(message, 8)
     end
 
     emote = emote:lower()
@@ -585,12 +591,6 @@ Players.LocalPlayer.Chatted:Connect(function(msg)
         playAnimation(emote, EMOTE_TRANSITION_TIME, Humanoid)
     end
 end)
-
-if Character.Parent ~= nil then
-    -- initialize to idle
-    playAnimation("Idle", 0.1, Humanoid)
-    pose = "Standing"
-end
 
 -- loop to handle timed state transitions and tool animations
 while Character.Parent ~= nil do

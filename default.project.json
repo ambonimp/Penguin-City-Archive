@@ -34,6 +34,10 @@
 
       "VoldexAdmin": {
         "$path": "roblox-admin-tools/src/ServerScriptService/VoldexAdmin"
+      },
+
+      "Sentry": {
+        "$path": "src/Sentry"
       }
     },
 

@@ -19,14 +19,12 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: {
-        {
-            WidgetName: string,
-            Selected: boolean,
-            Instance: Widget.Widget?,
-            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
-        }
-    },
+    WidgetConstructors: { {
+        WidgetName: string,
+        Selected: boolean,
+        Instance: Widget.Widget?,
+        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+    } },
     Button: Button.Button | nil,
 }
 
@@ -77,12 +75,15 @@ function SelectionPanel.new()
     local defaultBackgroundPosition: UDim2
     local defaultScrollingFrameSize: UDim2
 
+    local isArrowVisible: boolean = true
+    local hiddenTabNames: { string } = {}
     local tabsIndex = 1
 
     -------------------------------------------------------------------------------
     -- Public Members
     -------------------------------------------------------------------------------
 
+    selectionPanel.TabChanged = Signal.new()
     selectionPanel.ClosePressed = Signal.new()
     selectionPanel.TabChanged = Signal.new()
     selectionPanel:GetMaid():GiveTask(selectionPanel.ClosePressed)
@@ -98,14 +99,17 @@ function SelectionPanel.new()
         return TABS_PER_VIEW[alignment]
     end
 
+    local function isTabHidden(tabName: string): boolean
+        return table.find(hiddenTabNames, tabName) and true or false
+    end
+
     local function getMaxTabsIndex()
         return math.clamp(math.ceil(#tabs / getTabsPerView()), 1, math.huge)
     end
 
-    local function updateTabIndex(increaseBy: number)
-        tabsIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
+    local function setTabIndex(set: number)
+        tabsIndex = set
 
-        -- Select last tab
         local lastOpenTabName = openTabNameByTabIndex[tabsIndex]
         if lastOpenTabName then
             selectionPanel:OpenTab(lastOpenTabName)
@@ -115,6 +119,11 @@ function SelectionPanel.new()
         -- Select new tab
         local tabIndex = ((tabsIndex - 1) * getTabsPerView()) + 1
         selectionPanel:OpenTab(tabs[tabIndex].Name)
+    end
+
+    local function updateTabIndex(increaseBy: number)
+        local newIndex = math.clamp(tabsIndex + increaseBy, 1, getMaxTabsIndex())
+        setTabIndex(newIndex)
     end
 
     local function getTab(tabName: string)
@@ -263,6 +272,9 @@ function SelectionPanel.new()
                 button:GetButtonObject().LayoutOrder = index
                 button:GetButtonObject().Visible = not (openTabName == visibleTab.Name)
 
+                if isTabHidden(visibleTab.Name) then
+                    button:GetButtonObject().Visible = false
+                end
                 -- Selected
                 if openTabName == visibleTab.Name then
                     openTab = visibleTab
@@ -286,6 +298,10 @@ function SelectionPanel.new()
         do
             backwardArrow:GetButtonObject().Visible = not (tabsIndex == 1)
             forwardArrow:GetButtonObject().Visible = not (tabsIndex == getMaxTabsIndex())
+
+            if isArrowVisible == false then
+                forwardArrow:GetButtonObject().Visible = false
+            end
         end
 
         -- Widgets
@@ -303,6 +319,10 @@ function SelectionPanel.new()
                 widgetFrame.Background:Destroy()
 
                 local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
+                if not widget then
+                    error(("WidgetConstructor not return a Widget! TabName: %q WidgetName: %q"):format(openTabName, widgetInfo.WidgetName))
+                end
+
                 widget:SetSelected(widgetInfo.Selected)
                 widgetInfo.Instance = widget
             end
@@ -361,6 +381,28 @@ function SelectionPanel.new()
         draw()
     end
 
+    function selectionPanel:HideForwardArrow()
+        if not isArrowVisible then
+            return
+        end
+        if tabsIndex > 1 then --  checks if we are on a page greater than 1 for Tabs
+            setTabIndex(1) --go to page 1
+        end
+        isArrowVisible = false
+    end
+
+    function selectionPanel:ShowForwardArrow()
+        isArrowVisible = true
+    end
+
+    function selectionPanel:GetOpenTabName()
+        return openTabName
+    end
+
+    function selectionPanel:GetTabAmountFromAlignment()
+        return TABS_PER_VIEW[alignment]
+    end
+
     function selectionPanel:SetAlignment(newAlignmnet: "Left" | "Right" | "Bottom")
         -- RETURN: Not changed
         if newAlignmnet == alignment then
@@ -395,6 +437,23 @@ function SelectionPanel.new()
         draw()
     end
 
+    function selectionPanel:HideTab(tabName: string)
+        if isTabHidden(tabName) then --already hidden
+            return
+        end
+        table.insert(hiddenTabNames, tabName)
+
+        draw()
+    end
+
+    function selectionPanel:ShowTab(tabName: string)
+        if isTabHidden(tabName) then --is hidden
+            table.remove(hiddenTabNames, table.find(hiddenTabNames, tabName))
+
+            draw()
+        end
+    end
+
     function selectionPanel:AddTab(tabName: string, imageId: string)
         -- WARN: Already exists
         if getTab(tabName) then
@@ -418,7 +477,27 @@ function SelectionPanel.new()
         draw()
     end
 
-    function selectionPanel:RemoveTab(tabName: string)
+    function selectionPanel:ClearTabs()
+        for _, tab in pairs(tabs) do
+            if tab.Button then
+                tab.Button:Destroy()
+                tab.Button = nil
+            end
+        end
+
+        tabs = {}
+        openTabName = nil
+        openTabNameByTabIndex = {}
+        sections = {}
+
+        isArrowVisible = true
+        hiddenTabNames = {}
+        tabsIndex = 1
+
+        draw()
+    end
+
+    function selectionPanel:RemoveTab(tabName: string, redraw: boolean?)
         for index, tab in pairs(tabs) do
             if tab.Name == tabName then
                 table.remove(tabs, index)
@@ -429,10 +508,19 @@ function SelectionPanel.new()
         if openTabName == tabName then
             for _, someTab in pairs(tabs) do
                 selectionPanel:OpenTab(someTab.Name)
+
+                if redraw == nil or redraw then
+                    draw()
+                end
                 return
             end
         end
+
         selectionPanel:OpenTab()
+
+        if redraw == nil or redraw then
+            draw()
+        end
     end
 
     function selectionPanel:AddWidgetConstructor(
@@ -506,7 +594,7 @@ function SelectionPanel.new()
         end)
     end
 
-    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, toggle: boolean)
+    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, isSelected: boolean)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -516,10 +604,10 @@ function SelectionPanel.new()
 
         for _, widgetInfo in pairs(tab.WidgetConstructors) do
             if widgetInfo.WidgetName == widgetName then
-                widgetInfo.Selected = toggle
+                widgetInfo.Selected = isSelected
                 local widget = widgetInfo.Instance
                 if widget then
-                    widget:SetSelected(toggle)
+                    widget:SetSelected(isSelected)
                 end
 
                 break
@@ -566,6 +654,19 @@ function SelectionPanel.new()
 
     function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
         closeButtonFrame.Visible = isVisible
+    end
+
+    function selectionPanel:SetTabIndex(index: number)
+        setTabIndex(index)
+    end
+
+    function selectionPanel:SetScrollingframeAlignment(horizontal: Enum.HorizontalAlignment?, vertical: Enum.VerticalAlignment?)
+        if horizontal then
+            scrollingFrame.UIListLayout.HorizontalAlignment = horizontal
+        end
+        if vertical then
+            scrollingFrame.UIListLayout.VerticalAlignment = vertical
+        end
     end
 
     -------------------------------------------------------------------------------

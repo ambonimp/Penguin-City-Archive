@@ -12,6 +12,8 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local PlayersHitbox = require(Paths.Shared.PlayersHitbox)
 local PetController = require(Paths.Client.Pets.PetController)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
+local ComseticsConstants = require(Paths.Shared.Constants.CosmeticsConstants)
 
 local DISCO_COLORS = {
     Color3.fromRGB(13, 105, 172),
@@ -27,8 +29,9 @@ local FLASH_TWEEN_INFO = TweenInfo.new(0.05)
 local DISCO_BALL_ROTATION_PER_SECOND = 45
 
 local colorParts: { [BasePart]: number } = {} -- Values are index offset
+local boardwalkZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Boardwalk)
 
-function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model)
+function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zone: ZoneConstants.Zone, zoneModel: Model)
     -- ColorParts
     do
         -- Cache Cleanup
@@ -67,6 +70,14 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
             -- Flash
             for i, colorPart in pairs(danceFloorColorParts) do
                 colorParts[colorPart] = i
+            end
+        end
+
+        -- DiscoFlash Parts
+        local discoFlashingParts = CollectionService:GetTagged(ComseticsConstants.Tag.DiscoFlash)
+        for i, flashingPart in pairs(discoFlashingParts) do
+            if flashingPart:IsDescendantOf(zoneModel) then
+                colorParts[flashingPart] = i
             end
         end
 
@@ -138,6 +149,14 @@ function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zoneModel: Model
                 danceFloorHitbox:AddPart(hitboxPart)
             end
         end
+
+        -- Listen for new pets!
+        maid:GiveTask(PetController.PetCreated:Connect(function()
+            local clientPet = PetController.getClientPet()
+            if clientPet and danceFloorHitbox:IsPlayerInside(Players.LocalPlayer) then
+                clientPet:PlayAnimation(PetConstants.AnimationNames.Trick)
+            end
+        end))
     end
 end
 

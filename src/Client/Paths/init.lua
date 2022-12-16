@@ -52,14 +52,14 @@ task.delay(0, function()
         require(client.Pets.PetController),
         require(client.StampController),
         require(client.PlayerChatController),
-        require(client.TutorialController),
+        require(client.Tutorial.TutorialController),
         require(client.Tools.ToolController),
 
         -- UnitTest
         require(client.UnitTestingController),
     }
 
-    PathsUtil.runInitAndStart(requiredModulesInOrder)
+    task.defer(PathsUtil.runInitAndStart, requiredModulesInOrder)
 end)
 
 -- Detect deprecated framework usage

@@ -25,8 +25,8 @@ export type Chapter = {
 
 -- Don't exceed ~800, so there is no overlap with the StampCount
 local titleIconWidth: { [string]: number } = {
-    [Images.StampBook.Titles.Icecream] = 800,
     [Images.StampBook.Titles.Pizza] = 600,
+    [Images.StampBook.Titles.Icecream] = 800,
     [Images.StampBook.Titles.SledRace] = 600,
 }
 StampConstants.TitleIconWidth = titleIconWidth

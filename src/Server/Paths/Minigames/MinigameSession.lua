@@ -84,7 +84,7 @@ function MinigameSession.new(
     local scoreRange = { Min = 0, Max = math.huge }
 
     local config: MinigameConstants.SessionConfig =
-        TableUtil.merge(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
+        TableUtil.overwrite(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(queueStation))
 
     local defaultScore: number?
     local started: boolean = false
@@ -186,13 +186,14 @@ function MinigameSession.new(
     end
 
     function minigameSession:AddParticipant(player: Player)
-        local teleportBuffer = ZoneService.teleportPlayerToZone(player, zone)
-        -- RETURN: Player could not be teleported to map
-        if not teleportBuffer then
+        -- RETURN: Unsuccessful teleport
+        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone)
+        if not didTeleport then
             return
         end
 
-        task.wait(teleportBuffer)
+        -- Wait for character to be pivoted
+        characterPivotedSignal:Wait()
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)
@@ -435,7 +436,7 @@ function MinigameSession.new(
                 local player = scoreInfo.Player
                 local score = scoreInfo.Score
 
-                CurrencyService.addCoins(player, config.Reward(placement, score, isMultiplayer))
+                CurrencyService.addCoins(player, config.Reward(placement, score, isMultiplayer), true)
 
                 local recordAddress = "MinigameRecords." .. minigameName
                 local highscore = DataService.get(player, recordAddress) or defaultScore

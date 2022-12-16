@@ -19,18 +19,19 @@ function UIUtil.offsetGuiInset(guiObject: GuiObject)
     guiObject.Position = guiObject.Position - guiInsetUDim2
 end
 
--- Returns true if `pseudoState` is enabled by the current stack of the stateMachine
-function UIUtil.getPseudoState(pseudoState: string)
+--[[
+    Returns true if `pseudoState` is enabled by the current stack of the stateMachine
+
+    We default query the UIStateMachine to get the state at the top of the stack - you can pass `topState` to simulate that state being on top
+]]
+function UIUtil.getPseudoState(pseudoState: string, topState: string?)
     -- Get StateMachine, skirting around circular dependencies
     local stateMachine = require(Paths.Client.UI.UIController).getStateMachine()
 
-    -- FALSE: Not in stack at all
-    if not stateMachine:HasState(pseudoState) then
-        return false
-    end
+    topState = topState or stateMachine:GetStack()
 
     -- TRUE: At top
-    if stateMachine:GetState() == pseudoState then
+    if topState == pseudoState then
         return true
     end
 
@@ -38,13 +39,20 @@ function UIUtil.getPseudoState(pseudoState: string)
     local childStates = UIConstants.PseudoStates[pseudoState]
     if childStates then
         for _, childState in pairs(childStates) do
-            if stateMachine:GetState() == childState then
+            if topState == childState then
                 return true
             end
         end
     end
 
     return false
+end
+
+--[[
+    Returns true if we are allowed to show ProximityPrompts in this UIState
+]]
+function UIUtil.isStateInteractionPermissive(state: string)
+    return table.find(UIConstants.InteractionPermissiveStates, state) and true or false
 end
 
 --[[
@@ -63,7 +71,7 @@ function UIUtil.waitForHudAndRoomZone(timeSeconds: number?)
 
         while true do
             local canShow = UIController.getStateMachine():GetState() == UIConstants.States.HUD
-                and ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room
+                and ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Room
             if canShow then
                 beenAbleToShowSince = beenAbleToShowSince or tick()
                 if not timeSeconds or (tick() > beenAbleToShowSince + timeSeconds) then

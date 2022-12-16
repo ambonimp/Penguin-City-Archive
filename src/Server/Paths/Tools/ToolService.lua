@@ -77,7 +77,6 @@ function ToolService.equip(player: Player, tool: ToolUtil.Tool)
 
     -- Model
     local model = ToolUtil.hold(character, tool)
-    model.PrimaryPart:SetNetworkOwner(player)
 
     -- Cache
     equippedData.Model = model

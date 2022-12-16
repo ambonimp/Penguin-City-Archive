@@ -26,10 +26,16 @@ local UNFURLED_MAP_PROPERTIES = {
 
 local uiStateMachine = UIController.getStateMachine()
 local screenGui: ScreenGui = Ui.HUD
-local openCallbacks: { () -> () } = {}
-local closeCallbacks: { () -> () } = {}
+local maximizeCallbacks: { () -> () } = {}
+local minimizeCallbacks: { () -> () } = {}
 local toolbarMaid = Maid.new()
+
 local inventoryButton: AnimatedButton.AnimatedButton
+local rewardsButton: AnimatedButton.AnimatedButton
+local mapButton: AnimatedButton.AnimatedButton
+local iglooButton: AnimatedButton.AnimatedButton
+local stampBookButton: AnimatedButton.AnimatedButton
+local clothingButton: AnimatedButton.AnimatedButton
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
@@ -179,11 +185,11 @@ function HUDScreen.Init()
         end
 
         -- Create Buttons
-        local iglooButton = createAnimatedButton(screenGui.Right.Igloo)
-        local clothingButton = createAnimatedButton(screenGui.Right.Clothing)
-        local mapButton = createAnimatedButton(screenGui.Right.Map)
-        local rewardsButton = createAnimatedButton(screenGui.Right.Rewards)
-        local stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
+        iglooButton = createAnimatedButton(screenGui.Right.Igloo)
+        clothingButton = createAnimatedButton(screenGui.Right.Clothing)
+        mapButton = createAnimatedButton(screenGui.Right.Map)
+        rewardsButton = createAnimatedButton(screenGui.Right.Rewards)
+        stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
         inventoryButton = createAnimatedButton(screenGui.Bottom.Inventory)
 
         dailyRewards(rewardsButton)
@@ -235,7 +241,7 @@ function HUDScreen.Init()
 
             mapButton.InternalEnter:Connect(unfurl)
             mapButton.InternalLeave:Connect(fold)
-            table.insert(openCallbacks, fold)
+            table.insert(maximizeCallbacks, fold)
 
             fold()
         end
@@ -250,21 +256,18 @@ function HUDScreen.Init()
     })
 end
 
-function HUDScreen.getInventoryButton()
-    return inventoryButton
-end
-
 function HUDScreen.maximize()
-    for _, callback in pairs(openCallbacks) do
+    for _, callback in pairs(maximizeCallbacks) do
         task.spawn(callback)
     end
 
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
+    screenGui.Enabled = true
 end
 
 function HUDScreen.minimize()
-    for _, callback in pairs(closeCallbacks) do
+    for _, callback in pairs(minimizeCallbacks) do
         task.spawn(callback)
     end
 
@@ -273,9 +276,31 @@ function HUDScreen.minimize()
 end
 
 -------------------------------------------------------------------------------
--- Logic
+-- Getters
 -------------------------------------------------------------------------------
 
-screenGui.Enabled = true
+function HUDScreen.getInventoryButton()
+    return inventoryButton
+end
+
+function HUDScreen.getRewardsButton()
+    return rewardsButton
+end
+
+function HUDScreen.getMapButton()
+    return mapButton
+end
+
+function HUDScreen.getIglooButton()
+    return iglooButton
+end
+
+function HUDScreen.getStampBookButton()
+    return stampBookButton
+end
+
+function HUDScreen.getClothingButton()
+    return clothingButton
+end
 
 return HUDScreen

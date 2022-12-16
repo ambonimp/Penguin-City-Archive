@@ -134,7 +134,7 @@ do
                             end
                         end
 
-                        TableUtil.merge(equippedItems, changedItems)
+                        TableUtil.overwrite(equippedItems, changedItems)
                     end
                 end, function(widget)
                     if canMultiEquip then

@@ -214,9 +214,6 @@ end
 -- Logic
 -------------------------------------------------------------------------------
 
--- Internally setup scaling
-updateScale()
-
 -- Update scale when viewport changes
 camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
     Limiter.indecisive(LIMITER_KEY, LIMITER_TIMEFRAME, updateScale)
@@ -228,5 +225,8 @@ DescendantLooper.add(function(descendant)
 end, function(descendant)
     newUIScale(descendant)
 end, { Paths.UI }, false)
+
+-- Internally setup scaling
+updateScale()
 
 return UIScaleController
