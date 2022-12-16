@@ -51,11 +51,11 @@ do
     local physicsPart = Instance.new("Part")
     physicsPart.Name = "Physics"
     physicsPart.CFrame = cframe
-    physicsPart.Size = size - Vector3.new(0, 0, size.X)
+    physicsPart.Size = size
     physicsPart.CanCollide = true
     physicsPart.Anchored = true
     physicsPart.Color = Color3.fromRGB(255, 0, 0)
-    physicsPart.Transparency = 0
+    physicsPart.Transparency = 1
     PhysicsService:SetPartCollisionGroup(physicsPart, CollisionsConstants.Groups.SledRaceSleds)
     physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
 
@@ -65,19 +65,6 @@ do
         displayPart.CanTouch = false
         displayPart.CanQuery = false
         BasePartUtil.weld(displayPart, physicsPart)
-    end
-
-    for i = 1, 2 do
-        local bumper = Instance.new("Part")
-        bumper.Shape = Enum.PartType.Cylinder
-        bumper.Transparency = 0
-        bumper.Size = Vector3.new(size.Y, size.X, size.X)
-        bumper.CFrame = cframe * CFrame.new(0, 0, (if i == 1 then -1 else 1) * (size.Z / 2 - size.X / 2)) * CFrame.Angles(0, 0, math.pi / 2)
-        bumper.Anchored = false
-        bumper.Massless = true
-        physicsPart.CustomPhysicalProperties = SledRaceConstants.SledPhysicalProperties
-        BasePartUtil.weld(bumper, physicsPart)
-        bumper.Parent = sledTemplate
     end
 
     -- Create actuators
@@ -92,17 +79,14 @@ do
     move.ApplyAtCenterOfMass = true
     move.Parent = physicsPart
 
-    local steer = Instance.new("Torque")
-    steer.Name = "Steer"
-    steer.Attachment0 = attachment
-    steer.RelativeTo = Enum.ActuatorRelativeTo.World
-    steer.Parent = physicsPart
-
-    local alignRotation = Instance.new("AngularVelocity")
-    alignRotation.Name = "AlignRotation"
-    alignRotation.Attachment0 = attachment
-    alignRotation.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
-    alignRotation.Parent = physicsPart
+    local alignOrientation = Instance.new("AlignOrientation")
+    alignOrientation.Name = "AlignOrientation"
+    alignOrientation.Attachment0 = attachment
+    alignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+    alignOrientation.ReactionTorqueEnabled = true
+    alignOrientation.MaxTorque = math.huge
+    alignOrientation.Responsiveness = 20
+    alignOrientation.Parent = physicsPart
 
     physicsPart.Parent = sledTemplate
     sledTemplate.PrimaryPart = physicsPart

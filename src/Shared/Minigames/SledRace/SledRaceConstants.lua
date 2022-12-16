@@ -38,19 +38,19 @@ local sessionConfig: MinigameConstants.SessionConfig = {
 
 SledRaceConstants.SessionConfig = sessionConfig
 
-SledRaceConstants.SteeringControllerGains = {
-    Kp = 100,
-    Kd = 15,
-}
-
 SledRaceConstants.SledName = "SledRaceSled"
 SledRaceConstants.SledPhysicalProperties = PhysicalProperties.new(
-    10, -- density
+    100, -- density
     0, -- friction
-    0.1, -- elasticity
+    0, -- elasticity
     200, -- frictionWeight
     200 -- elasticityWeight
 )
+
+SledRaceConstants.SteeringControllerGains = {
+    Kp = math.rad(80),
+    Kd = math.rad(10),
+}
 
 SledRaceConstants.AngularAcceleration = math.rad(35)
 SledRaceConstants.MaxSteerAngle = math.rad(60)

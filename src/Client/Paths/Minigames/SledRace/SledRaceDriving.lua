@@ -2,7 +2,6 @@ local SledRaceDriving = {}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local SledRaceConstants = require(Paths.Shared.Minigames.SledRace.SledRaceConstants)
@@ -15,23 +14,15 @@ local Lerpable = require(Paths.Shared.Lerpable)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 local Sound = require(Paths.Shared.Sound)
+local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
+local CollisionConstants = require(Paths.Shared.Constants.CollisionsConstants)
 
 local MIN_SPEED = SledRaceConstants.MinSpeed
 local DEFAULT_SPEED = SledRaceConstants.DefaultSpeed
 local MAX_SPEED = SledRaceConstants.MaxSpeed
 local SPEED_OFFSET_RANGE = math.min(DEFAULT_SPEED - MIN_SPEED, MAX_SPEED - DEFAULT_SPEED)
 local ACCELERATION = SledRaceConstants.Acceleration
-
-local STEERING_GAINS = SledRaceConstants.SteeringControllerGains
-local STEERING_Kp = STEERING_GAINS.Kp
-local STEERING_Kd = STEERING_GAINS.Kd
-
-local MAX_STEER_ANGLE = SledRaceConstants.MaxSteerAngle
-local MAX_SEAT_LEAN_ANGLE = math.rad(75)
-
 local MAX_FORCE = 1000
-local MAX_ANGULAR_ALIGNMENT_TORQUE = 900000
-local MAX_STEER_TORQUE = 400
 
 local BASE_FOV = 70
 local MAX_DRIFT_FOV_MINUEND = -10
@@ -39,6 +30,17 @@ local MAX_SPEED_FOV_ADDEND = 20
 
 local MAX_DRIFT_PARTICLE_RATE = 100
 local MIN_DRIFT_PARTICLE_RATE = 2
+
+local MAX_STEER_ANGLE = SledRaceConstants.MaxSteerAngle
+local STEERING_GAINS = SledRaceConstants.SteeringControllerGains
+local STEERING_KP = STEERING_GAINS.Kp
+local STEERING_KD = STEERING_GAINS.Kd
+
+local RAYCAST_DISTANCE = 50
+local TOP_SURFACE = Vector3.new(0, -1, 0)
+
+local RAYCAST_PARAMS = RaycastParams.new()
+RAYCAST_PARAMS.CollisionGroup = CollisionConstants.Groups.Default
 
 -------------------------------------------------------------------------------
 -- PRIVATE MEMBERS
@@ -49,6 +51,52 @@ local playerControls = require(player.PlayerScripts:WaitForChild("PlayerModule")
 
 local isSteeringControlled: typeof(Toggle.new(true))
 local goalSpeed: number
+
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function getOverlapRatio(part: BasePart, platforms: { BasePart }): { [BasePart]: number }
+    if #platforms == 1 then
+        return { [platforms[1]] = 1 }
+    else
+        local axis = "Z"
+
+        local colliderPosition = BasePartUtil.getSurfacePosition(part, TOP_SURFACE)[axis]
+        local colliderSize = BasePartUtil.getGlobalSurfaceExtentSize(part, TOP_SURFACE)[axis] / 2
+
+        -- one is right of/infront and the other is left of/behind the mover
+        local platformEdges = {}
+        for _, platform in platforms do
+            local position = platform.Position[axis]
+            local directionToCenter = math.sign(colliderPosition - position) -- from platform
+
+            -- first param: direction to center is reversed when the pov switches to the platform
+            platformEdges[platform] = {
+                -directionToCenter,
+                position + directionToCenter * BasePartUtil.getGlobalExtentsSize(platform)[axis] / 2,
+            }
+        end
+
+        local ratios = {}
+        local ratiosTotal = 0
+        for platform, info in platformEdges do
+            local directionToPlatform = info[1]
+            local platformEdge = info[2]
+
+            local colliderEdge = colliderPosition + directionToPlatform * colliderSize
+            local platformOverlap = math.max(0, -directionToPlatform * (platformEdge - colliderEdge))
+
+            ratiosTotal += platformOverlap
+            ratios[platform] = platformOverlap
+        end
+
+        for platform, ratio in ratios do
+            ratios[platform] = ratio / ratiosTotal
+        end
+
+        return ratios
+    end
+end
 
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
@@ -65,8 +113,7 @@ function SledRaceDriving.setup()
     local physicsPart: BasePart = sled:WaitForChild("Physics")
 
     local move: VectorForce = physicsPart.Move
-    local steer: Torque = physicsPart.Steer
-    local alignRotation: AngularVelocity = physicsPart.AlignRotation
+    local alignOrientation: AlignOrientation = physicsPart.AlignOrientation
 
     local idealVelocity = Vector3.new()
     goalSpeed = DEFAULT_SPEED
@@ -92,46 +139,54 @@ function SledRaceDriving.setup()
 
     local drivingSound: Sound = Sound.play("SledMovement", true)
 
-    -------------------------------------------------------------------------------
-    -- LOGIC
-    -------------------------------------------------------------------------------
     for _, particle in ipairs(sled:GetDescendants()) do
         if particle:IsA("ParticleEmitter") then
             table.insert(driftParticles, particle)
         end
     end
 
-    local driving: RBXScriptConnection = RunService.Heartbeat:Connect(function(dt)
+    local controlling: RBXScriptConnection = RunService.Heartbeat:Connect(function(dt)
         local sledCFrame: CFrame = physicsPart.CFrame
         local mass = physicsPart.AssemblyMass
         local input = playerControls:GetMoveVector()
 
-        -- Steering
         do
-            local direction = -input.X
-
-            local err = ((MAX_STEER_ANGLE * direction) - CFrameUtil.yComponent(mapDirection:ToObjectSpace(sledCFrame)))
+            -- Yaw
+            local err = ((MAX_STEER_ANGLE * -input.X) - CFrameUtil.yComponent(mapDirection:ToObjectSpace(sledCFrame)))
             local delta = (err - steerPreError)
             steerPreError = err
 
-            local proportionalOutput = err * STEERING_Kp
-            local derrivativeOutput = delta / dt * STEERING_Kd * steerControl
+            local proportionalOutput = err * STEERING_KP
+            local derrivativeOutput = delta / dt * STEERING_KD * steerControl
+            local yaw = math.clamp(proportionalOutput + derrivativeOutput, -MAX_STEER_ANGLE, MAX_STEER_ANGLE)
 
-            local torque = proportionalOutput + derrivativeOutput
-            steer.Torque = Vector3.new(0, math.sign(torque) * math.min(MAX_STEER_TORQUE, math.abs(torque)), 0) * mass
+            -- Pitch
+            local platforms = {}
+            local inclines = {}
+            for i = 1, 2 do
+                local raycastResult = Workspace:Raycast(
+                    sledCFrame * Vector3.new(0, 0, (if i == 1 then 1 else -1) * physicsPart.Size.Z / 2),
+                    -sledCFrame.UpVector * RAYCAST_DISTANCE,
+                    RAYCAST_PARAMS
+                )
 
-            --[[        local lean = math.clamp(err * 2, -1, 1) * (if forcedSpeed then 0 else 1)
-            tailbone.CFrame = tailbone.CFrame:Lerp(
-                seatingCFrame * CFrame.fromEulerAnglesYXZ(math.abs(math.sign(lean)) * math.rad(10), 0, lean * MAX_SEAT_LEAN_ANGLE),
-                dt * 2
-            ) *]]
-        end
+                if raycastResult then
+                    local platform = raycastResult.Instance
+                    if not table.find(platforms, platform) then
+                        table.insert(platforms, platform)
+                        inclines[platform] = Vector3.fromAxis(Enum.Axis.Y):Angle(raycastResult.Normal, mapDirection.RightVector)
+                    end
+                end
+            end
 
-        -- Roll resistance
-        do
-            local roll = physicsPart.Orientation.Z
-            alignRotation.MaxTorque = math.abs(roll) / 180 * MAX_ANGULAR_ALIGNMENT_TORQUE
-            alignRotation.AngularVelocity = Vector3.new(0, 0, -roll) * mass
+            local overlapRatios = getOverlapRatio(physicsPart, platforms)
+            local pitch = 0
+            for _, platform in platforms do
+                pitch += overlapRatios[platform] * inclines[platform]
+            end
+
+            local cframe = mapDirection * CFrame.Angles(pitch, yaw, 0)
+            alignOrientation.CFrame = cframe
         end
 
         -- Moving
@@ -193,7 +248,7 @@ function SledRaceDriving.setup()
     SledRaceUtil.unanchorSled(player)
 
     return function()
-        driving:Disconnect()
+        controlling:Disconnect()
         drivingSound:Destroy()
 
         tailbone.CFrame = seatingCFrame
