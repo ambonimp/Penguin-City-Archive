@@ -176,6 +176,7 @@ do
             resetModel()
         end
 
+        local blueprint = DataController.get("House.Blueprint")
         confirmChanged = false
         character = player.Character
         plot = data.Plot
@@ -187,7 +188,7 @@ do
         local modelData = FurnitureConstants.Objects[model.Name]
 
         if modelData == nil then
-            local store = DataController.get("House.Furniture." .. model.Name)
+            local store = DataController.get("House.Furniture." .. blueprint .. "." .. model.Name)
             modelData = FurnitureConstants.Objects[store.Name]
         end
 
@@ -256,7 +257,7 @@ do
                 selectionBox.Color3 = INVALID_PLACEMENT_COLOR
                 lastModelOriginalCFrame = nil
             else
-                local store = DataController.get("House.Furniture." .. model.Name)
+                local store = DataController.get("House.Furniture." .. blueprint .. "." .. model.Name)
                 if color == nil then
                     color = {}
                 end
@@ -357,7 +358,7 @@ do
                     }
                     Remotes.fireServer("PlaceHouseObject", "Furniture", metadata)
                 else
-                    local name_ = DataController.get("House.Furniture." .. model.Name).Name
+                    local name_ = DataController.get("House.Furniture." .. blueprint .. "." .. model.Name).Name
                     local metadata = {
                         Name = name_,
                         Position = plotCFrame:PointToObjectSpace(model.PrimaryPart.Position),

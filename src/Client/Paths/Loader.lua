@@ -142,25 +142,45 @@ function Loader.Start()
 
     local totalTasks = #taskQueue
     local tasksCompleted = 0
-
+    local readyToStartLoading = false
     character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
     humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     -- Skipping
     task.spawn(function()
-        task.wait(3)
+        local ZoneController = require(Paths.Client.Zones.ZoneController) --needs to be required here, stalls script if required at top of script for some reason
+        local isSkipEnabled = false
 
-        skipBtn.Visible = true
-        skipConn = skipBtn.MouseButton1Down:Connect(function()
-            skipConn:Disconnect()
-            skipConn = nil
-
-            if playing then
-                close()
+        local function enableSkip()
+            if isSkipEnabled then
+                return
             end
-        end)
-    end)
+            isSkipEnabled = true
+            readyToStartLoading = true
 
+            task.wait(5)
+            skipBtn.Visible = true
+            skipConn = skipBtn.MouseButton1Down:Connect(function()
+                skipConn:Disconnect()
+                skipConn = nil
+
+                if playing then
+                    close()
+                end
+            end)
+        end
+
+        ZoneController.ZoneChanged:Connect(function()
+            enableSkip()
+        end)
+
+        task.wait(8)
+        enableSkip()
+    end)
+    while not readyToStartLoading do
+        task.wait(0.1)
+    end
+    print("Start loading")
     for i, newTask in ipairs(taskQueue) do
         newTask.Task()
         tasksCompleted += 1

@@ -8,6 +8,7 @@
 
 local PlotService = {}
 
+local CollectionService = game:GetService("CollectionService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
@@ -15,6 +16,7 @@ local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ProductService = require(Paths.Server.Products.ProductService)
 local Remotes = require(Paths.Shared.Remotes)
 local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
+local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
@@ -192,7 +194,7 @@ local function loadHouse(player: Player, plot: Model, type: string, firstLoad: b
         end
 
         -- Load objects in the house
-        for id, store in pairs(DataService.get(player, "House.Furniture")) do
+        for id, store in pairs(DataService.get(player, "House.Furniture." .. blueprint)) do
             local name = store.Name
             local objectTemplate = assets.Furniture:FindFirstChild(name)
 
@@ -233,6 +235,15 @@ local function loadHouse(player: Player, plot: Model, type: string, firstLoad: b
             entrancePart:Destroy()
             spawnPart:Destroy()
         end)
+
+        CollectionService:AddTag(plot.Mailbox, "Plot")
+        CollectionService:AddTag(plot.Mailbox, "House")
+        CollectionService:AddTag(plot.Mailbox, tostring(player.UserId))
+
+        local newLabel = assets.PlayerName:Clone()
+
+        newLabel.PlayerLabel.Text = StringUtil.possessiveName(player.DisplayName) .. " House"
+        newLabel.Parent = plot.Mailbox
     end
 end
 
@@ -248,6 +259,13 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
         plot:SetAttribute(HousingConstants.PlotOwner, nil)
         if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
             plot:FindFirstChild(oldBlueprint):Destroy()
+        end
+        CollectionService:RemoveTag(plot.Mailbox, tostring(player.UserId))
+        CollectionService:RemoveTag(plot.Mailbox, "Plot")
+        CollectionService:RemoveTag(plot.Mailbox, "House")
+
+        if plot.Mailbox:FindFirstChild("PlayerName") then
+            plot.Mailbox:FindFirstChild("PlayerName"):Destroy()
         end
     else
         if plot:FindFirstChild("Furniture") then
@@ -332,19 +350,19 @@ Remotes.bindEvents({
         if not objectConstants then
             return
         end
-
+        local blueprint = DataService.get(player, "House.Blueprint")
         -- Handlers
         if type == "Furniture" then
             local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
             if withinBounds then
-                local id = DataService.getAppendageKey(player, "House.Furniture")
+                local id = DataService.getAppendageKey(player, "House.Furniture." .. blueprint)
                 local object = assets[type]:FindFirstChild(name):Clone()
 
                 object.Name = id
                 ProductService.addProduct(player, product, -1)
                 local store = updateFurniture(player, object, metadata)
                 if store then
-                    DataService.set(player, "House.Furniture." .. id, store, "OnFurniturePlaced", { Id = id })
+                    DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, store, "OnFurniturePlaced", { Id = id })
                     PlotService.ObjectPlaced:Fire(player, type, metadata)
                 end
             end
@@ -354,8 +372,8 @@ Remotes.bindEvents({
     -- Furniture
     RemoveFurniture = function(player: Player, id: string)
         local plot = getPlot(player, HousingConstants.InteriorType)
-
-        local store = DataService.get(player, "House.Furniture")
+        local blueprint = DataService.get(player, "House.Blueprint")
+        local store = DataService.get(player, "House.Furniture." .. blueprint)
         -- RETURN: ITEM DOES NOT EXIST
         if not store[id] then
             return
@@ -363,13 +381,14 @@ Remotes.bindEvents({
         local product = ProductUtil.getHouseObjectProduct("Furniture", store[id].Name)
         ProductService.addProduct(player, product, 1)
         plot.Furniture[id]:Destroy()
-        DataService.set(player, "House.Furniture." .. id, nil, "OnFurnitureRemoved", {
+        DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, nil, "OnFurnitureRemoved", {
             Id = id,
         })
     end,
     UpdateFurniture = function(player: Player, id: string, metadata: FurnitureMetadata)
         local plot = getPlot(player, HousingConstants.InteriorType)
-        local store = DataService.get(player, "House.Furniture")
+        local blueprint = DataService.get(player, "House.Blueprint")
+        local store = DataService.get(player, "House.Furniture." .. blueprint)
 
         -- RETURN: Object does not exist
         if store[id] then
@@ -380,7 +399,7 @@ Remotes.bindEvents({
 
                 local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
                 if newStore then
-                    DataService.set(player, "House.Furniture." .. id, newStore, "OnFurnitureUpdated", { Id = id })
+                    DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, newStore, "OnFurnitureUpdated", { Id = id })
                     PlotService.ObjectUpdated:Fire(player, lastData, newStore)
                 end
             end
@@ -407,14 +426,15 @@ Remotes.bindEvents({
 
             DataService.set(player, "House.Blueprint", name, "HouseBlueprintUpdated")
 
-            local objectsPlaced = DataService.get(player, "House.Furniture")
+            --[[local objectsPlaced = DataService.get(player, "House.Furniture")
 
             for _id, data in objectsPlaced do
                 local objectProduct = ProductUtil.getHouseObjectProduct("Furniture", data.Name)
                 ProductService.addProduct(player, objectProduct, 1)
+            end]]
+            if DataService.get(player, "House.Furniture." .. name) == nil then
+                DataService.set(player, "House.Furniture." .. name, {})
             end
-
-            DataService.set(player, "House.Furniture", {})
 
             loadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
             loadHouse(player, interiorPlot, HousingConstants.InteriorType)

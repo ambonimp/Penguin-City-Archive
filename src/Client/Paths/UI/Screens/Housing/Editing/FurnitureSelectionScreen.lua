@@ -149,7 +149,7 @@ do
         local ObjectsFrame: ScrollingFrame = templates.ObjectFrame:Clone()
 
         BackButton:Mount(button, true)
-        BackButton:SetIcon(Images.Icons.LeftArrow)
+        BackButton:SetIcon(Images.Icons.BackArrow)
         BackButton:GetButtonObject().Parent.Visible = false
         BackButton:GetButtonObject().Parent.Size = furniturePanel:GetContainer().Background.Side.ForwardArrow.Size
 
@@ -240,7 +240,7 @@ do
                 addWidget(tabName, tag)
             end
         end
-        furniturePanel:AddTab("Owned", Images.Icons.Furniture)
+        furniturePanel:AddTab("Owned", Images.Icons.StorageBox)
 
         BackButton.Pressed:Connect(function()
             setCategoryVisible(false)
