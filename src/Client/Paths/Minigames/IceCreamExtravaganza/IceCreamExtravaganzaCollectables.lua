@@ -130,6 +130,13 @@ function IceCreamExtravaganzaCollectables.setup()
             shadowDecal.Transparency = 1 - (1 - SHADOW_TRANSPARENCY) * percentageOfDropUsed
 
             -- Drop
+            local dropTask = maid:GiveTask(function()
+                local tweenPromise = drops[id]
+                if tweenPromise then
+                    tweenPromise:cancel()
+                end
+            end)
+
             drops[id] = TweenUtil.batch({
                 TweenService:Create(shadowPart, shadowTweenInfo, { Size = goalShadowSize }),
                 TweenService:Create(shadowDecal, shadowTweenInfo, { Transparency = SHADOW_TRANSPARENCY }),
@@ -140,19 +147,12 @@ function IceCreamExtravaganzaCollectables.setup()
                     ),
                 }),
             }):finally(function()
-                maid:RemoveTask()
+                maid:EndTask(dropTask)
 
                 model:Destroy()
                 shadowPart:Destroy()
 
                 drops[id] = nil
-            end)
-
-            maid:GiveTask(function()
-                local tweenPromise = drops[id]
-                if tweenPromise then
-                    tweenPromise:cancel()
-                end
             end)
         end)
     )
