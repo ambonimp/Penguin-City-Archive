@@ -13,96 +13,179 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIActions = require(Paths.Client.UI.UIActions)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
+local Promise = require(Paths.Packages.promise)
 
 local BOARDWALK_FOCAL_POINT_POSITION = UDim2.fromScale(0.51, 0.814)
 
-local uiStateMachine = UIController.getStateMachine()
 local boardwalkZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Boardwalk)
 local pizzaPlaceZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.PizzaPlace)
 
 return function(taskMaid: typeof(Maid.new()))
-    TutorialController.prompt("You can earn coins by playing minigames!")
+    local isTutorialSkipped = false
+    return Promise.new(function(resolve, _reject, onCancel)
+        onCancel(function()
+            isTutorialSkipped = true
+        end)
+        resolve()
+    end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                TutorialController.prompt("You can earn coins by playing minigames!")
 
-    -------------------------------------------------------------------------------
-    -- MAP FOCUS: Focus on the HUD map button
-    -------------------------------------------------------------------------------
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -------------------------------------------------------------------------------
+                -- MAP FOCUS: Focus on the HUD map button
+                -------------------------------------------------------------------------------
 
-    local mapFocusMaid = Maid.new()
-    local function mapFocus()
-        print("map focus")
-        mapFocusMaid:Cleanup()
+                local mapFocusMaid = Maid.new()
+                taskMaid:GiveTask(mapFocusMaid)
 
-        -- RETURN: In a good zone
-        local currentZone = ZoneController.getCurrentZone()
-        local isInGoodZone = ZoneUtil.zonesMatch(currentZone, boardwalkZone) or ZoneUtil.zonesMatch(currentZone, pizzaPlaceZone)
-        if isInGoodZone then
-            print(1)
-            return
-        end
+                local isMapFocused = false
+                local function mapFocus(doFocus: boolean)
+                    -- DON'T FOCUS: In a good zone
+                    local currentZone = ZoneController.getCurrentZone()
+                    local isInGoodZone = currentZone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame
+                        or ZoneUtil.zonesMatch(currentZone, boardwalkZone)
+                        or ZoneUtil.zonesMatch(currentZone, pizzaPlaceZone)
+                    if isInGoodZone then
+                        doFocus = false
+                    end
 
-        -- Focus on map
-        print("focus on map")
-        local hideMapFocalPoint = UIActions.focalPoint(HUDScreen.getMapButton():GetButtonObject())
-        mapFocusMaid:GiveTask(hideMapFocalPoint)
-    end
-    taskMaid:GiveTask(mapFocusMaid)
+                    -- RETURN: No change!
+                    if isMapFocused == doFocus then
+                        return
+                    end
+                    isMapFocused = doFocus
 
-    -- Focus on map now, whenever UI State changes and zone teleports
-    mapFocus()
-    taskMaid:GiveTask(UIController.getStateMachine():RegisterGlobalCallback(function(_fromState, toState)
-        mapFocusMaid:Cleanup()
+                    if isMapFocused then
+                        -- Focus on map
+                        local hideMapFocalPoint = UIActions.focalPoint(HUDScreen.getMapButton():GetButtonObject())
+                        mapFocusMaid:GiveTask(hideMapFocalPoint)
+                    else
+                        mapFocusMaid:Cleanup()
+                    end
+                end
 
-        if toState == UIConstants.States.HUD then
-            mapFocus()
-        end
-    end))
-    taskMaid:GiveTask(ZoneController.ZoneChanged:Connect(mapFocus))
+                -- Map Focus Callbacks
+                taskMaid:GiveTask(UIController.StateMaximized:Connect(function(state)
+                    if state == UIConstants.States.HUD then
+                        task.wait(1) --!! temp
+                        mapFocus(true)
+                    end
+                end))
+                taskMaid:GiveTask(UIController.StateMinimized:Connect(function(state)
+                    if state == UIConstants.States.HUD then
+                        mapFocus(false)
+                    end
+                end))
+                taskMaid:GiveTask(ZoneController.ZoneChanged:Connect(function()
+                    mapFocus(UIController.isStateMaximized(UIConstants.States.HUD))
+                end))
+                mapFocus(UIController.isStateMaximized(UIConstants.States.HUD))
 
-    -------------------------------------------------------------------------------
-    -- BOARDWALK FOCUS: Focus on the boardwalk section of the Map UI
-    -------------------------------------------------------------------------------
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -------------------------------------------------------------------------------
+                -- BOARDWALK FOCUS: Focus on the boardwalk section of the Map UI
+                -------------------------------------------------------------------------------
 
-    local boardwalkFocusMaid = Maid.new()
-    local function boardwalkFocus()
-        -- Focus
-        local hideBoardwalkFocalPoint = UIActions.focalPoint(BOARDWALK_FOCAL_POINT_POSITION)
-        boardwalkFocusMaid:GiveTask(hideBoardwalkFocalPoint)
-    end
-    taskMaid:GiveTask(boardwalkFocusMaid)
+                local boardwalkFocusMaid = Maid.new()
+                taskMaid:GiveTask(boardwalkFocusMaid)
 
-    -- Focus on boardwalk when we open up the map
-    taskMaid:GiveTask(UIController.getStateMachine():RegisterGlobalCallback(function(_fromState, toState)
-        boardwalkFocusMaid:Cleanup()
+                local isBoardwalkFocused = false
+                local function boardwalkFocus(doFocus: boolean)
+                    -- RETURN: No change!
+                    if doFocus == isBoardwalkFocused then
+                        return
+                    end
+                    isBoardwalkFocused = doFocus
 
-        if toState == UIConstants.States.Map then
-            boardwalkFocus()
-        end
-    end))
+                    if doFocus then
+                        -- Focus
+                        local hideBoardwalkFocalPoint = UIActions.focalPoint(BOARDWALK_FOCAL_POINT_POSITION)
+                        boardwalkFocusMaid:GiveTask(hideBoardwalkFocalPoint)
+                    else
+                        boardwalkFocusMaid:Cleanup()
+                    end
+                end
 
-    -------------------------------------------------------------------------------
-    -- Logic Flow
-    -------------------------------------------------------------------------------
+                -- Boardwalk Focus Callbacks
+                taskMaid:GiveTask(UIController.StateMaximized:Connect(function(state)
+                    if state == UIConstants.States.Map then
+                        boardwalkFocus(true)
+                    end
+                end))
+                taskMaid:GiveTask(UIController.StateMinimized:Connect(function(state)
+                    if state == UIConstants.States.Map then
+                        boardwalkFocus(false)
+                    end
+                end))
+                boardwalkFocus(UIController.isStateMaximized(UIConstants.States.Map))
 
-    -- Wait for user to be inside the pizza place
-    while not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), pizzaPlaceZone)) do
-        task.wait()
-    end
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -- Wait for user to get to the boardwalk
+                while (isTutorialSkipped == false) and not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), pizzaPlaceZone)) do
+                    task.wait()
+                end
 
-    -- Start minigame request for user
-    MinigameController.playRequest(MinigameConstants.Minigames.PizzaFiasco, false)
+                -- Lock them to the boardwalk
+                local unlock = ZoneController.lockToRoomZone(boardwalkZone)
+                taskMaid:GiveTask(unlock())
 
-    -- Wait for user to start minigame
-    while not (ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame) do
-        task.wait()
-    end
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -- Wait for user to be inside the pizza place
+                while (isTutorialSkipped == false) and not (ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), pizzaPlaceZone)) do
+                    task.wait()
+                end
 
-    -- Wait for user to finish minigame
-    while ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame do
-        task.wait()
-    end
+                -- Lock them to pizza place
+                local unlock = ZoneController.lockToRoomZone(pizzaPlaceZone)
+                taskMaid:GiveTask(unlock)
 
-    -- Task Completed
-    TutorialController.taskCompleted(TutorialConstants.Tasks.PlayMinigame)
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -- Start minigame request for user
+                MinigameController.playRequest(MinigameConstants.Minigames.PizzaFiasco, false)
 
-    taskMaid:Destroy()
+                -- Wait for user to start minigame
+                while
+                    (isTutorialSkipped == false)
+                    and not (ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame)
+                do
+                    task.wait()
+                end
+
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                -- Wait for user to finish minigame
+                while
+                    (isTutorialSkipped == false) and ZoneController.getCurrentZone().ZoneCategory == ZoneConstants.ZoneCategory.Minigame
+                do
+                    task.wait()
+                end
+
+                resolve()
+            end)
+        end)
 end

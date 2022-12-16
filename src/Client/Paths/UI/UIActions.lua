@@ -81,6 +81,7 @@ function UIActions.focalPoint(positionOrGuiObject: UDim2 | GuiObject, size: UDim
 
     local scopeId = focalPointScope:NewScope()
 
+    UIController.getStateMachine():Remove(UIConstants.States.FocalPoint) -- Remove any old focal points
     UIController.getStateMachine():Push(UIConstants.States.FocalPoint, {
         Position = position,
         Size = size,

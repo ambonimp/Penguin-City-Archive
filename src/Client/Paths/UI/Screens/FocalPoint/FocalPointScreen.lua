@@ -23,6 +23,8 @@ local TRANSPARENCY = 0.2
 
 local screenGui: ScreenGui?
 
+local currentState: { FocalPoint: Frame, Size: UDim2 }
+
 function FocalPointScreen.Init()
     -- Register UIState
     do
@@ -110,17 +112,10 @@ function FocalPointScreen.boot(data: table)
     -- Default hidden
     InstanceUtil.hide(screenGui:GetDescendants())
 
-    -- Animate in new thread so `maximize` has been called
-    task.defer(function()
-        local viewportSize = Workspace.CurrentCamera.ViewportSize
-        local uiScale = UIScaleController.getScale()
-        local startSize = (math.max(viewportSize.X, viewportSize.Y) * 2) / uiScale
-
-        focalPoint.Size = UDim2.fromOffset(startSize, startSize)
-        TweenUtil.tween(focalPoint, TWEEN_INFO_IN, {
-            Size = size,
-        })
-    end)
+    currentState = {
+        FocalPoint = focalPoint,
+        Size = size,
+    }
 end
 
 function FocalPointScreen.shutdown()
@@ -137,13 +132,21 @@ function FocalPointScreen.shutdown()
 end
 
 function FocalPointScreen.maximize()
-    print("maximize focal")
     screenGui.Enabled = true
     InstanceUtil.show(screenGui:GetDescendants(), TWEEN_INFO_SHOW_HIDE)
+
+    -- Animate
+    local viewportSize = Workspace.CurrentCamera.ViewportSize
+    local uiScale = UIScaleController.getScale()
+    local startSize = (math.max(viewportSize.X, viewportSize.Y) * 2) / uiScale
+
+    currentState.FocalPoint.Size = UDim2.fromOffset(startSize, startSize)
+    TweenUtil.tween(currentState.FocalPoint, TWEEN_INFO_IN, {
+        Size = currentState.Size,
+    })
 end
 
 function FocalPointScreen.minimize()
-    print("minimze focal")
     InstanceUtil.hide(screenGui:GetDescendants(), TWEEN_INFO_SHOW_HIDE)
 end
 

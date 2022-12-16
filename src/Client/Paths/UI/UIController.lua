@@ -11,8 +11,14 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local StateMachine = require(Paths.Shared.StateMachine)
 local CoreGui = require(Paths.Client.UI.CoreGui)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local Signal = require(Paths.Shared.Signal)
 
 local SHOW_STATE_MACHINE_DEBUG = false
+
+UIController.StateBooted = Signal.new() -- { state: string }
+UIController.StateShutdown = Signal.new() -- { state: string }
+UIController.StateMaximized = Signal.new() -- { state: string }
+UIController.StateMinimized = Signal.new() -- { state: string }
 
 local stateMachine = StateMachine.new(TableUtil.toArray(UIConstants.States), UIConstants.States.HUD)
 local stateScreenData: {
@@ -69,26 +75,10 @@ do
 
     -- Manage State Callbacks
     stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string, data: table?)
-        -- Manage Invisible States: Get a list of invisible states on the top, and as such the "visible" state on top!
-        local currentStack = stateMachine:GetStack()
-        local topState: string?
-        local invisibleStates: { string } = {}
-        for i = #currentStack, 1, -1 do
-            local state = currentStack[i]
-            local isInvisible = table.find(UIConstants.InvisibleStates, state) and true or false
-            if isInvisible then
-                table.insert(invisibleStates, state)
-            else
-                topState = state
-                break
-            end
-        end
-
         -- Iterate screenData
         for someState, screenData in pairs(stateScreenData) do
             -- Check if we are on top or not
-            local isInvisible = table.find(invisibleStates, someState)
-            local isOnTop = isInvisible or UIUtil.getPseudoState(someState, topState)
+            local isOnTop = UIController.isStateMaximized(someState)
 
             -- Run Logic
 
@@ -100,6 +90,7 @@ do
                         screenData.Meta.IsBooted = false
                         if screenData.Callbacks.Shutdown then
                             screenData.Callbacks.Shutdown()
+                            UIController.StateShutdown:Fire(someState)
                             --print(someState, "Shutdown")
                         end
                     end
@@ -109,6 +100,7 @@ do
                     screenData.Meta.IsMaximized = false
                     if screenData.Callbacks.Minimize then
                         screenData.Callbacks.Minimize()
+                        UIController.StateMinimized:Fire(someState)
                         --print(someState, "Minimize")
                     end
                 end
@@ -120,6 +112,7 @@ do
                     screenData.Meta.IsBooted = true
                     if screenData.Callbacks.Boot then
                         screenData.Callbacks.Boot(data)
+                        UIController.StateBooted:Fire(someState)
                         --print(someState, "Boot")
                     end
                 end
@@ -128,6 +121,7 @@ do
                     screenData.Meta.IsMaximized = true
                     if screenData.Callbacks.Maximize then
                         screenData.Callbacks.Maximize()
+                        UIController.StateMaximized:Fire(someState)
                         --print(someState, "Maximize")
                     end
                 end
@@ -138,6 +132,30 @@ end
 
 function UIController.getStateMachine()
     return stateMachine
+end
+
+-- Queries the current stack and our UIConstants to make a decision
+function UIController.isStateMaximized(state: string)
+    -- Manage Invisible States: Get a list of invisible states on the top, and as such the "visible" state on top!
+    local currentStack = stateMachine:GetStack()
+    local topState: string?
+    local invisibleStates: { string } = {}
+    for i = #currentStack, 1, -1 do
+        local someState = currentStack[i]
+        local isInvisible = table.find(UIConstants.InvisibleStates, someState) and true or false
+        if isInvisible then
+            table.insert(invisibleStates, someState)
+        else
+            topState = someState
+            break
+        end
+    end
+
+    -- Check if we are visible or not
+    local isInvisible = table.find(invisibleStates, state)
+    local isMaximized = isInvisible or UIUtil.getPseudoState(state, topState)
+
+    return isMaximized
 end
 
 --[[

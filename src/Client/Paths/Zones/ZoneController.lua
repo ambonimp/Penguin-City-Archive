@@ -41,6 +41,7 @@ local isTransitioningToZone = false
 local onZoneUpdateMaid = Maid.new()
 local transitionToZoneScope = Scope.new()
 local lockedToRoomZone: ZoneConstants.Zone | nil
+local lockToRoomZoneScope = Scope.new()
 
 ZoneController.ZoneChanged = Signal.new() -- {fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone} Zone has officially changed
 
@@ -368,14 +369,24 @@ end
 --[[
     User cannot leave this zone, and will be teleported to it if they are not there. Pass `nil` to unlock
 
-    Yields if/when teleporting
+    Returns a function that will unlock if and only if a zone was passed, and no new locking calls have happened since
 ]]
 function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil)
     lockedToRoomZone = zone
 
-    if zone then
-        if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), zone) then
-            ZoneController.teleportToRoomRequest(zone):Await()
+    local scopeId = lockToRoomZoneScope:NewScope()
+
+    task.defer(function()
+        if zone then
+            if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), zone) then
+                ZoneController.teleportToRoomRequest(zone):Await()
+            end
+        end
+    end)
+
+    return function()
+        if zone and lockToRoomZoneScope:Matches(scopeId) then
+            ZoneController.lockToRoomZone()
         end
     end
 end

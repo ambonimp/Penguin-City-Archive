@@ -13,18 +13,37 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIActions = require(Paths.Client.UI.UIActions)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local Maid = require(Paths.Packages.maid)
-
-local uiStateMachine = UIController.getStateMachine()
+local Promise = require(Paths.Packages.promise)
 
 return function(taskMaid: typeof(Maid.new()))
-    TutorialController.prompt("You are all set! Here is a Pet Egg to get you started..")
+    local isTutorialSkipped = false
+    Promise.new(function(resolve, _reject, onCancel)
+        onCancel(function()
+            isTutorialSkipped = true
+        end)
+        resolve()
+    end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                TutorialController.prompt("You are all set! Here is a Pet Egg to get you started..")
 
-    TutorialController.giveStarterPetEgg()
+                TutorialController.giveStarterPetEgg()
 
-    warn("TODO tween pet egg into inventory button on hud")
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                warn("TODO tween pet egg into inventory button on hud")
 
-    TutorialController.prompt(("You can hatch your egg in %d minutes!"):format(TutorialConstants.StarterEgg.HatchTimeMinutes))
+                resolve()
+            end)
+        end)
+        :andThen(function()
+            return Promise.new(function(resolve)
+                TutorialController.prompt(("You can hatch your egg in %d minutes!"):format(TutorialConstants.StarterEgg.HatchTimeMinutes))
 
-    -- Task Completed
-    TutorialController.taskCompleted(TutorialConstants.Tasks.StarterPetEgg)
+                resolve()
+            end)
+        end)
 end
