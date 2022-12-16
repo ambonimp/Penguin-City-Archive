@@ -109,8 +109,10 @@ do
             -- Interface
             -------------------------------------------------------------------------------
             panel:AddTab(categoryName, categoryConstants.TabIcon)
+
             for itemName in pairs(categoryConstants.Items) do
                 local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+                local slotTask
 
                 panel:AddWidgetFromProduct(categoryName, itemName, false, product, {
                     VerifyOwnership = true,
@@ -138,7 +140,6 @@ do
                     end
                 end, function(widget)
                     if canMultiEquip then
-                        local slotTask
                         widget.SelectedChanged:Connect(function(selected)
                             if selected then
                                 local unequipButton = ExitButton.new()
@@ -153,9 +154,13 @@ do
                                 slotTask = tabMaid:GiveTask(function()
                                     slot:Destroy()
                                     unequipButton:Destroy()
+
+                                    slotTask = nil
                                 end)
                             else
-                                tabMaid:RemoveTask(slotTask)
+                                if slotTask then
+                                    tabMaid:EndTask(slotTask)
+                                end
                             end
                         end)
                     end

@@ -90,7 +90,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     Confetti.play()
 
     local stats = runner:GetStats()
-    minigameMaid:RemoveTask(runnerTask)
+    minigameMaid:EndTask(runnerTask)
 
     SharedMinigameScreen.openResults({
         { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
