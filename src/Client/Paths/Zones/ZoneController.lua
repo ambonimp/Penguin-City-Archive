@@ -30,6 +30,7 @@ local CHECK_SOS_DISTANCE_EVERY = 1
 local SAVE_SOUL_AFTER_BEING_LOST_FOR = 1
 local MIN_TIME_BETWEEN_SAVING = 5
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
+local TRANSITION_ZONE_RESET_CHARACTER_PIVOT_DISTANCE_EPSILON = 100
 
 local localPlayer = Players.LocalPlayer
 local defaultZone = ZoneUtil.defaultZone()
@@ -37,7 +38,7 @@ local currentZone = defaultZone
 local currentRoomZone = currentZone
 local zoneMaid = Maid.new()
 local isRunningTeleportToRoomRequest = false
-local isTransitioningToZone = false
+local transitioningToZone: ZoneConstants.Zone | nil
 local onZoneUpdateMaid = Maid.new()
 local transitionToZoneScope = Scope.new()
 
@@ -76,8 +77,16 @@ function ZoneController.Start()
             end
 
             local distance = (character:GetPivot().Position - zoneModel:GetPivot().Position).Magnitude
+
+            -- EDGE CASE: We may be transitioning to a zone; take into account our character may be in this neck of the woods too
+            local transitioningToZoneModel = transitioningToZone and ZoneUtil.getZoneModel(transitioningToZone)
+            if transitioningToZoneModel then
+                distance = math.min(distance, (character:GetPivot().Position - transitioningToZoneModel:GetPivot().Position).Magnitude)
+            end
+
             local isLost = distance > ZoneConstants.StreamingTargetRadius
             if isLost then
+                print(distance)
                 beenLostSinceTick = beenLostSinceTick or tick()
                 local beenLostFor = tick() - beenLostSinceTick
                 local timeSinceLastSave = tick() - lastSaveAtTick
@@ -186,7 +195,7 @@ local function setupTeleporters()
 end
 
 function ZoneController.isTeleporting()
-    return isTransitioningToZone or isRunningTeleportToRoomRequest
+    return transitioningToZone or isRunningTeleportToRoomRequest
 end
 
 --[[
@@ -200,12 +209,12 @@ function ZoneController.transitionToZone(
     teleportResult: () -> (boolean, CFrame?),
     blinkOptions: (Transitions.BlinkOptions)?
 )
-    Output.debug("ZoneController.transitionToZone", toZone.ZoneCategory, toZone.ZoneType)
-
     -- Init variables
-    isTransitioningToZone = true
+    transitioningToZone = toZone
     transitionToZoneScope:NewScope()
     local thisScopeId = transitionToZoneScope:GetId()
+
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, toZone.ZoneCategory, toZone.ZoneType)
 
     -- Ensure player is not sitting
     local character = Players.LocalPlayer.Character
@@ -219,10 +228,18 @@ function ZoneController.transitionToZone(
     blinkOptions = blinkOptions or {}
     blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
-    local function resetCharacter(toCFrame: CFrame?)
-        Output.debug("ZoneController.transitionToZone", "reset character")
-        if toCFrame then
-            character:PivotTo(toCFrame)
+    local function resetCharacter(cframeData: {
+        FromCFrame: CFrame,
+        ToCFrame: CFrame,
+    }?)
+        Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "reset character")
+        if cframeData then
+            -- If character is at `FromCFrame` (or close enough), go to `ToCFrame`
+            -- This helps protect us from overrides
+            local distance = (character:GetPivot().Position - cframeData.FromCFrame.Position).Magnitude
+            if distance < TRANSITION_ZONE_RESET_CHARACTER_PIVOT_DISTANCE_EPSILON then
+                character:PivotTo(cframeData.ToCFrame)
+            end
         end
 
         CharacterUtil.unanchor(character)
@@ -230,14 +247,22 @@ function ZoneController.transitionToZone(
 
     -- Blink!
     Transitions.blink(function()
+        Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "blink call")
         -- RETURN: Teleport was cancelled
         local canTeleport, newCharacterCFrame = teleportResult()
         if not (canTeleport and newCharacterCFrame) then
+            Output.doDebug(
+                ZoneConstants.DoDebug,
+                "ZoneController.transitionToZone",
+                thisScopeId,
+                ("cancelling teleport... canTeleport: %s  newCharCFrame: %s"):format(tostring(canTeleport), tostring(newCharacterCFrame))
+            )
             return
         end
 
         -- RETURN: No character?
         if not character then
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "return", "no character")
             return
         end
 
@@ -246,18 +271,27 @@ function ZoneController.transitionToZone(
         character:PivotTo(newCharacterCFrame)
         character.PrimaryPart.AssemblyLinearVelocity = ZERO_VECTOR
         CharacterUtil.anchor(character)
+        Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "pivoted and anchored character")
 
         -- YIELD: Wait for zone to load (possible RETURN if not loaded)
         local didLoad = ZoneController.waitForZoneToLoad(toZone)
         if not didLoad then
             warn("Zone Loading Timed Out")
-            resetCharacter(oldCharacterCFrame)
+            resetCharacter({
+                FromCFrame = newCharacterCFrame,
+                ToCFrame = oldCharacterCFrame,
+            })
             return
         end
+        Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "zone loaded")
 
         -- RETURN: Old scope
         if not transitionToZoneScope:Matches(thisScopeId) then
-            resetCharacter(oldCharacterCFrame)
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "old scope!")
+            resetCharacter({
+                FromCFrame = newCharacterCFrame,
+                ToCFrame = oldCharacterCFrame,
+            })
             return
         end
 
@@ -268,6 +302,8 @@ function ZoneController.transitionToZone(
 
         -- Run Arrival Logic
         do
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneController.transitionToZone", thisScopeId, "run arrival logic")
+
             -- Clean up old zone
             zoneMaid:Cleanup()
 
@@ -296,7 +332,7 @@ function ZoneController.transitionToZone(
     end, blinkOptions)
 
     if transitionToZoneScope:Matches(thisScopeId) then
-        isTransitioningToZone = false
+        transitioningToZone = nil
     end
 end
 
@@ -311,10 +347,17 @@ end
     Returns our Assume object.
 ]]
 function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, ignoreFromZone: boolean?)
-    Output.debug("ZoneController.teleportToRoomRequest", roomZone.ZoneCategory, roomZone.ZoneType, ignoreFromZone, debug.traceback())
+    Output.doDebug(
+        ZoneConstants.DoDebug,
+        "ZoneController.teleportToRoomRequest",
+        roomZone.ZoneCategory,
+        roomZone.ZoneType,
+        ignoreFromZone,
+        debug.traceback()
+    )
     local nextteleportToRoomRequestPlease = Queue.yield("ZoneController.teleportToRoomRequest")
     isRunningTeleportToRoomRequest = true
-    Output.debug("ZoneController.teleportToRoomRequest", "GO")
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneController.teleportToRoomRequest", "GO")
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
@@ -326,7 +369,7 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
         local response = table.pack(Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
             IgnoreFromZone = ignoreFromZone,
         }))
-        Output.debug("ZoneController.teleportToRoomRequest", "Request Assume", response)
+        Output.doDebug(ZoneConstants.DoDebug, "ZoneController.teleportToRoomRequest", "Request Assume", response)
 
         return table.unpack(response)
     end)

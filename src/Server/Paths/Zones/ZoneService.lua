@@ -176,7 +176,7 @@ end
     Returns true, characterCFrame if successful
 ]]
 function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
-    Output.doDebug(ZoneConstants.DoDebug, "teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
 
     -- Read Data
     teleportData = teleportData or {}
@@ -222,6 +222,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     local spawnpoint = ignoreFromZone and ZoneUtil.getZoneInstances(zone).Spawnpoint or ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
     local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
+    Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", "requested streaming")
 
     -- Teleport player + manage character (after a delay) (as long as we're still on the same request)
     local cachedTotalTeleports = playerZoneState.TotalTeleports
@@ -229,6 +230,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
         if cachedTotalTeleports == playerZoneState.TotalTeleports then
             -- Disable Collisions
             CharacterUtil.setEthereal(player, true, ETHEREAL_KEY_TELEPORTS)
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, "disable collisions")
 
             -- Yield until we have teleported
             while character and cachedTotalTeleports == playerZoneState.TotalTeleports do
@@ -249,6 +251,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
                     task.wait(CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY)
                     if not (player.Character and CharacterUtil.isCollidingWithOtherCharacter(player.Character)) then
                         CharacterUtil.setEthereal(player, false, ETHEREAL_KEY_TELEPORTS)
+                        Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, "reenable collisions")
                         break
                     end
                 end
@@ -312,6 +315,8 @@ do
             if not ZoneUtil.doesZoneExist(zone) then
                 return nil
             end
+
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneService", "RoomZoneTeleportRequest", player, zoneCategory, zoneType, teleportData)
 
             return ZoneService.teleportPlayerToZone(player, zone, teleportData)
         end,

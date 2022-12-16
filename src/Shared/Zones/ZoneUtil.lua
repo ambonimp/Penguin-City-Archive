@@ -8,6 +8,7 @@ local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
+local Output = require(ReplicatedStorage.Shared.Output)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
@@ -101,8 +102,8 @@ function ZoneUtil.getZoneCategoryDirectory(zoneCategory: string)
     end
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory)[ZoneUtil.getZoneName(zone)]
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone): Model | nil
+    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone))
 end
 
 function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
@@ -284,6 +285,13 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
         end
     end
 
+    Output.doDebug(
+        ZoneConstants.DoDebug,
+        "ZoneUtil.areAllBasePartsLoaded",
+        instance:GetFullName(),
+        ("  Parts Missing: %d"):format(countedServerTotal - countedClientTotal)
+    )
+
     local percentageLoaded = countedClientTotal / countedServerTotal
     return isLoaded, percentageLoaded
 end
@@ -304,6 +312,13 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     local lastPercentageLoaded = -1
     while tick() < endTick do
         local isLoaded, percentageLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        Output.doDebug(
+            ZoneConstants.DoDebug,
+            "ZoneUtil.waitForInstanceToLoad",
+            instance:GetFullName(),
+            " percent loaded:",
+            percentageLoaded
+        )
 
         -- Loaded!
         if isLoaded then
@@ -313,6 +328,7 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
 
         -- Has begun unloading..
         if percentageLoaded < lastPercentageLoaded then
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneUtil.waitForInstanceToLoad", instance:GetFullName(), "began unloading..")
             return false
         end
 
