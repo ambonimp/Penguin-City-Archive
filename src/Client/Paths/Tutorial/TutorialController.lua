@@ -23,6 +23,7 @@ local Signal = require(Paths.Shared.Signal)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Packages.maid)
 local Promise = require(Paths.Packages.promise)
+local Loader = require(Paths.Client.Loader)
 
 TutorialController.StartTask = Signal.new() -- { task: string } used to kickstart the next tutorial task
 TutorialController.TutorialSkipped = Signal.new()
@@ -129,8 +130,8 @@ function TutorialController.Start()
         end)
     end
 
-    -- Kickstart Tutorial
-    startNextTask()
+    -- Kickstart Tutorial (when loaded)
+    Loader.ClientLoaded:Connect(startNextTask)
 end
 
 function TutorialController.skipTutorial()
