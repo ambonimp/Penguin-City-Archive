@@ -138,7 +138,7 @@ do
                     end
                 end, function(widget)
                     if canMultiEquip then
-                        local slotTask = itemName .. "Slot"
+                        local slotTask
                         widget.SelectedChanged:Connect(function(selected)
                             if selected then
                                 local unequipButton = ExitButton.new()
@@ -150,12 +150,12 @@ do
                                 slot:SetCornerButton(unequipButton)
                                 slot:Mount(equipSlots)
 
-                                tabMaid:GiveTask(function()
+                                slotTask = tabMaid:GiveTask(function()
                                     slot:Destroy()
-                                    unequipButton:GetMaid():Cleanup()
-                                end, nil, slotTask)
+                                    unequipButton:Destroy()
+                                end)
                             else
-                                tabMaid:Remove(slotTask)
+                                tabMaid:RemoveTask(slotTask)
                             end
                         end)
                     end

@@ -140,7 +140,7 @@ function IceCreamExtravaganzaCollectables.setup()
                     ),
                 }),
             }):finally(function()
-                maid:RemoveTask(id)
+                maid:RemoveTask()
 
                 model:Destroy()
                 shadowPart:Destroy()
@@ -153,7 +153,7 @@ function IceCreamExtravaganzaCollectables.setup()
                 if tweenPromise then
                     tweenPromise:cancel()
                 end
-            end, nil, id)
+            end)
         end)
     )
 

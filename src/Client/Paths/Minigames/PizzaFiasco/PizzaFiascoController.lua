@@ -20,7 +20,6 @@ local Output = require(Paths.Shared.Output)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
 local MINIGAME_NAME = "PizzaFiasco"
-local RUNNER_JANITOR_INDEX = "Runner"
 local FILLER_RECIPE_ORDER = { PizzaFiascoConstants.FirstRecipe } -- Assumed agreement between Server/Client on start recipe order
 
 -------------------------------------------------------------------------------
@@ -31,12 +30,14 @@ local player = Players.LocalPlayer
 local minigameMaid = MinigameController.getMinigameMaid()
 local runner: typeof(PizzaFiascoRunner.new(Instance.new("Model"), {}, function() end)) | nil
 
+local runnerTask
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
 -------------------------------------------------------------------------------
 local function stopRunner()
     runner:Stop()
     runner = nil
+    runnerTask = nil
 end
 
 -------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     runner = PizzaFiascoRunner.new(MinigameController.getMap(), FILLER_RECIPE_ORDER, function()
         Remotes.fireServer("PizzaMinigameRoundFinished")
     end)
-    minigameMaid:GiveTask(stopRunner, nil, RUNNER_JANITOR_INDEX)
+    runnerTask = minigameMaid:GiveTask(stopRunner)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
@@ -89,7 +90,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     Confetti.play()
 
     local stats = runner:GetStats()
-    minigameMaid:RemoveTask(RUNNER_JANITOR_INDEX)
+    minigameMaid:RemoveTask(runnerTask)
 
     SharedMinigameScreen.openResults({
         { Title = "Attempted Pizzas", Value = stats.TotalPizzas, Icon = Images.PizzaFiasco.PizzaBase },
