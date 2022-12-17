@@ -1,5 +1,6 @@
 -- finobinos - Original author - 16 October 2021
 -- flamenco687 - Modified for personal use - 1 November 2021
+-- Penguin City Team - Modified for our purposes - 17 December 2022
 
 --[[
 	-- Static methods:
@@ -44,6 +45,8 @@ local Maid = {}
 Maid.__index = Maid
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Promise = require(ReplicatedStorage.Packages.promise)
 
 local LocalConstants = {
     ErrorMessages = {
@@ -68,7 +71,14 @@ local function DisconnectTask(task)
     elseif typeof(task) == "RBXScriptConnection" then
         -- Task was a RBXScriptConneciton or a table with a Disconnect method
         task:Disconnect()
+    elseif typeof(task) == "thread" then
+        coroutine.close(task)
+    elseif Promise.is(task) then
+        task:cancel()
     else
+        if task.Cancel then
+            task:Cancel()
+        end
         if task.Destroy then
             task:Destroy()
         else
@@ -104,24 +114,41 @@ end
 	Adds a task for the maid to cleanup. Note that `table` must have a `Destroy` or `Disconnect` method.
 
 	@tag Maid
-	@param task function | RBXScriptConnection | table | Instance
+	@param task function | RBXScriptConnection | table | Instance | thread | Promise
 	@return task
 ]=]
 
 function Maid:GiveTask(task)
-    assert(
-        typeof(task) == "function"
-            or typeof(task) == "RBXScriptConnection"
-            or typeof(task) == "table" and (typeof(task.Destroy) == "function" or typeof(task.Disconnect) == "function")
-            or typeof(task) == "Instance",
+    -- Verify task is "good"
+    local isGoodOffTheBat = typeof(task) == "function"
+        or typeof(task) == "RBXScriptConnection"
+        or typeof(task) == "Instance"
+        or typeof(task) == "thread"
+        or Promise.is(task)
 
-        LocalConstants.ErrorMessages.InvalidArgument:format(
-            1,
-            "Maid:GiveTask()",
-            "function or RBXScriptConnection or Instance or table with Destroy or Disconnect method",
-            typeof(task)
-        )
-    )
+    if not isGoodOffTheBat then
+        if typeof(task) == "table" then
+            if not (typeof(task.Destroy) == "function" or typeof(task.Disconnect) == "function") then
+                error(
+                    LocalConstants.ErrorMessages.InvalidArgument:format(
+                        1,
+                        "Maid:GiveTask()",
+                        "table has no Destroy or Disconnect method",
+                        typeof(task)
+                    )
+                )
+            end
+        else
+            error(
+                LocalConstants.ErrorMessages.InvalidArgument:format(
+                    1,
+                    "Maid:GiveTask()",
+                    "Passed an Instance we don't know how to clean up!",
+                    typeof(task)
+                )
+            )
+        end
+    end
 
     self._tasks[task] = task
 
@@ -233,7 +260,7 @@ end
 	@return Connection 
 ]=]
 
-function Maid:LinkToInstance(instance)
+function Maid:LinkToInstance(instance: Instance)
     assert(
         typeof(instance) == "Instance",
         LocalConstants.ErrorMessages.InvalidArgument:format(1, "Maid:LinkToInstance()", "Instance", typeof(instance))
