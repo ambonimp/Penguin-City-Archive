@@ -4,7 +4,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
 

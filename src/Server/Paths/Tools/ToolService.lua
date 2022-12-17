@@ -6,7 +6,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local PlayerService = require(Paths.Server.PlayerService)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 
 type EquippedData = {
     Tool: ToolUtil.Tool | nil,

@@ -3,7 +3,7 @@ local CharacterController = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Loader = require(Paths.Client.Loader)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 
 local Animate = Paths.Client.Character.Animate
 local localPlayer = Players.LocalPlayer

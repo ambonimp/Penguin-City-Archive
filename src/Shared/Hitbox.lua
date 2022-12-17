@@ -7,7 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local RotatedRegion3 = require(ReplicatedStorage.Shared.RotatedRegion3)
 local Signal = require(ReplicatedStorage.Shared.Signal)
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 local BasePartUtil = require(ReplicatedStorage.Shared.Utils.BasePartUtil)
 
 local EPSILON = 0.001

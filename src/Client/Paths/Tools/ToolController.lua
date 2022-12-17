@@ -12,7 +12,7 @@ local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InputController = require(Paths.Client.Input.InputController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 

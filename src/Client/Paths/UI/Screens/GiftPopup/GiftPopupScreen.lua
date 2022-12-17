@@ -11,7 +11,7 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Images = require(Paths.Shared.Images.Images)
 local Sound = require(Paths.Shared.Sound)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 
 local maid = Maid.new()

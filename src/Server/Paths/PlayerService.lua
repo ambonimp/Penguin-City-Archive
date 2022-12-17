@@ -4,7 +4,7 @@ local PlayerService = {}
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local GroupUtil = require(Paths.Shared.Utils.GroupUtil)
 local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
 

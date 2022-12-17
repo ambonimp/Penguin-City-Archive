@@ -12,7 +12,7 @@ local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIActions = require(Paths.Client.UI.UIActions)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Promise = require(Paths.Packages.promise)
 local Confetti = require(Paths.Client.UI.Screens.SpecialEffects.Confetti)
 
