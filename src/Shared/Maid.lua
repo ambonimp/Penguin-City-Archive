@@ -76,9 +76,12 @@ local function DisconnectTask(task)
     elseif Promise.is(task) then
         task:cancel()
     else
-        if task.Cancel then
+        -- Cancel Tweens
+        if typeof(task) == "Instance" and task:IsA("Tween") then
             task:Cancel()
         end
+
+        -- Instances
         if task.Destroy then
             task:Destroy()
         else
