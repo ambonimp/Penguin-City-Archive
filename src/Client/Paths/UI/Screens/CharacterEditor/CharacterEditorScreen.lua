@@ -42,6 +42,7 @@ local tabMaid = Maid.new()
 
 local previewCharacter, previewMaid
 local equippedItems: { [string]: EquippedItems } = {}
+local bootCallbacks: { () -> any } = {}
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -169,7 +170,9 @@ do
 
             if canEquip then
                 equippedItems[categoryName] = {}
-                bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                table.insert(bootCallbacks, function()
+                    bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                end)
             end
         end
     end
@@ -197,6 +200,11 @@ do
         if not character then
             uiStateMachine:Pop()
             return
+        end
+
+        -- Callbacks
+        for _, bootCallback in pairs(bootCallbacks) do
+            bootCallback()
         end
 
         -- Only open character editor when the player is on the floor
