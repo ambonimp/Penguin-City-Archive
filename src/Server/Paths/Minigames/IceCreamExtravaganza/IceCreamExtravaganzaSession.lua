@@ -141,7 +141,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         local inviciblePlayers = {}
 
         -- Spawn collectables
-        local collectaleSpawningThread = task.spawn(function()
+        coreMaid:GiveTask(function()
             while true do
                 idCounter += 1
 
@@ -168,10 +168,6 @@ function IceCreamExtravaganzaSession.new(...: any)
 
                 task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
             end
-        end)
-
-        coreMaid:GiveTask(function()
-            task.cancel(collectaleSpawningThread)
         end)
 
         coreMaid:GiveTask(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
@@ -247,9 +243,7 @@ function IceCreamExtravaganzaSession.new(...: any)
                     end
 
                     local revertThread = task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player])
-                    coreMaid:GiveTask(function()
-                        task.cancel(revertThread)
-                    end)
+                    coreMaid:GiveTask(revertThread)
                 else
                     local scoreAddend = if collectableType == "Regular" then 1 else 2
 
