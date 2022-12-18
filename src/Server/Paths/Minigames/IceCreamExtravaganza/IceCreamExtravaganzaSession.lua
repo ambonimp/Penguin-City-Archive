@@ -141,7 +141,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         local inviciblePlayers = {}
 
         -- Spawn collectables
-        coreMaid:GiveTask(function()
+        coreMaid:GiveTask(task.spawn(function()
             while true do
                 idCounter += 1
 
@@ -168,7 +168,7 @@ function IceCreamExtravaganzaSession.new(...: any)
 
                 task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
             end
-        end)
+        end))
 
         coreMaid:GiveTask(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
             local character: Model = player.Character
