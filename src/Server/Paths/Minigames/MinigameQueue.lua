@@ -53,6 +53,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
         end
 
         updateStatusBoard()
+        Remotes.fireClient(player, "MinigameQueueExited")
     end
 
     -------------------------------------------------------------------------------
