@@ -49,10 +49,11 @@ local Output = require(Paths.Shared.Output)
 local DataService = require(Paths.Server.Data.DataService)
 
 type Participants = { Player }
+export type MinigameSession = typeof(MinigameSession.new())
 
 local STATES = MinigameConstants.States
 
-MinigameSession.MinigameFinished = Signal.new() -- { sortedScores: MinigameConstants.SortedScored }
+MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession sortedScores: MinigameConstants.SortedScored }
 
 local assets = ServerStorage.Minigames
 
@@ -119,6 +120,10 @@ function MinigameSession.new(
     -------------------------------------------------------------------------------
     function minigameSession:GetMaid()
         return maid
+    end
+
+    function minigameSession:GetMinigameName()
+        return minigameName
     end
 
     function minigameSession:GetState(): string
@@ -459,7 +464,7 @@ function MinigameSession.new(
             stateMachine:GetData().Scores = sortedScores
 
             -- Relay to server
-            MinigameSession.MinigameFinished:Fire(sortedScores)
+            MinigameSession.MinigameFinished:Fire(minigameSession, sortedScores)
 
             -- Cleanup
             scores = nil
