@@ -268,7 +268,7 @@ do
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
-        if characterStatus ~= Promise.Status.Resolved then
+        if characterIsReady and characterStatus ~= Promise.Status.Resolved then
             characterIsReady:Cancel()
             characterIsReady:Destroy()
         else
