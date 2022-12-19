@@ -54,7 +54,8 @@ export type MinigameSession = typeof(MinigameSession.new())
 
 local STATES = MinigameConstants.States
 
-MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession sortedScores: MinigameConstants.SortedScored }
+MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, sortedScores: MinigameConstants.SortedScored }
+MinigameSession.ParticipantedAdded = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, participant: Player }
 
 local assets = ServerStorage.Minigames
 
@@ -92,6 +93,7 @@ function MinigameSession.new(
 
     local defaultScore: number?
     local started: boolean = false
+    local startedAtTick: number?
 
     local random = Random.new()
 
@@ -221,6 +223,8 @@ function MinigameSession.new(
             isMultiplayer
         )
 
+        MinigameSession.ParticipantedAdded:Fire(minigameSession, player)
+
         maid:GiveTask(player.Character.Humanoid.Died:Connect(function()
             minigameSession:RemoveParticipant(player)
         end))
@@ -318,8 +322,8 @@ function MinigameSession.new(
         return scores[participant]
     end
 
-    function minigameSession:SortScores(): MinigameConstants.SortedScores
-        local sortedScores = {}
+    function minigameSession:SortScores()
+        local sortedScores: MinigameConstants.SortedScores = {}
         local unsorted = TableUtil.deepClone(scores)
 
         for _ = 1, TableUtil.length(unsorted) do
@@ -339,6 +343,11 @@ function MinigameSession.new(
 
         if config.HigherScoreWins then
             sortedScores = ArrayUtil.flip(sortedScores)
+        end
+
+        -- Insert Coins
+        for placement, scoreData in pairs(sortedScores) do
+            scoreData.CoinsEarned = config.Reward(placement, scoreData.Score, isMultiplayer)
         end
 
         return sortedScores
@@ -386,6 +395,12 @@ function MinigameSession.new(
         end
 
         started = true
+        startedAtTick = tick()
+    end
+
+    -- Returns how long has elapsed since minigame was started
+    function minigameSession:GetSessionTime()
+        return startedAtTick and (tick() - startedAtTick) or 0
     end
 
     -------------------------------------------------------------------------------
@@ -453,7 +468,7 @@ function MinigameSession.new(
                 local score = scoreInfo.Score
 
                 -- Reward
-                CurrencyService.injectCoins(player, config.Reward(placement, score, isMultiplayer), {
+                CurrencyService.injectCoins(player, scoreInfo.CoinsEarned, {
                     OverrideClient = true,
                     InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameName, false),
                 })

@@ -30,7 +30,7 @@ ZoneService.ZoneChanged:Connect(
 
         -- Post
         TelemetryService.postPlayerEvent(player, "zoneTravel", {
-            zoneFrom = ("%s_%s"):format(StringUtil.case(fromZone.ZoneCategory), StringUtil.toCamelCase(fromZoneType)),
+            zoneFrom = ("%s_%s"):format(StringUtil.toCamelCase(fromZone.ZoneCategory), StringUtil.toCamelCase(fromZoneType)),
             zoneTo = ("%s_%s"):format(StringUtil.toCamelCase(toZone.ZoneCategory), StringUtil.toCamelCase(toZoneType)),
             travelMethod = StringUtil.toCamelCase(teleportData.TravelMethod or ZoneConstants.TravelMethod.Unknown),
         })

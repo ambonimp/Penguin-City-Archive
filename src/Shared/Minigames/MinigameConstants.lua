@@ -8,7 +8,7 @@ export type Session = {
     Id: number,
 }
 export type PlayRequest = { Session: Session | nil, Error: string | nil }
-export type SortedScores = { { Player: Player, Score: number, NewBest: true?, ConsecutiveWins: number? } }
+export type SortedScores = { { Player: Player, Score: number, CoinsEarned: number, NewBest: true?, ConsecutiveWins: number? } }
 export type SessionConfig = {
     -- Size
     MinParticipants: number?,

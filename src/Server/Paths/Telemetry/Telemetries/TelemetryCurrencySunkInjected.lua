@@ -1,4 +1,4 @@
-local TelemetryCurrencySunk = {}
+local TelemetryCurrencySunkInjected = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
@@ -34,4 +34,4 @@ CurrencyService.CoinsSunk:Connect(function(player: Player, coinsSunk: number, co
     currencySunk(player, CURRENCY_COINS, coinsSunk, config.Product.Type or "unknown", config.Product.Id)
 end)
 
-return TelemetryCurrencySunk
+return TelemetryCurrencySunkInjected
