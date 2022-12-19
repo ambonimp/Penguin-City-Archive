@@ -473,7 +473,12 @@ function MinigameSession.new(
                     if isMultiplayer then
                         local consecutiveWinsRecordAddress = ("%s.%s"):format(minigameRecordAddress, "ConsecutiveWins")
                         local didWin = placement == 1
-                        local consecutiveWins = (didWin and (DataService.get(player, consecutiveWinsRecordAddress) or 0) + 1) or 0
+                        local didWinAgainstOthers = #sortedScores > 1
+
+                        -- Reset if not winner. Don't change if we won solo. Add a win if we beat others.
+                        local consecutiveWins = (
+                            didWin and (DataService.get(player, consecutiveWinsRecordAddress) or 0) + (didWinAgainstOthers and 0 or 1)
+                        ) or 0
 
                         DataService.set(player, consecutiveWinsRecordAddress, consecutiveWins)
                         scoreInfo.ConsecutiveWins = consecutiveWins
