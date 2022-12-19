@@ -12,8 +12,9 @@ local PizzaFiascoConstants = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFia
 local PizzaFiascoUtil = require(Paths.Shared.Minigames.PizzaFiasco.PizzaFiascoUtil)
 local Output = require(Paths.Shared.Output)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local Signal = require(Paths.Shared.Signal)
 
-type RecipeRecord = {
+export type RecipeRecord = {
     WasCorrect: boolean,
     Tick: number,
     DoSubtractMistake: boolean,
@@ -41,6 +42,8 @@ local MIN_RECIPE_TIMES = {
     end,
 }
 local MAXIMUM_RECIPE_TYPE_REPEATS_REROLLS = 5
+
+PizzaFiascoSession.RecipeRecordUpdated = Signal.new() -- { player: Player, recipeRecords: { PizzaFiascoSession.RecipeRecord } }
 
 function PizzaFiascoSession.new(...: any)
     local minigameSession = MinigameSession.new(...)
@@ -117,6 +120,9 @@ function PizzaFiascoSession.new(...: any)
                 }
 
                 table.insert(participantData.RecipeRecords, recipeRecord)
+
+                -- Inform
+                PizzaFiascoSession.RecipeRecordUpdated:Fire(player, participantData.RecipeRecords)
             end)
         )
 
