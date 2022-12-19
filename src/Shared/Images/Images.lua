@@ -82,6 +82,7 @@ Images.Icons = {
     Click = "rbxassetid://11637103411",
 }
 --#endregion
+--#region Voldex
 Images.Voldex = {
     V = "rbxassetid://11860915108",
     O = "rbxassetid://11860915201",
@@ -90,6 +91,7 @@ Images.Voldex = {
     E = "rbxassetid://11860914900",
     X = "rbxassetid://11860914744",
 }
+--#endregion
 --#region Coins
 Images.Coins = {
     Bundle1 = "rbxassetid://11152356128",
