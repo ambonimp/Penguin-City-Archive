@@ -5,7 +5,7 @@ local UIElement = require(script.Parent.UIElement)
 local KeyboardButton = require(script.Parent.KeyboardButton)
 local Button = require(script.Parent.Button)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 local Promise = require(ReplicatedStorage.Packages.promise)
 

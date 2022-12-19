@@ -10,7 +10,7 @@ local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
 local HUDScreen = require(Paths.Client.UI.Screens.HUD.HUDScreen)
 local UIActions = require(Paths.Client.UI.UIActions)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Promise = require(Paths.Packages.promise)
 
 local uiStateMachine = UIController.getStateMachine()

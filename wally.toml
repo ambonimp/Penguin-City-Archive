@@ -6,5 +6,4 @@ realm = "dev"
 
 [dependencies]
 promise = "evaera/promise@4.0.0"
-maid = "flamenco687/maid@3.2.2"
 cmdr = "evaera/cmdr@1.9.0"

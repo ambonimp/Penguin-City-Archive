@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Remotes = require(Paths.Shared.Remotes)
 local Images = require(Paths.Shared.Images.Images)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
@@ -35,8 +35,6 @@ function IceCreamExtravaganzaCollectables.setup()
     local idealDropDistance: number = idealSpawnHeight - floorHeight
     local idealDropLength: number = idealDropDistance / IceCreamExtravaganzaConstants.DropVelocity
 
-    local drops: { [string]: table } = {}
-
     local character = player.Character
     local participatingCharacters: { Model } = {}
     for _, participant in pairs(MinigameController.getParticpants()) do
@@ -46,6 +44,7 @@ function IceCreamExtravaganzaCollectables.setup()
     maid:GiveTask(
         Remotes.bindEventTemp("IceCreamExtravaganzaCollectableSpawned", function(id: string, modelTemplate: Model, dropOrigin: CFrame)
             local dropOriginXZ = Vector3Util.getXZComponents(dropOrigin.Position)
+            local dropTask
 
             -- Compensate for latency
             -- RETURN: Collectable has already despawned on the server
@@ -90,7 +89,7 @@ function IceCreamExtravaganzaCollectables.setup()
                 end
 
                 if characterHit then
-                    drops[id]:cancel()
+                    maid:EndTask(dropTask)
                     collisionConnection:Disconnect()
 
                     if characterHit == character then
@@ -130,14 +129,7 @@ function IceCreamExtravaganzaCollectables.setup()
             shadowDecal.Transparency = 1 - (1 - SHADOW_TRANSPARENCY) * percentageOfDropUsed
 
             -- Drop
-            local dropTask = maid:GiveTask(function()
-                local tweenPromise = drops[id]
-                if tweenPromise then
-                    tweenPromise:cancel()
-                end
-            end)
-
-            drops[id] = TweenUtil.batch({
+            dropTask = maid:GiveTask(TweenUtil.batch({
                 TweenService:Create(shadowPart, shadowTweenInfo, { Size = goalShadowSize }),
                 TweenService:Create(shadowDecal, shadowTweenInfo, { Transparency = SHADOW_TRANSPARENCY }),
                 TweenService:Create(modelPrimary, TweenInfo.new(dropLength, Enum.EasingStyle.Linear), {
@@ -147,13 +139,11 @@ function IceCreamExtravaganzaCollectables.setup()
                     ),
                 }),
             }):finally(function()
-                maid:EndTask(dropTask)
-
                 model:Destroy()
                 shadowPart:Destroy()
 
-                drops[id] = nil
-            end)
+                maid:RemoveTask(dropTask)
+            end))
         end)
     )
 

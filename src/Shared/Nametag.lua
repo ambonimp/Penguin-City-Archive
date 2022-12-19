@@ -4,7 +4,7 @@
 local Nametag = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 
 function Nametag.new()
     local nametag = {}

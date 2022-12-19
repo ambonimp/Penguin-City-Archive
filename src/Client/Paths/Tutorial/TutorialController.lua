@@ -21,7 +21,7 @@ local UIController = require(Paths.Client.UI.UIController)
 local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local Signal = require(Paths.Shared.Signal)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Promise = require(Paths.Packages.promise)
 local Loader = require(Paths.Client.Loader)
 

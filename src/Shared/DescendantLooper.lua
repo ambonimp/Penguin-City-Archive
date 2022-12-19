@@ -4,7 +4,7 @@
 local DescendantLooper = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 

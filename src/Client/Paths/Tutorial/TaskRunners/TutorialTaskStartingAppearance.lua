@@ -5,7 +5,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local TutorialController = require(Paths.Client.Tutorial.TutorialController)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Promise = require(Paths.Packages.promise)
 
 return function(_taskMaid: typeof(Maid.new()))
