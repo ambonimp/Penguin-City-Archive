@@ -6,13 +6,14 @@ local StampService = require(Paths.Server.Stamps.StampService)
 local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+local SledRaceSession = require(Paths.Server.Minigames.SledRace.SledRaceSession)
 
 local sledRaceWinsTieredStamp = StampUtil.getStampFromId("minigame_sledrace_wins")
-local hitObstacleStamp = StampUtil.getStampFromId("minigame_sledrace_obstacle") --todo
-local useSpeedBoostStamp = StampUtil.getStampFromId("minigame_sledrace_boost") --todo
-local winStreak5Stamp = StampUtil.getStampFromId("minigame_sledrace_winstreak5") --todo
+local hitObstacleStamp = StampUtil.getStampFromId("minigame_sledrace_obstacle")
+local useSpeedBoostStamp = StampUtil.getStampFromId("minigame_sledrace_boost")
+local winStreak5Stamp = StampUtil.getStampFromId("minigame_sledrace_winstreak5")
 
--- minigame_sledrace_wins
+-- sledRaceWinsTieredStampm,winStreak5Stamp
 MinigameSession.MinigameFinished:Connect(
     function(minigameSession: MinigameSession.MinigameSession, sortedScores: MinigameConstants.SortedScores)
         -- RETURN: Not sled racing
@@ -33,5 +34,15 @@ MinigameSession.MinigameFinished:Connect(
         end
     end
 )
+
+SledRaceSession.CollectableCollected:Connect(function(_session: SledRaceSession.SledRaceSession, player: Player, collectableType: string)
+    if collectableType == "Obstacle" then
+        StampService.addStamp(player, hitObstacleStamp.Id)
+    end
+
+    if collectableType == "Boost" then
+        StampService.addStamp(player, useSpeedBoostStamp.Id)
+    end
+end)
 
 return SledRacingStampAwarders

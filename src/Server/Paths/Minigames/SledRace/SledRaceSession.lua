@@ -18,9 +18,14 @@ local QueueStationService = require(Paths.Server.Minigames.QueueStationService)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
+local Signal = require(Paths.Shared.Signal)
+
+export type SledRaceSession = typeof(SledRaceSession.new())
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
+
+SledRaceSession.CollectableCollected = Signal.new() -- { session: SledRaceSession.SledRaceSession, player: Player, collectableType: string }
 
 function SledRaceSession.new(...: any)
     local minigameSession = MinigameSession.new(...)
@@ -166,12 +171,21 @@ function SledRaceSession.new(...: any)
                 applySpeedModifier(player, SledRaceConstants.BoostSpeedAdded)
                 collectable:Destroy()
                 -- TODO: Play animation
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Boost")
             elseif SledRaceUtil.collectableIsA(collectable, "Obstacle") then
                 applySpeedModifier(player, -SledRaceConstants.ObstacleSpeedMinuend)
                 collectable:Destroy()
                 -- TODO: Play animation
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Obstacle")
             elseif SledRaceUtil.collectableIsA(collectable, "Coin") then
                 data.Coins += SledRaceConstants.CoinValue
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Coin")
             end
         end))
 
