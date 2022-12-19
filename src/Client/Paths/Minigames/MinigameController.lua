@@ -17,7 +17,6 @@ local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
-local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -228,8 +227,6 @@ Remotes.bindEvents({
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
-
-            ToolController.unequip()
 
             if state.Name ~= INITIALIZATION_STATE.Name then
                 setState(INITIALIZATION_STATE)

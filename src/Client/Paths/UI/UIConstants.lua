@@ -40,6 +40,7 @@ UIConstants.PseudoStates = {
 }
 
 UIConstants.InteractionPermissiveStates = { UIConstants.States.HUD, UIConstants.States.Tutorial }
+UIConstants.ActivateToolPermissiveStates = { UIConstants.States.HUD }
 
 UIConstants.RemoveStatesOnZoneTeleport = {
     UIConstants.States.HouseEditor,
