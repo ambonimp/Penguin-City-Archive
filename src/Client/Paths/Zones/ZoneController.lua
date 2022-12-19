@@ -32,6 +32,10 @@ local SAVE_SOUL_AFTER_BEING_LOST_FOR = 3
 local MIN_TIME_BETWEEN_SAVING = 5
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
 local TRANSITION_ZONE_RESET_CHARACTER_PIVOT_DISTANCE_EPSILON = 100
+local BLINK_OPTIONS: BlinkTransition.Options = {
+    DoAlignCamera = true,
+    DoShowVoldexLoading = true,
+}
 
 local localPlayer = Players.LocalPlayer
 local defaultZone = ZoneUtil.defaultZone()
@@ -90,7 +94,12 @@ function ZoneController.Start()
             local isLost = distance > ZoneConstants.StreamingTargetRadius
             if isLost then
                 print("Zone Distance:", distance)
-                print("Current Zone:", currentZone.ZoneType, "  Transitioning to zone:", transitioningToZone.ZoneType)
+                print(
+                    "Current Zone:",
+                    currentZone.ZoneType,
+                    "  Transitioning to zone:",
+                    transitioningToZone and transitioningToZone.ZoneType
+                )
                 beenLostSinceTick = beenLostSinceTick or tick()
                 local beenLostFor = tick() - beenLostSinceTick
                 local timeSinceLastSave = tick() - lastSaveAtTick
@@ -212,11 +221,7 @@ end
 
     Yields until everything is done.
 ]]
-function ZoneController.transitionToZone(
-    toZone: ZoneConstants.Zone,
-    teleportResult: () -> (boolean, CFrame?),
-    blinkOptions: (BlinkTransition.Options)?
-)
+function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, teleportResult: () -> (boolean, CFrame?))
     -- Init variables
     transitioningToZone = toZone
     transitionToZoneScope:NewScope()
@@ -239,10 +244,6 @@ function ZoneController.transitionToZone(
     if seatPart then
         humanoid.Sit = false
     end
-
-    -- Populate blink options
-    blinkOptions = blinkOptions or {}
-    blinkOptions.DoAlignCamera = BooleanUtil.returnFirstBoolean(blinkOptions.DoAlignCamera, true)
 
     local function resetCharacter(cframeData: {
         FromCFrame: CFrame,
@@ -345,7 +346,7 @@ function ZoneController.transitionToZone(
             -- Inform Client
             ZoneController.ZoneChanged:Fire(oldZone, toZone)
         end
-    end, blinkOptions)
+    end, BLINK_OPTIONS)
 
     if transitionToZoneScope:Matches(thisScopeId) then
         transitioningToZone = nil

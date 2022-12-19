@@ -75,7 +75,6 @@ Images.Icons = {
     TrashCan = "rbxassetid://11826396510",
     Text = "rbxassetid://11152369398",
     Toy = "rbxassetid://11505042821",
-    VoldexLogo = "rbxassetid://11250982454",
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
@@ -83,6 +82,14 @@ Images.Icons = {
     Click = "rbxassetid://11637103411",
 }
 --#endregion
+Images.Voldex = {
+    V = "rbxassetid://11860915108",
+    O = "rbxassetid://11860915201",
+    L = "rbxassetid://11860914811",
+    D = "rbxassetid://11860915029",
+    E = "rbxassetid://11860914900",
+    X = "rbxassetid://11860914744",
+}
 --#region Coins
 Images.Coins = {
     Bundle1 = "rbxassetid://11152356128",
