@@ -20,9 +20,16 @@ MinigameSession.MinigameFinished:Connect(
             return
         end
 
-        local winnerPlayer = sortedScores[1] and sortedScores[1].Player
-        if winnerPlayer then
-            StampService.incrementStamp(winnerPlayer, sledRaceWinsTieredStamp.Id, 1)
+        -- Winning
+        local winningScore = sortedScores[1]
+        if winningScore then
+            -- Wins
+            StampService.incrementStamp(winningScore.Player, sledRaceWinsTieredStamp.Id, 1)
+
+            -- Streak
+            if winningScore.ConsecutiveWins and winningScore.ConsecutiveWins >= 5 then
+                StampService.addStamp(winningScore.Player, winStreak5Stamp.Id)
+            end
         end
     end
 )
