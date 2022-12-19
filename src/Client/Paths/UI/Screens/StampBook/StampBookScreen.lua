@@ -31,6 +31,7 @@ local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Remotes = require(Paths.Shared.Remotes)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local DEFAULT_CHAPTER = StampConstants.Chapters[1]
 local SELECTED_TAB_SIZE = UDim2.new(1, 0, 0, 120)
@@ -406,7 +407,9 @@ function StampBookScreen.openCover()
         ButtonUtil.paintIgloo(iglooButton)
         iglooButton.Pressed:Connect(function()
             local houseZone = ZoneUtil.houseInteriorZone(currentPlayer)
-            ZoneController.teleportToRoomRequest(houseZone)
+            ZoneController.teleportToRoomRequest(houseZone, {
+                TravelMethod = ZoneConstants.TravelMethod.StampBook,
+            })
 
             UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.StampBook)
         end)

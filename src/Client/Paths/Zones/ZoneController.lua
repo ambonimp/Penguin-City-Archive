@@ -106,7 +106,7 @@ function ZoneController.Start()
                 if beenLostFor >= SAVE_SOUL_AFTER_BEING_LOST_FOR and timeSinceLastSave >= MIN_TIME_BETWEEN_SAVING then
                     -- Save Our Soul!
                     lastSaveAtTick = tick()
-                    ZoneController.teleportToDefaultZone()
+                    ZoneController.teleportToDefaultZone(ZoneConstants.TravelMethod.TooFarFromZoneSOS)
                 end
             else
                 beenLostSinceTick = nil
@@ -189,7 +189,9 @@ local function setupTeleporter(teleporter: BasePart, zoneCategory: string)
             end
 
             if zone.ZoneCategory == ZoneConstants.ZoneCategory.Room then
-                ZoneController.teleportToRoomRequest(zone)
+                ZoneController.teleportToRoomRequest(zone, {
+                    TravelMethod = ZoneConstants.TravelMethod.Walking,
+                })
             else
                 warn(("%s wat"):format(zone.ZoneCategory))
             end
@@ -363,13 +365,13 @@ end
     Yields *if* multiple `teleportToRoomRequest` have been called simultaneously
     Returns our Assume object.
 ]]
-function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, ignoreFromZone: boolean?)
+function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, teleportData: ZoneConstants.TeleportData)
     Output.doDebug(
         ZoneConstants.DoDebug,
         "ZoneController.teleportToRoomRequest",
         roomZone.ZoneCategory,
         roomZone.ZoneType,
-        ignoreFromZone,
+        teleportData,
         debug.traceback()
     )
     local nextteleportToRoomRequestPlease = Queue.yield("ZoneController.teleportToRoomRequest")
@@ -389,9 +391,7 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
 
     -- Request Assume
     local requestAssume = Assume.new(function()
-        local response = table.pack(Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, {
-            IgnoreFromZone = ignoreFromZone,
-        }))
+        local response = table.pack(Remotes.invokeServer("RoomZoneTeleportRequest", roomZone.ZoneCategory, roomZone.ZoneType, teleportData))
         Output.doDebug(ZoneConstants.DoDebug, "ZoneController.teleportToRoomRequest", "Request Assume", response)
 
         return table.unpack(response)
@@ -417,19 +417,23 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
     return requestAssume
 end
 
-function ZoneController.teleportToDefaultZone()
+function ZoneController.teleportToDefaultZone(travelMethod: string)
     -- RETURN: Debounce
     if not Limiter.debounce("ZoneController", "DefaultZoneTeleport", DEFAULT_ZONE_TELEPORT_DEBOUNCE) then
         return
     end
 
-    ZoneController.teleportToRoomRequest(defaultZone)
+    ZoneController.teleportToRoomRequest(defaultZone, {
+        TravelMethod = travelMethod,
+    })
 end
 
-function ZoneController.teleportToRandomRoom()
+function ZoneController.teleportToRandomRoom(travelMethod: string)
     local zoneType = TableUtil.getRandom(ZoneConstants.ZoneType.Room)
     local roomZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, zoneType)
-    ZoneController.teleportToRoomRequest(roomZone)
+    ZoneController.teleportToRoomRequest(roomZone, {
+        TravelMethod = travelMethod,
+    })
 end
 
 --[[
@@ -437,7 +441,7 @@ end
 
     Returns a function that will unlock if and only if a zone was passed, and no new locking calls have happened since
 ]]
-function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil)
+function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil, travelMethod: string)
     lockedToRoomZone = zone
 
     local scopeId = lockToRoomZoneScope:NewScope()
@@ -445,14 +449,16 @@ function ZoneController.lockToRoomZone(zone: ZoneConstants.Zone | nil)
     task.defer(function()
         if zone then
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), zone) then
-                ZoneController.teleportToRoomRequest(zone):Await()
+                ZoneController.teleportToRoomRequest(zone, {
+                    TravelMethod = travelMethod,
+                }):Await()
             end
         end
     end)
 
     return function()
         if zone and lockToRoomZoneScope:Matches(scopeId) then
-            ZoneController.lockToRoomZone()
+            ZoneController.lockToRoomZone(nil, travelMethod)
         end
     end
 end

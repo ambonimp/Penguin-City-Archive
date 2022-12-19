@@ -53,12 +53,14 @@ PlotService.ObjectUpdated:Connect(
     end
 )
 
-ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
-    local isVisitingAnotherPlayersIgloo = ZoneUtil.isHouseInteriorZone(toZone)
-        and not ZoneUtil.zonesMatch(toZone, ZoneUtil.houseInteriorZone(player))
-    if isVisitingAnotherPlayersIgloo then
-        StampService.addStamp(player, visitIglooStamp.Id) -- ADD STAMP
+ZoneService.ZoneChanged:Connect(
+    function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone, _teleportData: ZoneConstants.TeleportData)
+        local isVisitingAnotherPlayersIgloo = ZoneUtil.isHouseInteriorZone(toZone)
+            and not ZoneUtil.zonesMatch(toZone, ZoneUtil.houseInteriorZone(player))
+        if isVisitingAnotherPlayersIgloo then
+            StampService.addStamp(player, visitIglooStamp.Id) -- ADD STAMP
+        end
     end
-end)
+)
 
 return HousingStampAwarders

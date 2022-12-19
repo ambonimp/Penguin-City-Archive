@@ -20,6 +20,13 @@ export type PlayerZoneState = {
     TotalTeleports: number,
 }
 
+export type TeleportData = {
+    IsClientRequest: boolean?, -- Dictates whether to inform client of teleport
+    IgnoreFromZone: boolean?, -- Helps choose what spawnpoint to send the player to
+    TravelMethod: string?,
+    IsInitialTeleport: boolean?,
+}
+
 -------------------------------------------------------------------------------
 -- Internal Methods
 -------------------------------------------------------------------------------
@@ -87,6 +94,23 @@ ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
 ZoneConstants.DoDebug = true
+
+ZoneConstants.TravelMethod = {
+    Map = "Map",
+    Walking = "Walking",
+    Cmdr = "Cmdr",
+    ZoneDestroyed = "ZoneDestroyed",
+    JoinedMinigame = "JoinedMinigame",
+    LeftMinigame = "LeftMinigame",
+    Unknown = "Unknown",
+    PlayerMenu = "PlayerMenu",
+    HUD = "HUD",
+    Inventory = "Inventory",
+    StampBook = "StampBook",
+    Tutorial = "Tutorial",
+    RobloxReset = "RobloxReset",
+    TooFarFromZoneSOS = "TooFarFromZoneSOS",
+}
 
 -------------------------------------------------------------------------------
 -- Cosmetics

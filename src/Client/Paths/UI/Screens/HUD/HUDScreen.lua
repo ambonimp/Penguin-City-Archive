@@ -14,6 +14,7 @@ local ToolController = require(Paths.Client.Tools.ToolController)
 local Maid = require(Paths.Shared.Maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local BUTTON_PROPERTIES = {
     Position = UDim2.fromScale(0.5, 0.5),
@@ -76,7 +77,9 @@ local function igloo(button: AnimatedButton.AnimatedButton)
                 InteriorPlot = uiStateMachine:GetData().InteriorPlot,
             })
         else
-            ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone())
+            ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone(), {
+                TravelMethod = ZoneConstants.TravelMethod.HUD,
+            })
         end
     end)
 end

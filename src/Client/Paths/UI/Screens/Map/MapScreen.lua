@@ -90,7 +90,10 @@ function MapScreen.Init()
                 task.delay(REMOVE_STATE_AFTER, function()
                     UIController.getStateMachine():Remove(UIConstants.States.Map)
                 end)
-                ZoneController.teleportToRoomRequest(zone, true)
+                ZoneController.teleportToRoomRequest(zone, {
+                    IgnoreFromZone = true,
+                    TravelMethod = ZoneConstants.TravelMethod.Map,
+                })
             end)
         end
 

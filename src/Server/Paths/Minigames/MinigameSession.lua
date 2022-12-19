@@ -194,7 +194,9 @@ function MinigameSession.new(
 
     function minigameSession:AddParticipant(player: Player)
         -- RETURN: Unsuccessful teleport
-        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone)
+        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone, {
+            TravelMethod = ZoneConstants.TravelMethod.JoinedMinigame,
+        })
         if not didTeleport then
             return
         end
@@ -243,7 +245,9 @@ function MinigameSession.new(
             Output.doDebug(MinigameConstants.DoDebug, ("%s left minigame (%s)"):format(player.Name, id))
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
-                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
+                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player), {
+                    TravelMethod = ZoneConstants.TravelMethod.LeftMinigame,
+                })
             end
         end
 
