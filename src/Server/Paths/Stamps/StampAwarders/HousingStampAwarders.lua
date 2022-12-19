@@ -8,20 +8,18 @@ local StampUtil = require(Paths.Shared.Stamps.StampUtil)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local DataService = require(Paths.Server.Data.DataService)
-
--- clothing_equip
-
-type FurnitureMetadata = PlotService.FurnitureMetadata
-type WallpaperMetadata = PlotService.WallpaperMetadata
-type FloorMetadata = PlotService.FloorMetadata
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local Products = require(Paths.Shared.Products.Products)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 
 local placedOtemStamp = StampUtil.getStampFromId("igloo_getting_started")
 local colorItemStamp = StampUtil.getStampFromId("igloo_thats_better")
 local visitIglooStamp = StampUtil.getStampFromId("igloo_sleepover")
 local itemsPlacedStamp = StampUtil.getStampFromId("igloo_decorator")
 
-PlotService.ObjectPlaced:Connect(function(player: Player, type: string, _data: FurnitureMetadata | WallpaperMetadata | FloorMetadata)
-    if type == "Furniture" then
+PlotService.ObjectPlaced:Connect(function(player: Player, product: Products.Product, _metadata: PlotService.Metadata)
+    local productData = ProductUtil.getHouseObjectProductData(product)
+    if productData.CategoryName == "Furniture" then
         StampService.addStamp(player, placedOtemStamp.Id) -- ADD STAMP
 
         local amount = DataService.get(player, "House.TotalObjectsPlaced") or 0
@@ -33,23 +31,32 @@ PlotService.ObjectPlaced:Connect(function(player: Player, type: string, _data: F
     end
 end)
 
-PlotService.ObjectUpdated:Connect(function(player: Player, last: FurnitureMetadata, new: FurnitureMetadata)
-    local hasDiffColor = false
+PlotService.ObjectUpdated:Connect(
+    function(player: Player, _product: Products.Product, oldMetadata: PlotService.Metadata, newMetadata: PlotService.Metadata)
+        local hasDiffColor = false
 
-    for id, color in last.Color do
-        if new.Color[id] ~= color then
-            hasDiffColor = true
-            break
+        -- RETURN: No color metadata
+        if not (oldMetadata.Color and newMetadata.Color) then
+            return
+        end
+
+        for id, color in oldMetadata.Color do
+            if newMetadata.Color[id] ~= color then
+                hasDiffColor = true
+                break
+            end
+        end
+
+        if hasDiffColor then
+            StampService.addStamp(player, colorItemStamp.Id) -- ADD STAMP
         end
     end
-
-    if hasDiffColor then
-        StampService.addStamp(player, colorItemStamp.Id) -- ADD STAMP
-    end
-end)
+)
 
 ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
-    if tonumber(toZone.ZoneType) and tonumber(toZone.ZoneType) ~= player.UserId then --visintg zone that is a number (assumes it's an id)
+    local isVisitingAnotherPlayersIgloo = ZoneUtil.isHouseInteriorZone(toZone)
+        and not ZoneUtil.zonesMatch(toZone, ZoneUtil.houseInteriorZone(player))
+    if isVisitingAnotherPlayersIgloo then
         StampService.addStamp(player, visitIglooStamp.Id) -- ADD STAMP
     end
 end)

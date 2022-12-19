@@ -28,6 +28,7 @@ local HouseObjects = require(Paths.Shared.Constants.HouseObjects)
 local PlayerService = require(Paths.Server.PlayerService)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Signal = require(Paths.Shared.Signal)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 export type FurnitureMetadata = {
     Name: string,
@@ -44,6 +45,13 @@ export type FloorMetadata = {
     Name: string,
 }
 
+export type Metadata = FurnitureMetadata | WallpaperMetadata | FloorMetadata
+
+PlotService.ObjectPlaced = Signal.new() -- { player: Player, objectProduct: Products.Product, metadata: PlotService.Metadata }
+PlotService.ObjectUpdated = Signal.new() -- { player: Player, objectProduct: Products.Product, oldMetadata: PlotService.Metadata, newMetadata: PlotService.Metadata }
+PlotService.ObjectRemoved = Signal.new() -- { player: Player, objectProduct: Products.Product, metadata: PlotService.Metadata }
+PlotService.BlueprintChanged = Signal.new() -- { player: Player, blueprintProduct: Products.Product }
+
 local assets: Folder = ReplicatedStorage.Assets.Housing
 
 local plots: { [string]: { [Player]: Model } } = {
@@ -56,8 +64,6 @@ local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
 local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
-PlotService.ObjectPlaced = Signal.new()
-PlotService.ObjectUpdated = Signal.new()
 -------------------------------------------------------------------------------
 -- PLOT METHODS
 -------------------------------------------------------------------------------
@@ -333,7 +339,7 @@ end
 -- SERVER/CLIENT COMMUNICATION
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
-    PlaceHouseObject = function(player: Player, type: string, metadata: FurnitureMetadata | WallpaperMetadata | FloorMetadata)
+    PlaceHouseObject = function(player: Player, type: string, metadata: Metadata)
         local product = ProductUtil.getHouseObjectProduct("Furniture", metadata.Name)
         if not ProductService.canPlaceHouseProduct(player, product) then
             return -- doesn't have enough of the iem to place
@@ -363,7 +369,7 @@ Remotes.bindEvents({
                 local store = updateFurniture(player, object, metadata)
                 if store then
                     DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, store, "OnFurniturePlaced", { Id = id })
-                    PlotService.ObjectPlaced:Fire(player, type, metadata)
+                    PlotService.ObjectPlaced:Fire(player, product, TableUtil.deepClone(metadata))
                 end
             end
         end
@@ -374,16 +380,21 @@ Remotes.bindEvents({
         local plot = getPlot(player, HousingConstants.InteriorType)
         local blueprint = DataService.get(player, "House.Blueprint")
         local store = DataService.get(player, "House.Furniture." .. blueprint)
+
         -- RETURN: ITEM DOES NOT EXIST
-        if not store[id] then
+        local metadata = store[id] and TableUtil.deepClone(store[id])
+        if not metadata then
             return
         end
-        local product = ProductUtil.getHouseObjectProduct("Furniture", store[id].Name)
+
+        local product = ProductUtil.getHouseObjectProduct("Furniture", metadata.Name)
         ProductService.addProduct(player, product, 1)
         plot.Furniture[id]:Destroy()
+
         DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, nil, "OnFurnitureRemoved", {
             Id = id,
         })
+        PlotService.ObjectRemoved:Fire(player, product, metadata)
     end,
     UpdateFurniture = function(player: Player, id: string, metadata: FurnitureMetadata)
         local plot = getPlot(player, HousingConstants.InteriorType)
@@ -400,7 +411,14 @@ Remotes.bindEvents({
                 local newStore = updateFurniture(player, object, metadata) -- Flag for valid placement
                 if newStore then
                     DataService.set(player, "House.Furniture." .. blueprint .. "." .. id, newStore, "OnFurnitureUpdated", { Id = id })
-                    PlotService.ObjectUpdated:Fire(player, lastData, newStore)
+
+                    local product = ProductUtil.getHouseObjectProduct("Furniture", metadata.Name)
+                    PlotService.ObjectUpdated:Fire(
+                        player,
+                        product,
+                        lastData and TableUtil.deepClone(lastData),
+                        newStore and TableUtil.deepClone(newStore)
+                    )
                 end
             end
         end
@@ -409,13 +427,16 @@ Remotes.bindEvents({
     -- Blueprint
     ChangeBlueprint = function(player: Player, name: string)
         local current = DataService.get(player, "House.Blueprint")
+
         if current == name then
             return --don't change if same
         end
+
         local product = ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", name))
         if not (ProductService.hasProduct(player, product) or ProductUtil.isFree(product)) then
             return --doesn't own
         end
+
         local interiorPlot = getPlot(player, HousingConstants.InteriorType)
         local exteriorPlot = getPlot(player, HousingConstants.ExteriorType)
 
@@ -425,6 +446,7 @@ Remotes.bindEvents({
             unloadHouse(player, interiorPlot, HousingConstants.InteriorType, current)
 
             DataService.set(player, "House.Blueprint", name, "HouseBlueprintUpdated")
+            PlotService.BlueprintChanged:Fire(player, product)
 
             --[[local objectsPlaced = DataService.get(player, "House.Furniture")
 
