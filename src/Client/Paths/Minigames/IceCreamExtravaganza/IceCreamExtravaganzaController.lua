@@ -56,7 +56,6 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameMaid:GiveTask(UserInputService.JumpRequest:Connect(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     end))
-
     minigameMaid:GiveTask(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
     end)
