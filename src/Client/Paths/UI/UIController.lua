@@ -61,18 +61,6 @@ do
         end
     end)
 
-    -- Toggle CoreGui
-    stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string)
-        for _, enableState in pairs(UIConstants.EnableCoreGuiInStates) do
-            if UIUtil.getPseudoState(enableState) then
-                CoreGui.enable()
-                return
-            end
-        end
-
-        CoreGui.disable()
-    end)
-
     -- Manage State Callbacks
     stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string, data: table?)
         -- Iterate screenData
@@ -127,6 +115,20 @@ do
                 end
             end
         end
+    end)
+
+    -- Toggle CoreGui
+    stateMachine:RegisterGlobalCallback(function(_fromState: string, _toState: string)
+        task.wait() -- Give other RegisterGlobalCallback callbacks time to breathe + update so our `isStateMaximized` call works as intended
+
+        for _, enableState in pairs(UIConstants.EnableCoreGuiInStates) do
+            if UIController.isStateMaximized(enableState) then
+                CoreGui.enable()
+                return
+            end
+        end
+
+        CoreGui.disable()
     end)
 end
 
