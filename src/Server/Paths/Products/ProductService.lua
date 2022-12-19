@@ -33,6 +33,7 @@ local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
 local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; please rejoin."
 
 ProductService.ProductAdded = Signal.new() -- { player: Player, product: Products.Product, amount: number }
+ProductService.RobuxPurchase = Signal.new() -- { player: Player, amount: number, productId: number, purchaseId: string, product: Products.Product }
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}

@@ -13,7 +13,8 @@ export type ReceiptInfo = {
     PurchaseId: string,
     PlayerId: number,
     ProductId: number,
-    CurrencySpent: Enum.CurrencyType,
+    CurrencySpent: number,
+    CurrencyType: Enum.CurrencyType,
     PlaceIdWherePurchased: number,
 }
 
@@ -52,6 +53,7 @@ local function handlePurchase(player: Player, receiptInfo: ReceiptInfo)
     local product = ProductUtil.getProductFromDeveloperProductId(receiptInfo.ProductId)
     if product then
         ProductService.addProduct(player, product, 1)
+        ProductService.RobuxPurchase:Fire(player, receiptInfo.CurrencySpent, receiptInfo.ProductId, receiptInfo.PurchaseId, product)
         return true
     end
 
@@ -62,6 +64,7 @@ local function handlePurchase(player: Player, receiptInfo: ReceiptInfo)
         local lastPromptedProductRobuxCost = lastPromptedProduct and lastPromptedProduct.RobuxData and lastPromptedProduct.RobuxData.Cost
         if lastPromptedProductRobuxCost == genericProduct.Robux then
             ProductService.addProduct(player, lastPromptedProduct, 1)
+            ProductService.RobuxPurchase:Fire(player, receiptInfo.CurrencySpent, receiptInfo.ProductId, receiptInfo.PurchaseId, product)
             return true
         else
             warn(
