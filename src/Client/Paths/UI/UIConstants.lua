@@ -63,6 +63,7 @@ UIConstants.Keybinds = {
 UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Loading,
     UIConstants.States.HUD,
+    UIConstants.States.Minigame,
 }
 
 UIConstants.Font = Enum.Font.GothamBold
