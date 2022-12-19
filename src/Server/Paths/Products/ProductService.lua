@@ -218,7 +218,10 @@ function ProductService.purchaseInCoins(player: Player, product: Products.Produc
     end
 
     -- Exchange coins for product
-    CurrencyService.addCoins(player, -product.CoinData.Cost)
+    CurrencyService.sinkCoins(player, product.CoinData.Cost, {
+        OverrideClient = true,
+        Product = product,
+    })
     ProductService.addProduct(player, product)
 
     return true

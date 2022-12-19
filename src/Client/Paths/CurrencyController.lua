@@ -3,7 +3,7 @@ local CurrencyController = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local DataController = require(Paths.Client.DataController)
-local CurrencyConstants = require(Paths.Shared.Constants.CurrencyConstants)
+local CurrencyConstants = require(Paths.Shared.Currency.CurrencyConstants)
 local Signal = require(Paths.Shared.Signal)
 
 CurrencyController.CoinsUpdated = Signal.new() -- {coins: number, addCoins: number}

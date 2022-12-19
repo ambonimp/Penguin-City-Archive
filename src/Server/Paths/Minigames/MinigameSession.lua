@@ -47,6 +47,7 @@ local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 local DataService = require(Paths.Server.Data.DataService)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
 
 type Participants = { Player }
 export type MinigameSession = typeof(MinigameSession.new())
@@ -452,7 +453,10 @@ function MinigameSession.new(
                 local score = scoreInfo.Score
 
                 -- Reward
-                CurrencyService.addCoins(player, config.Reward(placement, score, isMultiplayer), true)
+                CurrencyService.injectCoins(player, config.Reward(placement, score, isMultiplayer), {
+                    OverrideClient = true,
+                    InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameName, false),
+                })
 
                 -- Minigame Records
                 do

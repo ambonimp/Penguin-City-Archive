@@ -19,7 +19,7 @@ return function()
     end
 
     -- Travel methods enum
-    TestUtil.enum(ZoneConstants.TravelMethod)
+    TestUtil.enum(ZoneConstants.TravelMethod, issues)
 
     return issues
 end
