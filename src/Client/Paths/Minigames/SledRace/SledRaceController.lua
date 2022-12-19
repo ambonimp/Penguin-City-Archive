@@ -48,6 +48,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameMaid:GiveTask(RunService.RenderStepped:Connect(function()
         humanoid:ChangeState(Enum.HumanoidStateType.Seated)
     end))
+    minigameMaid:GiveTask(function()
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+    end)
 
     MinigameController.playMusic("Intermission")
     SharedMinigameScreen.openStartMenu()
