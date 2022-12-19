@@ -28,7 +28,7 @@ local Queue = require(Paths.Shared.Queue)
 local DEFAULT_ZONE_HITBOX_DEBOUNCE = 2
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
 local CHECK_SOS_DISTANCE_EVERY = 1
-local SAVE_SOUL_AFTER_BEING_LOST_FOR = 1
+local SAVE_SOUL_AFTER_BEING_LOST_FOR = 3
 local MIN_TIME_BETWEEN_SAVING = 5
 local ZERO_VECTOR = Vector3.new(0, 0, 0)
 local TRANSITION_ZONE_RESET_CHARACTER_PIVOT_DISTANCE_EPSILON = 100
@@ -89,7 +89,8 @@ function ZoneController.Start()
 
             local isLost = distance > ZoneConstants.StreamingTargetRadius
             if isLost then
-                print(distance)
+                print("Zone Distance:", distance)
+                print("Current Zone:", currentZone.ZoneType, "  Transitioning to zone:", transitioningToZone.ZoneType)
                 beenLostSinceTick = beenLostSinceTick or tick()
                 local beenLostFor = tick() - beenLostSinceTick
                 local timeSinceLastSave = tick() - lastSaveAtTick
