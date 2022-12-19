@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -53,6 +53,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
         end
 
         updateStatusBoard()
+        Remotes.fireClient(player, "MinigameQueueExited")
     end
 
     -------------------------------------------------------------------------------

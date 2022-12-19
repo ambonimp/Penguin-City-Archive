@@ -163,7 +163,7 @@
           "local Players = game:GetService(\"Players\")\r",
           "local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)\r",
           "local UIController = require(Paths.Client.UI.UIController)\r",
-          "local Maid = require(Paths.Packages.maid)\r",
+          "local Maid = require(Paths.Shared.Maid)\r",
           "local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)\r",
           "local ExitButton = require(Paths.Client.UI.Elements.ExitButton)\r",
           "local UIUtil = require(Paths.Client.UI.Utils.UIUtil)\r",

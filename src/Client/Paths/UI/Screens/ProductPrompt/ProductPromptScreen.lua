@@ -13,7 +13,7 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents

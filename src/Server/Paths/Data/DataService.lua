@@ -17,7 +17,7 @@ local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
-local DONT_SAVE_DATA = true -- Studio Only for testing
+local DONT_SAVE_DATA = false -- Studio Only for testing
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}

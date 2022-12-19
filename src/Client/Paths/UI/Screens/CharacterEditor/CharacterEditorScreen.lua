@@ -1,7 +1,7 @@
 local CharacterEditorScreen = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
 local Promise = require(Paths.Packages.promise)
 local Remotes = require(Paths.Shared.Remotes)
@@ -42,6 +42,7 @@ local tabMaid = Maid.new()
 
 local previewCharacter, previewMaid
 local equippedItems: { [string]: EquippedItems } = {}
+local bootCallbacks: { () -> any } = {}
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -169,7 +170,9 @@ do
 
             if canEquip then
                 equippedItems[categoryName] = {}
-                bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                table.insert(bootCallbacks, function()
+                    bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                end)
             end
         end
     end
@@ -197,6 +200,11 @@ do
         if not character then
             uiStateMachine:Pop()
             return
+        end
+
+        -- Callbacks
+        for _, bootCallback in pairs(bootCallbacks) do
+            bootCallback()
         end
 
         -- Only open character editor when the player is on the floor
@@ -260,7 +268,7 @@ do
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
-        if characterStatus ~= Promise.Status.Resolved then
+        if characterIsReady and characterStatus ~= Promise.Status.Resolved then
             characterIsReady:Cancel()
             characterIsReady:Destroy()
         else

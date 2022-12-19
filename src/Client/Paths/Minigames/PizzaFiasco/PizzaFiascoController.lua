@@ -47,23 +47,17 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     SharedMinigameScreen.openStartMenu()
 
     -- Disable movement
-    local movementDisablingThread = task.spawn(function()
+    minigameMaid:GiveTask(task.spawn(function()
         if ZoneController.getCurrentZone().ZoneCategory ~= ZoneConstants.ZoneCategory.Minigame then
             ZoneController.ZoneChanged:Wait()
         end
-
         CharacterUtil.anchor(player.Character)
-    end)
-
-    minigameMaid:GiveTask(function()
-        task.cancel(movementDisablingThread)
-    end)
+    end))
 
     -- Revert changes
     minigameMaid:GiveTask(function()
         CameraController.resetFov()
         CameraController.setPlayerControl()
-
         CharacterUtil.unanchor(player.Character)
     end)
 

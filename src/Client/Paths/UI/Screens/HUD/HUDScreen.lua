@@ -11,7 +11,7 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ToolController = require(Paths.Client.Tools.ToolController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 

@@ -20,7 +20,7 @@ branchLabel.Visible = not GameUtil.isLiveGame()
 branchLabel.Text = GameUtil.getPlaceName()
 
 -- Version
-versionLabel.Text = GameConstants.Version
+versionLabel.Text = GameUtil:isQAGame() and ("qa.%d"):format(GameConstants.DataIds.QA) or GameConstants.Version
 
 -- FPS
 do

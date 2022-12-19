@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
@@ -141,7 +141,7 @@ function IceCreamExtravaganzaSession.new(...: any)
         local inviciblePlayers = {}
 
         -- Spawn collectables
-        local collectaleSpawningThread = task.spawn(function()
+        coreMaid:GiveTask(task.spawn(function()
             while true do
                 idCounter += 1
 
@@ -168,11 +168,7 @@ function IceCreamExtravaganzaSession.new(...: any)
 
                 task.wait(IceCreamExtravaganzaConstants.CollectableDropRate)
             end
-        end)
-
-        coreMaid:GiveTask(function()
-            task.cancel(collectaleSpawningThread)
-        end)
+        end))
 
         coreMaid:GiveTask(Remotes.bindEventTemp("IceCreamExtravaganzaCollectableCollected", function(player: Player, collectableId: string)
             local character: Model = player.Character
@@ -247,9 +243,7 @@ function IceCreamExtravaganzaSession.new(...: any)
                     end
 
                     local revertThread = task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player])
-                    coreMaid:GiveTask(function()
-                        task.cancel(revertThread)
-                    end)
+                    coreMaid:GiveTask(revertThread)
                 else
                     local scoreAddend = if collectableType == "Regular" then 1 else 2
 

@@ -19,20 +19,27 @@ local pizzaExraLifeStamp = StampUtil.getStampFromId("minigame_pizza_extralife")
 local pizzaCorrect25Stamp = StampUtil.getStampFromId("minigame_pizza_correct25")
 
 -- minigame_pizza_play, minigame_pizza_lose
-MinigameSession.MinigameFinished:Connect(function(sortedScores: MinigameConstants.SortedScores)
-    for _position, scoreData in pairs(sortedScores) do
-        print(scoreData.Player, scoreData.Score)
+MinigameSession.MinigameFinished:Connect(
+    function(minigameSession: MinigameSession.MinigameSession, sortedScores: MinigameConstants.SortedScores)
+        -- RETURN: Not pizza fiasco
+        if not (minigameSession:GetMinigameName() == MinigameConstants.Minigames.PizzaFiasco) then
+            return
+        end
 
-        -- Played
-        StampService.addStamp(scoreData.Player, pizzaPlayStamp.Id)
+        for _position, scoreData in pairs(sortedScores) do
+            print(scoreData.Player, scoreData.Score)
 
-        -- Lost
-        local didLose = scoreData.Score < (PizzaFiascoConstants.MaxPizzas - PizzaFiascoConstants.MaxMistakes) -- doesn't account for extra life.. sorry
-        if didLose then
-            StampService.addStamp(scoreData.Player, pizzaLoseStamp.Id)
+            -- Played
+            StampService.addStamp(scoreData.Player, pizzaPlayStamp.Id)
+
+            -- Lost
+            local didLose = scoreData.Score < (PizzaFiascoConstants.MaxPizzas - PizzaFiascoConstants.MaxMistakes) -- doesn't account for extra life.. sorry
+            if didLose then
+                StampService.addStamp(scoreData.Player, pizzaLoseStamp.Id)
+            end
         end
     end
-end)
+)
 
 -- pizzaCorrect5Stamp, pizzaCorrect25Stamp, pizzaExraLifeStamp
 PizzaFiascoSession.RecipeRecordUpdated:Connect(function(player: Player, recipeRecords: { PizzaFiascoSession.RecipeRecord })
