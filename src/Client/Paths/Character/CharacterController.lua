@@ -42,7 +42,7 @@ function CharacterController.SetWalkspeed(new: number, key: string)
     PropertyStack.setProperty(localPlayer.Character.Humanoid, "WalkSpeed", new, key)
 end
 
-function CharacterController.toggleSprint()
+function CharacterController.ToggleSprint()
     isSprinting = not isSprinting
     CharacterController.SetWalkspeed(isSprinting and SPRINT_WALKSPEED or DEFAULT_WALKSPEED, "sprint")
     return isSprinting
