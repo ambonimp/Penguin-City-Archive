@@ -9,6 +9,8 @@ local Images = require(Paths.Shared.Images.Images)
 local MobileButtonsScreen = Ui.MobileButtons
 local BackgroundFrame = MobileButtonsScreen.Background
 local Button = require(Paths.Client.UI.Elements.Button)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
 
 local function getJumpButtonPositionAndSize()
     if Ui:FindFirstChild("TouchGui") then
@@ -40,12 +42,12 @@ local function getMobileButton(icon: string, position: Vector2, size: Vector2)
     return ImageLabel, ImageButton
 end
 
-if DeviceUtil.isMobile() then
+if DeviceUtil.isMobile() or true then
     MobileButtonsScreen.Enabled = true
-    --sprint button
     local jumpPosition, jumpSize = getJumpButtonPositionAndSize() --all mobile devices use different sizes & positions for JumpButton. we want to use relative position and sizes
 
-    local sprintPosition = jumpPosition - Vector2.new(0, jumpSize.X * 0.95)
+    --sprint button
+    local sprintPosition = jumpPosition - Vector2.new(jumpSize.X * 0.2, jumpSize.Y * 0.95)
     local sprintSize = Vector2.new(jumpSize.X * 0.8, jumpSize.Y * 0.8)
     local sprintLabel, sprintButton = getMobileButton(Images.Icons.Sprint, sprintPosition, sprintSize)
     local SprintButtonLoaded = Button.new(sprintButton)
@@ -60,14 +62,33 @@ if DeviceUtil.isMobile() then
         end
     end)
 
+    --emote button
+    local emotePosition = jumpPosition - Vector2.new(jumpSize.X * 0.8, jumpSize.Y * 0.4)
+    local emoteSize = Vector2.new(jumpSize.X * 0.8, jumpSize.Y * 0.8)
+    local emoteLabel, emoteButton = getMobileButton(Images.Icons.Emote, emotePosition, emoteSize)
+    local EmoteButtonLoaded = Button.new(emoteButton)
+
+    EmoteButtonLoaded.Pressed:Connect(function()
+        if not UIController.getStateMachine():HasState(UIConstants.States.Emotes) then
+            print("push emotes")
+            UIController.getStateMachine():Push(UIConstants.States.Emotes)
+        end
+    end)
+
     function MobileActionButtons.maximize()
         sprintLabel.Visible = true
+        emoteLabel.Visible = true
     end
 
     function MobileActionButtons.minimize()
         sprintLabel.Visible = false
+        emoteLabel.Visible = false
     end
 else
+    function MobileActionButtons.maximize() end
+
+    function MobileActionButtons.minimize() end
+
     MobileButtonsScreen:Destroy()
 end
 

@@ -17,7 +17,7 @@ local ACTIVATION_KEYS = { Enum.KeyCode.Semicolon, Enum.KeyCode.ButtonY }
 local ACTION_NAME = "CMDR"
 local MOBILE_BUTTON_PROPERTIES = {
     AnchorPoint = Vector2.new(1, 1),
-    Position = UDim2.new(0.55, 0, 0.5, 0),
+    Position = UDim2.new(0.55, 0, 0.95, 0),
     Size = UDim2.new(0.25, 0, 0.25, 0),
 }
 

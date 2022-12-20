@@ -31,6 +31,7 @@ local SELECTION_ROTATION_TWEEN_INFO = TweenInfo.new(0.1, Enum.EasingStyle.Quad, 
 local VIEWPORT_ROTATION = CFrame.new(Vector3.new(0, 0, 0), Vector3.new(0, -0.2, -1))
 local CREATE_ANIMATION_TRACKS_AFTER = 1
 local PLACE_IN_VIEWPORT_AFTER = 2 -- Workspace -> Viewport delay, as I was getting error "Cannot load the AnimationClipProvider Service."
+local LISTEN_TO_INPUT_AFTER = 0.5
 
 local uiStateMachine = UIController.getStateMachine()
 local bootMaid = Maid.new()
@@ -256,7 +257,13 @@ function EmotesScreen.boot()
     end))
 
     -- Selection
+    local listenToInputAfterTick = tick() + LISTEN_TO_INPUT_AFTER
     bootMaid:GiveTask(InputController.CursorUp:Connect(function()
+        -- RETURN: Too quick (would catch cursorup when user was clicking the mobile button)
+        if tick() < listenToInputAfterTick then
+            return
+        end
+
         playAnimationForCurrentSectionOnActualPlayerCharacter()
 
         UIController.getStateMachine():Remove(UIConstants.States.Emotes)

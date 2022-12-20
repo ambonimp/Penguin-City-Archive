@@ -35,6 +35,7 @@ Images.Icons = {
     CoinWhite = "rbxassetid://11374896378",
     DecorationTab = "rbxassetid://11834522980",
     Egg = "rbxassetid://11563573619",
+    Emote = "rbxassetid://11872973316",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
