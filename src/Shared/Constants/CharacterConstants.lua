@@ -17,7 +17,7 @@ CharacterConstants.Animations = {
     -- Emotes
     Point = { { Id = "rbxassetid://11713380446", Weight = 11 } },
     Wave = { { Id = "rbxassetid://11713385442", Weight = 11 } },
-    Cheer = { { Id = "rbxassetid://11713393646", Weight = 11 }, { Id = "rbxassetid://11713414336", Weight = 11 } },
+    Cheer = { { Id = "rbxassetid://11713414336", Weight = 11 }, { Id = "rbxassetid://11713393646", Weight = 11 } },
     Dance = { { Id = "rbxassetid://11833714491", Weight = 11 } },
     Dance2 = { { Id = "rbxassetid://11833708115", Weight = 11 } },
     Dance3 = { { Id = "rbxassetid://11833717281", Weight = 11 } },

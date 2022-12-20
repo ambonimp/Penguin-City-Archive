@@ -19,6 +19,8 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 
 local UP_VECTOR = Vector2.new(0, 1)
 local TOTAL_SECTIONS = 8
@@ -34,6 +36,7 @@ local uiStateMachine = UIController.getStateMachine()
 local bootMaid = Maid.new()
 local currentSection: number?
 local playingAnimationTrack: AnimationTrack?
+local playingAnimationTrackOnActualPlayerCharacter: AnimationTrack?
 local animationTracksByEmoteName: { [string]: AnimationTrack } = {}
 
 local screenGui: ScreenGui = Paths.UI.Emotes
@@ -87,29 +90,25 @@ function EmotesScreen.Init()
         local characterModel = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
         characterModel.Name = "EmotesCharacter"
         characterModel.Parent = game.Workspace
-        bootMaid:GiveTask(characterModel)
-        --todo apply appearance
 
         -- Animations
         local humanoid: Humanoid = characterModel:WaitForChild("Humanoid")
 
         -- AnimationTracks
         for _, emoteName in pairs(CharacterConstants.EmoteNames) do
-            local animations = CharacterConstants.Animations[emoteName]
-            for _, animation in pairs(animations) do
-                local animationId: string = animation.Id
+            local animation = CharacterConstants.Animations[emoteName][1]
+            local animationId: string = animation.Id
 
-                local animationInstance = Instance.new("Animation")
-                animationInstance.Name = emoteName
-                animationInstance.AnimationId = animationId
-                animationInstance.Parent = humanoid
+            local animationInstance = Instance.new("Animation")
+            animationInstance.Name = emoteName
+            animationInstance.AnimationId = animationId
+            animationInstance.Parent = humanoid
 
-                -- Create track on new thread; was getting error "Cannot load the AnimationClipProvider Service."
-                task.delay(CREATE_ANIMATION_TRACKS_AFTER, function()
-                    local animationTrack = humanoid:LoadAnimation(animationInstance) -- sorry not sorry
-                    animationTracksByEmoteName[emoteName] = animationTrack
-                end)
-            end
+            -- Create track on new thread; was getting error "Cannot load the AnimationClipProvider Service."
+            task.delay(CREATE_ANIMATION_TRACKS_AFTER, function()
+                local animationTrack = humanoid:LoadAnimation(animationInstance) -- sorry not sorry
+                animationTracksByEmoteName[emoteName] = animationTrack
+            end)
         end
 
         -- Viewport
@@ -136,12 +135,18 @@ local function getAngleFromSection(section: number)
     return (section - 1) * SECTION_WIDTH_DEGREES
 end
 
+local function getEmoteNameFromSection(section: number)
+    local emoteName = CharacterConstants.EmoteNames[section]
+    if not emoteName then
+        error(("No emote for section %d"):format(section))
+    end
+
+    return emoteName
+end
+
 local function playAnimationForCurrentSection()
     -- ERROR: Not enough emote names!
-    local emoteName = CharacterConstants.EmoteNames[currentSection]
-    if not emoteName then
-        error(("No emote for section %d"):format(currentSection))
-    end
+    local emoteName = getEmoteNameFromSection(currentSection)
 
     -- ERROR: No track!
     local animationTrack = animationTracksByEmoteName[emoteName]
@@ -189,6 +194,50 @@ local function updateSection(newSection: number)
     playAnimationForCurrentSection()
 end
 
+local function playAnimationForCurrentSectionOnActualPlayerCharacter()
+    -- RETURN: No character!
+    local character = Players.LocalPlayer.Character
+    if not character then
+        return
+    end
+
+    -- RETURN: No humanoid!
+    local humanoid: Humanoid = character.Humanoid
+    if not humanoid then
+        return
+    end
+
+    -- RETURN: No animator!
+    local animator = character.Humanoid:FindFirstChildOfClass("Animator")
+    if not animator then
+        return
+    end
+
+    -- Stop old
+    if playingAnimationTrackOnActualPlayerCharacter then
+        playingAnimationTrackOnActualPlayerCharacter:Stop()
+    end
+
+    -- Play
+    local emoteName = currentSection and getEmoteNameFromSection(currentSection)
+    if emoteName then
+        local animationEmote = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations[emoteName][1].Id })
+        local useTrack = animator:LoadAnimation(animationEmote)
+        useTrack:Play()
+
+        playingAnimationTrackOnActualPlayerCharacter = useTrack
+
+        -- Cleanup after
+        task.delay(useTrack.Length, function()
+            if playingAnimationTrackOnActualPlayerCharacter == useTrack then
+                useTrack:Stop()
+                useTrack:Destroy()
+                playingAnimationTrackOnActualPlayerCharacter = nil
+            end
+        end)
+    end
+end
+
 function EmotesScreen.boot()
     -- Frame update; detect what section we're hovering over
     bootMaid:GiveTask(RunService.RenderStepped:Connect(function()
@@ -205,14 +254,23 @@ function EmotesScreen.boot()
             updateSection(section)
         end
     end))
+
+    -- Selection
+    bootMaid:GiveTask(InputController.CursorUp:Connect(function()
+        playAnimationForCurrentSectionOnActualPlayerCharacter()
+
+        UIController.getStateMachine():Remove(UIConstants.States.Emotes)
+    end))
 end
 
 function EmotesScreen.shutdown()
     bootMaid:Cleanup()
 
     currentSection = nil
-    characterModel = nil
-    animationTracksByAnimationId = {}
+
+    if playingAnimationTrack then
+        playingAnimationTrack:Stop()
+    end
     playingAnimationTrack = nil
 end
 
