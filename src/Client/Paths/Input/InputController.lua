@@ -4,7 +4,6 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CharacterController = require(Paths.Client.Character.CharacterController)
 local Signal = require(Paths.Shared.Signal)
 local InputConstants = require(Paths.Client.Input.InputConstants)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
@@ -50,10 +49,6 @@ do
             end
 
             InputController.CursorDown:Fire(gameProcessedEvent)
-        end
-
-        if table.find(InputConstants.Sprint.KeyCodes, inputObject.KeyCode) then
-            CharacterController.ToggleSprint()
         end
     end)
     UserInputService.InputEnded:Connect(function(inputObject, gameProcessedEvent)

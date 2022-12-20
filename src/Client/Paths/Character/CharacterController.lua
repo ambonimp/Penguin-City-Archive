@@ -6,6 +6,7 @@ local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local Loader = require(Paths.Client.Loader)
 local Maid = require(Paths.Shared.Maid)
+local InputController = require(Paths.Client.Input.InputController)
 
 local Animate = Paths.Client.Character.Animate
 local localPlayer = Players.LocalPlayer
@@ -36,13 +37,24 @@ local function loadCharacter(character: Model)
     end)
 end
 
-function CharacterController.SetWalkspeed(new: number, key: string)
+function CharacterController.Start()
+    InputController.KeybindBegan:Connect(function(keybind: string, gameProcessedEvent: boolean)
+        -- RETURN: Not a good keybind for us!
+        if not (keybind == "Sprint" and not gameProcessedEvent) then
+            return
+        end
+
+        CharacterController.toggleSprint()
+    end)
+end
+
+function CharacterController.setWalkspeed(new: number, key: string)
     PropertyStack.setProperty(localPlayer.Character.Humanoid, "WalkSpeed", new, key)
 end
 
-function CharacterController.ToggleSprint()
+function CharacterController.toggleSprint()
     isSprinting = not isSprinting
-    CharacterController.SetWalkspeed(isSprinting and CharacterConstants.SprintSpeed or CharacterConstants.WalkSpeed, "sprint")
+    CharacterController.setWalkspeed(isSprinting and CharacterConstants.SprintSpeed or CharacterConstants.WalkSpeed, "sprint")
     return isSprinting
 end
 
