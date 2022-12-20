@@ -45,6 +45,7 @@ end
 function CharacterController.toggleSprint()
     isSprinting = not isSprinting
     CharacterController.SetWalkspeed(isSprinting and SPRINT_WALKSPEED or DEFAULT_WALKSPEED, "sprint")
+    return isSprinting
 end
 
 Loader.giveTask("Character", "LoadCharacter", function()

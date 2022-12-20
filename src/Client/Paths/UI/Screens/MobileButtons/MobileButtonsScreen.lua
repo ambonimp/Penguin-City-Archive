@@ -16,7 +16,7 @@ local function getJumpButtonPositionAndSize()
     end
 end
 
-local function getMobileButton(icon: string, position: Vector2, size: Vector2): ImageButton
+local function getMobileButton(icon: string, position: Vector2, size: Vector2)
     local ImageLabel = Instance.new("ImageLabel")
     ImageLabel.Size = UDim2.fromOffset(size.X, size.Y)
     ImageLabel.Position = UDim2.fromOffset(position.X, position.Y)
@@ -36,7 +36,7 @@ local function getMobileButton(icon: string, position: Vector2, size: Vector2): 
     ImageButton.Parent = ImageLabel
 
     ImageLabel.Parent = BackgroundFrame
-    return Button
+    return ImageLabel, ImageButton
 end
 
 if DeviceUtil.isMobile then
@@ -46,12 +46,17 @@ if DeviceUtil.isMobile then
         position -= Vector2.new(0, size.X * 0.95)
         size = Vector2.new(size.X * 0.8, size.Y * 0.8)
 
-        local sprintButton = getMobileButton(Images.Icons.Sprint, position, size)
-
+        local _, sprintButton = getMobileButton(Images.Icons.Sprint, position, size)
         local SprintButtonLoaded = Button.new(sprintButton)
 
-        sprintButton.MouseButton1Down:Connect(function()
-            CharacterController.toggleSprint()
+        SprintButtonLoaded.Pressed:Connect(function()
+            local isSprinting = CharacterController.toggleSprint()
+
+            if isSprinting then
+                sprintButton.ImageColor3 = Color3.new(0.450980, 1, 0)
+            else
+                sprintButton.ImageColor3 = Color3.new(1, 1, 1)
+            end
         end)
     end
 else
