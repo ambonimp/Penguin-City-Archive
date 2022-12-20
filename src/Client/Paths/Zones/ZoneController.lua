@@ -378,12 +378,15 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
+        nextteleportToRoomRequestPlease()
         error("Not passed a room zone!")
     end
 
     -- WARN: Locked out!
     if lockedToRoomZone and not ZoneUtil.zonesMatch(lockedToRoomZone, roomZone) then
         warn(("Cannot teleport; currently locked to room %s"):format(lockedToRoomZone.ZoneType))
+
+        nextteleportToRoomRequestPlease()
         return
     end
 
