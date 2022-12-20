@@ -42,7 +42,7 @@ local function getMobileButton(icon: string, position: Vector2, size: Vector2)
     return ImageLabel, ImageButton
 end
 
-if DeviceUtil.isMobile() or true then
+if DeviceUtil.isMobile() then
     MobileButtonsScreen.Enabled = true
     local jumpPosition, jumpSize = getJumpButtonPositionAndSize() --all mobile devices use different sizes & positions for JumpButton. we want to use relative position and sizes
 
@@ -53,7 +53,7 @@ if DeviceUtil.isMobile() or true then
     local SprintButtonLoaded = Button.new(sprintButton)
 
     SprintButtonLoaded.Pressed:Connect(function()
-        local isSprinting = CharacterController.ToggleSprint()
+        local isSprinting = CharacterController.toggleSprint()
 
         if isSprinting then
             sprintButton.ImageColor3 = Color3.new(0.450980, 1, 0)
@@ -70,7 +70,6 @@ if DeviceUtil.isMobile() or true then
 
     EmoteButtonLoaded.Pressed:Connect(function()
         if not UIController.getStateMachine():HasState(UIConstants.States.Emotes) then
-            print("push emotes")
             UIController.getStateMachine():Push(UIConstants.States.Emotes)
         end
     end)

@@ -19,6 +19,7 @@ local CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET = 48
 local container: Frame = Paths.UI.TopBar.Container
 local coinImageButton: ImageButton = container.Coin
 local coinTextLabel: TextLabel = coinImageButton.Container.Coins
+local emoteImageButton: ImageButton = container.Emote
 
 function TopBarScreen.displayCoinsDiff(addCoins: number)
     -- Get UI Elements + setup initial state
@@ -79,6 +80,18 @@ do
     local coinButton = AnimatedButton.new(coinImageButton)
     coinButton.Pressed:Connect(function()
         UIController.getStateMachine():Push(UIConstants.States.Shop, { StartTabName = "Coins" })
+    end)
+end
+
+-- Emote
+do
+    local emoteButton = AnimatedButton.new(emoteImageButton)
+    emoteButton.Pressed:Connect(function()
+        if UIController.getStateMachine():HasState(UIConstants.States.Emotes) then
+            UIController.getStateMachine():Remove(UIConstants.States.Emotes)
+        else
+            UIController.getStateMachine():Push(UIConstants.States.Emotes)
+        end
     end)
 end
 
