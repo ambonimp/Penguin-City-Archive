@@ -41,23 +41,29 @@ end
 
 if DeviceUtil.isMobile then
     --sprint button
-    do
-        local position, size = getJumpButtonPositionAndSize()
-        position -= Vector2.new(0, size.X * 0.95)
-        size = Vector2.new(size.X * 0.8, size.Y * 0.8)
+    local position, size = getJumpButtonPositionAndSize()
+    position -= Vector2.new(0, size.X * 0.95)
+    size = Vector2.new(size.X * 0.8, size.Y * 0.8)
 
-        local _, sprintButton = getMobileButton(Images.Icons.Sprint, position, size)
-        local SprintButtonLoaded = Button.new(sprintButton)
+    local sprintLabel, sprintButton = getMobileButton(Images.Icons.Sprint, position, size)
+    local SprintButtonLoaded = Button.new(sprintButton)
 
-        SprintButtonLoaded.Pressed:Connect(function()
-            local isSprinting = CharacterController.toggleSprint()
+    SprintButtonLoaded.Pressed:Connect(function()
+        local isSprinting = CharacterController.toggleSprint()
 
-            if isSprinting then
-                sprintButton.ImageColor3 = Color3.new(0.450980, 1, 0)
-            else
-                sprintButton.ImageColor3 = Color3.new(1, 1, 1)
-            end
-        end)
+        if isSprinting then
+            sprintButton.ImageColor3 = Color3.new(0.450980, 1, 0)
+        else
+            sprintButton.ImageColor3 = Color3.new(1, 1, 1)
+        end
+    end)
+
+    function MobileButtons.maximize()
+        sprintLabel.Visible = true
+    end
+
+    function MobileButtons.minimize()
+        sprintLabel.Visible = false
     end
 else
     MobileButtonsScreen:Destroy()
