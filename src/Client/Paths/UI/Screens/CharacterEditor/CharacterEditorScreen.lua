@@ -38,6 +38,7 @@ panel:SetSize(4)
 panel:Mount(screen)
 panel:GetContainer().Visible = false
 local equipSlots: Frame = screen.EquipSlots
+local bodyTypeList: Frame = screen.BodyTypes
 
 local tabMaid = Maid.new()
 
@@ -62,7 +63,44 @@ do
         local categoryName: string = keyValuePair.Key
         local categoryConstants: CharacterItemConstants.Category = keyValuePair.Value
 
-        if categoryName ~= "BodyType" then
+        if categoryName == "BodyType" then
+            local equipped: string
+
+            for itemName, itemConstants in pairs(categoryConstants.Items) do
+                local button = Paths.Templates.CharacterEditor.BodyType:Clone()
+                button.Name = itemName
+                button.Parent = bodyTypeList
+                button.BackgroundColor3 = UIConstants.Colors.Buttons.White
+                button.LayoutOrder = itemConstants.LayoutOrder
+                button.Icon.Image = itemConstants.Icon
+
+                local function equip(doUpdateAppearance: true?)
+                    if equipped then
+                        bodyTypeList[equipped].BackgroundColor3 = UIConstants.Colors.Buttons.White
+                    end
+
+                    equipped = itemName
+
+                    local equippedItem = { itemName }
+                    equippedItems.BodyType = equippedItem
+                    if doUpdateAppearance then
+                        updateAppearance({ BodyType = equippedItem })
+                    end
+
+                    button.BackgroundColor3 = UIConstants.Colors.Buttons.SelectedYellow
+                end
+
+                button.MouseButton1Down:Connect(function()
+                    equip(true)
+                end)
+
+                table.insert(bootCallbacks, function()
+                    if DataController.get("CharacterAppearance." .. categoryName)["1"] == itemName then
+                        equip(false)
+                    end
+                end)
+            end
+        else
             local canEquip: boolean = categoryConstants.MaxEquippables ~= 0
             local canUnequip: boolean = categoryConstants.CanUnequip
             local maxEquippables: number = categoryConstants.MaxEquippables
@@ -261,12 +299,14 @@ do
 
     local function maximize()
         ScreenUtil.inLeft(panel:GetContainer())
+        ScreenUtil.inRight(bodyTypeList)
         ScreenUtil.inUp(equipSlots)
     end
 
     local function minimize()
         ScreenUtil.out(panel:GetContainer())
         ScreenUtil.out(equipSlots)
+        ScreenUtil.out(bodyTypeList)
     end
 
     local function shutdown()
