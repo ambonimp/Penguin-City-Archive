@@ -378,12 +378,15 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, igno
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
+        nextteleportToRoomRequestPlease()
         error("Not passed a room zone!")
     end
 
     -- WARN: Locked out!
     if lockedToRoomZone and not ZoneUtil.zonesMatch(lockedToRoomZone, roomZone) then
         warn(("Cannot teleport; currently locked to room %s"):format(lockedToRoomZone.ZoneType))
+
+        nextteleportToRoomRequestPlease()
         return
     end
 
@@ -504,9 +507,14 @@ function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
     return ZoneUtil.areAllBasePartsLoaded(zoneModel)
 end
 
+--[[
+    Takes into account `ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts` for room zones
+]]
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
-    return ZoneUtil.waitForInstanceToLoad(zoneModel)
+    local allowMissingParts = zone.ZoneCategory == ZoneConstants.ZoneCategory.Room
+        and ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts
+    return ZoneUtil.waitForInstanceToLoad(zoneModel, allowMissingParts)
 end
 
 -------------------------------------------------------------------------------
