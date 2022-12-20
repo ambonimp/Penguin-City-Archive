@@ -220,9 +220,10 @@ function ToolController.holster(tool: ToolUtil.Tool)
         return
     end
 
-    -- RETURN: Too many holstered tools!
+    --Instead of returning, unholster first holstered tool and holster new request
     if #holsteredTools >= ToolConstants.MaxHolsteredTools then
-        return
+        local holstedTool1 = ToolController.getHolsteredTools()[1]
+        ToolController.unholster(holstedTool1)
     end
 
     -- Add to cache + inform

@@ -31,6 +31,27 @@ items.Pizza = {
     DisplayName = "Pizza",
     Price = 0,
 }
+items.CottonCandy = {
+    Id = "CottonCandy",
+    DisplayName = "Cotton Candy",
+    Price = 0,
+}
+items.CoconutDrink = {
+    Id = "CoconutDrink",
+    DisplayName = "Coconut Drink",
+    Price = 0,
+}
+
+items.IceCream = {
+    Id = "IceCream",
+    DisplayName = "Ice Cream",
+    Price = 0,
+}
+items.Lemonade = {
+    Id = "Lemonade",
+    DisplayName = "Lemonade",
+    Price = 0,
+}
 
 SnowballToolConstants.Items = items
 
