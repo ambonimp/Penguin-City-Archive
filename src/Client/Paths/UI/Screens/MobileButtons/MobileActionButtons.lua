@@ -40,7 +40,7 @@ local function getMobileButton(icon: string, position: Vector2, size: Vector2)
     return ImageLabel, ImageButton
 end
 
-if DeviceUtil.isMobile then
+if DeviceUtil.isMobile() then
     MobileButtonsScreen.Enabled = true
     --sprint button
     local jumpPosition, jumpSize = getJumpButtonPositionAndSize() --all mobile devices use different sizes & positions for JumpButton. we want to use relative position and sizes
