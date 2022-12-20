@@ -34,9 +34,9 @@ macroDefinition.Function = function()
         return result
     end
 
-    for _, shirt in pairs(selection) do
-        local name = toSnakeCase(shirt.Name)
-        shirt.Name = name
+    for _, item in pairs(selection) do
+        local name = toSnakeCase(item.Name)
+        item.Name = name
         print(('items["%s"] = {\n\tName = "%s",\n\tPrice = 0,\n\tIcon = nil, --"%s"\n\tForSale = true\n}'):format(name, name, name))
     end
 end
