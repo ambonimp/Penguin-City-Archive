@@ -153,6 +153,13 @@ function Maid:GiveTask(task)
         end
     end
 
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn(("Cannot GiveTask; Maid is Destroyed. Immediately cleaning up the passed task (%q)"):format(typeof(task)))
+        DisconnectTask(task)
+        return
+    end
+
     self._tasks[task] = task
 
     return task
@@ -166,6 +173,12 @@ end
 ]=]
 
 function Maid:RemoveTask(task)
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn("Cannot RemoveTask; Maid is Destroyed")
+        return
+    end
+
     self._tasks[task] = nil
 end
 
@@ -184,6 +197,12 @@ end
 function Maid:Cleanup()
     -- Next allows us to easily traverse the table accounting for more values being added. This allows us to clean
     -- up tasks spawned by the cleaning up of current tasks.
+
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn("Cannot Cleanup; Maid is Destroyed")
+        return
+    end
 
     local tasks = self._tasks
     local key, task = next(tasks)
@@ -206,6 +225,12 @@ end
 ]=]
 
 function Maid:EndTask(task)
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn("Cannot EndTask; Maid is Destroyed")
+        return
+    end
+
     self._tasks[task] = nil
     DisconnectTask(task)
 end
@@ -222,13 +247,17 @@ end
 ]=]
 
 function Maid:Destroy()
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn("Cannot Destroy; Maid is Destroyed")
+        return
+    end
+
     self:Cleanup()
 
     for key, _ in pairs(self) do
         self[key] = nil
     end
-
-    setmetatable(self, nil)
 end
 
 local ManualConnection = {}
@@ -264,6 +293,12 @@ end
 ]=]
 
 function Maid:LinkToInstance(instance: Instance)
+    -- WARN: Destroyed
+    if not self._tasks then
+        warn("Cannot LinkToInstance; Maid is Destroyed")
+        return
+    end
+
     assert(
         typeof(instance) == "Instance",
         LocalConstants.ErrorMessages.InvalidArgument:format(1, "Maid:LinkToInstance()", "Instance", typeof(instance))
