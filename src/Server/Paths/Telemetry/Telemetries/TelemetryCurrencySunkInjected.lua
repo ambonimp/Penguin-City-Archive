@@ -17,17 +17,21 @@ local function currencySunk(player: Player, currency: string, amount: number, si
     })
 end
 
-local function currencyInjected(player: Player, currency: string, amount: number, injectType: string, isFromRobux: boolean)
+local function currencyInjected(player: Player, currency: string, amount: number, injectType: string)
     TelemetryService.postPlayerEvent(player, "currencyInjected", {
         amount = amount,
         currency = StringUtil.toCamelCase(currency),
         injectType = StringUtil.toCamelCase(injectType),
-        isFromRobux = isFromRobux,
     })
 end
 
 CurrencyService.CoinsInjected:Connect(function(player: Player, coinsInjected: number, config: CurrencyService.InjectConfig)
-    currencyInjected(player, CURRENCY_COINS, coinsInjected, config.InjectCategory, config.IsFromRobux and true or false)
+    -- RETURN: Dont post coins injected from robux
+    if config.IsFromRobux then
+        return
+    end
+
+    currencyInjected(player, CURRENCY_COINS, coinsInjected, config.InjectCategory)
 end)
 
 CurrencyService.CoinsSunk:Connect(function(player: Player, coinsSunk: number, config: CurrencyService.SunkConfig)

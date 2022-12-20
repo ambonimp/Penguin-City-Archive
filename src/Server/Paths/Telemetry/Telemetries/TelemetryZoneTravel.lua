@@ -15,23 +15,10 @@ ZoneService.ZoneChanged:Connect(
             return
         end
 
-        -- Make igloo zones a bit more readable..
-        local toZoneType = toZone.ZoneType
-        if ZoneUtil.isHouseInteriorZone(toZone) then
-            local isOwnIgloo = ZoneUtil.zonesMatch(toZone, ZoneUtil.houseInteriorZone(player))
-            toZoneType = isOwnIgloo and "igloo" or "visitIgloo"
-        end
-
-        local fromZoneType = fromZone.ZoneType
-        if ZoneUtil.isHouseInteriorZone(fromZone) then
-            local isOwnIgloo = ZoneUtil.zonesMatch(fromZone, ZoneUtil.houseInteriorZone(player))
-            fromZoneType = isOwnIgloo and "igloo" or "visitIgloo"
-        end
-
         -- Post
         TelemetryService.postPlayerEvent(player, "zoneTravel", {
-            zoneFrom = ("%s_%s"):format(StringUtil.toCamelCase(fromZone.ZoneCategory), StringUtil.toCamelCase(fromZoneType)),
-            zoneTo = ("%s_%s"):format(StringUtil.toCamelCase(toZone.ZoneCategory), StringUtil.toCamelCase(toZoneType)),
+            zoneFrom = ZoneUtil.toString(player, fromZone),
+            zoneTo = ZoneUtil.toString(player, toZone),
             travelMethod = StringUtil.toCamelCase(teleportData.TravelMethod or ZoneConstants.TravelMethod.Unknown),
         })
     end

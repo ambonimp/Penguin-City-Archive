@@ -40,6 +40,7 @@ task.delay(0, function()
         require(server.TutorialService),
         require(server.Tools.ToolService),
         require(server.Telemetry.TelemetryService),
+        require(server.SessionService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

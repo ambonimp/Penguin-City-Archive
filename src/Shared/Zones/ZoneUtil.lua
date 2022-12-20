@@ -340,6 +340,25 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
 end
 
 -------------------------------------------------------------------------------
+-- Telemetry
+-------------------------------------------------------------------------------
+
+--[[
+    Returns a `string` that represents our `zone`, used for posting events in our telemetry scope
+
+    `player` is needed for nicely converting igloo zones to strings
+]]
+function ZoneUtil.toString(player: Player, zone: ZoneConstants.Zone)
+    local zoneType = zone.ZoneType
+    if ZoneUtil.isHouseInteriorZone(zone) then
+        local isOwnIgloo = ZoneUtil.zonesMatch(zone, ZoneUtil.houseInteriorZone(player))
+        zoneType = isOwnIgloo and "ownIgloo" or "otherIgloo"
+    end
+
+    return ("%s_%s"):format(StringUtil.toCamelCase(zone.ZoneCategory), StringUtil.toCamelCase(zoneType))
+end
+
+-------------------------------------------------------------------------------
 -- Cmdr
 -------------------------------------------------------------------------------
 function ZoneUtil.getZoneTypeCmdrArgument(zoneCategoryArgument)

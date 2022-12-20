@@ -6,13 +6,6 @@ local TelemetryService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 
---[[
-    Wrapper for how we post an event
-]]
-function TelemetryService.postPlayerEvent(player: Player, eventName: string, eventData: table)
-    warn(("Post Player Event %q %q"):format(player.Name, eventName), eventData)
-end
-
 function TelemetryService.Start()
     -- Loaded Telemetries
     do
@@ -22,6 +15,15 @@ function TelemetryService.Start()
             end
         end
     end
+end
+
+function TelemetryService.unloadPlayer(_player: Player) end -- Gets overwritten by TelemetrySessionSummary
+
+--[[
+    Wrapper for how we post an event
+]]
+function TelemetryService.postPlayerEvent(player: Player, eventName: string, eventData: table)
+    warn(("Post Player Event %q %q"):format(player.Name, eventName), eventData)
 end
 
 return TelemetryService
