@@ -15,11 +15,6 @@ return function()
                 table.insert(issues, ("%s.%s has no .Name!"):format(categoryName, itemKey))
             end
 
-            -- Icon
-            if not itemConstants.Icon then
-                table.insert(issues, ("%s.%s has no icon!"):format(categoryName, itemKey))
-            end
-
             -- Price
             if not itemConstants.Price then
                 table.insert(issues, ("%s.%s has no .Price!"):format(categoryName, itemKey))

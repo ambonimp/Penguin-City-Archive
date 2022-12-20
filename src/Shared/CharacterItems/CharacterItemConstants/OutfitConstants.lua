@@ -21,7 +21,7 @@ export type Item = {
 }
 
 local items: { [string]: Item } = {}
-items["Farmer"] = {
+--[[ items["Farmer"] = {
     Name = "Farmer",
     Price = 12,
     Icon = Images.Outfits["Farmer"],
@@ -30,7 +30,7 @@ items["Farmer"] = {
         Pants = { PantsConstants.Items["Overalls"].Name },
     },
     ForSale = true,
-}
+} *]]
 
 OutfitConstants.TabOrder = 4
 OutfitConstants.TabIcon = Images.Icons.Outfit

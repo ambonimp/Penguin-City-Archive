@@ -38,7 +38,7 @@ macroDefinition.Function = function()
             local attachment = Instance.new("Attachment")
             attachment.Parent = handle
             attachment.WorldCFrame = character.Body.Main_Bone.Belly["Belly.001"].HEAD.WorldCFrame
-            attachment.Name = "HatAttachment"
+            attachment.Name = "AccessoryAttachment"
         end
     end
 end
