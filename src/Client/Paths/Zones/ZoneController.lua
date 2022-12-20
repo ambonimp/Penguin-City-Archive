@@ -507,9 +507,14 @@ function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
     return ZoneUtil.areAllBasePartsLoaded(zoneModel)
 end
 
+--[[
+    Takes into account `ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts` for room zones
+]]
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
-    return ZoneUtil.waitForInstanceToLoad(zoneModel)
+    local allowMissingParts = zone.ZoneCategory == ZoneConstants.ZoneCategory.Room
+        and ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts
+    return ZoneUtil.waitForInstanceToLoad(zoneModel, allowMissingParts)
 end
 
 -------------------------------------------------------------------------------
