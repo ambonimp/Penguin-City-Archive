@@ -18,7 +18,7 @@ CharacterConstants.Animations = {
     -- Emotes
     Point = { { Id = "rbxassetid://11713380446", Weight = 11 } },
     Wave = { { Id = "rbxassetid://11713385442", Weight = 11 } },
-    Cheer = { { Id = "rbxassetid://11713393646", Weight = 11 }, { Id = "rbxassetid://11713414336", Weight = 11 } },
+    Cheer = { { Id = "rbxassetid://11713414336", Weight = 11 }, { Id = "rbxassetid://11713393646", Weight = 11 } },
     Dance = { { Id = "rbxassetid://11833714491", Weight = 11 } },
     Dance2 = { { Id = "rbxassetid://11833708115", Weight = 11 } },
     Dance3 = { { Id = "rbxassetid://11833717281", Weight = 11 } },
@@ -30,5 +30,7 @@ CharacterConstants.Animations = {
     UseGenericTool = { { Id = "rbxassetid://11713443688", Weight = 15 } },
     UseSnowballTool = { { Id = "rbxassetid://11713444981", Weight = 15 } },
 }
+
+CharacterConstants.EmoteNames = { "Point", "Wave", "Cheer", "Dance", "Dance2", "Dance3", "Dance4", "Angry" }
 
 return CharacterConstants

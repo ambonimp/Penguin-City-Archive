@@ -35,6 +35,7 @@ Images.Icons = {
     CoinWhite = "rbxassetid://11374896378",
     DecorationTab = "rbxassetid://11834522980",
     Egg = "rbxassetid://11563573619",
+    Emote = "rbxassetid://11873092720",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
@@ -94,6 +95,13 @@ Images.Voldex = {
     X = "rbxassetid://11860914744",
 }
 --#endregion
+Images.EmoteWheel = {
+    SelectedLine = "rbxasset://textures/ui/Emotes/Large/SelectedLine.png",
+    SelectionGradient = "rbxasset://textures/ui/Emotes/Large/SelectedGradient.png",
+    CircleBackground = "rbxasset://textures/ui/Emotes/Large/CircleBackground.png",
+    SegmentedCircle = "rbxasset://textures/ui/Emotes/Large/SegmentedCircle.png",
+    EmoteButton = "rbxassetid://11872973316",
+}
 --#region Coins
 Images.Coins = {
     Bundle1 = "rbxassetid://11152356128",

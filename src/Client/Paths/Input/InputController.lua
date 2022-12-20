@@ -1,9 +1,9 @@
 local InputController = {}
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local CharacterController = require(Paths.Client.Character.CharacterController)
 local Signal = require(Paths.Shared.Signal)
 local InputConstants = require(Paths.Client.Input.InputConstants)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
@@ -11,11 +11,32 @@ local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 -- Generic Events that are compatible across PC/Mobile/XBox
 InputController.CursorDown = Signal.new() -- { gameProcessedEvent: boolean }
 InputController.CursorUp = Signal.new() -- { gameProcessedEvent: boolean }
+InputController.KeybindBegan = Signal.new() -- { keybind: string, gameProcessedEvent: boolean }
+InputController.KeybindEnded = Signal.new() -- { keybind: string, gameProcessedEvent: boolean }
+
+--[[
+    Wrapper for UserInputService:GetMouseLocation(), with some control over whether the GuiInset height is included or not
+]]
+function InputController.getMouseLocation(includeGuiInset: boolean?)
+    if includeGuiInset then
+        return UserInputService:GetMouseLocation()
+    end
+
+    local guiInset, _ = GuiService:GetGuiInset()
+    return UserInputService:GetMouseLocation() - guiInset
+end
 
 -- Listen to Input
 do
     UserInputService.InputBegan:Connect(function(inputObject, gameProcessedEvent)
         gameProcessedEvent = gameProcessedEvent and inputObject.UserInputType ~= Enum.UserInputType.Touch
+
+        -- Keybinds
+        for keybind, keycodes in pairs(InputConstants.Keybinds) do
+            if table.find(keycodes, inputObject.KeyCode) then
+                InputController.KeybindBegan:Fire(keybind, gameProcessedEvent)
+            end
+        end
 
         -- Cursor
         local isCursorDownInput = table.find(InputConstants.Cursor.Down.KeyCodes, inputObject.KeyCode)
@@ -29,13 +50,16 @@ do
 
             InputController.CursorDown:Fire(gameProcessedEvent)
         end
-
-        if table.find(InputConstants.Sprint.KeyCodes, inputObject.KeyCode) then
-            CharacterController.ToggleSprint()
-        end
     end)
     UserInputService.InputEnded:Connect(function(inputObject, gameProcessedEvent)
         gameProcessedEvent = gameProcessedEvent and inputObject.UserInputType ~= Enum.UserInputType.Touch
+
+        -- Keybinds
+        for keybind, keycodes in pairs(InputConstants.Keybinds) do
+            if table.find(keycodes, inputObject.KeyCode) then
+                InputController.KeybindEnded:Fire(keybind, gameProcessedEvent)
+            end
+        end
 
         -- Cursor
         local isCursorUpInput = table.find(InputConstants.Cursor.Up.KeyCodes, inputObject.KeyCode)
