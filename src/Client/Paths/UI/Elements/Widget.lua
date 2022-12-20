@@ -459,6 +459,8 @@ function Widget.diverseWidget()
     local viewportFrame = Instance.new("ViewportFrame")
     viewportFrame.Name = "viewportFrame"
     viewportFrame.BackgroundTransparency = 1
+    viewportFrame.BackgroundColor3 = UIConstants.Colors.Buttons.White
+    viewportFrame.Ambient = Color3.fromRGB(255, 255, 255)
     viewportFrame.Size = UDim2.fromScale(1, 1)
     viewportFrame.Parent = icon
 
@@ -544,7 +546,9 @@ function Widget.diverseWidget()
     end
 
     function widget:SetBackgroundColor(color: Color3?)
-        imageButton.BackgroundColor3 = color or UIConstants.Colors.Buttons.White
+        color = color or UIConstants.Colors.Buttons.White
+        imageButton.BackgroundColor3 = color
+        viewportFrame.BackgroundColor3 = color
     end
 
     function widget:SetOutline(color: Color3?, thickness: number?)
