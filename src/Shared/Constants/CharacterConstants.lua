@@ -30,4 +30,6 @@ CharacterConstants.Animations = {
     UseSnowballTool = { { Id = "rbxassetid://11713444981", Weight = 15 } },
 }
 
+CharacterConstants.EmoteNames = { "Point", "Wave", "Cheer", "Dance", "Dance2", "Dance3", "Dance4", "Angry" }
+
 return CharacterConstants
