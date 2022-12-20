@@ -1,5 +1,6 @@
 local CharacterConstants = {}
 
+CharacterConstants.SprintSpeed = 30
 CharacterConstants.WalkSpeed = 20
 CharacterConstants.JumpPower = 50
 
