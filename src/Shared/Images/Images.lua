@@ -92,6 +92,12 @@ Images.Voldex = {
     X = "rbxassetid://11860914744",
 }
 --#endregion
+Images.EmoteWheel = {
+    SelectedLine = "rbxasset://textures/ui/Emotes/Large/SelectedLine.png",
+    SelectionGradient = "rbxasset://textures/ui/Emotes/Large/SelectedGradient.png",
+    CircleBackground = "rbxasset://textures/ui/Emotes/Large/CircleBackground.png",
+    SegmentedCircle = "rbxasset://textures/ui/Emotes/Large/SegmentedCircle.png",
+}
 --#region Coins
 Images.Coins = {
     Bundle1 = "rbxassetid://11152356128",

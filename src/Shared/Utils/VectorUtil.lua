@@ -17,4 +17,16 @@ function VectorUtil.getAngle(v0: Vector2 | Vector3, v1: Vector2 | Vector3)
     return math.deg(theta)
 end
 
+-- Returns an angle between [0, 360]. *Should* be clockwise around v0. Not tested fully.
+function VectorUtil.getVector2FullAngle(v0: Vector2, v1: Vector2)
+    local angle = VectorUtil.getAngle(v0, v1)
+    local v0tov1 = v1 - v0
+
+    if v0tov1.X >= 0 then
+        angle = -angle
+    end
+
+    return (angle + 360) % 360
+end
+
 return VectorUtil

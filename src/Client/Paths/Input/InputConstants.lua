@@ -33,4 +33,10 @@ InputConstants.KeyCodeNumbers = {
     [Enum.KeyCode.Nine] = 9,
 }
 
+InputConstants.Keybinds = {
+    ToggleEmotes = {
+        Enum.KeyCode.Period,
+    },
+}
+
 return InputConstants
