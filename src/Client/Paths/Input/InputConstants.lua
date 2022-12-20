@@ -21,6 +21,13 @@ InputConstants.Cursor = {
     },
 }
 
+InputConstants.Sprint = {
+    KeyCodes = {
+        Enum.KeyCode.ButtonL2,
+        Enum.KeyCode.LeftControl,
+    },
+}
+
 InputConstants.KeyCodeNumbers = {
     [Enum.KeyCode.One] = 1,
     [Enum.KeyCode.Two] = 2,

@@ -113,6 +113,7 @@ local function onPromptTriggered(proximityPrompt: ProximityPrompt)
         local menuBillboard: BillboardGui = Instance.new("BillboardGui")
         menuBillboard.Name = "Menu"
         menuBillboard.Size = UDim2.fromOffset(300, 300)
+        menuBillboard.MaxDistance = 100
         menuBillboard.AlwaysOnTop = true
         menuBillboard.Adornee = instance
         menuBillboard.Active = true
@@ -211,6 +212,9 @@ local function onPromptTriggered(proximityPrompt: ProximityPrompt)
         proximityPrompt.Enabled = false
         radialMenu:Mount(container)
         radialMenu:Open()
+
+        task.wait(7)
+        close()
     end
 end
 
