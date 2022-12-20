@@ -39,6 +39,7 @@ task.delay(0, function()
         require(server.Stamps.StampService),
         require(server.TutorialService),
         require(server.Tools.ToolService),
+        require(server.Products.ProductService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

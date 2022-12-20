@@ -17,6 +17,9 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local ProductController = require(Paths.Client.ProductController)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
+local Products = require(Paths.Shared.Products.Products)
 
 export type EquippedItems = { string }
 
@@ -66,22 +69,22 @@ do
         if categoryName == "BodyType" then
             local equipped: string
 
-            for itemName, itemConstants in pairs(categoryConstants.Items) do
+            for itemKey, itemConstants in pairs(categoryConstants.Items) do
                 local button = Paths.Templates.CharacterEditor.BodyType:Clone()
-                button.Name = itemName
+                button.Name = itemKey
                 button.Parent = bodyTypeList
                 button.BackgroundColor3 = UIConstants.Colors.Buttons.White
                 button.LayoutOrder = itemConstants.LayoutOrder
                 button.Icon.Image = itemConstants.Icon
 
-                local function equip(doUpdateAppearance: true?)
+                local function equip(doUpdateAppearance: boolean)
                     if equipped then
                         bodyTypeList[equipped].BackgroundColor3 = UIConstants.Colors.Buttons.White
                     end
 
-                    equipped = itemName
+                    equipped = itemKey
 
-                    local equippedItem = { itemName }
+                    local equippedItem = { itemKey }
                     equippedItems.BodyType = equippedItem
                     if doUpdateAppearance then
                         updateAppearance({ BodyType = equippedItem })
@@ -95,7 +98,7 @@ do
                 end)
 
                 table.insert(bootCallbacks, function()
-                    if DataController.get("CharacterAppearance." .. categoryName)["1"] == itemName then
+                    if DataController.get("CharacterAppearance." .. categoryName)["1"] == itemKey then
                         equip(false)
                     end
                 end)
@@ -109,16 +112,16 @@ do
             -------------------------------------------------------------------------------
             -- Equipping
             -------------------------------------------------------------------------------
-            local function unequipItem(itemName: string, doNotUpdateAppearance: true?)
-                table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemName))
+            local function unequipItem(itemKey: string, doNotUpdateAppearance: true?)
+                table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemKey))
                 if not doNotUpdateAppearance then
                     updateAppearance({ [categoryName] = equippedItems[categoryName] })
                 end
 
-                panel:SetWidgetSelected(categoryName, itemName, false)
+                panel:SetWidgetSelected(categoryName, itemKey, false)
             end
 
-            local function equipItem(itemName: string, doNotUpdateAppearance: true?)
+            local function equipItem(itemKey: string, doNotUpdateAppearance: true?)
                 if canMultiEquip then
                     if #equippedItems[categoryName] == maxEquippables then
                         return
@@ -131,46 +134,47 @@ do
                     end
                 end
 
-                table.insert(equippedItems[categoryName], itemName)
+                table.insert(equippedItems[categoryName], itemKey)
                 if not doNotUpdateAppearance then
                     updateAppearance({ [categoryName] = equippedItems[categoryName] })
                 end
 
-                panel:SetWidgetSelected(categoryName, itemName, true)
+                panel:SetWidgetSelected(categoryName, itemKey, true)
             end
 
             local function bulkEquip(equipping: EquippedItems, doNotUpdateAppearance: true?)
-                for _, itemName in pairs(equipping) do
-                    equipItem(itemName, doNotUpdateAppearance)
+                for _, itemKey in pairs(equipping) do
+                    equipItem(itemKey, doNotUpdateAppearance)
                 end
             end
 
             -------------------------------------------------------------------------------
             -- Interface
             -------------------------------------------------------------------------------
-            panel:AddTab(categoryName, categoryConstants.TabIcon)
+            local function displayItem(itemKey: string)
+                local itemConstants = categoryConstants.Items[itemKey]
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemKey)
 
-            for itemName, itemConstants in pairs(categoryConstants.Items) do
-                if not itemConstants.ForSale then
-                    continue
+                -- RETURN: Product isn't owned and not for sale
+                if panel:HasWidget(categoryName, itemKey) or not (itemConstants.ForSale or ProductController.hasProduct(product)) then
+                    return
                 end
 
-                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
                 local slotTask
 
-                panel:AddWidgetFromProduct(categoryName, itemName, false, product, {
+                panel:AddWidgetFromProduct(categoryName, itemKey, false, product, {
                     VerifyOwnership = true,
                     HideText = true,
                 }, function()
                     if canEquip then
-                        local isEquipped = table.find(equippedItems[categoryName], itemName)
+                        local isEquipped = table.find(equippedItems[categoryName], itemKey)
                         if canUnequip and isEquipped then
-                            unequipItem(itemName)
+                            unequipItem(itemKey)
                         elseif not isEquipped then
-                            equipItem(itemName)
+                            equipItem(itemKey)
                         end
                     elseif categoryName == "Outfit" then
-                        local changedItems = updateAppearance({ [categoryName] = { itemName } })
+                        local changedItems = updateAppearance({ [categoryName] = { itemKey } })
                         for category, items in pairs(changedItems) do
                             for _, item in pairs(equippedItems[category]) do
                                 panel:SetWidgetSelected(category, item, false)
@@ -188,7 +192,7 @@ do
                             if selected then
                                 local unequipButton = ExitButton.new()
                                 unequipButton.Pressed:Connect(function()
-                                    unequipItem(itemName)
+                                    unequipItem(itemKey)
                                 end)
 
                                 local slot = Widget.diverseWidgetFromProduct(product, { HideText = true })
@@ -210,6 +214,26 @@ do
                     end
                 end)
             end
+
+            panel:AddTab(categoryName, categoryConstants.TabIcon)
+
+            -- Display items
+            for itemKey in pairs(categoryConstants.Items) do
+                displayItem(itemKey)
+            end
+
+            -- Display items that aren't for sale when obtained
+            ProductController.ProductAdded:Connect(function(product: Products.Product)
+                -- RETURN: Product must e
+                if product.Type ~= ProductConstants.ProductType.CharacterItem then
+                    return
+                end
+
+                local metadata = product.Metadata
+                if metadata.CategoryName == categoryName then
+                    displayItem(metadata.ItemKey)
+                end
+            end)
 
             if canEquip then
                 equippedItems[categoryName] = {}
