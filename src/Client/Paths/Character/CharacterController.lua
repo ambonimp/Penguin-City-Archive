@@ -2,6 +2,7 @@ local CharacterController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local PropertyStack = require(Paths.Shared.PropertyStack)
 local Loader = require(Paths.Client.Loader)
 local Maid = require(Paths.Shared.Maid)
@@ -9,9 +10,6 @@ local Maid = require(Paths.Shared.Maid)
 local Animate = Paths.Client.Character.Animate
 local localPlayer = Players.LocalPlayer
 local loadMaid = Maid.new()
-
-local SPRINT_WALKSPEED = 30
-local DEFAULT_WALKSPEED = 16
 
 local isSprinting = false
 
@@ -44,7 +42,7 @@ end
 
 function CharacterController.ToggleSprint()
     isSprinting = not isSprinting
-    CharacterController.SetWalkspeed(isSprinting and SPRINT_WALKSPEED or DEFAULT_WALKSPEED, "sprint")
+    CharacterController.SetWalkspeed(isSprinting and CharacterConstants.SprintSpeed or CharacterConstants.WalkSpeed, "sprint")
     return isSprinting
 end
 
