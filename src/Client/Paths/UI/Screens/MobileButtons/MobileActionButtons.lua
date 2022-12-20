@@ -16,6 +16,7 @@ local function getJumpButtonPositionAndSize()
     end
 end
 
+--creates a mobile button similar to the Roblox one
 local function getMobileButton(icon: string, position: Vector2, size: Vector2)
     local ImageLabel = Instance.new("ImageLabel")
     ImageLabel.Size = UDim2.fromOffset(size.X, size.Y)
@@ -41,11 +42,11 @@ end
 
 if DeviceUtil.isMobile then
     --sprint button
-    local position, size = getJumpButtonPositionAndSize()
-    position -= Vector2.new(0, size.X * 0.95)
-    size = Vector2.new(size.X * 0.8, size.Y * 0.8)
+    local jumpPosition, jumpSize = getJumpButtonPositionAndSize() --all mobile devices use different sizes & positions for JumpButton. we want to use relative position and sizes
 
-    local sprintLabel, sprintButton = getMobileButton(Images.Icons.Sprint, position, size)
+    local sprintPosition = jumpPosition - Vector2.new(0, jumpSize.X * 0.95)
+    local sprintSize = Vector2.new(jumpSize.X * 0.8, jumpSize.Y * 0.8)
+    local sprintLabel, sprintButton = getMobileButton(Images.Icons.Sprint, sprintPosition, sprintSize)
     local SprintButtonLoaded = Button.new(sprintButton)
 
     SprintButtonLoaded.Pressed:Connect(function()
