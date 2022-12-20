@@ -2,12 +2,18 @@ local CharacterController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+local PropertyStack = require(Paths.Shared.PropertyStack)
 local Loader = require(Paths.Client.Loader)
 local Maid = require(Paths.Shared.Maid)
 
 local Animate = Paths.Client.Character.Animate
 local localPlayer = Players.LocalPlayer
 local loadMaid = Maid.new()
+
+local SPRINT_WALKSPEED = 30
+local DEFAULT_WALKSPEED = 16
+
+local isSprinting = false
 
 local function unloadCharacter(_character: Model)
     loadMaid:Cleanup()
@@ -30,6 +36,15 @@ local function loadCharacter(character: Model)
             end
         end
     end)
+end
+
+function CharacterController.SetWalkspeed(new: number, key: string)
+    PropertyStack.setProperty(localPlayer.Character.Humanoid, "WalkSpeed", new, key)
+end
+
+function CharacterController.toggleSprint()
+    isSprinting = not isSprinting
+    CharacterController.SetWalkspeed(isSprinting and SPRINT_WALKSPEED or DEFAULT_WALKSPEED, "sprint")
 end
 
 Loader.giveTask("Character", "LoadCharacter", function()
