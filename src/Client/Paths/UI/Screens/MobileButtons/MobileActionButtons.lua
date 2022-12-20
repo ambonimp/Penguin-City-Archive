@@ -1,4 +1,4 @@
-local MobileButtons = {}
+local MobileActionButtons = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -60,15 +60,15 @@ if DeviceUtil.isMobile then
         end
     end)
 
-    function MobileButtons.maximize()
+    function MobileActionButtons.maximize()
         sprintLabel.Visible = true
     end
 
-    function MobileButtons.minimize()
+    function MobileActionButtons.minimize()
         sprintLabel.Visible = false
     end
 else
     MobileButtonsScreen:Destroy()
 end
 
-return MobileButtons
+return MobileActionButtons
