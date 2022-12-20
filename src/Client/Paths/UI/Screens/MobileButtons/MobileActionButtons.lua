@@ -51,7 +51,7 @@ if DeviceUtil.isMobile then
     local SprintButtonLoaded = Button.new(sprintButton)
 
     SprintButtonLoaded.Pressed:Connect(function()
-        local isSprinting = CharacterController.toggleSprint()
+        local isSprinting = CharacterController.ToggleSprint()
 
         if isSprinting then
             sprintButton.ImageColor3 = Color3.new(0.450980, 1, 0)
