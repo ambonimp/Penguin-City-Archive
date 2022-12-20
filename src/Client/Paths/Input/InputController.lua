@@ -1,5 +1,6 @@
 local InputController = {}
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
@@ -12,6 +13,18 @@ InputController.CursorDown = Signal.new() -- { gameProcessedEvent: boolean }
 InputController.CursorUp = Signal.new() -- { gameProcessedEvent: boolean }
 InputController.KeybindBegan = Signal.new() -- { keybind: string, gameProcessedEvent: boolean }
 InputController.KeybindEnded = Signal.new() -- { keybind: string, gameProcessedEvent: boolean }
+
+--[[
+    Wrapper for UserInputService:GetMouseLocation(), with some control over whether the GuiInset height is included or not
+]]
+function InputController.getMouseLocation(includeGuiInset: boolean?)
+    if includeGuiInset then
+        return UserInputService:GetMouseLocation()
+    end
+
+    local guiInset, _ = GuiService:GetGuiInset()
+    return UserInputService:GetMouseLocation() - guiInset
+end
 
 -- Listen to Input
 do

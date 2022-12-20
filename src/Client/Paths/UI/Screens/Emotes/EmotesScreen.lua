@@ -60,7 +60,7 @@ function EmotesScreen.boot()
 
     bootMaid:GiveTask(RunService.RenderStepped:Connect(function()
         local absoluteCenter = menuFrame.AbsolutePosition + menuFrame.AbsoluteSize / 2
-        local mousePosition = UserInputService:GetMouseLocation()
+        local mousePosition = InputController.getMouseLocation(false)
 
         local absoluteCenterToMousePosition = mousePosition - absoluteCenter
         local angle = VectorUtil.getVector2FullAngle(UP_VECTOR, -absoluteCenterToMousePosition)
