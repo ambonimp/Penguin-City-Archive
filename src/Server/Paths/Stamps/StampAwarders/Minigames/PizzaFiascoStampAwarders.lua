@@ -1,4 +1,4 @@
-local RewardsStampAwarders = {}
+local PizzaFiascoStampAwarders = {}
 
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -71,4 +71,4 @@ PizzaFiascoSession.RecipeRecordUpdated:Connect(function(player: Player, recipeRe
     end
 end)
 
-return RewardsStampAwarders
+return PizzaFiascoStampAwarders

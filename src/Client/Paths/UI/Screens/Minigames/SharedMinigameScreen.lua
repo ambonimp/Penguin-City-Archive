@@ -21,6 +21,9 @@ local Sound = require(Paths.Shared.Sound)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
+local BLINK_OPTIONS: BlinkTransition.Options = {
+    DoShowVoldexLoading = true,
+}
 
 local START_MENU_BACKGROUND_TRANSPARENCY = 0.3
 local EXIT_BUTTON_TEXT = "Go Back"
@@ -347,7 +350,7 @@ end
 do
     playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        BlinkTransition.open()
+        BlinkTransition.open(BLINK_OPTIONS)
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")

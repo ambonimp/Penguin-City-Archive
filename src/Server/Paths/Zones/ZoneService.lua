@@ -22,6 +22,7 @@ local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
 local HAS_TELEPORTED_DISTANCE_EPISLON = 50
+local REQUEST_STREAM_ASYNC_COUNT = 3
 
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.defaultZone()
@@ -229,6 +230,14 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     player:RequestStreamAroundAsync(spawnpoint.Position)
     local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
     Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", "requested streaming")
+
+    -- Request stream async a few more times for best loading possible
+    task.defer(function()
+        for _ = 2, REQUEST_STREAM_ASYNC_COUNT do
+            task.wait(1)
+            player:RequestStreamAroundAsync(spawnpoint.Position)
+        end
+    end)
 
     -- Signal for server detecting when character has been pivoted
     local characterPivotedSignal = Signal.new()

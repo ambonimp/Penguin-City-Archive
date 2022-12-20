@@ -61,7 +61,8 @@ function StampService.addStamp(player: Player, stampId: string, stampTierOrProgr
     local stamp = getStamp(stampId)
     local stampProgress = stamp.IsTiered and StampUtil.calculateProgressNumber(stamp, stampTierOrProgress) or 1
 
-    if StampService.getProgress(player, stampId) ~= stampProgress then
+    local willMakeChange = StampService.getProgress(player, stampId) ~= stampProgress
+    if willMakeChange then
         DataService.set(
             player,
             StampUtil.getStampDataAddress(stampId),

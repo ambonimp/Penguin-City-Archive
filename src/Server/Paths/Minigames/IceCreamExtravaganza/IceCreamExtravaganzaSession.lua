@@ -17,6 +17,7 @@ local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
 local DescendantLooper = require(Paths.Shared.DescendantLooper)
 local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local Signal = require(Paths.Shared.Signal)
 
 type Collectable = {
     Id: string,
@@ -25,6 +26,10 @@ type Collectable = {
     Model: Model,
     SpawnTime: number,
 }
+
+export type IceCreamExtravaganzaSession = typeof(IceCreamExtravaganzaSession.new())
+
+IceCreamExtravaganzaSession.CollectableCollected = Signal.new() -- { session: IceCreamExtravaganzaSession.IceCreamExtravaganzaSession, player: Player, collectableType: string, scoreIncrement: number? }
 
 local MINIGAME_NAME = "IceCreamExtravaganza"
 
@@ -178,8 +183,8 @@ function IceCreamExtravaganzaSession.new(...: any)
                 return
             end
 
-            local collectable = collectables[collectableId]
             -- RETURN: Collectable already collected
+            local collectable = collectables[collectableId]
             if not collectable then
                 return
             end
@@ -217,6 +222,9 @@ function IceCreamExtravaganzaSession.new(...: any)
                     if newScore ~= 0 then
                         cone[getScoopName(oldScore)]:Destroy()
                     end
+
+                    -- Inform
+                    IceCreamExtravaganzaSession.CollectableCollected:Fire(minigameSession, player, collectableType, -1)
                 elseif collectableType == "Invicible" then
                     -- RETURN: Player is already invisible
                     if inviciblePlayers[player] then
@@ -244,6 +252,9 @@ function IceCreamExtravaganzaSession.new(...: any)
 
                     local revertThread = task.delay(IceCreamExtravaganzaConstants.InvicibilityLength, inviciblePlayers[player])
                     coreMaid:GiveTask(revertThread)
+
+                    -- Inform
+                    IceCreamExtravaganzaSession.CollectableCollected:Fire(minigameSession, player, collectableType)
                 else
                     local scoreAddend = if collectableType == "Regular" then 1 else 2
 
@@ -277,6 +288,9 @@ function IceCreamExtravaganzaSession.new(...: any)
                         ballSocket.TwistUpperAngle = 0
                         ballSocket.Parent = scoopPrimary
                     end
+
+                    -- Inform
+                    IceCreamExtravaganzaSession.CollectableCollected:Fire(minigameSession, player, collectableType, scoreAddend)
                 end
             end)
         end))

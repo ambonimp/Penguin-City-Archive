@@ -309,6 +309,10 @@ function MinigameSession.new(
         return newScore, oldScore
     end
 
+    function minigameSession:GetParticipantScore(participant: Player)
+        return scores[participant]
+    end
+
     function minigameSession:SortScores(): MinigameConstants.SortedScores
         local sortedScores = {}
         local unsorted = TableUtil.deepClone(scores)
@@ -438,24 +442,46 @@ function MinigameSession.new(
 
             local sortedScores = minigameSession:SortScores()
 
-            -- Reward
+            -- Reward + Minigame Records
             for placement, scoreInfo in pairs(sortedScores) do
                 local player = scoreInfo.Player
                 local score = scoreInfo.Score
 
+                -- Reward
                 CurrencyService.addCoins(player, config.Reward(placement, score, isMultiplayer), true)
 
-                local recordAddress = "MinigameRecords." .. minigameName
-                local highscore = DataService.get(player, recordAddress) or defaultScore
-                if config.HigherScoreWins then
-                    if score > highscore then
-                        DataService.set(player, recordAddress, score)
-                        scoreInfo.NewBest = true
+                -- Minigame Records
+                do
+                    local minigameRecordAddress = ("MinigameRecords.%s"):format(minigameName)
+
+                    -- Highscore
+                    local highscoreRecordAddress = ("%s.%s"):format(minigameRecordAddress, "Highscore")
+                    local highscore = DataService.get(player, highscoreRecordAddress) or defaultScore
+                    if config.HigherScoreWins then
+                        if score > highscore then
+                            DataService.set(player, highscoreRecordAddress, score)
+                            scoreInfo.NewBest = true
+                        end
+                    else
+                        if score < highscore then
+                            DataService.set(player, highscoreRecordAddress, score)
+                            scoreInfo.NewBest = true
+                        end
                     end
-                else
-                    if score < highscore then
-                        DataService.set(player, recordAddress, score)
-                        scoreInfo.NewBest = true
+
+                    -- Consecutive Wins
+                    if isMultiplayer then
+                        local consecutiveWinsRecordAddress = ("%s.%s"):format(minigameRecordAddress, "ConsecutiveWins")
+                        local didWin = placement == 1
+                        local didWinAgainstOthers = #sortedScores > 1
+
+                        -- Reset if not winner. Don't change if we won solo. Add a win if we beat others.
+                        local consecutiveWins = (
+                            didWin and (DataService.get(player, consecutiveWinsRecordAddress) or 0) + (didWinAgainstOthers and 0 or 1)
+                        ) or 0
+
+                        DataService.set(player, consecutiveWinsRecordAddress, consecutiveWins)
+                        scoreInfo.ConsecutiveWins = consecutiveWins
                     end
                 end
             end
