@@ -1,4 +1,5 @@
 local CharacterEditorScreen = {}
+
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Maid = require(Paths.Shared.Maid)
@@ -111,7 +112,11 @@ do
             -------------------------------------------------------------------------------
             panel:AddTab(categoryName, categoryConstants.TabIcon)
 
-            for itemName in pairs(categoryConstants.Items) do
+            for itemName, itemConstants in pairs(categoryConstants.Items) do
+                if not itemConstants.ForSale then
+                    continue
+                end
+
                 local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
                 local slotTask
 

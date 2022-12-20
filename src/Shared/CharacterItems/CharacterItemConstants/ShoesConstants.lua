@@ -6,6 +6,7 @@ export type Item = {
     Name: string,
     Price: number,
     Icon: string,
+    ForSale: boolean,
 }
 
 local items: { [string]: Item } = {}
@@ -13,6 +14,7 @@ items["Red_Sneakers"] = {
     Name = "Red_Sneakers",
     Price = 0,
     Icon = Images.Shoes["Red_Sneakers"],
+    ForSale = true,
 }
 
 ShoesConstants.AssetsPath = "Shoes"

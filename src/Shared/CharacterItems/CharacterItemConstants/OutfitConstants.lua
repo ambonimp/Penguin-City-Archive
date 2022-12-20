@@ -17,17 +17,19 @@ export type Item = {
     Icon: string,
     Name: string,
     Items: OutfitConstants,
+    ForSale: boolean,
 }
 
 local items: { [string]: Item } = {}
 items["Farmer"] = {
     Name = "Farmer",
-    Price = 0,
+    Price = 12,
     Icon = Images.Outfits["Farmer"],
     Items = {
         Shirt = { ShirtConstants.Items["Flannel_Shirt"].Name },
         Pants = { PantsConstants.Items["Overalls"].Name },
     },
+    ForSale = true,
 }
 
 OutfitConstants.TabOrder = 4
