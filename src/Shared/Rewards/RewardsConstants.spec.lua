@@ -3,6 +3,7 @@ local RewardsConstants = require(ReplicatedStorage.Shared.Rewards.RewardsConstan
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 local HouseObjects = require(ReplicatedStorage.Shared.Constants.HouseObjects)
+local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 
 local BAD_CLOTHING_CHARACTER_ITEM_CATEGORIES = {
     "BodyType",
@@ -103,6 +104,16 @@ return function()
                     end
                 else
                     table.insert(issues, ("%s.%d needs a { string } at Data.Outfit"):format(giftName, index))
+                end
+            elseif gift.Type == "PetEgg" then
+                -- PET EGG
+                if gift.Data.PetEgg and typeof(gift.Data.PetEgg) == "string" then
+                    local petEggName = gift.Data.PetEgg
+                    if not PetConstants.PetEggs[petEggName] then
+                        table.insert(issues, ("%s.%d Data.PetEgg has a bad petEggName %q"):format(giftName, index, petEggName))
+                    end
+                else
+                    table.insert(issues, ("%s.%d needs a string at Data.PetEgg"):format(giftName, index))
                 end
             else
                 error(("Missing case for gift type %q"):format(gift.Type))

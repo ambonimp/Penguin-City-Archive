@@ -38,6 +38,7 @@ local mapButton: AnimatedButton.AnimatedButton
 local iglooButton: AnimatedButton.AnimatedButton
 local stampBookButton: AnimatedButton.AnimatedButton
 local clothingButton: AnimatedButton.AnimatedButton
+local settingsButton: AnimatedButton.AnimatedButton
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
@@ -104,6 +105,13 @@ local function inventory(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.Inventory
     button.Pressed:Connect(function()
         uiStateMachine:Push(UIConstants.States.Inventory)
+    end)
+end
+
+local function settings(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Settings
+    button.Pressed:Connect(function()
+        uiStateMachine:Push(UIConstants.States.Settings)
     end)
 end
 
@@ -190,9 +198,10 @@ function HUDScreen.Init()
         iglooButton = createAnimatedButton(screenGui.Right.Igloo)
         clothingButton = createAnimatedButton(screenGui.Right.Clothing)
         mapButton = createAnimatedButton(screenGui.Right.Map)
-        rewardsButton = createAnimatedButton(screenGui.Right.Rewards)
         stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
         inventoryButton = createAnimatedButton(screenGui.Bottom.Inventory)
+        rewardsButton = createAnimatedButton(screenGui.Left.Rewards)
+        settingsButton = createAnimatedButton(screenGui.Left.Settings)
 
         dailyRewards(rewardsButton)
         map(mapButton)
@@ -200,6 +209,7 @@ function HUDScreen.Init()
         stampBook(stampBookButton)
         clothing(clothingButton)
         inventory(inventoryButton)
+        settings(settingsButton)
 
         -- Igloo Button (toggle edit look)
         do
