@@ -24,11 +24,8 @@ local RESTART_DELAY = 0.2
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local coreMaid = Maid.new()
+local coreMaid
 local minigameMaid = MinigameController.getMinigameMaid()
-minigameMaid:GiveTask(function()
-    coreMaid:Cleanup()
-end)
 
 -------------------------------------------------------------------------------
 -- PRIVATE METHODS
@@ -59,6 +56,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameMaid:GiveTask(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
     end)
+
+    coreMaid = Maid.new()
+    minigameMaid:GiveTask(coreMaid)
 
     MinigameController.playMusic("Intermission")
 end)
