@@ -23,9 +23,10 @@ local function getZoneSummary(session: Session.Session)
     return zoneSummary
 end
 
-TelemetryService.unloadPlayer = function(player: Player)
+-- sessionSummary
+TelemetryService.addUnloadCallback(function(player: Player)
     -- WARN: No session?
-    local session = SessionService.getSession(player)
+    local session = SessionService.getSession(player) :: Session.Session
     if not session then
         warn(("No session for %s?"):format(player.Name))
         return
@@ -37,6 +38,37 @@ TelemetryService.unloadPlayer = function(player: Player)
         coinsBankroll = CurrencyService.getCoins(player),
         zoneSummary = getZoneSummary(session),
     })
-end
+end)
+
+-- install
+TelemetryService.addLoadCallback(function(player: Player)
+    -- RETURN: Not first play session
+    local totalPlaySessions = SessionService.getTotalPlaySessions(player)
+    if totalPlaySessions > 1 then
+        return
+    end
+
+    TelemetryService.postPlayerEvent(player, "install", {})
+end)
+
+-- firstSessionTime
+TelemetryService.addUnloadCallback(function(player: Player)
+    -- RETURN: Not first play session
+    local totalPlaySessions = SessionService.getTotalPlaySessions(player)
+    if totalPlaySessions > 1 then
+        return
+    end
+
+    -- WARN: No session?
+    local session = SessionService.getSession(player)
+    if not session then
+        warn(("No session for %s?"):format(player.Name))
+        return
+    end
+
+    TelemetryService.postPlayerEvent(player, "firstSessionTime", {
+        sessionLength = math.round(session:GetPlayTime()),
+    })
+end)
 
 return TelemetrySessionSummary

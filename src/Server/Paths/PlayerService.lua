@@ -51,6 +51,7 @@ function PlayerService.Start()
         PetService.loadPlayer(player)
         PlayerChatService.loadPlayer(player)
         ToolService.loadPlayer(player)
+        TelemetryService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)

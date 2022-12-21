@@ -29,6 +29,8 @@ local NATIVE_EVENTS_BY_NAME = {
 }
 
 local eventHandler: BindableEvent
+local unloadCallbacks: { (player: Player) -> any } = {}
+local loadCallbacks: { (player: Player) -> any } = {}
 
 -------------------------------------------------------------------------------
 -- Service + API
@@ -45,7 +47,26 @@ function TelemetryService.Start()
     end
 end
 
-function TelemetryService.unloadPlayer(_player: Player) end -- Gets overwritten by TelemetrySessionSummary
+-- Register a callback for when a player leaves the game. Used for telemetries than run off players leaving.
+function TelemetryService.addUnloadCallback(callback: (player: Player) -> any)
+    table.insert(unloadCallbacks, callback)
+end
+
+function TelemetryService.unloadPlayer(player: Player)
+    for _, callback in pairs(unloadCallbacks) do
+        task.spawn(callback, player)
+    end
+end
+
+function TelemetryService.addLoadCallback(callback: (player: Player) -> any)
+    table.insert(loadCallbacks, callback)
+end
+
+function TelemetryService.loadPlayer(player: Player)
+    for _, callback in pairs(loadCallbacks) do
+        task.spawn(callback, player)
+    end
+end
 
 --[[
     Wrapper for how we post an event

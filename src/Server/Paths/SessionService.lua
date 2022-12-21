@@ -11,6 +11,9 @@ local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local DataService = require(Paths.Server.Data.DataService)
+
+local DATA_ADDRESS_TOTAL_PLAY_SESSIONS = "Sessions.TotalSessions"
 
 local sessionByPlayer: { [Player]: typeof(Session.new(game.Players:GetPlayers()[1])) } = {}
 
@@ -44,14 +47,22 @@ function SessionService.Start()
 end
 
 function SessionService.loadPlayer(player: Player)
+    -- Load `Session` Object
     sessionByPlayer[player] = Session.new(player)
     PlayerService.getPlayerMaid(player):GiveTask(function()
         sessionByPlayer[player] = nil
     end)
+
+    -- Add to total play sessions
+    DataService.increment(player, DATA_ADDRESS_TOTAL_PLAY_SESSIONS, 1)
 end
 
 function SessionService.getSession(player: Player)
     return sessionByPlayer[player]
+end
+
+function SessionService.getTotalPlaySessions(player: Player): number
+    return DataService.get(player, DATA_ADDRESS_TOTAL_PLAY_SESSIONS) or 0
 end
 
 return SessionService
