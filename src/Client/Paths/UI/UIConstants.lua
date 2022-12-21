@@ -28,6 +28,7 @@ UIConstants.States = {
     Tutorial = "Tutorial",
     FocalPoint = "FocalPoint",
     Emotes = "Emotes",
+    Settings = "Settings",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
