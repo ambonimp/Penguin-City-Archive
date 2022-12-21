@@ -11,19 +11,19 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local screenGui: ScreenGui = Paths.UI.Minigames.Matchmaking
 local queueFrame: Frame = screenGui.Queue
 local queueStopwatch: TextLabel = queueFrame.Stopwatch
+local countdown: thread?
 
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
-
 function MinigameQueueScreen.open(minigame: string, isMultiplayer: boolean)
     queueFrame.Exit.Visible = isMultiplayer
     queueFrame.Minigame.Text = minigame
     ScreenUtil.inDown(queueFrame)
 
-    task.spawn(function()
+    countdown = task.spawn(function()
         local et = 0
-        while queueFrame.Visible do
+        while true do
             queueStopwatch.Text = et .. "s"
             et += 1
             task.wait(1)
@@ -32,8 +32,11 @@ function MinigameQueueScreen.open(minigame: string, isMultiplayer: boolean)
 end
 
 function MinigameQueueScreen.close()
-    if queueFrame.Visible then
-        ScreenUtil.outUp(queueFrame)
+    if countdown then
+        task.cancel(countdown)
+        countdown = nil
+
+        ScreenUtil.out(queueFrame)
     end
 end
 
@@ -52,6 +55,7 @@ do
         MinigameQueueJoined = function(minigameName: string)
             MinigameQueueScreen.open(minigameName, true)
         end,
+        MinigameQueueExited = MinigameQueueScreen.close,
     })
 end
 
