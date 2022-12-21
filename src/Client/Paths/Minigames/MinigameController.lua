@@ -245,12 +245,17 @@ Remotes.bindEvents({
             MinigameController.stopMusic("Core")
             MinigameController.stopMusic("Intermission")
 
+            -- Try catch at the peak of the transition to hide its removal
+            maid:GiveTask(ZoneController.ZoneChanged:Connect(function()
+                uiStateMachine:Remove(UIConstants.States.Minigame)
+            end))
+
             if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
 
             maid:Cleanup()
-            uiStateMachine:Pop()
+            uiStateMachine:Remove(UIConstants.States.Minigame) -- Security incase ZoneChanged block doesn't run
 
             task.defer(function()
                 currentMinigame = nil

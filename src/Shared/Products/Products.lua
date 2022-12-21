@@ -132,16 +132,11 @@ local products: { [string]: { [string]: Product } } = {
         pet_egg_common = {
             Id = "pet_egg_common",
             DisplayName = "Common Egg",
-            Description = "Common Egg",
             ImageId = Images.Pets.Eggs.Blue,
             IsConsumable = true,
             ConsumeImmediately = true,
-            RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
-            },
             CoinData = {
-                Cost = 5,
+                Cost = 125,
             },
             Metadata = {
                 PetEggName = "Common",
@@ -151,13 +146,15 @@ local products: { [string]: { [string]: Product } } = {
         pet_egg_rare = {
             Id = "pet_egg_rare",
             DisplayName = "Rare Egg",
-            Description = "Rare Egg",
             ImageId = Images.Pets.Eggs.Purple,
             IsConsumable = true,
             ConsumeImmediately = true,
             RobuxData = {
                 Cost = 149,
                 DeveloperProductId = 1339311091,
+            },
+            CoinData = {
+                Cost = 350,
             },
             Metadata = {
                 PetEggName = "Rare",
@@ -167,7 +164,6 @@ local products: { [string]: { [string]: Product } } = {
         pet_egg_legendary = {
             Id = "pet_egg_legendary",
             DisplayName = "Legendary Egg",
-            Description = "Legendary Egg",
             ImageId = Images.Pets.Eggs.Gold,
             IsConsumable = true,
             ConsumeImmediately = true,

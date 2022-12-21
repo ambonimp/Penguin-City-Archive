@@ -16,6 +16,7 @@ Images.ButtonIcons = {
     Map = "rbxassetid://11152371075",
     Party = "rbxassetid://11152370136",
     Pencil = "rbxassetid://11374218958",
+    Settings = "rbxassetid://11878841419",
     StampBook = "rbxassetid://11152369533",
     Toolbox = "rbxassetid://11152369313",
     Rewards = "rbxassetid://11390824777",
@@ -359,11 +360,20 @@ Images.Map = {
     },
 }
 --#endregion
+--#region Tutorial
 Images.Tutorial = {
     FocalPoint = "rbxassetid://11825341688",
     Arrow = "rbxassetid://11832252404",
     ArrowPadded = "rbxassetid://11832262566",
 }
+--#endregion
+--#region Settings
+Images.Settings = {
+    VolumeOff = "rbxassetid://11878841117",
+    VolumeOn = "rbxassetid://11878841264",
+    SliderKnob = "rbxassetid://11878841582",
+}
+--#endregion
 
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 
