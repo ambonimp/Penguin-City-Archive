@@ -419,9 +419,12 @@ function PizzaFiascoRunner.new(map: Model, recipeTypeOrder: { string }, finishCa
     end
 
     local function setIngredientLabelVisibility(isVisible: boolean)
-        for _, surfaceGui: SurfaceGui in pairs(map.Labels:GetDescendants()) do
-            if surfaceGui:IsA("SurfaceGui") then
-                surfaceGui.Enabled = isVisible
+        local labels = map:FindFirstChild("Labels")
+        if labels then
+            for _, surfaceGui: SurfaceGui in pairs(map.Labels:GetDescendants()) do
+                if surfaceGui:IsA("SurfaceGui") then
+                    surfaceGui.Enabled = isVisible
+                end
             end
         end
     end
