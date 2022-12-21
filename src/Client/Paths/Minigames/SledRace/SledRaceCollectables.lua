@@ -164,7 +164,7 @@ function SledRaceCollectables.setup()
             local value = SledRaceConstants.CoinValue
             coinsCollected += value
             SledRaceScreen.setCoins(coinsCollected)
-            SharedMinigameScreen.textParticle("+2", Images.Coins.Coin)
+            SharedMinigameScreen.textParticle("+" .. SledRaceConstants.CoinValue, Images.Coins.Coin)
 
             task.wait(2)
             particlePackage:Destroy()
