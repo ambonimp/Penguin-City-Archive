@@ -35,6 +35,7 @@ local TRANSITION_ZONE_RESET_CHARACTER_PIVOT_DISTANCE_EPSILON = 100
 local BLINK_OPTIONS: BlinkTransition.Options = {
     DoAlignCamera = true,
     DoShowVoldexLoading = true,
+    Scope = "Teleporting",
 }
 
 local localPlayer = Players.LocalPlayer

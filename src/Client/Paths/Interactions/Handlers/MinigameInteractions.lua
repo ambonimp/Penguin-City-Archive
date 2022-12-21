@@ -14,6 +14,7 @@ local MinigameController = require(Paths.Client.Minigames.MinigameController)
 
 local BLINK_OPTIONS: BlinkTransition.Options = {
     DoShowVoldexLoading = true,
+    Scope = "Minigames",
 }
 
 local uiStateMachine = UIController.getStateMachine()
