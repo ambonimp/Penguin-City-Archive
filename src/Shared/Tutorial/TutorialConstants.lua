@@ -44,8 +44,8 @@ TutorialConstants.StartingAppearance = {
 }
 
 TutorialConstants.StarterEgg = {
-    PetEggName = "Common",
-    HatchTimeMinutes = 10,
+    PetEggName = "Starter",
+    HatchTimeMinutes = 1,
 }
 
 return TutorialConstants
