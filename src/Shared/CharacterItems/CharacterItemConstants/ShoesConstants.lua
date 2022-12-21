@@ -122,7 +122,7 @@ items["Peach_Sneakers"] = {
     Name = "Peach_Sneakers",
     Price = 0,
     Icon = nil, --"Peach_Sneakers"
-    ForSale = true,
+    ForSale = false,
 }
 items["White_Green_Sneakers"] = {
     Name = "White_Green_Sneakers",
@@ -140,7 +140,7 @@ items["Tailor_Slippers"] = {
     Name = "Tailor_Slippers",
     Price = 0,
     Icon = nil, --"Tailor_Slippers"
-    ForSale = true,
+    ForSale = false,
 }
 items["White_Purple_Sneakers"] = {
     Name = "White_Purple_Sneakers",

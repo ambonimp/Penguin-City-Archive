@@ -51,13 +51,13 @@ items["Ice_Cream_Scooper_Shirt"] = {
     Name = "Ice_Cream_Scooper_Shirt",
     Price = 0,
     Icon = nil, --"Ice_Cream_Scooper_Shirt"
-    ForSale = true,
+    ForSale = false,
 }
 items["Waiter_Shirt"] = {
     Name = "Waiter_Shirt",
     Price = 0,
     Icon = nil, --"Waiter_Shirt"
-    ForSale = true,
+    ForSale = false,
 }
 items["Blue_Snooker_Shirt"] = {
     Name = "Blue_Snooker_Shirt",
@@ -195,13 +195,13 @@ items["Blue_Diver_Tank"] = {
     Name = "Blue_Diver_Tank",
     Price = 0,
     Icon = nil, --"Blue_Diver_Tank"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pink_Diver_Tank"] = {
     Name = "Pink_Diver_Tank",
     Price = 0,
     Icon = nil, --"Pink_Diver_Tank"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pink_Dotted_Shirt"] = {
     Name = "Pink_Dotted_Shirt",
@@ -249,7 +249,7 @@ items["Yellow_Diver_Tank"] = {
     Name = "Yellow_Diver_Tank",
     Price = 0,
     Icon = nil, --"Yellow_Diver_Tank"
-    ForSale = true,
+    ForSale = false,
 }
 items["Red_Star_Studded_Shirt"] = {
     Name = "Red_Star_Studded_Shirt",
@@ -387,43 +387,43 @@ items["Peach_Parisan_Blouse"] = {
     Name = "Peach_Parisan_Blouse",
     Price = 0,
     Icon = nil, --"Peach_Parisan_Blouse"
-    ForSale = true,
+    ForSale = false,
 }
 items["Stripped_Yellow_Tee"] = {
     Name = "Stripped_Yellow_Tee",
     Price = 0,
     Icon = nil, --"Stripped_Yellow_Tee"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pizza_Chefs_Jacket"] = {
     Name = "Pizza_Chefs_Jacket",
     Price = 0,
     Icon = nil, --"Pizza_Chefs_Jacket"
-    ForSale = true,
+    ForSale = false,
 }
 items["Purple_Classy_Suit"] = {
     Name = "Purple_Classy_Suit",
     Price = 0,
     Icon = nil, --"Purple_Classy_Suit"
-    ForSale = true,
+    ForSale = false,
 }
 items["Sailor_Shirt"] = {
     Name = "Sailor_Shirt",
     Price = 0,
     Icon = nil, --"Sailor_Shirt"
-    ForSale = true,
+    ForSale = false,
 }
 items["Tailor_Suit"] = {
     Name = "Tailor_Suit",
     Price = 0,
     Icon = nil, --"Tailor_Suit"
-    ForSale = true,
+    ForSale = false,
 }
 items["Student_Shirt"] = {
     Name = "Student_Shirt",
     Price = 0,
     Icon = nil, --"Student_Shirt"
-    ForSale = true,
+    ForSale = false,
 }
 items["Red_Lined_Tee"] = {
     Name = "Red_Lined_Tee",

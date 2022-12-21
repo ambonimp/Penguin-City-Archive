@@ -14,7 +14,7 @@ items["Fancy_Top_Hat"] = {
     Name = "Fancy_Top_Hat",
     Price = 0,
     Icon = nil, --"Fancy_Top_Hat"
-    ForSale = true,
+    ForSale = false,
 }
 items["Clear_Glasses"] = {
     Name = "Clear_Glasses",
@@ -26,13 +26,13 @@ items["Pizza_Chef_Hat"] = {
     Name = "Pizza_Chef_Hat",
     Price = 0,
     Icon = nil, --"Pizza_Chef_Hat"
-    ForSale = true,
+    ForSale = false,
 }
 items["Ice_Cream_Hat"] = {
     Name = "Ice_Cream_Hat",
     Price = 0,
     Icon = nil, --"Ice_Cream_Hat"
-    ForSale = true,
+    ForSale = false,
 }
 items["Blue_Snorkels"] = {
     Name = "Blue_Snorkels",
@@ -62,19 +62,19 @@ items["Sailor_Cap"] = {
     Name = "Sailor_Cap",
     Price = 0,
     Icon = nil, --"Sailor_Cap"
-    ForSale = true,
+    ForSale = false,
 }
 items["Peach_Bucket_Hat"] = {
     Name = "Peach_Bucket_Hat",
     Price = 0,
     Icon = nil, --"Peach_Bucket_Hat"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pop_Cap"] = {
     Name = "Pop_Cap",
     Price = 0,
     Icon = nil, --"Pop_Cap"
-    ForSale = true,
+    ForSale = false,
 }
 items["Urban_Cap"] = {
     Name = "Urban_Cap",
@@ -92,7 +92,7 @@ items["Student_Cap"] = {
     Name = "Student_Cap",
     Price = 0,
     Icon = nil, --"Student_Cap"
-    ForSale = true,
+    ForSale = false,
 }
 items["Farmer_Hat"] = {
     Name = "Farmer_Hat",

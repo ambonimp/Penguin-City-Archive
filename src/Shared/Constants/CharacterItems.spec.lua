@@ -22,24 +22,24 @@ return function()
 
             if categoryName == "Outfit" then
                 for outfitItemType, outfitItems in pairs(itemConstants.Items) do
-                    for _, outfitItemKey in pairs(outfitItems) do
-                        local outfitItemConstants = CharacterItemConstants[outfitItemType].Items[outfitItemKey]
-
-                        if itemConstants.Price == 0 then
-                            if not outfitItemConstants.Price ~= 0 and outfitItemConstants.ForSale then
-                                table.insert(
-                                    issues,
-                                    ("%s outfit item %s must be free since the outfit is free"):format(itemKey, outfitItemKey)
-                                )
+                    if #outfitItems == 0 then
+                        table.insert(issues, ("%s outfit has invalid %s item(s)"):format(itemKey, outfitItemType))
+                    else
+                        for _, outfitItemKey in pairs(outfitItems) do
+                            if typeof(outfitItemKey) ~= "string" then
+                                table.insert(issues, ("%s outfit % items must be item keys(string)"):format(itemKey, outfitItemType))
                             end
-                        elseif outfitItemConstants.ForSale then
-                            table.insert(
-                                issues,
-                                ("%s outfit item %s cannot be for up for sale on it's own since it's part of a paid outfit."):format(
-                                    itemKey,
-                                    outfitItemKey
-                                )
-                            )
+
+                            local outfitItemConstants = CharacterItemConstants[outfitItemType].Items[outfitItemKey]
+
+                            if itemConstants.Price == 0 then
+                                if outfitItemConstants.Price ~= 0 and outfitItemConstants.ForSale then
+                                    table.insert(
+                                        issues,
+                                        ("%s outfit item %s must be free since the outfit is free"):format(itemKey, outfitItemKey)
+                                    )
+                                end
+                            end
                         end
                     end
                 end

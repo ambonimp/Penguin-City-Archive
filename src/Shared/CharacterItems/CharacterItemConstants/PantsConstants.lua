@@ -32,7 +32,7 @@ items["Green_Pants"] = {
     Name = "Green_Pants",
     Price = 0,
     Icon = nil, --"Green_Pants"
-    ForSale = true,
+    ForSale = false,
 }
 items["Bright_Red_Pants"] = {
     Name = "Bright_Red_Pants",
@@ -52,23 +52,17 @@ items["Burgundy_Pants"] = {
     Icon = nil, --"Burgundy_Pants"
     ForSale = true,
 }
-items["Dark_Green_Pants"] = {
-    Name = "Dark_Green_Pants",
-    Price = 0,
-    Icon = nil, --"Dark_Green_Pants"
-    ForSale = true,
-}
 items["Blue_Diver_Pants"] = {
     Name = "Blue_Diver_Pants",
     Price = 0,
     Icon = nil, --"Blue_Diver_Pants"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pink_Diver_Pants"] = {
     Name = "Pink_Diver_Pants",
     Price = 0,
     Icon = nil, --"Pink_Diver_Pants"
-    ForSale = true,
+    ForSale = false,
 }
 items["Lilac_Pants"] = {
     Name = "Lilac_Pants",
@@ -80,7 +74,7 @@ items["Yellow_Diver_Pants"] = {
     Name = "Yellow_Diver_Pants",
     Price = 0,
     Icon = nil, --"Yellow_Diver_Pants"
-    ForSale = true,
+    ForSale = false,
 }
 items["Navy_Blue_Pants"] = {
     Name = "Navy_Blue_Pants",
@@ -134,7 +128,7 @@ items["Peach_Parisan_Skirt"] = {
     Name = "Peach_Parisan_Skirt",
     Price = 0,
     Icon = nil, --"Peach_Parisan_Skirt"
-    ForSale = true,
+    ForSale = false,
 }
 items["Pink_Skirt"] = {
     Name = "Pink_Skirt",
@@ -154,10 +148,10 @@ items["Fluffy_Pink_Skirt"] = {
     Icon = nil, --"Fluffy_Pink_Skirt"
     ForSale = true,
 }
-items["Geen_Pants"] = {
-    Name = "Geen_Pants",
+items["Bright_Green_Pants"] = {
+    Name = "Bright_Green_Pants",
     Price = 0,
-    Icon = nil, --"Geen_Pants"
+    Icon = nil, --"Bright_Green_Pants"
     ForSale = true,
 }
 

@@ -22,21 +22,28 @@ items["Red"] = {
     Name = "Red",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(197, 41, 41),
+    Color = Color3.fromRGB(117, 0, 0),
+    ForSale = true,
+}
+items["Purple"] = {
+    Name = "Purple",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(107, 50, 124),
     ForSale = true,
 }
 items["Blue"] = {
     Name = "Blue",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(44, 44, 185),
+    Color = Color3.fromRGB(13, 105, 172),
     ForSale = true,
 }
 items["Green"] = {
     Name = "Green",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(51, 207, 51),
+    Color = Color3.fromRGB(52, 142, 64),
     ForSale = true,
 }
 items["Yellow"] = {
@@ -57,14 +64,21 @@ items["Orange"] = {
     Name = "Orange",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(248, 182, 40),
+    Color = Color3.fromRGB(213, 115, 61),
     ForSale = true,
 }
 items["Pink"] = {
     Name = "Pink",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(200, 34, 233),
+    Color = Color3.fromRGB(255, 102, 204),
+    ForSale = true,
+}
+items["Brown"] = {
+    Name = "Brown",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(86, 66, 54),
     ForSale = true,
 }
 
