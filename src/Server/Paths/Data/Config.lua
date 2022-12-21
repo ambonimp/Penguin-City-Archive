@@ -280,6 +280,7 @@ function DataConfig.getDefaults(_player: Player): DataUtil.Store
         },
         MinigameRecords = {},
         Tutorial = {},
+        Session = {},
     } :: DataUtil.Store
 end
 

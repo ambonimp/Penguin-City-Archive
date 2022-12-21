@@ -20,7 +20,7 @@ end)
 --!! DISABLED for now
 -- -- clothing_twins
 -- local clothingTwinsStamp = StampUtil.getStampFromId("clothing_twins")
--- ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+-- ZoneService.ZoneChanged:Connect(function(player: Player, _fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone, teleportData: ZoneConstants.TeleportData)
 --     -- RETURN: Not a room
 --     if toZone.ZoneType ~= ZoneConstants.ZoneType.Room then
 --         return

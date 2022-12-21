@@ -1,3 +1,9 @@
+--[[
+    Products represent something that we own.
+
+    NOTE: `Pet` products are used to represent what is owned in the `Pet` scope.. it is a representation, not a definition (e.g., adding/removing a pet 
+    product via command will do nothing). This was created to help aid the "sessionSummary" telemetry.
+]]
 local Products = {}
 
 local MarketplaceService = game:GetService("MarketplaceService")

@@ -47,13 +47,15 @@ local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 local DataService = require(Paths.Server.Data.DataService)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
 
 type Participants = { Player }
 export type MinigameSession = typeof(MinigameSession.new())
 
 local STATES = MinigameConstants.States
 
-MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession sortedScores: MinigameConstants.SortedScored }
+MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, sortedScores: MinigameConstants.SortedScored }
+MinigameSession.ParticipantedAdded = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, participant: Player }
 
 local assets = ServerStorage.Minigames
 
@@ -91,6 +93,7 @@ function MinigameSession.new(
 
     local defaultScore: number?
     local started: boolean = false
+    local startedAtTick: number?
 
     local random = Random.new()
 
@@ -194,7 +197,9 @@ function MinigameSession.new(
 
     function minigameSession:AddParticipant(player: Player)
         -- RETURN: Unsuccessful teleport
-        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone)
+        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone, {
+            TravelMethod = ZoneConstants.TravelMethod.JoinedMinigame,
+        })
         if not didTeleport then
             return
         end
@@ -217,6 +222,8 @@ function MinigameSession.new(
             minigameSession:GetParticipants(),
             isMultiplayer
         )
+
+        MinigameSession.ParticipantedAdded:Fire(minigameSession, player)
 
         maid:GiveTask(player.Character.Humanoid.Died:Connect(function()
             minigameSession:RemoveParticipant(player)
@@ -243,7 +250,9 @@ function MinigameSession.new(
             Output.doDebug(MinigameConstants.DoDebug, ("%s left minigame (%s)"):format(player.Name, id))
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
-                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
+                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player), {
+                    TravelMethod = ZoneConstants.TravelMethod.LeftMinigame,
+                })
             end
         end
 
@@ -313,8 +322,8 @@ function MinigameSession.new(
         return scores[participant]
     end
 
-    function minigameSession:SortScores(): MinigameConstants.SortedScores
-        local sortedScores = {}
+    function minigameSession:SortScores()
+        local sortedScores: MinigameConstants.SortedScores = {}
         local unsorted = TableUtil.deepClone(scores)
 
         for _ = 1, TableUtil.length(unsorted) do
@@ -334,6 +343,11 @@ function MinigameSession.new(
 
         if config.HigherScoreWins then
             sortedScores = ArrayUtil.flip(sortedScores)
+        end
+
+        -- Insert Coins
+        for placement, scoreData in pairs(sortedScores) do
+            scoreData.CoinsEarned = config.Reward(placement, scoreData.Score, isMultiplayer)
         end
 
         return sortedScores
@@ -381,6 +395,12 @@ function MinigameSession.new(
         end
 
         started = true
+        startedAtTick = tick()
+    end
+
+    -- Returns how long has elapsed since minigame was started
+    function minigameSession:GetSessionTime()
+        return startedAtTick and (tick() - startedAtTick) or 0
     end
 
     -------------------------------------------------------------------------------
@@ -448,7 +468,10 @@ function MinigameSession.new(
                 local score = scoreInfo.Score
 
                 -- Reward
-                CurrencyService.addCoins(player, config.Reward(placement, score, isMultiplayer), true)
+                CurrencyService.injectCoins(player, scoreInfo.CoinsEarned, {
+                    OverrideClient = true,
+                    InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameName, false),
+                })
 
                 -- Minigame Records
                 do

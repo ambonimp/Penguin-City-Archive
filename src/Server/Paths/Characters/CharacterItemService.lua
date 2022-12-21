@@ -18,6 +18,7 @@ local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
 CharacterItemService.ItemEquipped = Signal.new() -- { player: Player, categoryName: string, itemName: string }
+CharacterItemService.ItemUnequipped = Signal.new() -- { player: Player, categoryName: string, itemName: string }
 
 local assets = ReplicatedStorage.Assets.Character
 
@@ -124,6 +125,9 @@ end
     data: `{ [categoryName]: { itemName } }`
 ]]
 function CharacterItemService.setEquippedCharacterItems(player: Player, data: { [string]: { string } })
+    -- Get our current items, and as we go we remove entries that are being kept
+    local oldEquippedItems = CharacterItemService.getEquippedCharacterItems(player)
+
     -- Update stored data, verifying data at each stage
     for categoryName, itemNames in pairs(data) do
         -- ERROR: Bad categoryName
@@ -145,9 +149,20 @@ function CharacterItemService.setEquippedCharacterItems(player: Player, data: { 
         local event = ("OnCharacterAppareanceChanged_%s"):format(categoryName)
         DataService.set(player, address, ArrayUtil.toDict(itemNames), event)
 
-        -- Inform
+        -- Inform Equipped
         for _, itemName in pairs(itemNames) do
             CharacterItemService.ItemEquipped:Fire(player, categoryName, itemName)
+        end
+    end
+
+    -- Inform Unequipped; we compare old vs new as this function is additive, not strict
+    local newEquippedItems = CharacterItemService.getEquippedCharacterItems(player)
+    for categoryName, itemNames in pairs(oldEquippedItems) do
+        for _, itemName in pairs(itemNames) do
+            local isUnequipped = not (newEquippedItems[categoryName] and table.find(newEquippedItems[categoryName], itemName))
+            if isUnequipped then
+                CharacterItemService.ItemUnequipped:Fire(player, categoryName, itemName)
+            end
         end
     end
 

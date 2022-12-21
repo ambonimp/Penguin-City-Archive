@@ -301,6 +301,39 @@ function ProductUtil.isPetEggProduct(product: Products.Product)
 end
 
 -------------------------------------------------------------------------------
+-- Pets
+-------------------------------------------------------------------------------
+
+function ProductUtil.getPetProductId(petType: string, petVariant: string)
+    return ("%s_%s"):format(StringUtil.toCamelCase(petType), StringUtil.toCamelCase(petVariant))
+end
+
+function ProductUtil.getPetProduct(petType: string, petVariant: string)
+    local product = Products.Products.Pet[ProductUtil.getPetProductId(petType, petVariant)]
+    if not product then
+        error(("No Pet %s %s Product"):format(petType, petVariant))
+    end
+
+    return product
+end
+
+function ProductUtil.getPetProductData(product: Products.Product)
+    -- ERROR: Not a Pet product
+    if not ProductUtil.isPetProduct(product) then
+        error("Passed a non-Pet product")
+    end
+
+    return {
+        PetType = product.Metadata.PetType :: string,
+        PetVariant = product.Metadata.PetVariant :: string,
+    }
+end
+
+function ProductUtil.isPetProduct(product: Products.Product)
+    return product.Type == ProductConstants.ProductType.Pet
+end
+
+-------------------------------------------------------------------------------
 -- Coins
 -------------------------------------------------------------------------------
 

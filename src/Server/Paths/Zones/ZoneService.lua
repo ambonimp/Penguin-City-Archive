@@ -13,11 +13,6 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local ZoneSetup = require(Paths.Server.Zones.ZoneSetup)
 
-type TeleportData = {
-    IsClientRequest: boolean?, -- Dictates whether to inform client of teleport
-    IgnoreFromZone: boolean?, -- Helps choose what spawnpoint to send the player to
-}
-
 local ETHEREAL_KEY_TELEPORTS = "ZoneService_Teleport"
 local CHECK_CHARACTER_COLLISIONS_AFTER_TELEPORT_EVERY = 0.5
 local DESTROY_CREATED_ZONE_AFTER = 1
@@ -27,7 +22,7 @@ local REQUEST_STREAM_ASYNC_COUNT = 3
 local playerZoneStatesByPlayer: { [Player]: ZoneConstants.PlayerZoneState } = {}
 local defaultZone = ZoneUtil.defaultZone()
 
-ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone}
+ZoneService.ZoneChanged = Signal.new() -- {player: Player, fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone, teleportData: ZoneConstants.TeleportData}
 
 function ZoneService.Start()
     -- Setup Cosmetics
@@ -147,9 +142,13 @@ function ZoneService.createZone(zone: ZoneConstants.Zone, zoneModelChildren: { I
             if ZoneUtil.zonesMatch(zone, playerZone) then
                 -- Lets get 'em outta here!
                 if zone.ZoneCategory == ZoneConstants.ZoneCategory.Minigame then
-                    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
+                    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player), {
+                        TravelMethod = ZoneConstants.TravelMethod.ZoneDestroyed,
+                    })
                 else
-                    ZoneService.teleportPlayerToZone(player, defaultZone)
+                    ZoneService.teleportPlayerToZone(player, defaultZone, {
+                        TravelMethod = ZoneConstants.TravelMethod.ZoneDestroyed,
+                    })
                 end
             end
         end
@@ -182,7 +181,7 @@ end
     Failure returns:
     - `false`: boolean
 ]]
-function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: TeleportData?)
+function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zone, teleportData: ZoneConstants.TeleportData)
     Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", player, zone.ZoneCategory, zone.ZoneType, teleportData)
 
     -- Read Data
@@ -281,7 +280,7 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     end)
 
     -- Inform Server
-    ZoneService.ZoneChanged:Fire(player, oldZone, zone)
+    ZoneService.ZoneChanged:Fire(player, oldZone, zone, teleportData)
 
     if not isClientRequest then
         -- Inform Client
@@ -302,7 +301,9 @@ function ZoneService.loadPlayer(player: Player)
     }
 
     -- Send to zone
-    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player))
+    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
+        IsInitialTeleport = true,
+    })
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()
@@ -325,10 +326,12 @@ do
 
             -- Scrub teleport data; easier to scrub rather than reject a bad table
             dirtyTeleportData = typeof(dirtyTeleportData) == "table" and dirtyTeleportData or {}
-            local teleportData: TeleportData = {}
+            local teleportData: ZoneConstants.TeleportData = {}
             if teleportData then
                 teleportData.IsClientRequest = true
                 teleportData.IgnoreFromZone = TypeUtil.toBoolean(dirtyTeleportData.IgnoreFromZone)
+                teleportData.IsInitialTeleport = false
+                teleportData.TravelMethod = ZoneConstants.TravelMethod[TypeUtil.toString(dirtyTeleportData.TravelMethod)]
             end
 
             -- RETURN: Bad Zone
