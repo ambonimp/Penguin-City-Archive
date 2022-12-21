@@ -122,7 +122,10 @@ function RewardsService.giveReward(player: Player, reward: RewardsConstants.Dail
     if coins then
         coins *= amount
 
-        CurrencyService.addCoins(player, coins)
+        CurrencyService.injectCoins(player, coins, {
+            OverrideClient = true,
+            InjectCategory = CurrencyConstants.InjectCategory.DailyReward,
+        })
         return
     end
 

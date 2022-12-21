@@ -69,7 +69,7 @@ function StampUtil.getTierFromProgress(stamp: Stamps.Stamp, progress: number)
         error(("Stamp %q is not tiered!"):format(stamp.Id))
     end
 
-    local bestStampTier: string | nil
+    local bestStampTier: Stamps.StampTier | nil
     for _, stampTier in pairs(Stamps.StampTiers) do
         local stampValue = stamp.Tiers[stampTier]
         if progress >= stampValue then

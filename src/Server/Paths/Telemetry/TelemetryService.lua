@@ -20,6 +20,7 @@ local EVENT_ID_BY_NAME = {
     currencyInjected = 111,
     houseEdited = 120,
     miniGameSummary = 130,
+    miniGameInitiated = 131,
     zoneTravel = 140,
 }
 local NATIVE_EVENTS_BY_NAME = {

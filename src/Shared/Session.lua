@@ -9,13 +9,14 @@ local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Products = require(ReplicatedStorage.Shared.Products.Products)
 local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
+local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 
 type ZoneData = {
     VisitCount: number,
     TimeSpentSeconds: number,
 }
 type ProductData = {
-    WasPurchased: boolean?,
+    WasAcquired: boolean?,
     TimeEquipped: number?,
     EquippedAtTick: number?,
 }
@@ -36,6 +37,8 @@ function Session.new(player: Player)
     local currentZone: ZoneConstants.Zone | nil
     local lastZoneReportAtTick = 0
     local productsDataByProduct: { [Products.Product]: ProductData } = {}
+    local acquiredStamps: { [Stamps.Stamp]: true | Stamps.StampTier } = {}
+
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------
@@ -126,9 +129,21 @@ function Session.new(player: Player)
         productData.EquippedAtTick = nil
     end
 
-    function session:ProductPurchased(product: Products.Product)
+    function session:ProductAcquired(product: Products.Product)
         local productData = getProductData(product)
-        productData.WasPurchased = true
+        productData.WasAcquired = true
+    end
+
+    function session:StampAcquired(stamp: Stamps.Stamp, stampTier: Stamps.StampTier | nil)
+        -- ERROR: Mismatch with stamp being tiered or not, and `stampTier`
+        stampTier = stamp.IsTiered and stampTier or nil
+        if stamp.IsTiered then
+            if not table.find(Stamps.StampTiers, stampTier) then
+                error(("Bad StampTier %q for stamp %s"):format(tostring(stampTier), stamp.Id))
+            end
+        end
+
+        acquiredStamps[stamp] = stampTier or true
     end
 
     -------------------------------------------------------------------------------
@@ -178,6 +193,10 @@ function Session.new(player: Player)
         end
 
         return currentProductDatas
+    end
+
+    function session:GetAcquiredStamps()
+        return TableUtil.deepClone(acquiredStamps) :: typeof(acquiredStamps)
     end
 
     return session

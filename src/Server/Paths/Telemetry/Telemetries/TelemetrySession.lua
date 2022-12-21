@@ -29,10 +29,10 @@ local function getItemSummary(session: Session.Session)
     local productDatas = session:GetProductData()
     local itemSummary = {}
     for product, productData in pairs(productDatas) do
-        if productData.TimeEquipped or productData.WasPurchased then
+        if productData.TimeEquipped or productData.WasAcquired then
             local entry = {
                 timeEquipped = productData.TimeEquipped and math.round(productData.TimeEquipped),
-                dateFirstOwned = productData.WasPurchased and dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
+                dateFirstOwned = productData.WasAcquired and dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
             }
 
             local productTypeKey = StringUtil.toCamelCase(product.Type)
@@ -43,6 +43,26 @@ local function getItemSummary(session: Session.Session)
     end
 
     return itemSummary
+end
+
+local function getStampSummary(session: Session.Session)
+    local dateTime = DateTime.now()
+
+    local acquiredStamps = session:GetAcquiredStamps()
+    local stampSummary = {}
+    for stamp, stampTier in pairs(acquiredStamps) do
+        local entry = {
+            dateAchieved = dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
+            tier = stamp.IsTiered and stampTier,
+        }
+
+        local stampTypeKey = StringUtil.toCamelCase(stamp.Type)
+        local stampIdKey = StringUtil.toCamelCase(("%s%s"):format(stamp.IsTiered and "tiered_" or "", stamp.Id))
+        stampSummary[stampTypeKey] = stampSummary[stampTypeKey] or {}
+        stampSummary[stampTypeKey][stampIdKey] = entry
+    end
+
+    return stampSummary
 end
 
 -- sessionSummary
@@ -60,6 +80,7 @@ TelemetryService.addUnloadCallback(function(player: Player)
         coinsBankroll = CurrencyService.getCoins(player),
         zoneSummary = getZoneSummary(session),
         itemSummary = getItemSummary(session),
+        stampSummary = getStampSummary(session),
     })
 end)
 

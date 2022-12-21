@@ -7,6 +7,7 @@ CurrencyConstants.InjectCategory = {
     Cmdr = "Cmdr",
     Minigame = "Minigame",
     Paycheck = "Paycheck",
+    DailyReward = "DailyReward",
 }
 
 return CurrencyConstants

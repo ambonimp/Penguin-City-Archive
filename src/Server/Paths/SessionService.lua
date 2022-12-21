@@ -28,6 +28,8 @@ function SessionService.Start()
     local ToolService = require(Paths.Server.Tools.ToolService)
     local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
     local PlotService = require(Paths.Server.Housing.PlotService)
+    local StampService = require(Paths.Server.Stamps.StampService)
+    local Stamps = require(Paths.Shared.Stamps.Stamps)
 
     -- Populate minigame time sessions
     do
@@ -56,19 +58,26 @@ function SessionService.Start()
         )
     end
 
-    -- Product Purchasing
+    -- Stamp Acquiring
+    do
+        StampService.StampAdded:Connect(function(player: Player, stamp: Stamps.Stamp, stampTier: Stamps.StampTier | nil)
+            local session = SessionService.getSession(player)
+            if session then
+                session:StampAcquired(stamp, stampTier)
+            end
+        end)
+    end
+
+    -- Product Acquiring
     do
         ProductService.ProductAdded:Connect(function(player: Player, product: Products.Product, amount: number)
-            -- RETURN: Not a desired product
-            --todo
-
             local session = SessionService.getSession(player)
             if session then
                 local amountOwnedBefore = ProductService.getProductCount(player, product) - amount
                 local isFreshlyOwned = amountOwnedBefore == 0
 
                 if isFreshlyOwned then
-                    session:ProductPurchased(product)
+                    session:ProductAcquired(product)
                 end
             end
         end)
