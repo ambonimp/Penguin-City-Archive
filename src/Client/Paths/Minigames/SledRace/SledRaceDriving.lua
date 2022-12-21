@@ -103,8 +103,6 @@ end
 -------------------------------------------------------------------------------
 function SledRaceDriving.setup()
     local character = player.Character
-    local tailbone = character.Body.Main_Bone
-    local seatingCFrame: CFrame = tailbone.CFrame
 
     local map = MinigameController.getMap()
     local mapDirection: CFrame = SledRaceUtil.getMapOrigin(map).Rotation
@@ -250,8 +248,6 @@ function SledRaceDriving.setup()
     return function()
         controlling:Disconnect()
         drivingSound:Destroy()
-
-        tailbone.CFrame = seatingCFrame
 
         if complete then
             complete:Disconnect()

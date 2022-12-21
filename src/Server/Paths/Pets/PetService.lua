@@ -97,6 +97,9 @@ function PetService.changePetName(player: Player, petDataIndex: string, petName:
         return false
     end
 
+    -- Ensure it meets character limit
+    petName = petName:sub(0, PetConstants.PetNameCharacterLimit)
+
     -- Change
     petData.Name = petName
     DataService.set(player, PetUtils.getPetDataAddress(petDataIndex), petData, "PetDataUpdated")

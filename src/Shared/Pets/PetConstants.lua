@@ -72,6 +72,9 @@ local petRarities: { [string]: string } = {
 PetConstants.PetRarities = petRarities
 
 PetConstants.DefaultHatchTime = 20 * 60
+PetConstants.PurchasedWithRobuxHatchTime = 0
+
+PetConstants.PetNameCharacterLimit = 20
 
 local petEggs: { [string]: PetEgg } = {
     --#region Common

@@ -86,7 +86,12 @@ ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
-ZoneConstants.DoDebug = true
+ZoneConstants.DoDebug = false
+
+-- Some zones (famously Boardwalk) will regularly be waiting on 1 part to load. We *do* assume that all parts are loaded before declaring a zone loaded,
+-- but it affects the user experience when we have long loading times. We allow a small buffer for Rooms to offset this. We have *not* enabled
+-- this behaviour for minigames, as minigames are much more likely to need to run routines based off the existence of specific instances
+ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts = 3
 
 -------------------------------------------------------------------------------
 -- Cosmetics

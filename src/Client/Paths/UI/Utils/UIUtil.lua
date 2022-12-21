@@ -56,6 +56,13 @@ function UIUtil.isStateInteractionPermissive(state: string)
 end
 
 --[[
+    Returns true if we are allowed to activate tools in this UIState
+]]
+function UIUtil.isStateActivateToolPermissive(state: string)
+    return table.find(UIConstants.ActivateToolPermissiveStates, state) and true or false
+end
+
+--[[
     Will return a Promise that is resolved when we are in the HUD UIState and are in a Room Zone
 
     - `timeSeconds`: If passed, will ensure this state has been held for `timeSeconds` before resolving

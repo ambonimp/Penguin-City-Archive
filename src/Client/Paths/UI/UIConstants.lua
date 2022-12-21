@@ -40,6 +40,7 @@ UIConstants.PseudoStates = {
 }
 
 UIConstants.InteractionPermissiveStates = { UIConstants.States.HUD, UIConstants.States.Tutorial }
+UIConstants.ActivateToolPermissiveStates = { UIConstants.States.HUD }
 
 UIConstants.RemoveStatesOnZoneTeleport = {
     UIConstants.States.HouseEditor,
@@ -62,6 +63,7 @@ UIConstants.Keybinds = {
 UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Loading,
     UIConstants.States.HUD,
+    UIConstants.States.Minigame,
 }
 
 UIConstants.Font = Enum.Font.GothamBold

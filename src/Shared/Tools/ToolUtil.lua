@@ -2,6 +2,7 @@ local ToolUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ToolConstants = require(ReplicatedStorage.Shared.Tools.ToolConstants)
+local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 
 export type Tool = {
     CategoryName: string,
@@ -81,6 +82,10 @@ function ToolUtil.hold(character: Model, tool: Tool): Model
     toolModel.Parent = character
 
     return toolModel
+end
+
+function ToolUtil.canEquipToolInZone(zone: ZoneConstants.Zone)
+    return zone.ZoneCategory == ZoneConstants.ZoneCategory.Room
 end
 
 return ToolUtil

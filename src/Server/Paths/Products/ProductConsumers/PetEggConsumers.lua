@@ -3,6 +3,7 @@ local Paths = require(ServerScriptService.Paths)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local PetService = require(Paths.Server.Pets.PetService)
+local PetConstants = require(Paths.Shared.Pets.PetConstants)
 
 local petEggProducts = Products.Products.PetEgg
 local consumersById: { [string]: (player: Player) -> nil } = {}
@@ -12,7 +13,7 @@ for productId, product in pairs(petEggProducts) do
 
     -- Convert products to a pet egg
     consumersById[productId] = function(player: Player)
-        PetService.addPetEgg(player, productData.PetEggName)
+        PetService.addPetEgg(player, productData.PetEggName, PetConstants.PurchasedWithRobuxHatchTime)
     end
 end
 
