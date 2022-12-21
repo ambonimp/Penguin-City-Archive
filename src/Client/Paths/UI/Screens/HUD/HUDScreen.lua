@@ -278,6 +278,7 @@ function HUDScreen.maximize()
 
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
+    ScreenUtil.inRight(screenGui.Left)
     screenGui.Enabled = true
 
     MobileScreen.maximize()
@@ -290,6 +291,7 @@ function HUDScreen.minimize()
 
     ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
+    ScreenUtil.outLeft(screenGui.Left)
 
     MobileScreen.minimize()
 end
