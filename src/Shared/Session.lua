@@ -34,7 +34,7 @@ function Session.new(player: Player)
     local zoneDataByZoneString: { [string]: ZoneData } = {}
     local currentZone: ZoneConstants.Zone | nil
     local lastZoneReportAtTick = 0
-    local productsDataByProductTypeAndProductId: { [string]: { [string]: ProductData } } = {}
+    local productsDataByProduct: { [Products.Product]: ProductData } = {}
 
     -------------------------------------------------------------------------------
     -- Private Methods
@@ -47,16 +47,8 @@ function Session.new(player: Player)
 
     -- Gets ProductData + writes to cache if missing
     local function getProductData(product: Products.Product)
-        local productData = productsDataByProductTypeAndProductId[product.Type]
-            and productsDataByProductTypeAndProductId[product.Type][product.Id]
-        if productData then
-            return productData
-        end
-
-        productData = {}
-        productsDataByProductTypeAndProductId[product.Type] = productsDataByProductTypeAndProductId[product.Type] or {}
-        productsDataByProductTypeAndProductId[product.Type][product.Id] = productData
-        return productData
+        productsDataByProduct[product] = productsDataByProduct[product] or {}
+        return productsDataByProduct[product]
     end
 
     -------------------------------------------------------------------------------
@@ -171,19 +163,18 @@ function Session.new(player: Player)
         return currentZoneDataByZoneString
     end
 
-    -- Returns { [productType]: { [productId]: ProductData } }
+    -- Returns { [Products.Product]: ProductData }
     function session:GetProductData()
-        local currentProductDatas =
-            TableUtil.deepClone(productsDataByProductTypeAndProductId) :: typeof(productsDataByProductTypeAndProductId)
+        local currentProductDatas: { [Products.Product]: ProductData } = {}
 
-        -- We need to add the current playtime for equipped products
-        for _productType, productDatas in pairs(currentProductDatas) do
-            for _productId, productData in pairs(productDatas) do
-                if productData.EquippedAtTick then
-                    productData.TimeEquipped = (productData.TimeEquipped or 0) + (tick() - productData.EquippedAtTick)
-                    productData.EquippedAtTick = nil
-                end
+        for product, productData in pairs(productsDataByProduct) do
+            local currentProductData = TableUtil.deepClone(productData)
+            if currentProductData.EquippedAtTick then
+                currentProductData.TimeEquipped = (currentProductData.TimeEquipped or 0) + (tick() - currentProductData.EquippedAtTick)
+                currentProductData.EquippedAtTick = nil
             end
+
+            currentProductDatas[product] = currentProductData
         end
 
         return currentProductDatas

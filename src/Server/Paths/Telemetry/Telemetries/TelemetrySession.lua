@@ -28,17 +28,18 @@ local function getItemSummary(session: Session.Session)
 
     local productDatas = session:GetProductData()
     local itemSummary = {}
-    for productType, productIdsDatas in pairs(productDatas) do
-        local productIds = {}
-        for productId, productData in pairs(productIdsDatas) do
-            if productData.TimeEquipped or productData.WasPurchased then
-                productIds[StringUtil.toCamelCase(productId)] = {
-                    timeEquipped = productData.TimeEquipped and math.round(productData.TimeEquipped),
-                    dateFirstOwned = productData.WasPurchased and dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
-                }
-            end
+    for product, productData in pairs(productDatas) do
+        if productData.TimeEquipped or productData.WasPurchased then
+            local entry = {
+                timeEquipped = productData.TimeEquipped and math.round(productData.TimeEquipped),
+                dateFirstOwned = productData.WasPurchased and dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
+            }
+
+            local productTypeKey = StringUtil.toCamelCase(product.Type)
+            local productIdKey = StringUtil.toCamelCase(product.Id)
+            itemSummary[productTypeKey] = itemSummary[productTypeKey] or {}
+            itemSummary[productTypeKey][productIdKey] = entry
         end
-        itemSummary[StringUtil.toCamelCase(productType)] = productIds
     end
 
     return itemSummary

@@ -67,36 +67,43 @@ function SessionService.Start()
         end)
     end
 
-    -- Clothing Equipping
+    -- Product Equipping
     do
-        CharacterItemService.ItemEquipped:Connect(function(player: Player, categoryName: string, itemName: string)
-            local session = SessionService.getSession(player)
-            local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-            if session and product then
-                session:ProductEquipped(product)
-            end
-        end)
-        CharacterItemService.ItemUnequipped:Connect(function(player: Player, categoryName: string, itemName: string)
-            local session = SessionService.getSession(player)
-            local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-            if session and product then
-                session:ProductUnequipped(product)
-            end
-        end)
-        SessionService.addLoadCallback(function(player: Player)
-            local session = SessionService.getSession(player)
-            if session then
-                local equippedItems = CharacterItemService.getEquippedCharacterItems(player)
-                for categoryName, itemNames in pairs(equippedItems) do
-                    for _, itemName in pairs(itemNames) do
-                        local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
-                        if product then
-                            session:ProductEquipped(product)
+        -- Clothing
+        do
+            CharacterItemService.ItemEquipped:Connect(function(player: Player, categoryName: string, itemName: string)
+                local session = SessionService.getSession(player)
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+                if session and product then
+                    session:ProductEquipped(product)
+                end
+            end)
+            CharacterItemService.ItemUnequipped:Connect(function(player: Player, categoryName: string, itemName: string)
+                local session = SessionService.getSession(player)
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+                if session and product then
+                    session:ProductUnequipped(product)
+                end
+            end)
+            SessionService.addLoadCallback(function(player: Player)
+                local session = SessionService.getSession(player)
+                if session then
+                    local equippedItems = CharacterItemService.getEquippedCharacterItems(player)
+                    for categoryName, itemNames in pairs(equippedItems) do
+                        for _, itemName in pairs(itemNames) do
+                            local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+                            if product then
+                                session:ProductEquipped(product)
+                            end
                         end
                     end
                 end
-            end
-        end)
+            end)
+        end
+
+        -- Pets
+        do
+        end
     end
 end
 
