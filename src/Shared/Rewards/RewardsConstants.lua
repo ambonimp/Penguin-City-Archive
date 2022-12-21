@@ -81,18 +81,33 @@ local gifts: { [string]: { Gift } } = {
                 PetEgg = "Common",
             },
         },
-        -- {
-        --     Type = "Clothing",
-        --     Weight = 30,
-        --     Data = {
-        --         Clothing = {
-        --             Backpack = {
-        --                 "Angel_Wings",
-        --                 "Brown_Backpack",
-        --             },
-        --         },
-        --     },
-        -- },
+        {
+            Type = "Clothing",
+            Weight = 30,
+            Data = {
+                Clothing = {
+                    Backpack = {
+                        "Brown_Backpack",
+                    },
+                    Hat = {
+                        "Pizza_Chef_Hat",
+                        "Ice_Cream_Hat",
+                        "Bamboo_Straw_Hat",
+                        "Adventurer_Hat",
+                    },
+                    Pants = {
+                        "Bright_Green_Pants",
+                    },
+                    Shirt = {
+                        "Pink_Starry_Shirt",
+                        "Green_Spotted_Shirt",
+                    },
+                    Shoes = {
+                        "Blue_Slippers",
+                    },
+                },
+            },
+        },
         {
             Type = "House",
             Weight = 60,
@@ -124,18 +139,41 @@ local gifts: { [string]: { Gift } } = {
                 PetEgg = "Common",
             },
         },
-        -- {
-        --     Type = "Clothing",
-        --     Weight = 30,
-        --     Data = {
-        --         Clothing = {
-        --             Backpack = {
-        --                 "Angel_Wings",
-        --                 "Brown_Backpack",
-        --             },
-        --         },
-        --     },
-        -- },
+        {
+            Type = "Clothing",
+            Weight = 30,
+            Data = {
+                Clothing = {
+
+                    Hat = {
+
+                        "Feather_Hat",
+                        "Flower_Pot",
+                        "Hair_Headband",
+                        "Pink_Bunny_Ears",
+                        "Pot",
+                    },
+                    Pants = {
+
+                        "Student_Pants",
+                        "Purple_Pants",
+                        "Pink_Pants",
+                    },
+                    Shirt = {
+
+                        "Green_Starry_Shirt",
+                        "Red_Starry_Shirt",
+                        "Purple_Shirt",
+                        "Orange_Gradient_Shirt",
+                    },
+                    Shoes = {
+
+                        "White_Green_Sneakers",
+                        "Tailor_Slippers",
+                    },
+                },
+            },
+        },
         {
             Type = "House",
             Weight = 60,
@@ -220,18 +258,45 @@ local gifts: { [string]: { Gift } } = {
                 PetEgg = "Common",
             },
         },
-        -- {
-        --     Type = "Clothing",
-        --     Weight = 30,
-        --     Data = {
-        --         Clothing = {
-        --             Backpack = {
-        --                 "Angel_Wings",
-        --                 "Brown_Backpack",
-        --             },
-        --         },
-        --     },
-        -- },
+        {
+            Type = "Clothing",
+            Weight = 30,
+            Data = {
+                Clothing = {
+                    Backpack = {
+                        "Brown_Backpack",
+                    },
+                    Hat = {
+                        "Pizza_Chef_Hat",
+
+                        "Feather_Hat",
+                        "Flower_Pot",
+
+                        "Pink_Bunny_Ears",
+                        "Pot",
+                    },
+                    Pants = {
+
+                        "Pink_Skirt",
+                        "Student_Pants",
+
+                        "Pink_Pants",
+                    },
+                    Shirt = {
+
+                        "Pink_Spotted_Shirt",
+                        "Yellow_Diver_Tank",
+
+                        "Purple_Shirt",
+                        "Orange_Gradient_Shirt",
+                    },
+                    Shoes = {
+
+                        "Tailor_Slippers",
+                    },
+                },
+            },
+        },
         {
             Type = "House",
             Weight = 60,
@@ -263,18 +328,17 @@ local gifts: { [string]: { Gift } } = {
                 PetEgg = "Rare",
             },
         },
-        -- {
-        --     Type = "Clothing",
-        --     Weight = 30,
-        --     Data = {
-        --         Clothing = {
-        --             Backpack = {
-        --                 "Angel_Wings",
-        --                 "Brown_Backpack",
-        --             },
-        --         },
-        --     },
-        -- },
+        {
+            Type = "Outfit",
+            Weight = 30,
+            Data = {
+                Outfit = {
+                    "Gentlepenguin",
+                    "Sailor",
+                    "Waiter",
+                },
+            },
+        },
         {
             Type = "House",
             Weight = 60,
@@ -306,18 +370,17 @@ local gifts: { [string]: { Gift } } = {
                 PetEgg = "Rare",
             },
         },
-        -- {
-        --     Type = "Clothing",
-        --     Weight = 30,
-        --     Data = {
-        --         Clothing = {
-        --             Backpack = {
-        --                 "Angel_Wings",
-        --                 "Brown_Backpack",
-        --             },
-        --         },
-        --     },
-        -- },
+        {
+            Type = "Outfit",
+            Weight = 30,
+            Data = {
+                Outfit = {
+                    "Pizza_Chef",
+                    "Bill",
+                    "Student",
+                },
+            },
+        },
         {
             Type = "House",
             Weight = 60,
