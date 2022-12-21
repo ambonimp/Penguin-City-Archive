@@ -177,7 +177,7 @@ end
 -- Returns PetEggDataIndex
 function PetService.addPetEgg(player: Player, petEggName: string, hatchTime: number?)
     local playtime = SessionService.getSession(player):GetPlayTime()
-    hatchTime = (hatchTime or PetConstants.PetEggs[petEggName].HatchTime) + playtime
+    hatchTime = (hatchTime or PetConstants.DefaultHatchTime) + playtime
 
     local address = PetUtils.getPetEggDataAddress(petEggName)
     local appendKey = DataService.getAppendageKey(player, address)

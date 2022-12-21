@@ -1,7 +1,6 @@
 local PetConstants = {}
 
 export type PetEgg = {
-    HatchTime: number,
     WeightTable: { {
         Weight: number,
         Value: PetTuple,
@@ -80,7 +79,6 @@ PetConstants.PetNameCharacterLimit = 20
 local petEggs: { [string]: PetEgg } = {
     --#region Starter
     Starter = {
-        HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
             {
                 Weight = 50,
@@ -103,7 +101,6 @@ local petEggs: { [string]: PetEgg } = {
     --#endregion
     --#region Common
     Common = {
-        HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
             {
                 Weight = 33,
@@ -142,7 +139,6 @@ local petEggs: { [string]: PetEgg } = {
     --#endregion
     --#region Rare
     Rare = {
-        HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
             {
                 Weight = 20,
@@ -181,7 +177,6 @@ local petEggs: { [string]: PetEgg } = {
     --#endregion
     --#region Legendary
     Legendary = {
-        HatchTime = PetConstants.DefaultHatchTime,
         WeightTable = {
             {
                 Weight = 30,
