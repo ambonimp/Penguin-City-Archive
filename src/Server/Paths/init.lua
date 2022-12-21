@@ -38,6 +38,7 @@ task.delay(0, function()
         require(server.Stamps.StampService),
         require(server.TutorialService),
         require(server.Tools.ToolService),
+        require(server.Products.ProductService),
         require(server.SessionService),
         require(server.Telemetry.TelemetryService),
         require(server.SettingsService),

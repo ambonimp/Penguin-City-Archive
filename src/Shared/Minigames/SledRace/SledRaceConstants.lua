@@ -72,7 +72,7 @@ SledRaceConstants.Collectables = {
     Coin = { Tag = "SledRaceCoin", Occupancy = 0.15 },
 }
 
-SledRaceConstants.CoinsPerCollectable = 12
-SledRaceConstants.CoinValue = 4
+SledRaceConstants.CoinsPerCollectable = 6
+SledRaceConstants.CoinValue = 1
 
 return SledRaceConstants

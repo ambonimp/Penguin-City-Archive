@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CharacterItemConstants = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ProductConstants = require(ReplicatedStorage.Shared.Products.ProductConstants)
+local CharacterItemUtil = require(ReplicatedStorage.Shared.CharacterItems.CharacterItemUtil)
 
 type Product = typeof(require(ReplicatedStorage.Shared.Products.Products).Product)
 
@@ -25,7 +26,14 @@ end
 for categoryName, itemConstants in pairs(CharacterItemConstants) do
     -- Create Products
     for itemKey, item in pairs(itemConstants.Items) do
-        local model: Model? = itemConstants.AssetsPath and characterAssets[itemConstants.AssetsPath][itemKey]
+        local model: Model?
+        if categoryName == "Outfit" then
+            model = ReplicatedStorage.Assets.Character.StarterCharacter:Clone()
+            CharacterItemUtil.manequin(model)
+            CharacterItemUtil.applyAppearance(model, item.Items)
+        else
+            model = itemConstants.AssetsPath and characterAssets[itemConstants.AssetsPath][itemKey]
+        end
 
         local productId = ("%s_%s"):format(StringUtil.toCamelCase(categoryName), StringUtil.toCamelCase(itemKey))
         local product: Product = {
@@ -35,7 +43,7 @@ for categoryName, itemConstants in pairs(CharacterItemConstants) do
             ImageId = item.Icon,
             ImageColor = getImageColor(categoryName, item),
             CoinData = {
-                Cost = productId:len() % 2, --!! Temp
+                Cost = item.Price,
             },
             Metadata = {
                 CategoryName = categoryName,

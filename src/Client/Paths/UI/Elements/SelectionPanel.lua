@@ -19,12 +19,14 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
-    WidgetConstructors: { {
-        WidgetName: string,
-        Selected: boolean,
-        Instance: Widget.Widget?,
-        Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
-    } },
+    WidgetConstructors: {
+        {
+            WidgetName: string,
+            Selected: boolean,
+            Instance: Widget.Widget?,
+            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+        }
+    },
     Button: Button.Button | nil,
 }
 
@@ -592,6 +594,23 @@ function SelectionPanel.new()
 
             return widget
         end)
+    end
+
+    function selectionPanel:HasWidget(tabName: string, widgetName: string)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        for _, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                return true
+            end
+        end
+
+        return false
     end
 
     function selectionPanel:SetWidgetSelected(tabName: string, widgetName, isSelected: boolean)

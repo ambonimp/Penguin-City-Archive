@@ -59,6 +59,14 @@ local function applyClothingAppearance(character: Model, type: string, clothingN
     end
 end
 
+function CharacterItemUtil.manequin(character: Model)
+    for _, basePart in pairs(character:GetChildren()) do
+        if basePart:IsA("BasePart") then
+            basePart.Color = if basePart.Name == "Belly" then Color3.fromRGB(167, 167, 167) else Color3.fromRGB(140, 140, 140)
+        end
+    end
+end
+
 --[[
     Adds `appearance` to `character`
 

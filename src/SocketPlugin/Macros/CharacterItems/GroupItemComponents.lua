@@ -4,7 +4,6 @@
 
 --------------------------------------------------
 -- Dependencies
-local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 local Workspace = game:GetService("Workspace")
 
@@ -15,6 +14,7 @@ local macroDefinition = {
     Group = "Character Items",
     Icon = "💡",
     Description = "Export pieces of an item out of their manequin and bundles them correctly",
+    EnableAutomaticUndo = true,
 }
 
 macroDefinition.Function = function()
@@ -25,23 +25,16 @@ macroDefinition.Function = function()
 
     for _, component in pairs(components) do
         if component:IsA("BasePart") or component:IsA("MeshPart") then
-            local origin = component.Parent.Penguin_body.Main_Bone.WorldCFrame
-            local offset = origin:ToObjectSpace(component.CFrame)
-
-            local lastSize = component.Size
-
             component.Parent = model
-
-            task.defer(function()
-                component.CFrame = origin:ToWorldSpace(offset)
-                component.Size = lastSize
-
-                component:ClearAllChildren()
-            end)
+            for _, child in pairs(component:GetChildren()) do
+                if child:IsA("WeldConstraint") then
+                    child:Destroy()
+                end
+            end
         end
     end
 
-    ChangeHistoryService:SetWaypoint("Align Item Character")
+    Selection:Set({ model })
 end
 
 return macroDefinition

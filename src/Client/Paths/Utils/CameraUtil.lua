@@ -1,6 +1,7 @@
 local CameraUtil = {}
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 
@@ -66,8 +67,11 @@ function CameraUtil.lookAtModelInViewport(
     camera.Parent = viewport
     viewport.CurrentCamera = camera
 
-    local _, size = model:GetBoundingBox()
-    local clone = doClone and model:Clone() or model
+    local clone = if doClone then model:Clone() else model
+    clone.Parent = Workspace
+
+    local size = clone:GetExtentsSize()
+
     clone.Parent = viewport
     local fitDepth = CameraUtil.getFitDepth(camera.ViewportSize, camera.FieldOfView, size) -- +offset
     camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)

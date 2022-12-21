@@ -4,7 +4,6 @@
 
 --------------------------------------------------
 -- Dependencies
-local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 local Workspace = game:GetService("Workspace")
 
@@ -14,6 +13,7 @@ local macroDefinition = {
     Name = "Align Item to Character",
     Group = "Character Items",
     Icon = "💡",
+    EnableAutomaticUndo = true,
 }
 
 macroDefinition.Function = function()
@@ -22,8 +22,6 @@ macroDefinition.Function = function()
 
     local character = assert(Workspace:FindFirstChild("StarterCharacter"), "Starter character can't be found in workspace")
     item:PivotTo(character.WorldPivot)
-
-    ChangeHistoryService:SetWaypoint("Align Item Character")
 end
 
 return macroDefinition
