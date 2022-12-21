@@ -77,19 +77,8 @@ FurnitureConstants.Colors = {
 }
 
 FurnitureConstants.StartingObjects = {
-    ["SHELF_2"] = 1,
-    ["Stool_1"] = 1,
-    ["Glass_Table_2"] = 1,
     ["Floor_Lamp_01"] = 1,
-    ["TABLE_LAMP_02"] = 1,
-    ["CIRCULAR_TABLE_1"] = 1,
-    ["Table"] = 1,
-    ["BOOKSHELF_03"] = 1,
     ["PLANT"] = 1,
-    ["Pet_Bed"] = 1,
-    ["Pet_Bowl_1"] = 1,
-    ["Stool_3"] = 1,
-    ["NIGHTSTAND"] = 1,
 }
 
 local objects: { [string]: Object } = {}
