@@ -73,10 +73,13 @@ end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
     MinigameController.stopMusic("Intermission")
+    SharedMinigameScreen.toggleExitButton(true)
     SharedMinigameScreen.closeStartMenu(false, function()
         CameraController.viewCameraModel(MinigameController.getMap().Cameras.Gameplay)
         runner:Run()
     end)
+end, function()
+    SharedMinigameScreen.toggleExitButton(false)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.AwardShow, function(data)
