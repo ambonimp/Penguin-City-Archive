@@ -72,7 +72,7 @@ end
 
 function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
     local userId = tonumber(zone.ZoneType)
-    return userId and game.Players:GetPlayerByUserId(userId) and true or false
+    return userId and true or false -- Don't check against an actual player as they may have left the game by the time this check is needed!
 end
 
 function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone?)

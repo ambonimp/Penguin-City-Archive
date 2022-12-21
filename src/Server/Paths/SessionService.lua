@@ -129,7 +129,7 @@ function SessionService.Start()
             SessionService.addLoadCallback(function(player: Player)
                 local session = SessionService.getSession(player)
                 local petDataIndex = PetService.getEquippedPetDataIndex(player)
-                local petData = PetService.getPet(player, petDataIndex)
+                local petData = petDataIndex and PetService.getPet(player, petDataIndex)
                 if session and petData then
                     warn("todo pet equipped")
                     --session:PetEquipped(petData)
