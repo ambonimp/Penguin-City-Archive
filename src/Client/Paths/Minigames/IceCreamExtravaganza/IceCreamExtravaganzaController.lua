@@ -129,13 +129,14 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     end
 
     local placement = MinigameController.getOwnPlacement(scores)
+    local score = MinigameController.getOwnScore(scores)
     SharedMinigameScreen.openResults({
         if isMultiplayer then { Title = "Placement", Value = placement } else nil,
-        { Title = "Scoops", Value = MinigameController.getOwnScore(scores), Tag = MinigameController.isNewBest(scores) and "New Best" },
+        { Title = "Scoops", Value = score, Tag = MinigameController.isNewBest(scores) and "New Best" },
         {
             Title = "Total Coins",
             Icon = Images.Coins.Coin,
-            Value = IceCreamExtravaganzaConstants.SessionConfig.Reward(placement),
+            Value = IceCreamExtravaganzaConstants.SessionConfig.Reward(placement, score, nil, #MinigameController.getParticpants()),
         },
     })
 
