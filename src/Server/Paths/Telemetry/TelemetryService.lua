@@ -80,39 +80,22 @@ function TelemetryService.postPlayerEvent(player: Player, eventName: string, eve
 
     warn(("Posting Player Event %q %q"):format(player.Name, eventName), eventData)
 
-    -- RETURN: Not on live game
-    if not (GameUtil.isLiveGame() and not RunService:IsStudio()) then
-        return
-    end
+    -- -- RETURN: Not on live game
+    -- if not (GameUtil.isLiveGame() and not RunService:IsStudio()) then
+    --     return
+    -- end
 
-    eventHandler:Fire(eventName, player, eventData)
+    -- Fire Voldex Analytics
+    do
+        local success, message = pcall(function()
+            VoldexAnalytics:FireAnalyticsEvent(player, eventName, eventData)
+        end)
+
+        if not success then
+            warn("Error on VoldexAnalytics:FireAnalyticsEvent: ", message)
+        end
+    end
 end
-
--------------------------------------------------------------------------------
--- EventHandler
--------------------------------------------------------------------------------
-
-eventHandler = Instance.new("BindableEvent")
-eventHandler.Name = "EventHandler"
-eventHandler.Parent = ServerStorage
-
---[[
-    Fire analytics events here!
-    - event: string (lowerCamelCase)
-    - player: Player
-    - payload: { [string]: any } (table keys lowerCamelCase)
-]]
-TelemetryService.EventHandler = eventHandler
-
-eventHandler.Event:Connect(function(event: string, player: Player, payload: table)
-    local success, message = pcall(function()
-        VoldexAnalytics:FireAnalyticsEvent(player, event, payload)
-    end)
-
-    if not success then
-        warn("Error on VoldexAnalytics:FireAnalyticsEvent: ", message)
-    end
-end)
 
 -------------------------------------------------------------------------------
 -- VoldexAnalytics Setup
