@@ -22,6 +22,7 @@ function SettingsScreen.Init()
         screenGui = Instance.new("ScreenGui")
         screenGui.Enabled = false
         screenGui.Name = "SettingsScreen"
+        screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
         screenGui.Parent = Ui
 
         tabbedWindow = TabbedWindow.new(UIConstants.States.Settings)

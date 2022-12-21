@@ -46,8 +46,11 @@ local function mountUICorner(instance: GuiObject)
     return uiCorner
 end
 
-function KeyboardButton.new()
-    local keyboardButton = Button.new(Instance.new("ImageButton"))
+--[[
+    By default, the button is released when the cursor leaves the gui object. If `releaseOnCursorUp=true`, will only release when users cursor is released.
+]]
+function KeyboardButton.new(releaseOnCursorUp: boolean?)
+    local keyboardButton = Button.new(Instance.new("ImageButton"), nil, releaseOnCursorUp)
 
     -------------------------------------------------------------------------------
     -- Private Members
