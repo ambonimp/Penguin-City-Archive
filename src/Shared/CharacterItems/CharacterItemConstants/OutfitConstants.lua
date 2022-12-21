@@ -140,7 +140,7 @@ items["Pizza_Chef"] = {
     Items = {
         Shirt = { ShirtConstants.Items.Pizza_Chefs_Jacket.Name },
         Pants = { PantsConstants.Items.White_Pants.Name },
-        Hat = { HatConstants.Items.Chef_Hat.Name },
+        Hat = { HatConstants.Items.Pizza_Chef_Hat.Name },
     },
     ForSale = true,
 }

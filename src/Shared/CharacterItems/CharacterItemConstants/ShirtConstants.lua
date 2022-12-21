@@ -31,13 +31,13 @@ items["Heart_Bomber_Jacket"] = {
 }
 items["Classic_Pink_Sweater"] = {
     Name = "Classic_Pink_Sweater",
-    Price = 75,
+    Price = 0,
     Icon = nil, --"Classic_Pink_Sweater"
     ForSale = true,
 }
 items["Classic_Teal_Sweater"] = {
     Name = "Classic_Teal_Sweater",
-    Price = 75,
+    Price = 0,
     Icon = nil, --"Classic_Teal_Sweater"
     ForSale = true,
 }
@@ -255,12 +255,6 @@ items["Red_Star_Studded_Shirt"] = {
     Name = "Red_Star_Studded_Shirt",
     Price = 50,
     Icon = nil, --"Red_Star_Studded_Shirt"
-    ForSale = true,
-}
-items["Red_And_Yellow_Starry_Shirt"] = {
-    Name = "Red_And_Yellow_Starry_Shirt",
-    Price = 50,
-    Icon = nil, --"Red_And_Yellow_Starry_Shirt"
     ForSale = true,
 }
 items["Red_Checkered_Shirt"] = {

@@ -132,7 +132,7 @@ items["Peach_Parisan_Skirt"] = {
 }
 items["Pink_Skirt"] = {
     Name = "Pink_Skirt",
-    Price = 60,
+    Price = 0,
     Icon = nil, --"Pink_Skirt"
     ForSale = true,
 }
