@@ -392,6 +392,7 @@ end
 -- Register ui states
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, nil, function()
+        SharedMinigameScreen.toggleExitButton(false)
         SharedMinigameScreen.closeStartMenu()
         SharedMinigameScreen.hideStatus()
     end)
