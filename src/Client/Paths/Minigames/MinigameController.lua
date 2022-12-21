@@ -200,7 +200,7 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
 end
 
 function MinigameController.getOwnPlacement(scores: MinigameConstants.SortedScores): number
-    return TableUtil.findFromProperty(scores, "Player", player)
+    return scores and TableUtil.findFromProperty(scores, "Player", player) or -1 -- https://trello.com/c/KAqA5DEA hacky fix
 end
 
 function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores): number
