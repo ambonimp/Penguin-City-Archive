@@ -27,6 +27,8 @@ local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 local QUICK_HATCH_TIME = -10
 
 PetService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
+PetService.PetEquipped = Signal.new() -- { player: Player, petDataIndex: string }
+PetService.PetUnequipped = Signal.new() -- { player: Player, petDataIndex: string }
 
 local petsByPlayer: { [Player]: ServerPet.ServerPet } = {}
 
@@ -147,6 +149,7 @@ function PetService.equipPet(player: Player, petDataIndex: string)
 
     DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, petDataIndex, "EquippedPetUpdated")
     updatePlayerPet(player)
+    PetService.PetEquipped:Fire(player, petDataIndex)
 end
 
 -- Returns PetDataIndex (if it exists)
@@ -159,8 +162,12 @@ function PetService.getEquippedPet(player: Player)
 end
 
 function PetService.unequipPet(player: Player)
-    DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
-    updatePlayerPet(player)
+    local petDataIndex = PetService.getEquippedPetDataIndex(player)
+    if petDataIndex then
+        DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
+        updatePlayerPet(player)
+        PetService.PetUnequipped:Fire(player, petDataIndex)
+    end
 end
 
 -------------------------------------------------------------------------------

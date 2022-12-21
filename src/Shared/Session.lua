@@ -8,6 +8,7 @@ local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Products = require(ReplicatedStorage.Shared.Products.Products)
+local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 
 type ZoneData = {
     VisitCount: number,
@@ -35,7 +36,6 @@ function Session.new(player: Player)
     local currentZone: ZoneConstants.Zone | nil
     local lastZoneReportAtTick = 0
     local productsDataByProduct: { [Products.Product]: ProductData } = {}
-
     -------------------------------------------------------------------------------
     -- Private Methods
     -------------------------------------------------------------------------------

@@ -24,6 +24,10 @@ function SessionService.Start()
     local ProductUtil = require(Paths.Shared.Products.ProductUtil)
     local ProductService = require(Paths.Server.Products.ProductService)
     local Products = require(Paths.Shared.Products.Products)
+    local PetService = require(Paths.Server.Pets.PetService)
+    local ToolService = require(Paths.Server.Tools.ToolService)
+    local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+    local PlotService = require(Paths.Server.Housing.PlotService)
 
     -- Populate minigame time sessions
     do
@@ -55,6 +59,9 @@ function SessionService.Start()
     -- Product Purchasing
     do
         ProductService.ProductAdded:Connect(function(player: Player, product: Products.Product, amount: number)
+            -- RETURN: Not a desired product
+            --todo
+
             local session = SessionService.getSession(player)
             if session then
                 local amountOwnedBefore = ProductService.getProductCount(player, product) - amount
@@ -103,6 +110,95 @@ function SessionService.Start()
 
         -- Pets
         do
+            PetService.PetEquipped:Connect(function(player: Player, petDataIndex: string)
+                local session = SessionService.getSession(player)
+                local petData = PetService.getPet(player, petDataIndex)
+                if session and petData then
+                    warn("todo pet equipped")
+                    --session:PetEquipped(petData)
+                end
+            end)
+            PetService.PetUnequipped:Connect(function(player: Player, petDataIndex: string)
+                local session = SessionService.getSession(player)
+                local petData = PetService.getPet(player, petDataIndex)
+                if session and petData then
+                    warn("todo pet unequipped")
+                    --session:PetUnequipped(petData)
+                end
+            end)
+            SessionService.addLoadCallback(function(player: Player)
+                local session = SessionService.getSession(player)
+                local petDataIndex = PetService.getEquippedPetDataIndex(player)
+                local petData = PetService.getPet(player, petDataIndex)
+                if session and petData then
+                    warn("todo pet equipped")
+                    --session:PetEquipped(petData)
+                end
+            end)
+        end
+
+        -- Tools
+        do
+            ToolService.ToolEquipped:Connect(function(player: Player, tool: ToolUtil.Tool)
+                local session = SessionService.getSession(player)
+                local product = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
+                if session and product then
+                    session:ProductEquipped(product)
+                end
+            end)
+            ToolService.ToolUnequipped:Connect(function(player: Player, tool: ToolUtil.Tool)
+                local session = SessionService.getSession(player)
+                local product = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
+                if session and product then
+                    session:ProductEquipped(product)
+                end
+            end)
+        end
+
+        -- Housing
+        do
+            PlotService.ObjectPlaced:Connect(function(player: Player, product: Products.Product)
+                local session = SessionService.getSession(player)
+                if session then
+                    session:ProductEquipped(product)
+                end
+            end)
+            PlotService.ObjectRemoved:Connect(function(player: Player, product: Products.Product)
+                local session = SessionService.getSession(player)
+                if session then
+                    session:ProductUnequipped(product)
+                end
+            end)
+            PlotService.BlueprintChanged:Connect(function(player: Player, product: Products.Product, oldProduct: Products.Product)
+                local session = SessionService.getSession(player)
+                if session then
+                    -- Blueprint
+                    session:ProductEquipped(product)
+                    session:ProductUnequipped(oldProduct)
+
+                    -- Furniture; unequip furniture from old blueprint, equip furnite from new blueprint
+                    local oldFurnitureProducts =
+                        PlotService.getPlacedFurnitureProducts(player, ProductUtil.getHouseObjectProductData(oldProduct).ObjectKey)
+                    local newFurnitureProducts = PlotService.getPlacedFurnitureProducts(player) -- gets from current blueprint
+
+                    for _, oldFurnitureProduct in pairs(oldFurnitureProducts) do
+                        session:ProductUnequipped(oldFurnitureProduct)
+                    end
+                    for _, newFurnitureProduct in pairs(newFurnitureProducts) do
+                        session:ProductEquipped(newFurnitureProduct)
+                    end
+                end
+            end)
+            SessionService.addLoadCallback(function(player: Player)
+                -- Get current furniture as equipped!
+                local session = SessionService.getSession(player)
+                if session then
+                    session:ProductEquipped(PlotService.getBlueprintProduct(player))
+                    for _, furnitureProduct in pairs(PlotService.getPlacedFurnitureProducts(player)) do
+                        session:ProductEquipped(furnitureProduct)
+                    end
+                end
+            end)
         end
     end
 end

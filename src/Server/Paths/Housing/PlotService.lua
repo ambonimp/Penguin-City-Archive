@@ -29,6 +29,8 @@ local PlayerService = require(Paths.Server.PlayerService)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Signal = require(Paths.Shared.Signal)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local Products = require(Paths.Shared.Products.Products)
+local BlueprintConstants = require(Paths.Shared.Constants.HouseObjects.BlueprintConstants)
 
 export type FurnitureMetadata = {
     Name: string,
@@ -50,7 +52,7 @@ export type Metadata = FurnitureMetadata | WallpaperMetadata | FloorMetadata
 PlotService.ObjectPlaced = Signal.new() -- { player: Player, objectProduct: Products.Product, metadata: PlotService.Metadata }
 PlotService.ObjectUpdated = Signal.new() -- { player: Player, objectProduct: Products.Product, oldMetadata: PlotService.Metadata, newMetadata: PlotService.Metadata }
 PlotService.ObjectRemoved = Signal.new() -- { player: Player, objectProduct: Products.Product, metadata: PlotService.Metadata }
-PlotService.BlueprintChanged = Signal.new() -- { player: Player, blueprintProduct: Products.Product }
+PlotService.BlueprintChanged = Signal.new() -- { player: Player, blueprintProduct: Products.Product, oldBlueprintProduct: Products.Product | nil }
 
 local assets: Folder = ReplicatedStorage.Assets.Housing
 
@@ -63,6 +65,42 @@ local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
 local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
+
+-------------------------------------------------------------------------------
+-- Querying
+-------------------------------------------------------------------------------
+
+-- Returns an array of all products currently placed down in current blueprint. Can define `blueprintName` to get furniture for a different blueprint
+function PlotService.getPlacedFurnitureProducts(player: Player, blueprintName: string?)
+    -- ERROR: Bad blueprint name
+    blueprintName = blueprintName or DataService.get(player, "House.Blueprint")
+    if not BlueprintConstants.Objects[blueprintName] then
+        error(("Bad blueprint name %q"):format(blueprintName))
+    end
+
+    local dataAddress = ("House.Furniture.%s"):format(blueprintName)
+    local furniture = DataService.get(player, dataAddress)
+
+    local productsDict: { [Products.Product]: true } = {} -- Can have multiple of the same product placd; used dictionary
+    for _, furnitureMetadata: FurnitureMetadata in pairs(furniture) do
+        local furnitureName = furnitureMetadata.Name
+        local product = ProductUtil.getHouseObjectProduct("Furniture", furnitureName)
+        productsDict[product] = true
+    end
+
+    return TableUtil.getKeys(productsDict) :: { Products.Product }
+end
+
+-- Returns product for currently used blueprint
+function PlotService.getBlueprintProduct(player: Player)
+    -- ERROR: No name?
+    local blueprintName = DataService.get(player, "House.Blueprint")
+    if not blueprintName then
+        error("No blueprint name?")
+    end
+
+    return ProductUtil.getHouseObjectProduct("Blueprint", blueprintName)
+end
 
 -------------------------------------------------------------------------------
 -- PLOT METHODS
@@ -344,20 +382,22 @@ Remotes.bindEvents({
         if not ProductService.canPlaceHouseProduct(player, product) then
             return -- doesn't have enough of the iem to place
         end
-        local typeConstants = HouseObjects[type]
+
         -- RETURN: Object isn't valid
+        local typeConstants = HouseObjects[type]
         if not typeConstants then
             return
         end
 
+        -- RETURN: Object isn't valid
         local name = metadata.Name
         local objectConstants = typeConstants.Objects[name]
-        -- RETURN: Object isn't valid
         if not objectConstants then
             return
         end
-        local blueprint = DataService.get(player, "House.Blueprint")
+
         -- Handlers
+        local blueprint = DataService.get(player, "House.Blueprint")
         if type == "Furniture" then
             local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
             if withinBounds then
@@ -446,7 +486,6 @@ Remotes.bindEvents({
             unloadHouse(player, interiorPlot, HousingConstants.InteriorType, current)
 
             DataService.set(player, "House.Blueprint", name, "HouseBlueprintUpdated")
-            PlotService.BlueprintChanged:Fire(player, product)
 
             --[[local objectsPlaced = DataService.get(player, "House.Furniture")
 
@@ -460,6 +499,9 @@ Remotes.bindEvents({
 
             loadHouse(player, exteriorPlot, HousingConstants.ExteriorType)
             loadHouse(player, interiorPlot, HousingConstants.InteriorType)
+
+            local oldProduct = current and ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", current))
+            PlotService.BlueprintChanged:Fire(player, product, oldProduct)
         end
     end,
 
