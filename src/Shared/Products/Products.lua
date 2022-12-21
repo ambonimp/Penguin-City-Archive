@@ -135,6 +135,20 @@ local products: { [string]: { [string]: Product } } = {
     --#endregion
     --#region Pet Eggs
     PetEgg = {
+        pet_egg_starter = {
+            Id = "pet_egg_starter",
+            DisplayName = "Starter Egg",
+            ImageId = Images.Pets.Eggs.Blue,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            CoinData = {
+                Cost = 1000,
+            },
+            Metadata = {
+                PetEggName = "Starter",
+                Model = assets.Pets.Eggs.Blue,
+            },
+        },
         pet_egg_common = {
             Id = "pet_egg_common",
             DisplayName = "Common Egg",
