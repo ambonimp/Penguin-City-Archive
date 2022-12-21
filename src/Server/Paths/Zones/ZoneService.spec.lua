@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
+local DescendantLooper = require(ReplicatedStorage.Shared.DescendantLooper)
 
 return function()
     local issues: { string } = {}
@@ -12,6 +13,26 @@ return function()
         -- Must be enabled
         if not game.Workspace.StreamingEnabled then
             table.insert(issues, "StreamingEnabled is StreamingDisabled! Set that to true")
+        end
+    end
+
+    -- Boundaries must be anchored + collideable!
+    do
+        for zoneCategory, zoneTypes in pairs(ZoneConstants.ZoneType) do
+            for _, zoneType in pairs(zoneTypes) do
+                local zoneModel = ZoneUtil.getZoneModel(ZoneUtil.zone(zoneCategory, zoneType))
+                local boundariesFolder = zoneModel and zoneModel:FindFirstChild("Boundaries")
+                if boundariesFolder then
+                    for _, descendant: BasePart in pairs(boundariesFolder:GetDescendants()) do
+                        if descendant:IsA("BasePart") and not (descendant.Anchored and descendant.CanCollide) then
+                            table.insert(
+                                issues,
+                                (("Boundary BasePart %s must be anchored and collideable!"):format(descendant:GetFullName()))
+                            )
+                        end
+                    end
+                end
+            end
         end
     end
 

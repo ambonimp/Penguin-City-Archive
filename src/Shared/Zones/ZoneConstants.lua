@@ -20,6 +20,13 @@ export type PlayerZoneState = {
     TotalTeleports: number,
 }
 
+export type TeleportData = {
+    IsClientRequest: boolean?, -- Dictates whether to inform client of teleport
+    IgnoreFromZone: boolean?, -- Helps choose what spawnpoint to send the player to
+    TravelMethod: string?,
+    IsInitialTeleport: boolean?,
+}
+
 -------------------------------------------------------------------------------
 -- Internal Methods
 -------------------------------------------------------------------------------
@@ -92,6 +99,23 @@ ZoneConstants.DoDebug = false
 -- but it affects the user experience when we have long loading times. We allow a small buffer for Rooms to offset this. We have *not* enabled
 -- this behaviour for minigames, as minigames are much more likely to need to run routines based off the existence of specific instances
 ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts = 3
+
+ZoneConstants.TravelMethod = {
+    Map = "Map",
+    Walking = "Walking",
+    Cmdr = "Cmdr",
+    ZoneDestroyed = "ZoneDestroyed",
+    JoinedMinigame = "JoinedMinigame",
+    LeftMinigame = "LeftMinigame",
+    Unknown = "Unknown",
+    PlayerMenu = "PlayerMenu",
+    HUD = "HUD",
+    Inventory = "Inventory",
+    StampBook = "StampBook",
+    Tutorial = "Tutorial",
+    RobloxReset = "RobloxReset",
+    TooFarFromZoneSOS = "TooFarFromZoneSOS",
+}
 
 -------------------------------------------------------------------------------
 -- Cosmetics

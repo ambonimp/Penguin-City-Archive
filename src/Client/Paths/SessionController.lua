@@ -1,3 +1,6 @@
+--[[
+    A basic `Session` on the client, that doesn't get informed about nearly as much as our server scope
+]]
 local SessionController = {}
 
 local Players = game:GetService("Players")

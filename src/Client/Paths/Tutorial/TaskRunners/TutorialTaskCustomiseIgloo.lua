@@ -51,7 +51,7 @@ return function(taskMaid: typeof(Maid.new()))
         :andThen(function()
             return Promise.new(function(resolve)
                 -- Lock player to their igloo
-                local unlock = ZoneController.lockToRoomZone(iglooZone)
+                local unlock = ZoneController.lockToRoomZone(iglooZone, ZoneConstants.TravelMethod.Tutorial)
                 taskMaid:GiveTask(unlock)
 
                 TutorialController.prompt("This is your igloo... let's customize it!")

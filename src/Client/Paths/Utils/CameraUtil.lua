@@ -48,13 +48,26 @@ function CameraUtil.setCametaType(camera: Camera, cameraType: Enum.CameraType)
     camera.CameraType = cameraType
 end
 
-function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model, rotation: CFrame?)
+-- Returns model used; either clone or `model`
+function CameraUtil.lookAtModelInViewport(
+    viewport: ViewportFrame,
+    model: Model,
+    config: {
+        Rotation: CFrame?,
+        DoCloneModel: boolean?,
+    }?
+)
+    -- Read Config
+    config = config or {}
+    local rotation = config.Rotation
+    local doClone = config.DoCloneModel and true or false
+
     local rot = rotation or CFrame.Angles(0, 0, 0)
     local camera = viewport.CurrentCamera or Instance.new("Camera")
     camera.Parent = viewport
     viewport.CurrentCamera = camera
 
-    local clone = model:Clone()
+    local clone = doClone and model:Clone() else model
     clone.Parent = Workspace
 
     local size = clone:GetExtentsSize()
@@ -64,6 +77,8 @@ function CameraUtil.lookAtModelInViewport(viewport: ViewportFrame, model: Model,
     camera.CFrame = CFrame.new(clone:GetPivot() * CFrame.new(Vector3.new(0, 0, -fitDepth)).Position, clone:GetPivot().Position)
 
     clone:PivotTo(model:GetPivot() * rot)
+
+    return clone
 end
 
 return CameraUtil

@@ -21,7 +21,10 @@ function Button.fromImage(image: string)
     return Button.new(imageButton)
 end
 
-function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
+--[[
+    By default, the button is released when the cursor leaves the gui object. If `releaseOnCursorUp=true`, will only release when users cursor is released.
+]]
+function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?, releaseOnCursorUp: boolean?)
     local button = UIElement.new()
 
     -------------------------------------------------------------------------------
@@ -112,7 +115,9 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
         button.InternalLeave:Fire()
 
         -- Simulate us stopping the pressing of the button (Roblox doesn't detect MouseButton1Up when not hovering over the button)
-        mouseUp()
+        if not releaseOnCursorUp then
+            mouseUp()
+        end
     end
 
     -------------------------------------------------------------------------------
@@ -188,6 +193,25 @@ function Button.new(buttonObject: ImageButton | TextButton, noAudio: boolean?)
 
         mouseUp()
     end))
+
+    if releaseOnCursorUp then
+        -- Support with hoarcekat
+        local Players = game:GetService("Players")
+        local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
+        local InputController = require(Paths.Client.Input.InputController)
+
+        maid:GiveTask(InputController.CursorUp:Connect(function()
+            -- Check before firing, as edge cases can exist (see mouseLeave())
+            if isPressed then
+                local isFree = Limiter.debounce("Button", id, pressedDebounce)
+                if isFree then
+                    button.Pressed:Fire()
+                end
+            end
+
+            mouseUp()
+        end))
+    end
 
     return button
 end

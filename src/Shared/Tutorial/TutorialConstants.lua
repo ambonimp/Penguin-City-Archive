@@ -10,6 +10,7 @@ local OutfitConstants = require(CharacterItemConstants.OutfitConstants)
 
 TutorialConstants.Tasks = {
     StartingAppearance = "StartingAppearance",
+    ContinueTutorial = "ContinueTutorial",
     CustomiseIgloo = "CustomiseIgloo",
     PlayMinigame = "PlayMinigame",
     StarterPetEgg = "StarterPetEgg",
@@ -18,6 +19,7 @@ TutorialConstants.Tasks = {
 
 TutorialConstants.TaskOrder = {
     TutorialConstants.Tasks.StartingAppearance,
+    TutorialConstants.Tasks.ContinueTutorial,
     TutorialConstants.Tasks.CustomiseIgloo,
     TutorialConstants.Tasks.PlayMinigame,
     TutorialConstants.Tasks.StarterPetEgg,
@@ -45,8 +47,8 @@ TutorialConstants.StartingAppearance = {
 }
 
 TutorialConstants.StarterEgg = {
-    PetEggName = "Common",
-    HatchTimeMinutes = 10,
+    PetEggName = "Starter",
+    HatchTimeMinutes = 1,
 }
 
 return TutorialConstants

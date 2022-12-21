@@ -32,7 +32,7 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
             end
 
             if value ~= newValue then
-                value = true
+                value = not initialValue
 
                 if onToggled then
                     onToggled(newValue)
@@ -50,7 +50,7 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
             table.remove(jobs, jobIndex)
 
             if #jobs == 0 then
-                value = false
+                value = initialValue
 
                 if onToggled then
                     onToggled(newValue)

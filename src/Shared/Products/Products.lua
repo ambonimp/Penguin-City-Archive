@@ -1,3 +1,9 @@
+--[[
+    Products represent something that we own.
+
+    NOTE: `Pet` products are used to represent what is owned in the `Pet` scope.. it is a representation, not a definition (e.g., adding/removing a pet 
+    product via command will do nothing). This was created to help aid the "sessionSummary" telemetry.
+]]
 local Products = {}
 
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -129,19 +135,28 @@ local products: { [string]: { [string]: Product } } = {
     --#endregion
     --#region Pet Eggs
     PetEgg = {
-        pet_egg_common = {
-            Id = "pet_egg_common",
-            DisplayName = "Common Egg",
-            Description = "Common Egg",
+        pet_egg_starter = {
+            Id = "pet_egg_starter",
+            DisplayName = "Starter Egg",
             ImageId = Images.Pets.Eggs.Blue,
             IsConsumable = true,
             ConsumeImmediately = true,
-            RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
-            },
             CoinData = {
-                Cost = 5,
+                Cost = 1000,
+            },
+            Metadata = {
+                PetEggName = "Starter",
+                Model = assets.Pets.Eggs.Blue,
+            },
+        },
+        pet_egg_common = {
+            Id = "pet_egg_common",
+            DisplayName = "Common Egg",
+            ImageId = Images.Pets.Eggs.Blue,
+            IsConsumable = true,
+            ConsumeImmediately = true,
+            CoinData = {
+                Cost = 125,
             },
             Metadata = {
                 PetEggName = "Common",
@@ -151,13 +166,15 @@ local products: { [string]: { [string]: Product } } = {
         pet_egg_rare = {
             Id = "pet_egg_rare",
             DisplayName = "Rare Egg",
-            Description = "Rare Egg",
             ImageId = Images.Pets.Eggs.Purple,
             IsConsumable = true,
             ConsumeImmediately = true,
             RobuxData = {
                 Cost = 149,
                 DeveloperProductId = 1339311091,
+            },
+            CoinData = {
+                Cost = 350,
             },
             Metadata = {
                 PetEggName = "Rare",
@@ -167,7 +184,6 @@ local products: { [string]: { [string]: Product } } = {
         pet_egg_legendary = {
             Id = "pet_egg_legendary",
             DisplayName = "Legendary Egg",
-            Description = "Legendary Egg",
             ImageId = Images.Pets.Eggs.Gold,
             IsConsumable = true,
             ConsumeImmediately = true,

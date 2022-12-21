@@ -9,7 +9,9 @@ return function(_context, players: { Player }, roomType: string)
 
     local output = ""
     for _, player in pairs(players) do
-        ZoneService.teleportPlayerToZone(player, zone)
+        task.spawn(ZoneService.teleportPlayerToZone, player, zone, {
+            TravelMethod = ZoneConstants.TravelMethod.Cmdr,
+        })
         output ..= (" > Teleporting %s to %s\n"):format(player.Name, roomType)
     end
 

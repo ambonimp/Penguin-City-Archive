@@ -20,6 +20,7 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local InteractionController = require(Paths.Client.Interactions.InteractionController)
 local ToolController = require(Paths.Client.Tools.ToolController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local RAYCAST_LENGTH = 200
 local RAYCAST_PARAMS = {
@@ -59,7 +60,9 @@ local function setupRadialButtons(player: Player, radialMenu: typeof(RadialMenu.
     ButtonUtil.paintIgloo(iglooButton)
     iglooButton.Pressed:Connect(function()
         local houseZone = ZoneUtil.houseInteriorZone(player)
-        ZoneController.teleportToRoomRequest(houseZone)
+        ZoneController.teleportToRoomRequest(houseZone, {
+            TravelMethod = ZoneConstants.TravelMethod.PlayerMenu,
+        })
     end)
 
     -- Close

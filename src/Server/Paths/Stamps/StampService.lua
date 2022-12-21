@@ -9,6 +9,9 @@ local Remotes = require(Paths.Shared.Remotes)
 local StampConstants = require(Paths.Shared.Stamps.StampConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
+local Signal = require(Paths.Shared.Signal)
+
+StampService.StampAdded = Signal.new() -- { player: Player, stamp: Stamps.Stamp, stampTier: Stamps.StampTier | nil }
 
 function StampService.Start()
     -- Init Awarders
@@ -45,7 +48,7 @@ function StampService.hasStamp(player: Player, stampId: string, stampTierOrProgr
     end
 end
 
-function StampService.getTier(player: Player, stampId: string): string | nil
+function StampService.getTier(player: Player, stampId: string): Stamps.StampTier | nil
     -- ERROR: Not tiered
     local stamp = getStamp(stampId)
     if not stamp.IsTiered then
@@ -63,6 +66,8 @@ function StampService.addStamp(player: Player, stampId: string, stampTierOrProgr
 
     local willMakeChange = StampService.getProgress(player, stampId) ~= stampProgress
     if willMakeChange then
+        local oldTier = stamp.IsTiered and StampService.getTier(player, stampId)
+
         DataService.set(
             player,
             StampUtil.getStampDataAddress(stampId),
@@ -70,6 +75,14 @@ function StampService.addStamp(player: Player, stampId: string, stampTierOrProgr
             "StampUpdated",
             { StampId = stampId, StampProgress = stampProgress }
         )
+
+        -- Only fire event if we add a normal stamp, or a tiered stamp gets upgraded!
+        local newTier = stamp.IsTiered and StampService.getTier(player, stampId)
+        if stamp.IsTiered and oldTier ~= newTier then
+            StampService.StampAdded:Fire(player, stamp, newTier)
+        elseif not stamp.IsTiered then
+            StampService.StampAdded:Fire(player, stamp, nil)
+        end
     end
 end
 
@@ -90,6 +103,8 @@ function StampService.incrementStamp(player: Player, stampId: string, amount: nu
         return
     end
 
+    local oldTier = stamp.IsTiered and StampService.getTier(player, stampId)
+
     DataService.set(
         player,
         StampUtil.getStampDataAddress(stampId),
@@ -97,6 +112,12 @@ function StampService.incrementStamp(player: Player, stampId: string, amount: nu
         "StampUpdated",
         { StampId = stampId, StampProgress = newProgress }
     )
+
+    -- Only fire event if tiered stamp gets upgraded!
+    local newTier = stamp.IsTiered and StampService.getTier(player, stampId)
+    if oldTier ~= newTier then
+        StampService.StampAdded:Fire(player, stamp, newTier)
+    end
 end
 
 function StampService.revokeStamp(player: Player, stampId: string)

@@ -200,7 +200,7 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
 end
 
 function MinigameController.getOwnPlacement(scores: MinigameConstants.SortedScores): number
-    return TableUtil.findFromProperty(scores, "Player", player)
+    return scores and TableUtil.findFromProperty(scores, "Player", player) or -1 -- https://trello.com/c/KAqA5DEA hacky fix
 end
 
 function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores): number
@@ -245,12 +245,17 @@ Remotes.bindEvents({
             MinigameController.stopMusic("Core")
             MinigameController.stopMusic("Intermission")
 
+            -- Try catch at the peak of the transition to hide its removal
+            maid:GiveTask(ZoneController.ZoneChanged:Connect(function()
+                uiStateMachine:Remove(UIConstants.States.Minigame)
+            end))
+
             if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
 
             maid:Cleanup()
-            uiStateMachine:Pop()
+            uiStateMachine:Remove(UIConstants.States.Minigame) -- Security incase ZoneChanged block doesn't run
 
             task.defer(function()
                 currentMinigame = nil
