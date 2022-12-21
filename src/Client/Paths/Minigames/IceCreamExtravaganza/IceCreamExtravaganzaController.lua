@@ -89,10 +89,13 @@ end)
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.CoreCountdown, function()
     coreMaid:GiveTask(CollectableController.setup())
 
+    SharedMinigameScreen.toggleCoreCountdownVisibility(true)
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
 
     -- GOOO!
     unanchorCharacter()
+end, function()
+    SharedMinigameScreen.toggleCoreCountdownVisibility(false)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()

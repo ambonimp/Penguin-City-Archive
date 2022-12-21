@@ -94,16 +94,18 @@ end
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
+function SharedMinigameScreen.toggleCoreCountdownVisibility(isVisible: boolean)
+    coreCountdownLabel.Visible = isVisible
+end
+
 function SharedMinigameScreen.coreCountdown(timeLeft: number)
     local initialLabelSize: UDim2 = Binder.bindFirst(coreCountdownLabel, "InitialSize", coreCountdownLabel.Size)
-    coreCountdownLabel.Visible = false
     coreCountdownLabel.Image = Images.Minigames["Countdown" .. (timeLeft - 1)] :: string
     coreCountdownLabel.Rotation = 90
     coreCountdownLabel.Size = UDim2.new()
 
     Sound.play("Countdown")
 
-    coreCountdownLabel.Visible = true
     TweenUtil.bind(
         coreCountdownLabel,
         COUNTDOWN_BIND_KEY,

@@ -77,6 +77,7 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
         Client tells itself when to give player control of driving
         This way people with worser ping have less of a disadvantage on start
     ]]
+    SharedMinigameScreen.toggleCoreCountdownVisibility(true)
     MinigameController.startCountdownAsync(MinigameConstants.CoreCountdownLength, SharedMinigameScreen.coreCountdown)
 
     local startingLine = MinigameController.getMap().Course.Start.StartingLine.PrimaryPart
@@ -87,6 +88,8 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
     -- Goo
     raceMaid:GiveTask(DrivingController.setup())
+end, function()
+    SharedMinigameScreen.toggleCoreCountdownVisibility(false)
 end)
 
 MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States.Core, function()
