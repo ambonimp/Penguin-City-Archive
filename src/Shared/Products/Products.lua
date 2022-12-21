@@ -136,12 +136,8 @@ local products: { [string]: { [string]: Product } } = {
             ImageId = Images.Pets.Eggs.Blue,
             IsConsumable = true,
             ConsumeImmediately = true,
-            RobuxData = {
-                Cost = 99,
-                DeveloperProductId = 1335900877,
-            },
             CoinData = {
-                Cost = 5,
+                Cost = 125,
             },
             Metadata = {
                 PetEggName = "Common",
@@ -158,6 +154,9 @@ local products: { [string]: { [string]: Product } } = {
             RobuxData = {
                 Cost = 149,
                 DeveloperProductId = 1339311091,
+            },
+            CoinData = {
+                Cost = 350,
             },
             Metadata = {
                 PetEggName = "Rare",
