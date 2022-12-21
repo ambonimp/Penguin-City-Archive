@@ -159,7 +159,7 @@ function SessionService.Start()
                 local session = SessionService.getSession(player)
                 local product = ProductUtil.getToolProduct(tool.CategoryName, tool.ToolId)
                 if session and product then
-                    session:ProductEquipped(product)
+                    session:ProductUnequipped(product)
                 end
             end)
         end
