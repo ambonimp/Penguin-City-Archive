@@ -32,11 +32,13 @@ TutorialConstants.StartingAppearance = {
         {},
         {
             BodyType = { "Kid" },
-            Outfit = { OutfitConstants.Items.Boy.Name },
+            Shirt = { ShirtConstants.Items.Classic_Teal_Sweater.Name },
+            Pants = { PantsConstants.Items.Blue_Jeans.Name },
         },
         {
             BodyType = { "Kid" },
-            Outfit = { OutfitConstants.Items.Girl.Name },
+            Shirt = { ShirtConstants.Items.Classic_Pink_Sweater.Name },
+            Pants = { PantsConstants.Items.Pink_Skirt.Name },
         },
         {
             BodyType = { "Adult" },
