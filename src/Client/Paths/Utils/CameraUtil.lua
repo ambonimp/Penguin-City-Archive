@@ -67,7 +67,7 @@ function CameraUtil.lookAtModelInViewport(
     camera.Parent = viewport
     viewport.CurrentCamera = camera
 
-    local clone = doClone and model:Clone() or model
+    local clone = if doClone then model:Clone() else model
     clone.Parent = Workspace
 
     local size = clone:GetExtentsSize()

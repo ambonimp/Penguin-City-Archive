@@ -138,10 +138,9 @@ items["Pizza_Chef"] = {
     Price = 250,
     Icon = nil,
     Items = {
-        Shirt = { ShirtConstants.Items.Peach_Parisan_Blouse.Name },
-        Pants = { PantsConstants.Items.Peach_Parisan_Skirt.Name },
-        Hat = { HatConstants.Items.Peach_Bucket_Hat.Name },
-        Shoes = { ShoesConstants.Items.Peach_Sneakers.Name },
+        Shirt = { ShirtConstants.Items.Pizza_Chefs_Jacket.Name },
+        Pants = { PantsConstants.Items.White_Pants.Name },
+        Hat = { HatConstants.Items.Chef_Hat.Name },
     },
     ForSale = true,
 }
