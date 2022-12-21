@@ -16,12 +16,13 @@ for categoryName, tools in pairs(ToolConstants.Tools) do
             Type = ProductConstants.ProductType.Tool,
             DisplayName = tool.DisplayName,
             CoinData = {
-                Cost = tool.Price, --!! Temp
+                Cost = tool.Price,
             },
             Metadata = {
                 CategoryName = categoryName,
                 ToolId = tool.Id,
                 Model = ToolUtil.getModel(ToolUtil.tool(categoryName, tool.Id)),
+                Rotation = tool.Rotation or CFrame.new(),
             },
         }
 

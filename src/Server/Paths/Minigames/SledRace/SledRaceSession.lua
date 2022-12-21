@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Shared.Maid)
 local Remotes = require(Paths.Shared.Remotes)
 local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
 local SledRaceUtil = require(Paths.Shared.Minigames.SledRace.SledRaceUtil)
@@ -17,9 +17,16 @@ local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local QueueStationService = require(Paths.Server.Minigames.QueueStationService)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local CurrencyService = require(Paths.Server.CurrencyService)
+local Signal = require(Paths.Shared.Signal)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
+
+export type SledRaceSession = typeof(SledRaceSession.new())
 
 local XY = Vector3.new(1, 0, 1)
 local CLIENT_STUD_DISCREPANCY_ALLOWANCE = 2
+
+SledRaceSession.CollectableCollected = Signal.new() -- { session: SledRaceSession.SledRaceSession, player: Player, collectableType: string }
 
 function SledRaceSession.new(...: any)
     local minigameSession = MinigameSession.new(...)
@@ -33,8 +40,8 @@ function SledRaceSession.new(...: any)
     local mapOrigin: CFrame = SledRaceUtil.getMapOrigin(map)
     local mapDirection: CFrame = mapOrigin.Rotation
 
-    local stateJanitor = Janitor.new()
-    minigameSession:GetJanitor():Add(stateJanitor)
+    local stateMaid = Maid.new()
+    minigameSession:GetMaid():GiveTask(stateMaid)
 
     local participantData: {
         [Player]: {
@@ -104,9 +111,13 @@ function SledRaceSession.new(...: any)
         end
 
         -- Validate speeds
-        stateJanitor:Add(RunService.Heartbeat:Connect(function(dt)
+        stateMaid:GiveTask(RunService.Heartbeat:Connect(function(dt)
             for participant, data in pairs(participantData) do
                 local character = participant.Character
+                -- CONTINUE: Player left minigame
+                if not character then
+                    continue
+                end
 
                 local position: Vector3 = character.PrimaryPart.Position
                 local velocity: number = (mapDirection:PointToObjectSpace(position - data.Position) * XY).Magnitude / dt
@@ -119,18 +130,39 @@ function SledRaceSession.new(...: any)
         end))
 
         collectables = SledRaceMap.loadCollectables(map)
-        stateJanitor:Add(collectables)
+        stateMaid:GiveTask(collectables)
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.Core, function()
         local startTime = os.clock()
         local finished: { Player } = {}
 
+        local function onFinishLineReached(player: Player)
+            if not minigameSession:IsPlayerParticipant(player) or table.find(finished, player) then
+                return
+            end
+
+            table.insert(finished, player)
+            minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
+
+            warn("FINISH LINE REACHED")
+
+            if #finished == #minigameSession:GetParticipants() then
+                if minigameSession:GetState() == MinigameConstants.States.Core then
+                    minigameSession:ChangeState(MinigameConstants.States.AwardShow)
+                else
+                    warn("WHHSHSHSHSH")
+                end
+            else
+                warn("WHAHAHAHAH")
+            end
+        end
+
         for _, partipant in pairs(minigameSession:GetParticipants()) do
             SledRaceUtil.unanchorSled(partipant)
         end
 
-        stateJanitor:Add(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
+        stateMaid:GiveTask(Remotes.bindEventTemp("SledRaceCollectableCollected", function(player: Player, collectable: Model)
             -- RETURN: Collectable has already been collected or doesn't exist anymore
             if collectable.Parent ~= collectables then
                 return
@@ -161,34 +193,45 @@ function SledRaceSession.new(...: any)
                 applySpeedModifier(player, SledRaceConstants.BoostSpeedAdded)
                 collectable:Destroy()
                 -- TODO: Play animation
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Boost")
             elseif SledRaceUtil.collectableIsA(collectable, "Obstacle") then
                 applySpeedModifier(player, -SledRaceConstants.ObstacleSpeedMinuend)
                 collectable:Destroy()
                 -- TODO: Play animation
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Obstacle")
             elseif SledRaceUtil.collectableIsA(collectable, "Coin") then
                 data.Coins += SledRaceConstants.CoinValue
+
+                -- Inform
+                SledRaceSession.CollectableCollected:Fire(minigameSession, player, "Coin")
             end
         end))
 
-        stateJanitor:Add(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
+        stateMaid:GiveTask(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
-            if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
-                table.insert(finished, player)
-                minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
-
-                if #finished == #minigameSession:GetParticipants() then
-                    if minigameSession:GetState() == MinigameConstants.States.Core then
-                        minigameSession:ChangeState(MinigameConstants.States.AwardShow)
-                    end
-                end
+            if player then
+                onFinishLineReached(player)
             end
         end))
     end, function()
-        stateJanitor:Cleanup()
+        stateMaid:Cleanup()
     end)
 
     minigameSession:RegisterStateCallbacks(MinigameConstants.States.AwardShow, function()
-        stateJanitor:Cleanup()
+        for participant, data in pairs(participantData) do
+            local coins = data.Coins
+            if coins then
+                CurrencyService.injectCoins(participant, coins, {
+                    OverrideClient = true,
+                    InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameSession:GetMinigameName(), true),
+                })
+            end
+        end
+        stateMaid:Cleanup()
         participantData = {}
     end, function()
         -- Respawn at spawn points

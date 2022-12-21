@@ -12,9 +12,12 @@ local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InputController = require(Paths.Client.Input.InputController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local UIController = require(Paths.Client.UI.UIController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 type ToolClientHandler = {
     equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
@@ -89,6 +92,11 @@ function ToolController.Start()
                 return
             end
 
+            -- RETURN: Not in a permissive UI State
+            if not UIUtil.isStateActivateToolPermissive(UIController.getStateMachine():GetState()) then
+                return
+            end
+
             local toolClientHandler = getToolClientHandler(equippedTool)
             local activatedLocally = toolClientHandler and toolClientHandler.activatedLocally
                 or getDefaultToolClientHandler().activatedLocally
@@ -156,6 +164,20 @@ function ToolController.Start()
             end
         end)
     end
+
+    -- Unequip in non-equip zones
+    do
+        local function unequipIfZoneIsBad(zone: ZoneConstants.Zone)
+            if not ToolUtil.canEquipToolInZone(zone) and ToolController.getEquipped() then
+                ToolController.unequip()
+            end
+        end
+
+        ZoneController.ZoneChanged:Connect(function(_fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone)
+            unequipIfZoneIsBad(toZone)
+        end)
+        unequipIfZoneIsBad(ZoneController.getCurrentZone())
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -220,9 +242,10 @@ function ToolController.holster(tool: ToolUtil.Tool)
         return
     end
 
-    -- RETURN: Too many holstered tools!
+    --Instead of returning, unholster first holstered tool and holster new request
     if #holsteredTools >= ToolConstants.MaxHolsteredTools then
-        return
+        local holstedTool1 = ToolController.getHolsteredTools()[1]
+        ToolController.unholster(holstedTool1)
     end
 
     -- Add to cache + inform
@@ -253,6 +276,11 @@ end
 
 -- Has the player hold the tool
 function ToolController.equipRequest(tool: ToolUtil.Tool)
+    -- RETURN: Not in an equip zone!
+    if not ToolUtil.canEquipToolInZone(ZoneController.getCurrentZone()) then
+        return
+    end
+
     -- RETURN: Already equipped!
     if ToolController.isEquipped(tool) then
         return

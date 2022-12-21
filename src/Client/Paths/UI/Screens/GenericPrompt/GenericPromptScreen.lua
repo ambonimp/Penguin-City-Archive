@@ -7,25 +7,29 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 
 local BACKGROUND_ROTATE_TWEEN_INFO = TweenInfo.new(8, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, math.huge)
 
 local screenGui: ScreenGui = Ui.GenericPrompt
-local contents: Frame = screenGui.Back.Contents
+local backFrame: Frame = screenGui.Back
+local contents: Frame = backFrame.Contents
 local titleLabel: TextLabel = contents.Text.Title
 local descriptionLabel: TextLabel = contents.Text.Description
 local leftButtonFrame: Frame = contents.Buttons.Left
 local rightButtonFrame: Frame = contents.Buttons.Right
 local middleFrame: Frame = contents.Middle
-local closeButtonFrame: Frame = screenGui.Back.CloseButton
+local closeButtonFrame: Frame = backFrame.CloseButton
 local backgroundFrame: ImageLabel = screenGui.Background
 
 local leftButton = KeyboardButton.new()
 local rightButton = KeyboardButton.new()
 local closeButton = ExitButton.new(UIConstants.States.GenericPrompt)
+
+local middleFrameSizeYOffset = middleFrame.Size.Y.Offset
+local backFrameSize = backFrame.Size
 
 local openMaid = Maid.new()
 
@@ -71,11 +75,19 @@ function GenericPromptScreen.boot(data: table)
     local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.RightButton
     local background: { Blur: boolean?, Image: string?, DoRotate: boolean? }? = data.Background
 
+    -- Title/Description
     titleLabel.Text = title or "Title"
     descriptionLabel.Text = description or "Description"
 
+    -- Middle
     if middleMounter then
+        middleFrame.Visible = true
+        backFrame.Size = backFrameSize
+
         middleMounter(middleFrame, openMaid)
+    else
+        middleFrame.Visible = false
+        backFrame.Size = backFrameSize - UDim2.fromOffset(0, middleFrameSizeYOffset)
     end
 
     leftButtonData = leftButtonData or {}

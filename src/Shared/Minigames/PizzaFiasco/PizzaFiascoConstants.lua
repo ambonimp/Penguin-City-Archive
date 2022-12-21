@@ -30,9 +30,9 @@ local sessionConfig: MinigameConstants.SessionConfig = {
 PizzaFiascoConstants.SessionConfig = sessionConfig
 
 PizzaFiascoConstants.Reward = {
-    Base = 5, -- Base coins to reward for 1 correct pizza
-    IncreaseEvery = 5, -- Increase the coin reward every x pizzas
-    IncreaseBy = 5, -- How much to increase the coin reward by
+    Base = 2, -- Base coins to reward for 1 correct pizza
+    IncreaseEvery = 4, -- Increase the coin reward every x pizzas
+    IncreaseBy = 1, -- How much to increase the coin reward by
 }
 
 PizzaFiascoConstants.Conveyor = {

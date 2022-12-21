@@ -11,9 +11,12 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local ToolController = require(Paths.Client.Tools.ToolController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+local MobileScreen = require(Paths.Client.UI.Screens.MobileButtons.MobileActionButtons)
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local BUTTON_PROPERTIES = {
     Position = UDim2.fromScale(0.5, 0.5),
@@ -29,7 +32,14 @@ local screenGui: ScreenGui = Ui.HUD
 local maximizeCallbacks: { () -> () } = {}
 local minimizeCallbacks: { () -> () } = {}
 local toolbarMaid = Maid.new()
+
 local inventoryButton: AnimatedButton.AnimatedButton
+local rewardsButton: AnimatedButton.AnimatedButton
+local mapButton: AnimatedButton.AnimatedButton
+local iglooButton: AnimatedButton.AnimatedButton
+local stampBookButton: AnimatedButton.AnimatedButton
+local clothingButton: AnimatedButton.AnimatedButton
+local settingsButton: AnimatedButton.AnimatedButton
 
 local function isIglooButtonEdit()
     -- FALSE: Not in a house
@@ -70,7 +80,9 @@ local function igloo(button: AnimatedButton.AnimatedButton)
                 InteriorPlot = uiStateMachine:GetData().InteriorPlot,
             })
         else
-            ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone())
+            ZoneController.teleportToRoomRequest(ZoneController.getLocalHouseInteriorZone(), {
+                TravelMethod = ZoneConstants.TravelMethod.HUD,
+            })
         end
     end)
 end
@@ -96,6 +108,13 @@ local function inventory(button: AnimatedButton.AnimatedButton)
     button:GetButtonObject().Image = Images.ButtonIcons.Inventory
     button.Pressed:Connect(function()
         uiStateMachine:Push(UIConstants.States.Inventory)
+    end)
+end
+
+local function settings(button: AnimatedButton.AnimatedButton)
+    button:GetButtonObject().Image = Images.ButtonIcons.Settings
+    button.Pressed:Connect(function()
+        uiStateMachine:Push(UIConstants.States.Settings)
     end)
 end
 
@@ -179,12 +198,13 @@ function HUDScreen.Init()
         end
 
         -- Create Buttons
-        local iglooButton = createAnimatedButton(screenGui.Right.Igloo)
-        local clothingButton = createAnimatedButton(screenGui.Right.Clothing)
-        local mapButton = createAnimatedButton(screenGui.Right.Map)
-        local rewardsButton = createAnimatedButton(screenGui.Right.Rewards)
-        local stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
+        iglooButton = createAnimatedButton(screenGui.Right.Igloo)
+        clothingButton = createAnimatedButton(screenGui.Right.Clothing)
+        mapButton = createAnimatedButton(screenGui.Right.Map)
+        stampBookButton = createAnimatedButton(screenGui.Right.StampBook)
         inventoryButton = createAnimatedButton(screenGui.Bottom.Inventory)
+        rewardsButton = createAnimatedButton(screenGui.Left.Rewards)
+        settingsButton = createAnimatedButton(screenGui.Left.Settings)
 
         dailyRewards(rewardsButton)
         map(mapButton)
@@ -192,6 +212,7 @@ function HUDScreen.Init()
         stampBook(stampBookButton)
         clothing(clothingButton)
         inventory(inventoryButton)
+        settings(settingsButton)
 
         -- Igloo Button (toggle edit look)
         do
@@ -250,10 +271,6 @@ function HUDScreen.Init()
     })
 end
 
-function HUDScreen.getInventoryButton()
-    return inventoryButton
-end
-
 function HUDScreen.maximize()
     for _, callback in pairs(maximizeCallbacks) do
         task.spawn(callback)
@@ -261,7 +278,10 @@ function HUDScreen.maximize()
 
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
+    ScreenUtil.inRight(screenGui.Left)
     screenGui.Enabled = true
+
+    MobileScreen.maximize()
 end
 
 function HUDScreen.minimize()
@@ -271,6 +291,37 @@ function HUDScreen.minimize()
 
     ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
+    ScreenUtil.outLeft(screenGui.Left)
+
+    MobileScreen.minimize()
+end
+
+-------------------------------------------------------------------------------
+-- Getters
+-------------------------------------------------------------------------------
+
+function HUDScreen.getInventoryButton()
+    return inventoryButton
+end
+
+function HUDScreen.getRewardsButton()
+    return rewardsButton
+end
+
+function HUDScreen.getMapButton()
+    return mapButton
+end
+
+function HUDScreen.getIglooButton()
+    return iglooButton
+end
+
+function HUDScreen.getStampBookButton()
+    return stampBookButton
+end
+
+function HUDScreen.getClothingButton()
+    return clothingButton
 end
 
 return HUDScreen

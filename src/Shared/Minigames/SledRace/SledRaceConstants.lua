@@ -9,7 +9,7 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     MaxParticipants = 4,
     StrictlyEnforcePlayerCount = false,
     -- State lengths
-    IntermissionLength = 15,
+    IntermissionLength = 5,
     CoreLength = 70,
     AwardShowLength = 5,
     CoreCountdown = true,
@@ -21,34 +21,36 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     ScoreFormatter = function(score: number): string
         return (score / 10 ^ 2) .. "s"
     end,
-    Reward = function(placement): number
-        if placement == 1 then
-            return 35
-        elseif placement == 2 then
-            return 25
-        elseif placement == 3 then
-            return 15
-        else
-            return 10
+    Reward = function(placement, _, isMultiplayer): number
+        if isMultiplayer then
+            if placement == 1 then
+                return 35
+            elseif placement == 2 then
+                return 25
+            elseif placement == 3 then
+                return 15
+            end
         end
+
+        return 10
     end,
 }
 
 SledRaceConstants.SessionConfig = sessionConfig
 
-SledRaceConstants.SteeringControllerGains = {
-    Kp = 100,
-    Kd = 15,
-}
-
 SledRaceConstants.SledName = "SledRaceSled"
 SledRaceConstants.SledPhysicalProperties = PhysicalProperties.new(
-    10, -- density
+    100, -- density
     0, -- friction
-    0.1, -- elasticity
+    0, -- elasticity
     200, -- frictionWeight
     200 -- elasticityWeight
 )
+
+SledRaceConstants.SteeringControllerGains = {
+    Kp = math.rad(80),
+    Kd = math.rad(10),
+}
 
 SledRaceConstants.AngularAcceleration = math.rad(35)
 SledRaceConstants.MaxSteerAngle = math.rad(60)
@@ -70,7 +72,7 @@ SledRaceConstants.Collectables = {
     Coin = { Tag = "SledRaceCoin", Occupancy = 0.15 },
 }
 
-SledRaceConstants.CoinsPerCollectable = 12
-SledRaceConstants.CoinValue = 4
+SledRaceConstants.CoinsPerCollectable = 6
+SledRaceConstants.CoinValue = 1
 
 return SledRaceConstants

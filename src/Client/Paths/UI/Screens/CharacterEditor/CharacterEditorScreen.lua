@@ -1,7 +1,8 @@
 local CharacterEditorScreen = {}
+
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Shared.Maid)
 local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
 local Promise = require(Paths.Packages.promise)
 local Remotes = require(Paths.Shared.Remotes)
@@ -16,6 +17,9 @@ local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local ProductController = require(Paths.Client.ProductController)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
+local Products = require(Paths.Shared.Products.Products)
 
 export type EquippedItems = { string }
 
@@ -37,11 +41,13 @@ panel:SetSize(4)
 panel:Mount(screen)
 panel:GetContainer().Visible = false
 local equipSlots: Frame = screen.EquipSlots
+local bodyTypeList: Frame = screen.BodyTypes
 
-local tabJanitor = Janitor.new()
+local tabMaid = Maid.new()
 
 local previewCharacter, previewMaid
 local equippedItems: { [string]: EquippedItems } = {}
+local bootCallbacks: { () -> any } = {}
 
 local uiStateMachine = UIController.getStateMachine()
 
@@ -60,7 +66,44 @@ do
         local categoryName: string = keyValuePair.Key
         local categoryConstants: CharacterItemConstants.Category = keyValuePair.Value
 
-        if categoryName ~= "BodyType" then
+        if categoryName == "BodyType" then
+            local equipped: string
+
+            for itemKey, itemConstants in pairs(categoryConstants.Items) do
+                local button = Paths.Templates.CharacterEditor.BodyType:Clone()
+                button.Name = itemKey
+                button.Parent = bodyTypeList
+                button.BackgroundColor3 = UIConstants.Colors.Buttons.White
+                button.LayoutOrder = itemConstants.LayoutOrder
+                button.Icon.Image = itemConstants.Icon
+
+                local function equip(doUpdateAppearance: boolean)
+                    if equipped then
+                        bodyTypeList[equipped].BackgroundColor3 = UIConstants.Colors.Buttons.White
+                    end
+
+                    equipped = itemKey
+
+                    local equippedItem = { itemKey }
+                    equippedItems.BodyType = equippedItem
+                    if doUpdateAppearance then
+                        updateAppearance({ BodyType = equippedItem })
+                    end
+
+                    button.BackgroundColor3 = UIConstants.Colors.Buttons.SelectedYellow
+                end
+
+                button.MouseButton1Down:Connect(function()
+                    equip(true)
+                end)
+
+                table.insert(bootCallbacks, function()
+                    if DataController.get("CharacterAppearance." .. categoryName)["1"] == itemKey then
+                        equip(false)
+                    end
+                end)
+            end
+        else
             local canEquip: boolean = categoryConstants.MaxEquippables ~= 0
             local canUnequip: boolean = categoryConstants.CanUnequip
             local maxEquippables: number = categoryConstants.MaxEquippables
@@ -69,16 +112,16 @@ do
             -------------------------------------------------------------------------------
             -- Equipping
             -------------------------------------------------------------------------------
-            local function unequipItem(itemName: string, doNotUpdateAppearance: true?)
-                table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemName))
+            local function unequipItem(itemKey: string, doNotUpdateAppearance: true?)
+                table.remove(equippedItems[categoryName], table.find(equippedItems[categoryName], itemKey))
                 if not doNotUpdateAppearance then
                     updateAppearance({ [categoryName] = equippedItems[categoryName] })
                 end
 
-                panel:SetWidgetSelected(categoryName, itemName, false)
+                panel:SetWidgetSelected(categoryName, itemKey, false)
             end
 
-            local function equipItem(itemName: string, doNotUpdateAppearance: true?)
+            local function equipItem(itemKey: string, doNotUpdateAppearance: true?)
                 if canMultiEquip then
                     if #equippedItems[categoryName] == maxEquippables then
                         return
@@ -91,40 +134,47 @@ do
                     end
                 end
 
-                table.insert(equippedItems[categoryName], itemName)
+                table.insert(equippedItems[categoryName], itemKey)
                 if not doNotUpdateAppearance then
                     updateAppearance({ [categoryName] = equippedItems[categoryName] })
                 end
 
-                panel:SetWidgetSelected(categoryName, itemName, true)
+                panel:SetWidgetSelected(categoryName, itemKey, true)
             end
 
             local function bulkEquip(equipping: EquippedItems, doNotUpdateAppearance: true?)
-                for _, itemName in pairs(equipping) do
-                    equipItem(itemName, doNotUpdateAppearance)
+                for _, itemKey in pairs(equipping) do
+                    equipItem(itemKey, doNotUpdateAppearance)
                 end
             end
 
             -------------------------------------------------------------------------------
             -- Interface
             -------------------------------------------------------------------------------
-            panel:AddTab(categoryName, categoryConstants.TabIcon)
-            for itemName in pairs(categoryConstants.Items) do
-                local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+            local function displayItem(itemKey: string)
+                local itemConstants = categoryConstants.Items[itemKey]
+                local product = ProductUtil.getCharacterItemProduct(categoryName, itemKey)
 
-                panel:AddWidgetFromProduct(categoryName, itemName, false, product, {
+                -- RETURN: Product isn't owned and not for sale
+                if panel:HasWidget(categoryName, itemKey) or not (itemConstants.ForSale or ProductController.hasProduct(product)) then
+                    return
+                end
+
+                local slotTask
+
+                panel:AddWidgetFromProduct(categoryName, itemKey, false, product, {
                     VerifyOwnership = true,
                     HideText = true,
                 }, function()
                     if canEquip then
-                        local isEquipped = table.find(equippedItems[categoryName], itemName)
+                        local isEquipped = table.find(equippedItems[categoryName], itemKey)
                         if canUnequip and isEquipped then
-                            unequipItem(itemName)
+                            unequipItem(itemKey)
                         elseif not isEquipped then
-                            equipItem(itemName)
+                            equipItem(itemKey)
                         end
                     elseif categoryName == "Outfit" then
-                        local changedItems = updateAppearance({ [categoryName] = { itemName } })
+                        local changedItems = updateAppearance({ [categoryName] = { itemKey } })
                         for category, items in pairs(changedItems) do
                             for _, item in pairs(equippedItems[category]) do
                                 panel:SetWidgetSelected(category, item, false)
@@ -138,39 +188,64 @@ do
                     end
                 end, function(widget)
                     if canMultiEquip then
-                        local slotTask = itemName .. "Slot"
                         widget.SelectedChanged:Connect(function(selected)
                             if selected then
                                 local unequipButton = ExitButton.new()
                                 unequipButton.Pressed:Connect(function()
-                                    unequipItem(itemName)
+                                    unequipItem(itemKey)
                                 end)
 
                                 local slot = Widget.diverseWidgetFromProduct(product, { HideText = true })
                                 slot:SetCornerButton(unequipButton)
                                 slot:Mount(equipSlots)
 
-                                tabJanitor:Add(function()
+                                slotTask = tabMaid:GiveTask(function()
                                     slot:Destroy()
-                                    unequipButton:GetMaid():Cleanup()
-                                end, nil, slotTask)
+                                    unequipButton:Destroy()
+
+                                    slotTask = nil
+                                end)
                             else
-                                tabJanitor:Remove(slotTask)
+                                if slotTask then
+                                    tabMaid:EndTask(slotTask)
+                                end
                             end
                         end)
                     end
                 end)
             end
 
+            panel:AddTab(categoryName, categoryConstants.TabIcon)
+
+            -- Display items
+            for itemKey in pairs(categoryConstants.Items) do
+                displayItem(itemKey)
+            end
+
+            -- Display items that aren't for sale when obtained
+            ProductController.ProductAdded:Connect(function(product: Products.Product)
+                -- RETURN: Product must e
+                if product.Type ~= ProductConstants.ProductType.CharacterItem then
+                    return
+                end
+
+                local metadata = product.Metadata
+                if metadata.CategoryName == categoryName then
+                    displayItem(metadata.ItemKey)
+                end
+            end)
+
             if canEquip then
                 equippedItems[categoryName] = {}
-                bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                table.insert(bootCallbacks, function()
+                    bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
+                end)
             end
         end
     end
 
     panel.TabChanged:Connect(function()
-        tabJanitor:Cleanup()
+        tabMaid:Cleanup()
     end)
 end
 
@@ -192,6 +267,11 @@ do
         if not character then
             uiStateMachine:Pop()
             return
+        end
+
+        -- Callbacks
+        for _, bootCallback in pairs(bootCallbacks) do
+            bootCallback()
         end
 
         -- Only open character editor when the player is on the floor
@@ -243,19 +323,21 @@ do
 
     local function maximize()
         ScreenUtil.inLeft(panel:GetContainer())
+        ScreenUtil.inRight(bodyTypeList)
         ScreenUtil.inUp(equipSlots)
     end
 
     local function minimize()
         ScreenUtil.out(panel:GetContainer())
         ScreenUtil.out(equipSlots)
+        ScreenUtil.out(bodyTypeList)
     end
 
     local function shutdown()
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
-        if characterStatus ~= Promise.Status.Resolved then
+        if characterIsReady and characterStatus ~= Promise.Status.Resolved then
             characterIsReady:Cancel()
             characterIsReady:Destroy()
         else

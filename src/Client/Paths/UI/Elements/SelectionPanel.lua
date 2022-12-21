@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIElement = require(Paths.Client.UI.Elements.UIElement)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local Button = require(Paths.Client.UI.Elements.Button)
 local Signal = require(Paths.Shared.Signal)
@@ -596,7 +596,7 @@ function SelectionPanel.new()
         end)
     end
 
-    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, toggle: boolean)
+    function selectionPanel:HasWidget(tabName: string, widgetName: string)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then
@@ -606,10 +606,27 @@ function SelectionPanel.new()
 
         for _, widgetInfo in pairs(tab.WidgetConstructors) do
             if widgetInfo.WidgetName == widgetName then
-                widgetInfo.Selected = toggle
+                return true
+            end
+        end
+
+        return false
+    end
+
+    function selectionPanel:SetWidgetSelected(tabName: string, widgetName, isSelected: boolean)
+        -- WARN: Bad tab
+        local tab = getTab(tabName)
+        if not tab then
+            warn(("No tab %q exits"):format(tabName))
+            return
+        end
+
+        for _, widgetInfo in pairs(tab.WidgetConstructors) do
+            if widgetInfo.WidgetName == widgetName then
+                widgetInfo.Selected = isSelected
                 local widget = widgetInfo.Instance
                 if widget then
-                    widget:SetSelected(toggle)
+                    widget:SetSelected(isSelected)
                 end
 
                 break

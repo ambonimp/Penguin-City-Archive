@@ -25,7 +25,7 @@ local function createSession(minigame: string, participants: { Player }, isMulti
 
     local session = sessionClasses[minigame].new(minigame, id, participants, isMultiplayer, queueStation)
     activeSessions[minigame][id] = session
-    session:GetJanitor():Add(function()
+    session:GetMaid():GiveTask(function()
         activeSessions[minigame][id] = nil
     end)
 end
@@ -39,17 +39,6 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         return
     end
 
-    -- RETURN: Player is already in a queue
-    if multiplayer then
-        for _, queues in pairs(activeQueues) do
-            for _, queue in pairs(queues) do
-                if queue:IsParticipant(player) then
-                    return
-                end
-            end
-        end
-    end
-
     local sessionConfig = MinigameUtil.getsessionConfig(minigame)
     if multiplayer then
         -- RETURN: No multiplayer support
@@ -58,48 +47,50 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
             return
         end
 
-        -- Search for existing session
-        local potentialactiveSessions = {}
-        for _, sessions in pairs(activeSessions) do
-            for _, session in pairs(sessions) do
-                if session:IsAcceptingNewParticipants() then
-                    table.insert(potentialactiveSessions, session)
+        -- RETURN: Player is already in a queue
+        for _, queues in pairs(activeQueues) do
+            for _, queue in pairs(queues) do
+                if queue:IsParticipant(player) then
+                    return
                 end
             end
         end
 
-        if #potentialactiveSessions == 0 then
-            local queueJoining
-            local potentialQueues = activeQueues[minigame]
-
-            if queueStation then
-                for _, queue in pairs(potentialQueues) do
-                    if queue:GetStation() == queueStation then
-                        queueJoining = queue
-                    end
-                end
-            else
-                queueJoining = potentialQueues[1]
+        -- Search for existing session
+        for _, session in pairs(activeSessions[minigame]) do
+            if session:IsAcceptingNewParticipants() then
+                session:AddParticipant(player)
+                return
             end
+        end
 
-            if queueJoining then
-                queueJoining:AddParticipant(player)
-            else
-                queueJoining = MinigameQueue.new(minigame, queueStation)
-                queueJoining:GetJanitor():Add(function()
-                    task.defer(function()
-                        table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
-                        createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
-                    end)
-                end)
+        -- Couldn't find any, look for queues
+        local queueJoining
+        local potentialQueues = activeQueues[minigame]
 
-                table.insert(potentialQueues, queueJoining)
-                queueJoining:AddParticipant(player)
+        if queueStation then
+            for _, queue in pairs(potentialQueues) do
+                if queue:GetStation() == queueStation then
+                    queueJoining = queue
+                end
             end
         else
-            -- TODO: Prioritize minigames the player has friends in
-            local session = potentialactiveSessions[1]
-            session:AddParticipant(player)
+            queueJoining = potentialQueues[1]
+        end
+
+        if queueJoining then
+            queueJoining:AddParticipant(player)
+        else
+            queueJoining = MinigameQueue.new(minigame, queueStation)
+            queueJoining:GetMaid():GiveTask(function()
+                task.defer(function()
+                    table.remove(potentialQueues, table.find(potentialQueues, queueJoining))
+                    createSession(minigame, queueJoining:GetParticipants(), true, queueStation)
+                end)
+            end)
+
+            table.insert(potentialQueues, queueJoining)
+            queueJoining:AddParticipant(player)
         end
     else
         -- RETURN: No single player support

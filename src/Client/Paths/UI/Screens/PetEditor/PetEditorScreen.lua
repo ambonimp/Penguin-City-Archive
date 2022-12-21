@@ -7,7 +7,7 @@ local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local PetConstants = require(Paths.Shared.Pets.PetConstants)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
@@ -58,7 +58,7 @@ local function filterAndUpdateNameFromTextbox()
 
     unfocus()
 
-    local newDirtyName = textBox.Text
+    local newDirtyName = textBox.Text:sub(0, PetConstants.PetNameCharacterLimit)
 
     local filteredName = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
     local wasFiltered = (filteredName == nil) or TextFilterUtil.wasFiltered(newDirtyName, filteredName)

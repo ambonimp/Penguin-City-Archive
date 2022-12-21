@@ -13,7 +13,7 @@ local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local CameraController = require(Paths.Client.CameraController)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local Transitions = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
+local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitions.BlinkTransition)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
@@ -21,6 +21,10 @@ local Sound = require(Paths.Shared.Sound)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
+local BLINK_OPTIONS: BlinkTransition.Options = {
+    DoShowVoldexLoading = true,
+    Scope = "Minigames",
+}
 
 local START_MENU_BACKGROUND_TRANSPARENCY = 0.3
 local EXIT_BUTTON_TEXT = "Go Back"
@@ -50,6 +54,7 @@ local multiplayerMenu = startMenus.Multiplayer
 
 local standingsFrame: Frame = sharedScreens.Standings
 local resultsFrame: Frame = sharedScreens.Results
+local gameplayExitButtonFrame: Frame = sharedScreens.GameplayExitButton
 
 local statusFrame: Frame = sharedScreens.Status
 local statusText: TextLabel = statusFrame.Text
@@ -61,6 +66,7 @@ local playTween: Tween?
 
 local startInstructionButton = KeyboardButton.new()
 local startExitButton = KeyboardButton.new()
+local gameplayExitButton = KeyboardButton.new()
 
 local standingsClose = KeyboardButton.new()
 local resultsClose = KeyboardButton.new()
@@ -85,26 +91,21 @@ local function getLogo(): string
     return Images[MinigameController.getMinigame()].Logo
 end
 
-local function getCameraGizmo(): Model?
-    local cameras = MinigameController.getMap():FindFirstChild("Cameras")
-    if cameras then
-        return cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
-    end
-end
-
 -------------------------------------------------------------------------------
 -- PUBLIC METHODS
 -------------------------------------------------------------------------------
+function SharedMinigameScreen.toggleCoreCountdownVisibility(isVisible: boolean)
+    coreCountdownLabel.Visible = isVisible
+end
+
 function SharedMinigameScreen.coreCountdown(timeLeft: number)
     local initialLabelSize: UDim2 = Binder.bindFirst(coreCountdownLabel, "InitialSize", coreCountdownLabel.Size)
-    coreCountdownLabel.Visible = false
     coreCountdownLabel.Image = Images.Minigames["Countdown" .. (timeLeft - 1)] :: string
     coreCountdownLabel.Rotation = 90
     coreCountdownLabel.Size = UDim2.new()
 
     Sound.play("Countdown")
 
-    coreCountdownLabel.Visible = true
     TweenUtil.bind(
         coreCountdownLabel,
         COUNTDOWN_BIND_KEY,
@@ -142,6 +143,10 @@ function SharedMinigameScreen.hideStatus()
     statusCounter.Visible = false
 end
 
+function SharedMinigameScreen.toggleExitButton(isVisible: boolean)
+    gameplayExitButtonFrame.Visible = isVisible
+end
+
 function SharedMinigameScreen.openStartMenu()
     startMenus.Visible = true
 
@@ -153,9 +158,12 @@ function SharedMinigameScreen.openStartMenu()
         startMenus.BackgroundTransparency = START_MENU_BACKGROUND_TRANSPARENCY
         singlePlayerMenu.Logo.Image = getLogo()
 
-        local cameraGizmo = getCameraGizmo()
-        if cameraGizmo then
-            CameraController.viewCameraModel(cameraGizmo)
+        local cameras = MinigameController.getMap():FindFirstChild("Cameras")
+        if cameras then
+            local gizmo = cameras:FindFirstChild(START_MENU_CAMERA_GIZMO_NAME)
+            if gizmo then
+                CameraController.viewCameraModel(gizmo)
+            end
         end
 
         ScreenUtil.openBlur()
@@ -177,6 +185,8 @@ function SharedMinigameScreen.openStartMenu()
 
     startInstructionButton:Mount(actions.Instructions, true)
     startExitButton:Mount(actions.Exit, true)
+
+    BlinkTransition.close(BLINK_OPTIONS)
 end
 
 function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -> ()?)
@@ -189,10 +199,8 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
         if not temporary then
             startMenus.BackgroundTransparency = 1
 
-            if getCameraGizmo() then
-                CameraController.setPlayerControl()
-                CameraController.alignCharacter()
-            end
+            CameraController.setPlayerControl()
+            CameraController.alignCharacter()
 
             if playTween then
                 playTween:Cancel()
@@ -210,7 +218,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
     startMenus.Visible = false
     menu.Visible = false
 
-    Transitions.closeBlink()
+    BlinkTransition.close(BLINK_OPTIONS)
 end
 
 function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)
@@ -353,35 +361,43 @@ end
 do
     playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        Transitions.openBlink()
+        BlinkTransition.open(BLINK_OPTIONS)
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")
     end)
 
-    startExitButton = KeyboardButton.new()
     startExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
     startExitButton:SetText(EXIT_BUTTON_TEXT, true)
     startExitButton:SetIcon(Images.Icons.Exit)
     startExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
-    startExitButton.InternalRelease:Connect(function()
+    startExitButton.Pressed:Connect(function()
         Remotes.fireServer("MinigameExited")
     end)
 
-    startInstructionButton = KeyboardButton.new()
     startInstructionButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
     startInstructionButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
     startInstructionButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     startInstructionButton:SetIcon(Images.Icons.Instructions)
-    startInstructionButton.InternalRelease:Connect(function()
+    startInstructionButton.Pressed:Connect(function()
         SharedMinigameScreen.closeStartMenu(true)
         ScreenUtil.inUp(getScreenGui().Instructions)
     end)
+
+    gameplayExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
+    gameplayExitButton:SetText(EXIT_BUTTON_TEXT, true)
+    gameplayExitButton:SetIcon(Images.Icons.Exit)
+    gameplayExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
+    gameplayExitButton.Pressed:Connect(function()
+        Remotes.fireServer("MinigameExited")
+    end)
+    gameplayExitButton:Mount(gameplayExitButtonFrame, true)
 end
 
 -- Register ui states
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, nil, function()
+        SharedMinigameScreen.toggleExitButton(false)
         SharedMinigameScreen.closeStartMenu()
         SharedMinigameScreen.hideStatus()
     end)

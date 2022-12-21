@@ -25,6 +25,10 @@ UIConstants.States = {
     StampInfo = "StampInfo",
     StartingAppearance = "StartingAppearance",
     Map = "Map",
+    Tutorial = "Tutorial",
+    FocalPoint = "FocalPoint",
+    Emotes = "Emotes",
+    Settings = "Settings",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -33,10 +37,12 @@ UIConstants.PseudoStates = {
         UIConstants.States.PlotSettings,
         UIConstants.States.HouseSelectionUI,
         UIConstants.States.Paycheck,
+        UIConstants.States.Tutorial,
     },
 }
 
-UIConstants.InteractionPermissiveStates = { [UIConstants.States.HUD] = true }
+UIConstants.InteractionPermissiveStates = { UIConstants.States.HUD, UIConstants.States.Tutorial }
+UIConstants.ActivateToolPermissiveStates = { UIConstants.States.HUD }
 
 UIConstants.RemoveStatesOnZoneTeleport = {
     UIConstants.States.HouseEditor,
@@ -47,7 +53,7 @@ UIConstants.RemoveStatesOnZoneTeleport = {
 }
 
 -- If any states in here are on the top of the stack, the next visible state below will *also* be treated as being on top of the stack
-UIConstants.InvisibleStates = { UIConstants.States.StampInfo }
+UIConstants.InvisibleStates = { UIConstants.States.StampInfo, UIConstants.States.FocalPoint }
 
 UIConstants.Keybinds = {
     StateCloseCallback = {
@@ -59,6 +65,7 @@ UIConstants.Keybinds = {
 UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Loading,
     UIConstants.States.HUD,
+    UIConstants.States.Minigame,
 }
 
 UIConstants.Font = Enum.Font.GothamBold
@@ -81,6 +88,8 @@ UIConstants.Colors = {
         NextTeal = Color3.fromRGB(50, 195, 185),
         WaitOrange = Color3.fromRGB(255, 151, 32),
         EditOrange = Color3.fromRGB(255, 158, 46),
+        SelectedYellow = Color3.fromRGB(255, 245, 154),
+        White = Color3.fromRGB(251, 252, 255),
     },
 }
 

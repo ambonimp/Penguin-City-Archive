@@ -6,7 +6,7 @@ local CharacterPreview = {}
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CoreGui = require(Paths.Client.UI.CoreGui)
@@ -110,11 +110,11 @@ function CharacterPreview.preview(config: {
     maid:GiveTask(previewCharacter)
 
     -- Disable Core Systems
-    CoreGui.disable()
+    CoreGui.disable("CharacterPreview.preview")
     InteractionUtil.hideInteractions(script.Name)
     CharacterUtil.hideCharacters(script.Name)
     maid:GiveTask(function()
-        CoreGui.enable()
+        CoreGui.enable("CharacterPreview.preview")
         InteractionUtil.showInteractions(script.Name)
         CharacterUtil.showCharacters(script.Name)
     end)
@@ -134,6 +134,7 @@ function CharacterPreview.preview(config: {
     -- Destroy function
     maid:GiveTask(function()
         viewportSizeChanged:Disconnect()
+        ContextActionService:UnbindAction("Rotate")
         ContextActionService:UnbindAction("ToggleRotation")
         CameraController.setPlayerControl()
     end)

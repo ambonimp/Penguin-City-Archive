@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Toggle = require(Shared.Toggle)
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 local CharacterConstants = require(Shared.Constants.CharacterConstants)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
@@ -186,11 +186,11 @@ end
 -------------------------------------------------------------------------------
 
 function CharacterUtil.freeze(character: Model)
-    character.Humanoid.WalkSpeed = 0
+    PropertyStack.setProperties(character.Humanoid, { WalkSpeed = 0 }, "CharacterUtil.freeze")
 end
 
 function CharacterUtil.unfreeze(character: Model)
-    character.Humanoid.WalkSpeed = CharacterConstants.WalkSpeed
+    PropertyStack.clearProperties(character.Humanoid, { WalkSpeed = true }, "CharacterUtil.freeze")
 end
 
 function CharacterUtil.anchor(character: Model)

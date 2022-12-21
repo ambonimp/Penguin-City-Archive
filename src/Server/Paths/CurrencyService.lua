@@ -3,10 +3,24 @@ local CurrencyService = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local DataService = require(Paths.Server.Data.DataService)
-local CurrencyConstants = require(Paths.Shared.Constants.CurrencyConstants)
+local CurrencyConstants = require(Paths.Shared.Currency.CurrencyConstants)
 local Signal = require(Paths.Shared.Signal)
+local Products = require(Paths.Shared.Products.Products)
 
-CurrencyService.CoinsUpdated = Signal.new() -- {player: Player, coins: number, eventMeta: {OverrideClient: boolean}?}
+export type SunkConfig = {
+    OverrideClient: boolean?,
+    Product: Products.Product,
+}
+
+export type InjectConfig = {
+    OverrideClient: boolean?,
+    InjectCategory: string,
+    IsFromRobux: boolean?,
+}
+
+CurrencyService.CoinsUpdated = Signal.new() -- { player: Player, oldCoins: number, newCoins: number }
+CurrencyService.CoinsInjected = Signal.new() -- { player: Player, coinsInjected: number, config: InjectConfig }
+CurrencyService.CoinsSunk = Signal.new() -- { player: Player, coinsSunk: number, config: SunkConfig }
 
 function CurrencyService.getCoins(player: Player)
     return DataService.get(player, CurrencyConstants.DataAddress) :: number
@@ -18,26 +32,26 @@ function CurrencyService.setCoins(player: Player, coins: number, overrideClient:
     })
 end
 
-function CurrencyService.addCoins(player: Player, addCoins: number, overrideClient: boolean?)
-    DataService.increment(player, CurrencyConstants.DataAddress, addCoins, CurrencyConstants.DataUpdatedEvent, {
-        OverrideClient = overrideClient,
+function CurrencyService.injectCoins(player: Player, injectCoins: number, config: InjectConfig)
+    local oldCoins = CurrencyService.getCoins(player)
+
+    DataService.increment(player, CurrencyConstants.DataAddress, injectCoins, CurrencyConstants.DataUpdatedEvent, {
+        OverrideClient = config.OverrideClient,
     })
+
+    CurrencyService.CoinsUpdated:Fire(player, oldCoins, CurrencyService.getCoins(player))
+    CurrencyService.CoinsInjected:Fire(player, injectCoins, config)
 end
 
--- Use this over .addCoins when it is a *reward*. We may want to apply a multiplier here in the future!
-function CurrencyService.rewardCoins(player: Player, addCoins: number, overrideClient: boolean?)
-    local multiplier = 1
-    local finalCoins = addCoins * multiplier
-    CurrencyService.addCoins(player, finalCoins, overrideClient)
+function CurrencyService.sinkCoins(player: Player, sinkCoins: number, config: SunkConfig)
+    local oldCoins = CurrencyService.getCoins(player)
 
-    return finalCoins
+    DataService.increment(player, CurrencyConstants.DataAddress, -sinkCoins, CurrencyConstants.DataUpdatedEvent, {
+        OverrideClient = config.OverrideClient,
+    })
+
+    CurrencyService.CoinsUpdated:Fire(player, oldCoins, CurrencyService.getCoins(player))
+    CurrencyService.CoinsSunk:Fire(player, sinkCoins, config)
 end
-
--- CurrencyService.CoinsUpdated
-DataService.Updated:Connect(function(event: string, player: Player, newValue: any, eventMeta: table?)
-    if event == CurrencyConstants.DataUpdatedEvent then
-        CurrencyService.CoinsUpdated:Fire(player, newValue, eventMeta)
-    end
-end)
 
 return CurrencyService

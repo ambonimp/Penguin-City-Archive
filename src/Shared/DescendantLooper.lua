@@ -4,7 +4,7 @@
 local DescendantLooper = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Maid = require(ReplicatedStorage.Packages.maid)
+local Maid = require(ReplicatedStorage.Shared.Maid)
 
 local THROTTLE_EVERY = 5000 -- Throttle after this many items are iterated over in one call
 
@@ -58,6 +58,30 @@ function DescendantLooper.workspace(
     ignoreAdded: boolean?
 )
     return DescendantLooper.add(checker, callback, { game.Workspace }, ignoreAdded)
+end
+
+--[[
+    Will search descendants of `instances`, return an array of instances that passed `checker` (`checker` returns true)
+]]
+function DescendantLooper.search(instances: { Instance }, checker: (instance: Instance) -> boolean)
+    local winners: { Instance } = {}
+
+    local count = 0
+    for _, parent in pairs(instances) do
+        for _, descendant in pairs(parent:GetDescendants()) do
+            if checker(descendant) then
+                -- Throttle
+                if count % THROTTLE_EVERY == 0 then
+                    task.wait()
+                end
+                count = count + 1
+
+                table.insert(winners, descendant)
+            end
+        end
+    end
+
+    return winners
 end
 
 return DescendantLooper

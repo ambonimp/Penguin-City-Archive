@@ -64,10 +64,12 @@ do --Add House products
         local product = ProductUtil.getProduct("HouseObject", ProductUtil.getBlueprintProductId("Blueprint", name))
         local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true }, function(button)
             button.Pressed:Connect(function()
+                uiStateMachine:PopTo(UIConstants.States.HUD)
                 Remotes.fireServer("ChangeBlueprint", name)
             end)
         end)
 
+        widget:GetGuiObject().LayoutOrder = product.CoinData.Cost
         widget:GetGuiObject().Parent = frame.Center.Houses
         widget:SetSize(HOUSE_WIDGET_SIZE)
     end

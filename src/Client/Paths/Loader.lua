@@ -7,6 +7,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local TransitionFX = require(Paths.Client.UI.Screens.SpecialEffects.Transitions)
 local UIController: typeof(require(Paths.Client.UI.UIController))
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local Signal = require(Paths.Shared.Signal)
 
 type Task = {
     Scope: string,
@@ -18,15 +19,16 @@ local LENGTH = 8
 local FULL = 1.1 -- Gradient has 0.1 ease thing
 local VERIFY_PLAYER_GUI_EVERY = 1
 
+Loader.ClientLoaded = Signal.new() -- Fired when *enough* is loaded for routines to start that need a certain level of "Loaded"
+
 local localPlayer = Players.LocalPlayer
-local character: Model, humanoidRootPart: Part
+local character: Model
 
 local screen: ScreenGui = Paths.UI:WaitForChild("LoadingScreen")
 screen.Enabled = true
 
 local gradient: UIGradient = screen.Logo.Colored.UIGradient
 local skipBtn: ImageButton = screen.Skip
-local skipConn: RBXScriptConnection?
 local tween: Tween?
 local playing = true
 local taskQueue: { Task } = {}
@@ -37,12 +39,13 @@ local function close()
         task.wait()
     until skipBtn.Visible -- Character has loaded flag
 
+    Loader.ClientLoaded:Fire()
+
     playing = false
 
     TransitionFX.blink(function()
         UIController.getStateMachine():Remove(UIConstants.States.Loading)
 
-        humanoidRootPart.Anchored = false
         screen:Destroy()
     end)
 end
@@ -143,21 +146,32 @@ function Loader.Start()
     local totalTasks = #taskQueue
     local tasksCompleted = 0
 
+    -- Wait for character to load
     character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    local _humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     -- Skipping
     task.spawn(function()
-        task.wait(3)
+        local ZoneController = require(Paths.Client.Zones.ZoneController) --needs to be required here, stalls script if required at top of script for some reason
+        local isSkipEnabled = false
 
-        skipBtn.Visible = true
-        skipConn = skipBtn.MouseButton1Down:Connect(function()
-            skipConn:Disconnect()
-            skipConn = nil
-
-            if playing then
-                close()
+        local function enableSkip()
+            if isSkipEnabled then
+                return
             end
+            isSkipEnabled = true
+
+            skipBtn.Visible = true
+            skipBtn.MouseButton1Down:Once(function()
+                if playing then
+                    close()
+                end
+            end)
+        end
+
+        -- Wait for character to pivot to their first zone!
+        ZoneController.ZoneChanged:Connect(function()
+            enableSkip()
         end)
     end)
 

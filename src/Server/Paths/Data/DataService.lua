@@ -7,6 +7,7 @@
 local DataService = {}
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
@@ -15,6 +16,8 @@ local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+
+local DONT_SAVE_DATA = false -- Studio Only for testing
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
@@ -146,6 +149,11 @@ end
 function DataService.unloadPlayer(player)
     local profile = DataService.Profiles[player]
     if profile then
+        -- EDGE CASE: Data saving disabled in studio; wipe it!
+        if DONT_SAVE_DATA and RunService:IsStudio() then
+            DataService.wipe(player)
+        end
+
         -- Data was wiped, reconcile so that stuff unloads properly
         if not profile.Data then
             profile.Data = {}

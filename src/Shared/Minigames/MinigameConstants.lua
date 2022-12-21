@@ -8,7 +8,7 @@ export type Session = {
     Id: number,
 }
 export type PlayRequest = { Session: Session | nil, Error: string | nil }
-export type SortedScores = { { Player: Player, Score: number, NewBest: true? } }
+export type SortedScores = { { Player: Player, Score: number, CoinsEarned: number, NewBest: true?, ConsecutiveWins: number? } }
 export type SessionConfig = {
     -- Size
     MinParticipants: number?,
@@ -26,7 +26,7 @@ export type SessionConfig = {
     --
     HigherScoreWins: boolean,
     ScoreFormatter: ((number) -> (number | string))?,
-    Reward: (placement: number, score: number) -> (number)?,
+    Reward: (placement: number, score: number, isMultiplayer: boolean) -> (number)?,
 }
 
 MinigameConstants.MaximumSufficientlyFilledQueueLength = if GameUtil.isDevGame() or GameUtil.isBranchGame() then 5 else 15
@@ -46,7 +46,7 @@ MinigameConstants.States = {
     AwardShow = "AwardShow",
 }
 
-MinigameConstants.DoDebug = false -- Set to false to stop getting minigame debug messages
+MinigameConstants.DoDebug = true -- Set to false to stop getting minigame debug messages
 MinigameConstants.CoreCountdownLength = 4
 MinigameConstants.BlurSize = 8
 

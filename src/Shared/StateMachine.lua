@@ -317,6 +317,16 @@ function StateMachine:GetState(): string
     return self.stateStack[#self.stateStack]
 end
 
+-- Returns a copy of current stack
+function StateMachine:GetStack()
+    local currentStack: { string } = {}
+    for _, state in pairs(self.stateStack) do
+        table.insert(currentStack, state)
+    end
+
+    return currentStack
+end
+
 --[[
     Pops the state machine if the passed state is on the top of the stack
 ]]
@@ -447,6 +457,7 @@ end
 ]]
 function StateMachine:Destroy()
     self.eventGlobal:Destroy()
+    self.eventGlobal = nil
 end
 
 return StateMachine

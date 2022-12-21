@@ -23,8 +23,13 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
     local jobs: { any } = {}
     local value = initialValue
 
-    -- Change the value, if flipping back the value to the initial value, all jobs must agree
+    --[[
+        Change the value, if flipping back the value to the initial value, all jobs must agree
+        RETURNS: Whether or not value was changed
+    ]]
     function toggle:Set(newValue: boolean, job: any)
+        local changed = false
+
         if newValue ~= initialValue then
             -- RETURN: Job already exists
             if table.find(jobs, job) then
@@ -32,7 +37,8 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
             end
 
             if value ~= newValue then
-                value = true
+                value = not initialValue
+                changed = true
 
                 if onToggled then
                     onToggled(newValue)
@@ -50,13 +56,16 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
             table.remove(jobs, jobIndex)
 
             if #jobs == 0 then
-                value = false
+                value = initialValue
+                changed = true
 
                 if onToggled then
                     onToggled(newValue)
                 end
             end
         end
+
+        return changed
     end
 
     function toggle:RemoveJob(job: any)
@@ -81,6 +90,10 @@ function Toggle.new(initialValue: boolean, onToggled: (value: boolean) -> ()?)
     -- Calls internal onToggled callback without alterating internal workings of Toggle
     function toggle:CallOnToggled(forceValue: boolean)
         onToggled(forceValue)
+    end
+
+    function toggle:GetJobs()
+        return jobs
     end
 
     return toggle

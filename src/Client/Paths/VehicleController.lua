@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local VehicleUtil = require(Paths.Shared.Utils.VehicleUtil)
 
 local camera = workspace.CurrentCamera

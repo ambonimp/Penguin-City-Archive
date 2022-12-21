@@ -11,7 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local CameraController = require(Paths.Client.CameraController)
 local InputController = require(Paths.Client.Input.InputController)
@@ -419,9 +419,12 @@ function PizzaFiascoRunner.new(map: Model, recipeTypeOrder: { string }, finishCa
     end
 
     local function setIngredientLabelVisibility(isVisible: boolean)
-        for _, surfaceGui: SurfaceGui in pairs(map.Labels:GetDescendants()) do
-            if surfaceGui:IsA("SurfaceGui") then
-                surfaceGui.Enabled = isVisible
+        local labels = map:FindFirstChild("Labels")
+        if labels then
+            for _, surfaceGui: SurfaceGui in pairs(map.Labels:GetDescendants()) do
+                if surfaceGui:IsA("SurfaceGui") then
+                    surfaceGui.Enabled = isVisible
+                end
             end
         end
     end

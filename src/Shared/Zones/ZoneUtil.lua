@@ -8,6 +8,7 @@ local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local StringUtil = require(ReplicatedStorage.Shared.Utils.StringUtil)
 local ZoneSettings = require(ReplicatedStorage.Shared.Zones.ZoneSettings)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
+local Output = require(ReplicatedStorage.Shared.Output)
 
 export type ZoneInstances = {
     Spawnpoint: BasePart?,
@@ -71,7 +72,7 @@ end
 
 function ZoneUtil.isHouseInteriorZone(zone: ZoneConstants.Zone)
     local userId = tonumber(zone.ZoneType)
-    return userId and game.Players:GetPlayerByUserId(userId) and true or false
+    return userId and true or false -- Don't check against an actual player as they may have left the game by the time this check is needed!
 end
 
 function ZoneUtil.doesZoneExist(zone: ZoneConstants.Zone?)
@@ -101,8 +102,8 @@ function ZoneUtil.getZoneCategoryDirectory(zoneCategory: string)
     end
 end
 
-function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone)
-    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory)[ZoneUtil.getZoneName(zone)]
+function ZoneUtil.getZoneModel(zone: ZoneConstants.Zone): Model | nil
+    return ZoneUtil.getZoneCategoryDirectory(zone.ZoneCategory):FindFirstChild(ZoneUtil.getZoneName(zone))
 end
 
 function ZoneUtil.getZoneInstances(zone: ZoneConstants.Zone)
@@ -254,6 +255,8 @@ end
 
     Returns true if all descendants under this instance is loaded!
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
+
+    Retrusn `isLoaded: boolean`, `percentageLoaded: number`, `partsMissing: number`
 ]]
 function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     -- ERROR: Client Only
@@ -284,8 +287,16 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
         end
     end
 
+    local partsMissing = countedServerTotal - countedClientTotal
+    Output.doDebug(
+        ZoneConstants.DoDebug,
+        "ZoneUtil.areAllBasePartsLoaded",
+        instance:GetFullName(),
+        ("  Parts Missing: %d"):format(countedServerTotal - countedClientTotal)
+    )
+
     local percentageLoaded = countedClientTotal / countedServerTotal
-    return isLoaded, percentageLoaded
+    return isLoaded, percentageLoaded, partsMissing
 end
 
 --[[
@@ -294,7 +305,7 @@ end
     Returns true if success; false otherwise
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
-function ZoneUtil.waitForInstanceToLoad(instance: Instance)
+function ZoneUtil.waitForInstanceToLoad(instance: Instance, allowMissingParts: number?)
     -- ERROR: Client Only
     if not RunService:IsClient() then
         return
@@ -303,7 +314,19 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
     local lastPercentageLoaded = -1
     while tick() < endTick do
-        local isLoaded, percentageLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        local isLoaded, percentageLoaded, missingParts = ZoneUtil.areAllBasePartsLoaded(instance)
+        Output.doDebug(
+            ZoneConstants.DoDebug,
+            "ZoneUtil.waitForInstanceToLoad",
+            instance:GetFullName(),
+            " percent loaded:",
+            percentageLoaded
+        )
+
+        -- EDGE CASE: Declare loaded if we allow missing parts
+        if allowMissingParts and (missingParts <= allowMissingParts) then
+            isLoaded = true
+        end
 
         -- Loaded!
         if isLoaded then
@@ -313,6 +336,7 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
 
         -- Has begun unloading..
         if percentageLoaded < lastPercentageLoaded then
+            Output.doDebug(ZoneConstants.DoDebug, "ZoneUtil.waitForInstanceToLoad", instance:GetFullName(), "began unloading..")
             return false
         end
 
@@ -321,6 +345,25 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     end
 
     return false
+end
+
+-------------------------------------------------------------------------------
+-- Telemetry
+-------------------------------------------------------------------------------
+
+--[[
+    Returns a `string` that represents our `zone`, used for posting events in our telemetry scope
+
+    `player` is needed for nicely converting igloo zones to strings
+]]
+function ZoneUtil.toString(player: Player, zone: ZoneConstants.Zone)
+    local zoneType = zone.ZoneType
+    if ZoneUtil.isHouseInteriorZone(zone) then
+        local isOwnIgloo = ZoneUtil.zonesMatch(zone, ZoneUtil.houseInteriorZone(player))
+        zoneType = isOwnIgloo and "ownIgloo" or "otherIgloo"
+    end
+
+    return ("%s_%s"):format(StringUtil.toCamelCase(zone.ZoneCategory), StringUtil.toCamelCase(zoneType))
 end
 
 -------------------------------------------------------------------------------

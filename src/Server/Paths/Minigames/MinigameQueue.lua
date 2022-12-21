@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Remotes = require(Paths.Shared.Remotes)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Shared.Maid)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -16,7 +16,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local janitor = Janitor.new()
+    local maid = Maid.new()
 
     local sessionConfig =
         TableUtil.overwrite(MinigameUtil.getsessionConfig(minigameName), MinigameUtil.getSessionConfigFromQueueStation(station))
@@ -72,7 +72,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
                     task.wait(1)
                 end
 
-                janitor:Destroy()
+                maid:Destroy()
             end)
         elseif #participants == sessionConfig.MaxParticipants then
             countdown = 0
@@ -90,8 +90,8 @@ function MinigameQueue.new(minigameName: string, station: Model?)
         return table.find(participants, player) ~= nil
     end
 
-    function queue:GetJanitor()
-        return janitor
+    function queue:GetMaid()
+        return maid
     end
 
     function queue:GetStation(): Model
@@ -101,9 +101,9 @@ function MinigameQueue.new(minigameName: string, station: Model?)
     -------------------------------------------------------------------------------
     -- LOGIC
     -------------------------------------------------------------------------------
-    janitor:Add(Players.PlayerRemoving:Connect(onParticipantRemoved :: (Player) -> ()))
-    janitor:Add(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
-    janitor:Add(function()
+    maid:GiveTask(Players.PlayerRemoving:Connect(onParticipantRemoved :: (Player) -> ()))
+    maid:GiveTask(Remotes.bindEventTemp("MinigameQueueExited", onParticipantRemoved))
+    maid:GiveTask(function()
         for _, participant in pairs(participants) do
             onParticipantRemoved(participant, true)
         end

@@ -4,7 +4,6 @@
 
 --------------------------------------------------
 -- Dependencies
-local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 local Workspace = game:GetService("Workspace")
 
@@ -15,6 +14,7 @@ local macroDefinition = {
     Group = "Character Items",
     Icon = "💡",
     Description = "Configures a hat item for use in game. Must have the starter character model in Workspace.",
+    EnableAutomaticUndo = true,
 }
 
 macroDefinition.Function = function()
@@ -38,11 +38,9 @@ macroDefinition.Function = function()
             local attachment = Instance.new("Attachment")
             attachment.Parent = handle
             attachment.WorldCFrame = character.Body.Main_Bone.Belly["Belly.001"].HEAD.WorldCFrame
-            attachment.Name = "HatAttachment"
+            attachment.Name = "AccessoryAttachment"
         end
     end
-
-    ChangeHistoryService:SetWaypoint("Setup Hat")
 end
 
 return macroDefinition

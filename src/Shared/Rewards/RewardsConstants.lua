@@ -32,6 +32,7 @@ export type Gift = {
             [string]: { string }, -- categoryName: objectName
         }?,
         Outfit: { string }?,
+        PetEgg: string?,
     },
 }
 
@@ -50,7 +51,7 @@ RewardsConstants.DailyReward = {
     Rewards = dailyRewardRewards,
 }
 
-local giftTypes: { GiftType } = { "Coins", "Clothing", "House", "Outfit" }
+local giftTypes: { GiftType } = { "Coins", "Clothing", "House", "Outfit", "PetEgg" }
 RewardsConstants.GiftTypes = giftTypes
 
 local giftNames: { [string]: string } = {
@@ -67,34 +68,57 @@ local gifts: { [string]: { Gift } } = {
     --#region Small Gift
     ["Small Gift"] = {
         {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 150,
+            },
+        },
+        {
+            Type = "PetEgg",
+            Weight = 5,
+            Data = {
+                PetEgg = "Common",
+            },
+        },
+        {
             Type = "Clothing",
-            Weight = 40,
+            Weight = 30,
             Data = {
                 Clothing = {
                     Backpack = {
-                        "Angel_Wings",
                         "Brown_Backpack",
+                    },
+                    Hat = {
+                        "Pizza_Chef_Hat",
+                        "Ice_Cream_Hat",
+                        "Bamboo_Straw_Hat",
+                        "Adventurer_Hat",
+                    },
+                    Pants = {
+                        "Bright_Green_Pants",
+                    },
+                    Shirt = {
+                        "Pink_Starry_Shirt",
+                        "Green_Spotted_Shirt",
+                    },
+                    Shoes = {
+                        "Blue_Slippers",
                     },
                 },
             },
         },
         {
             Type = "House",
-            Weight = 40,
+            Weight = 60,
             Data = {
                 House = {
                     Furniture = {
-                        "Camping_Chair",
-                        "Chair",
+                        "Gaming_Chair",
+                        "Bean_Bag",
+                        "Couch_02",
                     },
                 },
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 20,
-            Data = {
-                Coins = 150,
             },
         },
     },
@@ -102,30 +126,104 @@ local gifts: { [string]: { Gift } } = {
     --#region Medium Gift
     ["Medium Gift"] = {
         {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 200,
+            },
+        },
+        {
+            Type = "PetEgg",
+            Weight = 5,
+            Data = {
+                PetEgg = "Common",
+            },
+        },
+        {
             Type = "Clothing",
-            Weight = 40,
+            Weight = 30,
             Data = {
                 Clothing = {
+
+                    Hat = {
+
+                        "Feather_Hat",
+                        "Flower_Pot",
+                        "Hair_Headband",
+                        "Pink_Bunny_Ears",
+                        "Pot",
+                    },
                     Pants = {
-                        "Overalls",
+
+                        "Student_Pants",
+                        "Purple_Pants",
+                        "Pink_Pants",
                     },
                     Shirt = {
-                        "Flannel_Shirt",
+
+                        "Green_Starry_Shirt",
+                        "Red_Starry_Shirt",
+                        "Purple_Shirt",
+                        "Orange_Gradient_Shirt",
+                    },
+                    Shoes = {
+
+                        "White_Green_Sneakers",
+                        "Tailor_Slippers",
                     },
                 },
             },
         },
         {
             Type = "House",
-            Weight = 40,
+            Weight = 60,
             Data = {
                 House = {
                     Furniture = {
-                        "Couch_01",
-                        "Couch_02",
+                        "Entertainment_Center",
+                        "COMPUTER_TABLE",
                         "Couch_03",
                     },
                 },
+            },
+        },
+    },
+    --#endregion
+    --#region Mystery Coins
+    ["Mystery Coins"] = {
+        {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 150,
+            },
+        },
+        {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 175,
+            },
+        },
+        {
+            Type = "Coins",
+            Weight = 15,
+            Data = {
+                Coins = 200,
+            },
+        },
+        {
+            Type = "Coins",
+            Weight = 15,
+            Data = {
+                Coins = 250,
+            },
+        },
+        {
+            Type = "Coins",
+            Weight = 20,
+            Data = {
+                Coins = 300,
             },
         },
         {
@@ -135,43 +233,11 @@ local gifts: { [string]: { Gift } } = {
                 Coins = 400,
             },
         },
-    },
-    --#endregion
-    --#region Mystery Coins
-    ["Mystery Coins"] = {
         {
             Type = "Coins",
-            Weight = 30,
+            Weight = 20,
             Data = {
                 Coins = 500,
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 30,
-            Data = {
-                Coins = 550,
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 15,
-            Data = {
-                Coins = 650,
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 15,
-            Data = {
-                Coins = 1000,
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 10,
-            Data = {
-                Coins = 2000,
             },
         },
     },
@@ -179,32 +245,69 @@ local gifts: { [string]: { Gift } } = {
     --#region Large Gift
     ["Large Gift"] = {
         {
-            Type = "Outfit",
-            Weight = 40,
+            Type = "Coins",
+            Weight = 5,
             Data = {
-                Outfit = {
-                    "Farmer",
-                },
+                Coins = 500,
             },
         },
         {
-            Type = "House",
-            Weight = 40,
+            Type = "PetEgg",
+            Weight = 5,
             Data = {
-                House = {
-                    Furniture = {
-                        "Fridge",
-                        "Sink",
-                        "Stove",
+                PetEgg = "Common",
+            },
+        },
+        {
+            Type = "Clothing",
+            Weight = 30,
+            Data = {
+                Clothing = {
+                    Backpack = {
+                        "Brown_Backpack",
+                    },
+                    Hat = {
+                        "Pizza_Chef_Hat",
+
+                        "Feather_Hat",
+                        "Flower_Pot",
+
+                        "Pink_Bunny_Ears",
+                        "Pot",
+                    },
+                    Pants = {
+
+                        "Pink_Skirt",
+                        "Student_Pants",
+
+                        "Pink_Pants",
+                    },
+                    Shirt = {
+
+                        "Pink_Spotted_Shirt",
+                        "Yellow_Diver_Tank",
+
+                        "Purple_Shirt",
+                        "Orange_Gradient_Shirt",
+                    },
+                    Shoes = {
+
+                        "Tailor_Slippers",
                     },
                 },
             },
         },
         {
-            Type = "Coins",
-            Weight = 20,
+            Type = "House",
+            Weight = 60,
             Data = {
-                Coins = 1000,
+                House = {
+                    Furniture = {
+                        "Balloons",
+                        "Pizza_Oven",
+                        "Gaming_Chair",
+                    },
+                },
             },
         },
     },
@@ -212,31 +315,41 @@ local gifts: { [string]: { Gift } } = {
     --#region Rare Gift
     ["Rare Gift"] = {
         {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 750,
+            },
+        },
+        {
+            Type = "PetEgg",
+            Weight = 5,
+            Data = {
+                PetEgg = "Rare",
+            },
+        },
+        {
             Type = "Outfit",
-            Weight = 40,
+            Weight = 30,
             Data = {
                 Outfit = {
-                    "Farmer",
+                    "Gentlepenguin",
+                    "Sailor",
+                    "Waiter",
                 },
             },
         },
         {
             Type = "House",
-            Weight = 40,
+            Weight = 60,
             Data = {
                 House = {
                     Furniture = {
-                        "Table",
-                        "Table_Lamp_01",
+                        "Hockey_Table",
+                        "STONE_LANTERN",
+                        "Entertainment_Center",
                     },
                 },
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 20,
-            Data = {
-                Coins = 1500,
             },
         },
     },
@@ -244,31 +357,41 @@ local gifts: { [string]: { Gift } } = {
     --#region Extraordinary Gift
     ["Extraordinary Gift"] = {
         {
+            Type = "Coins",
+            Weight = 5,
+            Data = {
+                Coins = 1000,
+            },
+        },
+        {
+            Type = "PetEgg",
+            Weight = 5,
+            Data = {
+                PetEgg = "Rare",
+            },
+        },
+        {
             Type = "Outfit",
-            Weight = 40,
+            Weight = 30,
             Data = {
                 Outfit = {
-                    "Farmer",
+                    "Pizza_Chef",
+                    "Bill",
+                    "Student",
                 },
             },
         },
         {
             Type = "House",
-            Weight = 40,
+            Weight = 60,
             Data = {
                 House = {
                     Furniture = {
-                        "Bean_Bag",
-                        "Bed",
+                        "COMPUTER_TABLE",
+                        "Couch_03",
+                        "Speakers",
                     },
                 },
-            },
-        },
-        {
-            Type = "Coins",
-            Weight = 20,
-            Data = {
-                Coins = 2000,
             },
         },
     },

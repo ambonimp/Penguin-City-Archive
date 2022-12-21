@@ -4,20 +4,19 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Promise = require(Paths.Packages.promise)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Shared.Maid)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
-local ZoneConstans = require(Paths.Shared.Zones.ZoneConstants)
-local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local Signal = require(Paths.Shared.Signal)
 local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local MinigameQueueScreen = require(Paths.Client.UI.Screens.Minigames.MinigameQueueScreen)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
-local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -34,13 +33,13 @@ local player = Players.LocalPlayer
 
 local currentMinigame: string?
 local currentState: State?
-local currentZone: ZoneConstans.Zone?
+local currentZone: ZoneConstants.Zone?
 local currentParticipants: Participants?
 local currentIsMultiplayer: boolean?
 
 local stateCallbacks: { [string]: { [string]: { Open: StateCallback, Close: StateCallback } } } = {}
 
-local janitor = Janitor.new()
+local maid = Maid.new()
 local uiStateMachine = UIController.getStateMachine()
 
 local music: { [string]: Sound } = {}
@@ -74,7 +73,7 @@ function MinigameController.stopMusic(name: Music)
 end
 
 local function setState(newState: State)
-    task.spawn(function()
+    maid:GiveTask(task.spawn(function()
         local newName: string = newState.Name
         local newData: StateData = newState.Data
 
@@ -96,7 +95,7 @@ local function setState(newState: State)
         if callbacks and callbacks.Open then
             callbacks.Open(newData)
         end
-    end)
+    end))
 end
 
 local function assertActiveMinigame()
@@ -113,6 +112,11 @@ function MinigameController.Start()
             require(controller)
         end
     end
+end
+
+-- Yields
+function MinigameController.playRequest(minigame: string, isMultiplayer: boolean, queueStation: Model?)
+    Remotes.invokeServer("MinigamePlayRequested", minigame, isMultiplayer, queueStation)
 end
 
 function MinigameController.registerStateCallback(minigame: string, state: string, onOpen: StateCallback?, onClose: StateCallback?)
@@ -137,8 +141,8 @@ function MinigameController.getMinigame(): string?
     return currentMinigame
 end
 
-function MinigameController.getMinigameJanitor()
-    return janitor
+function MinigameController.getMinigameMaid()
+    return maid
 end
 
 function MinigameController.isMultiplayer(): boolean
@@ -156,12 +160,12 @@ function MinigameController.getData(): StateData
     return currentState.Data
 end
 
-function MinigameController.getZone(): ZoneConstans.Zone
+function MinigameController.getZone(): ZoneConstants.Zone | nil
     assertActiveMinigame()
     return currentZone
 end
 
-function MinigameController.getMap(): Model
+function MinigameController.getMap(): Model | nil
     assertActiveMinigame()
     return ZoneUtil.getZoneModel(currentZone):WaitForChild("Map")
 end
@@ -176,27 +180,28 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
 
     local initialState = currentState
     length = math.max(0, currentState.Data.StartTime + length - Workspace:GetServerTimeNow()) -- Syncs with server
-
-    if onChanged then
-        onChanged(math.ceil(length))
-    end
-
-    task.wait(length % 1)
-    length = math.floor(length)
-    while length > 0 and initialState == currentState do
+    if length > 0 then
         if onChanged then
-            onChanged(length)
+            onChanged(math.ceil(length))
         end
 
-        task.wait(1)
-        length -= 1
+        task.wait(length % 1)
+        length = math.floor(length)
+        while length > 0 and initialState == currentState do
+            if onChanged then
+                onChanged(length)
+            end
+
+            task.wait(1)
+            length -= 1
+        end
     end
 
     return length == 0
 end
 
 function MinigameController.getOwnPlacement(scores: MinigameConstants.SortedScores): number
-    return TableUtil.findFromProperty(scores, "Player", player)
+    return scores and TableUtil.findFromProperty(scores, "Player", player) or -1 -- https://trello.com/c/KAqA5DEA hacky fix
 end
 
 function MinigameController.getOwnScore(scores: MinigameConstants.SortedScores): number
@@ -212,8 +217,10 @@ end
 -------------------------------------------------------------------------------
 Remotes.bindEvents({
     MinigameJoined = function(id: string, minigame: string, state: State, participants: Participants, isMultiplayer: boolean)
+        MinigameQueueScreen.close()
+
         currentMinigame = minigame
-        currentZone = ZoneUtil.zone(ZoneConstans.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
+        currentZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigame], id)
         currentParticipants = participants
         currentIsMultiplayer = isMultiplayer
 
@@ -221,8 +228,6 @@ Remotes.bindEvents({
             if not ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
-
-            ToolController.unequip()
 
             if state.Name ~= INITIALIZATION_STATE.Name then
                 setState(INITIALIZATION_STATE)
@@ -241,16 +246,21 @@ Remotes.bindEvents({
             MinigameController.stopMusic("Core")
             MinigameController.stopMusic("Intermission")
 
+            -- Try catch at the peak of the transition to hide its removal
+            maid:GiveTask(ZoneController.ZoneChanged:Connect(function()
+                uiStateMachine:Remove(UIConstants.States.Minigame)
+            end))
+
             if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
 
-            janitor:Cleanup()
-            uiStateMachine:Pop()
+            maid:Cleanup()
+            uiStateMachine:Remove(UIConstants.States.Minigame) -- Security incase ZoneChanged block doesn't run
 
             task.defer(function()
                 currentMinigame = nil
-                currentZone = nil :: ZoneConstans.Zone -- ahh
+                currentZone = nil :: ZoneConstants.Zone -- ahh
                 currentState = nil
                 currentParticipants = nil
                 currentIsMultiplayer = nil

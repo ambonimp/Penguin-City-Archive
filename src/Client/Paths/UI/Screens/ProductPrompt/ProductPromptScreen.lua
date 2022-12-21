@@ -13,7 +13,8 @@ local ProductController = require(Paths.Client.ProductController)
 local Images = require(Paths.Shared.Images.Images)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Widget = require(Paths.Client.UI.Elements.Widget)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
+local CurrencyController = require(Paths.Client.CurrencyController)
 
 local screenGui: ScreenGui = Ui.ProductPrompt
 local contents: Frame = screenGui.Back.Contents
@@ -26,6 +27,23 @@ local descriptionLabel: TextLabel = contents.Text.Description
 local icon: ImageLabel = contents.Icon
 local currentProduct: Products.Product
 local openMaid = Maid.new()
+local currentCoinsOnCoinsButton = 0
+
+--[[
+    Writes `coins` onto the button, and applies a color depending on if we have enough coins or not
+
+    If `coins` is not passed, uses an internal cache
+]]
+local function updateCoinsButtonAppearance(coins: number?)
+    coins = coins or currentCoinsOnCoinsButton
+
+    local canAfford = coins <= CurrencyController.getCoins()
+
+    coinsButton:SetText(StringUtil.commaValue(coins), true)
+    coinsButton:SetColor(canAfford and UIConstants.Colors.Buttons.AvailableGreen or UIConstants.Colors.Buttons.UnavailableGrey, true)
+
+    currentCoinsOnCoinsButton = coins
+end
 
 function ProductPromptScreen.Init()
     local function leaveState()
@@ -59,6 +77,11 @@ function ProductPromptScreen.Init()
             else
                 UIController.getStateMachine():Push(UIConstants.States.Shop)
             end
+        end)
+
+        -- Update appearance of coinsButton when we get new coins
+        CurrencyController.CoinsUpdated:Connect(function()
+            updateCoinsButtonAppearance()
         end)
     end
 
@@ -103,10 +126,7 @@ function ProductPromptScreen.boot(data: table)
     -- Coin Button
     coinsButton:GetButtonObject().Parent.Visible = currentProduct.CoinData and true or false
     if currentProduct.CoinData then
-        coinsButton:SetText(StringUtil.commaValue(currentProduct.CoinData.Cost), true)
-
-        local canAfford = ProductController.canAffordInCoins(currentProduct)
-        coinsButton:SetColor(canAfford and UIConstants.Colors.Buttons.AvailableGreen or UIConstants.Colors.Buttons.UnavailableGrey, true)
+        updateCoinsButtonAppearance(currentProduct.CoinData.Cost)
     end
 end
 

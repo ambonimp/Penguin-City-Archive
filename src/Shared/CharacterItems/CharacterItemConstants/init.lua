@@ -20,6 +20,7 @@ type Item = {
     LayoutOrder: number?, -- BodyType
     Height: Vector3?, -- BodyType
     Items: table?, -- Outfits
+    ForSale: boolean?,
 }
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

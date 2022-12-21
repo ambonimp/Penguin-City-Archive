@@ -81,8 +81,9 @@ function ServerPet.new(owner: Player, petDataIndex: string)
         -- Nametag
         nametag:Mount(model)
         nametag:SetName(petData.Name)
-        serverPet:GetMaid():GiveTask(PetService.PetNameChanged:Connect(function(_player: Player, somePetDataIndex: string, petName: string)
-            if petDataIndex == somePetDataIndex then
+        serverPet:GetMaid():GiveTask(PetService.PetNameChanged:Connect(function(player: Player, somePetDataIndex: string, petName: string)
+            local thisPetNameChanged = player == owner and petDataIndex == somePetDataIndex
+            if thisPetNameChanged then
                 nametag:SetName(petName)
             end
         end))

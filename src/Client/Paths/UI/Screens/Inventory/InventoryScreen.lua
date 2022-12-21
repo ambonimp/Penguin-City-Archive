@@ -5,7 +5,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Ui = Paths.UI
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local TabbedWindow = require(Paths.Client.UI.Elements.TabbedWindow)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local Images = require(Paths.Shared.Images.Images)
@@ -105,7 +105,9 @@ function InventoryScreen.Init()
             local inventoryWindow = InventoryPetsWindow.new(Images.Icons.Pets, "Pets", {
                 AddCallback = function()
                     UIController.getStateMachine():Remove(UIConstants.States.Inventory)
-                    ZoneController.teleportToRoomRequest(petShopZone)
+                    ZoneController.teleportToRoomRequest(petShopZone, {
+                        TravelMethod = ZoneConstants.TravelMethod.Inventory,
+                    })
                 end,
             })
 

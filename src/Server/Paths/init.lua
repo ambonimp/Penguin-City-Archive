@@ -27,7 +27,6 @@ task.delay(0, function()
 
         -- Systems
         require(server.Data.DataService),
-        require(server.AnalyticsTracking),
         require(server.VehicleService),
         require(server.Cmdr.CmdrService),
         require(server.Characters.CharacterItemService),
@@ -39,6 +38,10 @@ task.delay(0, function()
         require(server.Stamps.StampService),
         require(server.TutorialService),
         require(server.Tools.ToolService),
+        require(server.Products.ProductService),
+        require(server.SessionService),
+        require(server.Telemetry.TelemetryService),
+        require(server.SettingsService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

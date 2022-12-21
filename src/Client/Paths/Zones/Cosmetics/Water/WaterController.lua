@@ -2,7 +2,7 @@ local WaterController = {}
 
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local WaterAnimator = require(Paths.Client.Zones.Cosmetics.Water.WaterAnimator)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 

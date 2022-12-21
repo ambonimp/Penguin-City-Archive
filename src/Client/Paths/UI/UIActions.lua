@@ -5,13 +5,15 @@ local StarterGui = game:GetService("StarterGui")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local Queue = require(Paths.Shared.Queue)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local NotificationIcon = require(Paths.Client.UI.Elements.NotificationIcon)
 local Sound = require(Paths.Shared.Sound)
+local Scope = require(Paths.Shared.Scope)
 
 local notificationIconsByGuiObject: { [GuiObject]: typeof(NotificationIcon.new()) } = {}
+local focalPointScope = Scope.new()
 
 -------------------------------------------------------------------------------
 -- UI State Wrappers
@@ -61,6 +63,27 @@ function UIActions.showStampInfo(stampId: string, progress: number?)
         StampId = stampId,
         Progress = progress,
     })
+end
+
+--[[
+    Puts a focal point on the screen at a position - this is the same as thats used in the tutorial!
+
+    Returns a callback that when invoked will hide the focal point from this call only!
+]]
+function UIActions.focalPoint(positionOrGuiObject: UDim2 | GuiObject, size: UDim2?)
+    local scopeId = focalPointScope:NewScope()
+
+    UIController.getStateMachine():Remove(UIConstants.States.FocalPoint) -- Remove any old focal points
+    UIController.getStateMachine():Push(UIConstants.States.FocalPoint, {
+        PositionOrGuiObject = positionOrGuiObject,
+        Size = size,
+    })
+
+    return function()
+        if focalPointScope:Matches(scopeId) then
+            UIController.getStateMachine():Remove(UIConstants.States.FocalPoint)
+        end
+    end
 end
 
 -------------------------------------------------------------------------------

@@ -6,7 +6,7 @@ local Ui = Paths.UI
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local RewardsController: typeof(require(Paths.Client.Rewards.RewardsController))
 local TimeUtil = require(Paths.Shared.Utils.TimeUtil)

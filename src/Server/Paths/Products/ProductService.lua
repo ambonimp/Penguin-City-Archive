@@ -33,6 +33,7 @@ local CONSUMER_MODULE_NAME_SUFFIX = "Consumers"
 local CLEARED_PRODUCT_KICK_MESSAGE = "We just revoked some product(s) from you; please rejoin."
 
 ProductService.ProductAdded = Signal.new() -- { player: Player, product: Products.Product, amount: number }
+ProductService.RobuxPurchase = Signal.new() -- { player: Player, amount: number, productId: number, purchaseId: string, product: Products.Product }
 
 local handlersByTypeAndId: { [string]: { [string]: (player: Player, isJoining: boolean) -> nil } } = {}
 local consumersByTypeAndId: { [string]: { [string]: (player: Player) -> nil } } = {}
@@ -218,7 +219,10 @@ function ProductService.purchaseInCoins(player: Player, product: Products.Produc
     end
 
     -- Exchange coins for product
-    CurrencyService.addCoins(player, -product.CoinData.Cost)
+    CurrencyService.sinkCoins(player, product.CoinData.Cost, {
+        OverrideClient = true,
+        Product = product,
+    })
     ProductService.addProduct(player, product)
 
     return true
@@ -371,7 +375,7 @@ do
 end
 
 -- Write to handlersByTypeAndId and consumersByTypeAndId
-do
+function ProductService.Init()
     -- Handlers
     do
         local productHandlers: Folder = Paths.Server.Products:FindFirstChild("ProductHandlers")

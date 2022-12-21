@@ -10,7 +10,7 @@ local Remotes = require(Paths.Shared.Remotes)
 local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 
 --[[
     `modelSignal` is fired twice; once with our locally created model and once with the server created model

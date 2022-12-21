@@ -6,7 +6,8 @@ local Remotes = require(Paths.Shared.Remotes)
 local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
 local PlayerService = require(Paths.Server.PlayerService)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
+local Signal = require(Paths.Shared.Signal)
 
 type EquippedData = {
     Tool: ToolUtil.Tool | nil,
@@ -19,6 +20,9 @@ type ToolServerHandler = {
     unequipped: ((player: Player, tool: ToolUtil.Tool) -> any),
     activated: ((player: Player, tool: ToolUtil.Tool, model: Model, dirtyData: table) -> any),
 }
+
+ToolService.ToolEquipped = Signal.new() -- { player: Player, tool: ToolUtil.Tool }
+ToolService.ToolUnequipped = Signal.new() -- { player: Player, tool: ToolUtil.Tool }
 
 local equippedDataByPlayer: { [Player]: EquippedData } = {}
 
@@ -87,6 +91,8 @@ function ToolService.equip(player: Player, tool: ToolUtil.Tool)
     local equipped = toolServerHandler and toolServerHandler.equipped or getDefaultToolServerHandler().equipped
     equipped(player, tool, model, equippedData.EquipMaid)
 
+    ToolService.ToolEquipped:Fire(player, tool)
+
     return model
 end
 
@@ -103,6 +109,8 @@ function ToolService.unequip(player: Player)
         local toolServerHandler = getToolServerHandler(equippedData.Tool)
         local unequipped = toolServerHandler and toolServerHandler.unequipped or getDefaultToolServerHandler().unequipped
         unequipped(player, equippedData.Tool)
+
+        ToolService.ToolUnequipped:Fire(player, equippedData.Tool)
     end
 
     equippedData.Model = nil

@@ -16,6 +16,11 @@ function StampController.Start()
     -- Notifications
     do
         local function openStampBookOnStamp(_stamp: Stamps.Stamp)
+            -- RETURN: Must be in HUD state
+            if not (UIController.getStateMachine():GetState() == UIConstants.States.HUD) then
+                return
+            end
+
             UIController.getStateMachine():Push(UIConstants.States.StampBook, { Player = Players.LocalPlayer })
         end
 
@@ -39,14 +44,18 @@ function StampController.Start()
                 end
             else
                 if progress == 1 then
+                    -- Only allow opening of stamp book in HUD state!
+                    local callback = UIController.getStateMachine():GetState() == UIConstants.States.HUD
+                        and function()
+                            openStampBookOnStamp(stamp)
+                        end
+
                     -- Just Unlocked
                     UIActions.sendRobloxNotification({
                         Title = stamp.DisplayName,
                         Text = "Stamp Unlocked!",
                         Icon = stamp.ImageId,
-                        Callback = function()
-                            openStampBookOnStamp(stamp)
-                        end,
+                        Callback = callback,
                         Button1 = "Open StampBook",
                     })
                 end

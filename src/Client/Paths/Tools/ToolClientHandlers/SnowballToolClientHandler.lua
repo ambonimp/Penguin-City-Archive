@@ -13,7 +13,7 @@ local Scope = require(Paths.Shared.Scope)
 local Products = require(Paths.Shared.Products.Products)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
-local Maid = require(Paths.Packages.maid)
+local Maid = require(Paths.Shared.Maid)
 local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
 local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
@@ -261,7 +261,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
         -- Character: Anchor + Rotate
         local directionVector = mouseRaycastResult.Position - character:GetPivot().Position
         CharacterUtil.faceDirection(character, directionVector, ROTATE_CHARACTER_TWEEN_INFO)
-        CharacterUtil.anchor(character)
+        CharacterUtil.freeze(character)
 
         -- Play animation
         local throwTrack = animator:LoadAnimation(ANIMATION_THROW_SNOWBALL)
@@ -278,7 +278,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
         -- Finished
         task.delay(throwTrack.Length, function()
             -- Unanchor
-            CharacterUtil.unanchor(character)
+            CharacterUtil.unfreeze(character)
 
             isThrowingSnowball = false
         end)

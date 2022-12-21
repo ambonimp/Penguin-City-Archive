@@ -1,3 +1,31 @@
+--[[
+    Each minigame inherits from this class.
+
+    A minigame session is built around a state machine. Client and client handlers listen to the following state changes and react accordingly:
+        - Nothing (Only runs once)
+            - In single-player minigames, the session remains in this still until the player presses play.
+            - On the client, its state is always run before any other state.
+            - Great for setting up things that will remain for the duration of the session like disabling jumping.
+        - Intermission
+            - A reset state, do things like reposition players for the new round
+            - Allows new players to join the session (Multiplayer)
+            - If the session doesn't have enough participants in the state, it will go to WaitingForPlayers ((Multiplayer)
+            - If single player than this opens and closes instantly, stil nice for initializing certain things each round
+        - CoreCountdown
+            - 3, 2, 1, Go! -> Core
+            - Useful if you want to combat latency.
+                For example for a race, you would give the client ownership at this point while tracking that player doesn't move until the core state.
+                But this means that all clients will start at the same time.
+        - Core
+            - Gameplay state
+            - If the session config has StrictlyEnforcePlayerCount set to true, if the number of participants falls below the MinParticipants count, the state will end
+        - WaitingForPlayers
+            - Goes to intermission when enough players are in the session
+        - award shows
+            - Sends results to the client
+            - For multiplayer sessions, transitions to intermission when (AwardShowLength) time has passed.
+]]
+
 local MinigameSession = {}
 
 local Players = game:GetService("Players")
@@ -5,7 +33,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 local Paths = require(ServerScriptService.Paths)
-local Janitor = require(Paths.Packages.janitor)
+local Maid = require(Paths.Shared.Maid)
 local Signal = require(Paths.Shared.Signal)
 local Remotes = require(Paths.Shared.Remotes)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
@@ -19,10 +47,15 @@ local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
 local DataService = require(Paths.Server.Data.DataService)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
 
 type Participants = { Player }
+export type MinigameSession = typeof(MinigameSession.new())
 
 local STATES = MinigameConstants.States
+
+MinigameSession.MinigameFinished = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, sortedScores: MinigameConstants.SortedScored }
+MinigameSession.ParticipantedAdded = Signal.new() -- { minigameSession: MinigameSession.MinigameSession, participant: Player }
 
 local assets = ServerStorage.Minigames
 
@@ -34,17 +67,19 @@ function MinigameSession.new(
     queueStation: Model?
 )
     local minigameSession = {}
+    Output.doDebug(MinigameConstants.DoDebug, ("%s minigame session create joined ( %s )"):format(minigameName, id))
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
     -------------------------------------------------------------------------------
-    local janitor = Janitor.new()
+    local maid = Maid.new()
+
     local stateMachine = StateMachine.new(TableUtil.getKeys(STATES), STATES.Nothing)
-    janitor:Add(stateMachine)
+    maid:GiveTask(stateMachine)
 
     local zone: ZoneConstants.Zone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Minigame, ZoneConstants.ZoneType.Minigame[minigameName], id)
     local map: Model = assets[minigameName].Map:Clone()
-    janitor:Add((ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone())))
+    maid:GiveTask((ZoneService.createZone(zone, { map }, map.PrimaryPart:Clone())))
 
     local playerSpawns: { BasePart }? = if map:FindFirstChild("PlayerSpawns") then map.PlayerSpawns:GetChildren() else nil
     local playerSpawnRandomizer: number = 0
@@ -58,6 +93,7 @@ function MinigameSession.new(
 
     local defaultScore: number?
     local started: boolean = false
+    local startedAtTick: number?
 
     local random = Random.new()
 
@@ -85,8 +121,12 @@ function MinigameSession.new(
     -------------------------------------------------------------------------------
     -- PUBLIC METHODS
     -------------------------------------------------------------------------------
-    function minigameSession:GetJanitor()
-        return janitor
+    function minigameSession:GetMaid()
+        return maid
+    end
+
+    function minigameSession:GetMinigameName()
+        return minigameName
     end
 
     function minigameSession:GetState(): string
@@ -157,16 +197,21 @@ function MinigameSession.new(
 
     function minigameSession:AddParticipant(player: Player)
         -- RETURN: Unsuccessful teleport
-        local didTeleport = ZoneService.teleportPlayerToZone(player, zone)
+        local didTeleport, _characterCFrame, characterPivotedSignal = ZoneService.teleportPlayerToZone(player, zone, {
+            TravelMethod = ZoneConstants.TravelMethod.JoinedMinigame,
+        })
         if not didTeleport then
             return
         end
+
+        -- Wait for character to be pivoted
+        characterPivotedSignal:Wait()
 
         table.insert(participants, player)
         minigameSession.ParticipantAdded:Fire(player)
         minigameSession:RelayToOtherParticipants(player, "MinigameParticipantAdded", player)
 
-        Output.doDebug(MinigameConstants.DoDebug, "Participant joined", player.Name)
+        Output.doDebug(MinigameConstants.DoDebug, ("%s joined minigame (%s)"):format(player.Name, id))
 
         Remotes.fireClient(
             player,
@@ -178,7 +223,9 @@ function MinigameSession.new(
             isMultiplayer
         )
 
-        janitor:Add(player.Character.Humanoid.Died:Connect(function()
+        MinigameSession.ParticipantedAdded:Fire(minigameSession, player)
+
+        maid:GiveTask(player.Character.Humanoid.Died:Connect(function()
             minigameSession:RemoveParticipant(player)
         end))
     end
@@ -200,10 +247,12 @@ function MinigameSession.new(
         if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
 
-            Output.doDebug(MinigameConstants.DoDebug, "Participant left", player.Name)
+            Output.doDebug(MinigameConstants.DoDebug, ("%s left minigame (%s)"):format(player.Name, id))
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
-                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player))
+                ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player), {
+                    TravelMethod = ZoneConstants.TravelMethod.LeftMinigame,
+                })
             end
         end
 
@@ -212,7 +261,8 @@ function MinigameSession.new(
 
         local remainingParticipants = #participants
         if remainingParticipants == 0 then
-            janitor:Destroy()
+            Output.doDebug(MinigameConstants.DoDebug, ("Minigame session ended (%s)"):format(id))
+            maid:Destroy()
         else
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
                 local state = stateMachine:GetState()
@@ -268,11 +318,15 @@ function MinigameSession.new(
         return newScore, oldScore
     end
 
-    function minigameSession:SortScores(): MinigameConstants.SortedScores
-        local sortedScores = {}
+    function minigameSession:GetParticipantScore(participant: Player)
+        return scores[participant]
+    end
+
+    function minigameSession:SortScores()
+        local sortedScores: MinigameConstants.SortedScores = {}
         local unsorted = TableUtil.deepClone(scores)
 
-        for _ = 1, #participants do
+        for _ = 1, TableUtil.length(unsorted) do
             local minScore: number = math.huge
             local minPlayer: Player?
 
@@ -289,6 +343,11 @@ function MinigameSession.new(
 
         if config.HigherScoreWins then
             sortedScores = ArrayUtil.flip(sortedScores)
+        end
+
+        -- Insert Coins
+        for placement, scoreData in pairs(sortedScores) do
+            scoreData.CoinsEarned = config.Reward(placement, scoreData.Score, isMultiplayer)
         end
 
         return sortedScores
@@ -311,7 +370,7 @@ function MinigameSession.new(
                 return
             end
 
-            Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed", toState)
+            Output.doDebug(MinigameConstants.DoDebug, ("Minigame state changed  to %s (%s)"):format(toState, id))
 
             local data = stateMachine:GetData()
             data.StartTime = Workspace:GetServerTimeNow()
@@ -322,7 +381,7 @@ function MinigameSession.new(
         if isMultiplayer then
             minigameSession:ChangeState(STATES.Intermission)
         else
-            janitor:Add(Remotes.bindEventTemp("MinigameStarted", function(player)
+            maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
 
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
@@ -330,12 +389,18 @@ function MinigameSession.new(
                 end
             end))
 
-            janitor:Add(Remotes.bindEventTemp("MinigameRestarted", function()
+            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function()
                 minigameSession:ChangeState(STATES.Nothing)
             end))
         end
 
         started = true
+        startedAtTick = tick()
+    end
+
+    -- Returns how long has elapsed since minigame was started
+    function minigameSession:GetSessionTime()
+        return startedAtTick and (tick() - startedAtTick) or 0
     end
 
     -------------------------------------------------------------------------------
@@ -364,7 +429,6 @@ function MinigameSession.new(
                     return
                 end
             end
-
             if config.CoreCountdown then
                 minigameSession:ChangeState(STATES.CoreCountdown)
             else
@@ -398,30 +462,58 @@ function MinigameSession.new(
 
             local sortedScores = minigameSession:SortScores()
 
-            -- Reward
+            -- Reward + Minigame Records
             for placement, scoreInfo in pairs(sortedScores) do
                 local player = scoreInfo.Player
                 local score = scoreInfo.Score
 
-                CurrencyService.addCoins(player, config.Reward(placement, score), true)
+                -- Reward
+                CurrencyService.injectCoins(player, scoreInfo.CoinsEarned, {
+                    OverrideClient = true,
+                    InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameName, false),
+                })
 
-                local recordAddress = "MinigameRecords." .. minigameName
-                local highscore = DataService.get(player, recordAddress) or defaultScore
-                if config.HigherScoreWins then
-                    if score > highscore then
-                        DataService.set(player, recordAddress, score)
-                        scoreInfo.NewBest = true
+                -- Minigame Records
+                do
+                    local minigameRecordAddress = ("MinigameRecords.%s"):format(minigameName)
+
+                    -- Highscore
+                    local highscoreRecordAddress = ("%s.%s"):format(minigameRecordAddress, "Highscore")
+                    local highscore = DataService.get(player, highscoreRecordAddress) or defaultScore
+                    if config.HigherScoreWins then
+                        if score > highscore then
+                            DataService.set(player, highscoreRecordAddress, score)
+                            scoreInfo.NewBest = true
+                        end
+                    else
+                        if score < highscore then
+                            DataService.set(player, highscoreRecordAddress, score)
+                            scoreInfo.NewBest = true
+                        end
                     end
-                else
-                    if score < highscore then
-                        DataService.set(player, recordAddress, score)
-                        scoreInfo.NewBest = true
+
+                    -- Consecutive Wins
+                    if isMultiplayer then
+                        local consecutiveWinsRecordAddress = ("%s.%s"):format(minigameRecordAddress, "ConsecutiveWins")
+                        local didWin = placement == 1
+                        local didWinAgainstOthers = #sortedScores > 1
+
+                        -- Reset if not winner. Don't change if we won solo. Add a win if we beat others.
+                        local consecutiveWins = (
+                            didWin and (DataService.get(player, consecutiveWinsRecordAddress) or 0) + (didWinAgainstOthers and 0 or 1)
+                        ) or 0
+
+                        DataService.set(player, consecutiveWinsRecordAddress, consecutiveWins)
+                        scoreInfo.ConsecutiveWins = consecutiveWins
                     end
                 end
             end
 
             -- Relay to client
             stateMachine:GetData().Scores = sortedScores
+
+            -- Relay to server
+            MinigameSession.MinigameFinished:Fire(minigameSession, sortedScores)
 
             -- Cleanup
             scores = nil
@@ -437,15 +529,16 @@ function MinigameSession.new(
 
     -- Leaving
     do
-        janitor:Add(Remotes.bindEventTemp("MinigameExited", function(player)
+        maid:GiveTask(Remotes.bindEventTemp("MinigameExited", function(player)
+            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame exit (%s)"):format(player.Name, id))
             minigameSession:RemoveParticipant(player)
         end))
 
-        janitor:Add(ZoneService.ZoneChanged:Connect(function(player)
+        maid:GiveTask(ZoneService.ZoneChanged:Connect(function(player)
             minigameSession:RemoveParticipant(player)
         end))
 
-        janitor:Add(Players.PlayerRemoving:Connect(function(player)
+        maid:GiveTask(Players.PlayerRemoving:Connect(function(player)
             minigameSession:RemoveParticipant(player)
         end))
     end
