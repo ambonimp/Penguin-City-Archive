@@ -22,6 +22,7 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
 local Signal = require(Paths.Shared.Signal)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 local QUICK_HATCH_TIME = -10
@@ -47,14 +48,28 @@ end
 
 -- Returns the PetDataIndex
 function PetService.addPet(player: Player, petData: PetConstants.PetData)
+    -- Data
     local appendKey = DataService.getAppendageKey(player, "Pets.Pets")
     DataService.append(player, "Pets.Pets", TableUtil.deepClone(petData), "PetUpdated", {
         PetDataIndex = appendKey,
     })
+
+    -- Add product representation
+    local product = ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+    ProductService.addProduct(player, product, 1)
+
     return appendKey
 end
 
 function PetService.removePet(player: Player, petDataIndex: string)
+    -- Remove product representation
+    local petData = PetService.getPet(player, petDataIndex)
+    if petData then
+        local product = ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+        ProductService.addProduct(player, product, -1)
+    end
+
+    -- Data
     local address = ("Pets.Pets.%s"):format(petDataIndex)
     DataService.set(player, address, nil, "PetUpdated", {
         PetDataIndex = petDataIndex,

@@ -122,26 +122,26 @@ function SessionService.Start()
             PetService.PetEquipped:Connect(function(player: Player, petDataIndex: string)
                 local session = SessionService.getSession(player)
                 local petData = PetService.getPet(player, petDataIndex)
-                if session and petData then
-                    warn("todo pet equipped")
-                    --session:PetEquipped(petData)
+                local product = petData and ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+                if session and product then
+                    session:ProductEquipped(product)
                 end
             end)
             PetService.PetUnequipped:Connect(function(player: Player, petDataIndex: string)
                 local session = SessionService.getSession(player)
                 local petData = PetService.getPet(player, petDataIndex)
-                if session and petData then
-                    warn("todo pet unequipped")
-                    --session:PetUnequipped(petData)
+                local product = petData and ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+                if session and product then
+                    session:ProductUnequipped(product)
                 end
             end)
             SessionService.addLoadCallback(function(player: Player)
                 local session = SessionService.getSession(player)
                 local petDataIndex = PetService.getEquippedPetDataIndex(player)
                 local petData = petDataIndex and PetService.getPet(player, petDataIndex)
-                if session and petData then
-                    warn("todo pet equipped")
-                    --session:PetEquipped(petData)
+                local product = petData and ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+                if session and product then
+                    session:ProductEquipped(product)
                 end
             end)
         end
