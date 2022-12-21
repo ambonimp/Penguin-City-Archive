@@ -21,7 +21,7 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     HigherScoreWins = true,
     Reward = function(placement, score, _, participantCount): number
         if participantCount == 1 then
-            return score * 2
+            return score :: number
         end
 
         if placement == 1 then
