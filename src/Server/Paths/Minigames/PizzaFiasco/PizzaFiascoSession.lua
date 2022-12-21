@@ -132,70 +132,72 @@ function PizzaFiascoSession.new(...: any)
                 return
             end
 
-            -- Calculate total correct/wrong pizzas
-            local playerRecipeRecords = participantData.RecipeRecords
-            local totalPizzas = #playerRecipeRecords
-            local totalCorrectPizzas = 0
-            local totalMistakes = 0
-            local doSubtractMistakeCount = 0
-            for _, recipeRecord in pairs(playerRecipeRecords) do
-                if recipeRecord.DoSubtractMistake then
-                    doSubtractMistakeCount += 1
-                    totalCorrectPizzas += 1
-                    totalMistakes -= 1
-                else
-                    if recipeRecord.WasCorrect then
-                        totalCorrectPizzas += 1
-                    else
-                        totalMistakes += 1
-                    end
-                end
-            end
-
-            -- Verify completion time
-            local minimumTime = 0
-            local recipeTypeOrder = participantData.RecipeTypeOrder
-            for pizzaNumber = 1, totalPizzas do
-                local recipe = recipeTypeOrder[pizzaNumber]
-                print(recipe, pizzaNumber)
-                local recipeMinTime = MIN_RECIPE_TIMES[recipe]
-
-                --!! temp testing
-                if not recipeMinTime then
-                    warn(("No recipe min time for recipe %q"):format(tostring(recipe)))
-                    recipeMinTime = 0
-                end
-
-                minimumTime += recipeMinTime
-            end
-            local firstPizzaTime = MIN_RECIPE_TIMES[PizzaFiascoConstants.FirstRecipe]
-            local actualTime = totalPizzas > 0
-                    and (participantData.RecipeRecords[totalPizzas].Tick - participantData.PlayRequestTick) + firstPizzaTime
-                or 0
-            local finishedTooQuickly = actualTime < minimumTime
-
-            -- Give reward
-            local doGiveReward = not finishedTooQuickly
-                and (totalMistakes <= PizzaFiascoConstants.MaxMistakes)
-                and (doSubtractMistakeCount <= 1)
-            if doGiveReward then
-                minigameSession:IncrementScore(player, totalCorrectPizzas)
-            else
-                warn(
-                    ("%s had an issue. FinishedTooQuickly: %s (Min Time: %.2f, Actual Time: %.2f). Total Mistakes: %d. DoSubtractMistakeCount: %d"):format(
-                        player.Name,
-                        tostring(finishedTooQuickly),
-                        minimumTime,
-                        actualTime,
-                        totalMistakes,
-                        doSubtractMistakeCount
-                    )
-                )
-            end
-
             minigameSession:ChangeState(MinigameConstants.States.AwardShow)
         end))
     end, function()
+        local player = minigameSession:GetParticipants()[1]
+
+        -- Calculate total correct/wrong pizzas
+        local playerRecipeRecords = participantData.RecipeRecords
+        local totalPizzas = #playerRecipeRecords
+        local totalCorrectPizzas = 0
+        local totalMistakes = 0
+        local doSubtractMistakeCount = 0
+        for _, recipeRecord in pairs(playerRecipeRecords) do
+            if recipeRecord.DoSubtractMistake then
+                doSubtractMistakeCount += 1
+                totalCorrectPizzas += 1
+                totalMistakes -= 1
+            else
+                if recipeRecord.WasCorrect then
+                    totalCorrectPizzas += 1
+                else
+                    totalMistakes += 1
+                end
+            end
+        end
+
+        -- Verify completion time
+        local minimumTime = 0
+        local recipeTypeOrder = participantData.RecipeTypeOrder
+        for pizzaNumber = 1, totalPizzas do
+            local recipe = recipeTypeOrder[pizzaNumber]
+            print(recipe, pizzaNumber)
+            local recipeMinTime = MIN_RECIPE_TIMES[recipe]
+
+            --!! temp testing
+            if not recipeMinTime then
+                warn(("No recipe min time for recipe %q"):format(tostring(recipe)))
+                recipeMinTime = 0
+            end
+
+            minimumTime += recipeMinTime
+        end
+        local firstPizzaTime = MIN_RECIPE_TIMES[PizzaFiascoConstants.FirstRecipe]
+        local actualTime = totalPizzas > 0
+                and (participantData.RecipeRecords[totalPizzas].Tick - participantData.PlayRequestTick) + firstPizzaTime
+            or 0
+        local finishedTooQuickly = actualTime < minimumTime
+
+        -- Give reward
+        local doGiveReward = not finishedTooQuickly
+            and (totalMistakes <= PizzaFiascoConstants.MaxMistakes)
+            and (doSubtractMistakeCount <= 1)
+        if doGiveReward then
+            minigameSession:IncrementScore(player, totalCorrectPizzas)
+        else
+            warn(
+                ("%s had an issue. FinishedTooQuickly: %s (Min Time: %.2f, Actual Time: %.2f). Total Mistakes: %d. DoSubtractMistakeCount: %d"):format(
+                    player.Name,
+                    tostring(finishedTooQuickly),
+                    minimumTime,
+                    actualTime,
+                    totalMistakes,
+                    doSubtractMistakeCount
+                )
+            )
+        end
+
         participantData = nil
         coreMaid:Cleanup()
     end)

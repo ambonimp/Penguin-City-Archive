@@ -19,7 +19,12 @@ local sessionConfig: MinigameConstants.SessionConfig = {
     Loop = true,
     --
     HigherScoreWins = true,
-    Reward = function(placement): number
+    Reward = function(placement, score, _, participantCount): number
+        if participantCount == 1 then
+            warn(participantCount)
+            return score * 2
+        end
+
         if placement == 1 then
             return 35
         elseif placement == 2 then

@@ -389,7 +389,7 @@ do
     gameplayExitButton:SetIcon(Images.Icons.Exit)
     gameplayExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     gameplayExitButton.Pressed:Connect(function()
-        Remotes.fireServer("MinigameExited")
+        Remotes.fireServer("MinigameGameplayExited")
     end)
     gameplayExitButton:Mount(gameplayExitButtonFrame, true)
 end

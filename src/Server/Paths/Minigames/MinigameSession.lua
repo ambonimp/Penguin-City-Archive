@@ -134,6 +134,11 @@ function MinigameSession.new(
     end
 
     function minigameSession:ChangeState(state: string)
+        -- RETURN: Already in this state
+        if stateMachine:GetState() == state then
+            return
+        end
+
         if stateMachine:GetState() ~= STATES.Nothing then
             stateMachine:Pop()
         end
@@ -305,10 +310,10 @@ function MinigameSession.new(
     end
 
     function minigameSession:IncrementScore(participant: Player, addend: number): (number, number)
-        -- ERROR: State is invalid
+        --[[         -- ERROR: State is invalid
         if stateMachine:GetState() ~= STATES.Core then
             error(("%s minigame attempting to set score outside of the core state : %s"):format(minigameName, debug.traceback()))
-        end
+        end *]]
 
         local oldScore = scores[participant] or 0
         local newScore = math.clamp(oldScore + addend, scoreRange.Min, scoreRange.Max)
@@ -347,7 +352,7 @@ function MinigameSession.new(
 
         -- Insert Coins
         for placement, scoreData in pairs(sortedScores) do
-            scoreData.CoinsEarned = config.Reward(placement, scoreData.Score, isMultiplayer)
+            scoreData.CoinsEarned = config.Reward(placement, scoreData.Score, isMultiplayer, #minigameSession:GetParticipants())
         end
 
         return sortedScores
@@ -460,7 +465,9 @@ function MinigameSession.new(
                 end
             end
 
+            warn(scores)
             local sortedScores = minigameSession:SortScores()
+            warn(sortedScores)
 
             -- Reward + Minigame Records
             for placement, scoreInfo in pairs(sortedScores) do
@@ -532,6 +539,19 @@ function MinigameSession.new(
         maid:GiveTask(Remotes.bindEventTemp("MinigameExited", function(player)
             Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame exit (%s)"):format(player.Name, id))
             minigameSession:RemoveParticipant(player)
+        end))
+
+        maid:GiveTask(Remotes.bindEventTemp("MinigameGameplayExited", function(player)
+            if not minigameSession:IsPlayerParticipant(player) then
+                return
+            end
+
+            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame gameplay exited(%s)"):format(player.Name, id))
+            if isMultiplayer then
+                minigameSession:RemoveParticipant(player)
+            else
+                minigameSession:ChangeState(STATES.AwardShow)
+            end
         end))
 
         maid:GiveTask(ZoneService.ZoneChanged:Connect(function(player)
