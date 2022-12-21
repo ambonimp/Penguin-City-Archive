@@ -25,7 +25,7 @@ export type Item = {
 local items: { [string]: Item } = {}
 items["Farmer"] = {
     Name = "Farmer",
-    Price = 12,
+    Price = 165,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Flannel_Shirt.Name },
@@ -36,7 +36,7 @@ items["Farmer"] = {
 }
 items["Gentlepenguin"] = {
     Name = "Gentlepenguin",
-    Price = 12,
+    Price = 385,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Purple_Classy_Suit.Name },
@@ -48,7 +48,7 @@ items["Gentlepenguin"] = {
 }
 items["Footballer"] = {
     Name = "Footballer",
-    Price = 5,
+    Price = 165,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Brazil_Jersey.Name },
@@ -59,7 +59,7 @@ items["Footballer"] = {
 }
 items["Sailor"] = {
     Name = "Sailor",
-    Price = 15,
+    Price = 250,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Sailor_Shirt.Name },
@@ -70,7 +70,7 @@ items["Sailor"] = {
 }
 items["Ice_Cream_Scopper"] = {
     Name = "Ice_Cream_Scopper",
-    Price = 5,
+    Price = 200,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Ice_Cream_Scooper_Shirt.Name },
@@ -102,7 +102,7 @@ items["Girl"] = {
 }
 items["Waiter"] = {
     Name = "Waiter",
-    Price = 10,
+    Price = 175,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Waiter_Shirt.Name },
@@ -113,7 +113,7 @@ items["Waiter"] = {
 }
 items["Peach_Parisan"] = {
     Name = "Peach_Parisan",
-    Price = 10,
+    Price = 250,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Peach_Parisan_Blouse.Name },
@@ -125,7 +125,7 @@ items["Peach_Parisan"] = {
 }
 items["Yellow_Parisan"] = {
     Name = "Yellow_Parisan",
-    Price = 10,
+    Price = 175,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Yellow_Blouse.Name },
@@ -135,7 +135,7 @@ items["Yellow_Parisan"] = {
 }
 items["Pizza_Chef"] = {
     Name = "Pizza_Chef",
-    Price = 10,
+    Price = 250,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Peach_Parisan_Blouse.Name },
@@ -147,7 +147,7 @@ items["Pizza_Chef"] = {
 }
 items["Bill"] = {
     Name = "Bill",
-    Price = 100,
+    Price = 225,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Stripped_Yellow_Tee.Name },
@@ -160,7 +160,7 @@ items["Bill"] = {
 
 items["Tailor"] = {
     Name = "Tailor",
-    Price = 12,
+    Price = 333,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Tailor_Suit.Name },
@@ -172,7 +172,7 @@ items["Tailor"] = {
 }
 items["Student"] = {
     Name = "Student",
-    Price = 12,
+    Price = 175,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Student_Shirt.Name },
@@ -184,7 +184,7 @@ items["Student"] = {
 }
 items["Blue_Scooba_Diver"] = {
     Name = "Blue_Scooba_Diver",
-    Price = 12,
+    Price = 125,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Blue_Diver_Tank.Name },
@@ -195,7 +195,7 @@ items["Blue_Scooba_Diver"] = {
 }
 items["Yellow_Scooba_Diver"] = {
     Name = "Yellow_Scooba_Diver",
-    Price = 12,
+    Price = 125,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Yellow_Diver_Tank.Name },
@@ -206,7 +206,7 @@ items["Yellow_Scooba_Diver"] = {
 }
 items["Pink_Scooba_Diver"] = {
     Name = "Pink_Scooba_Diver",
-    Price = 12,
+    Price = 125,
     Icon = nil,
     Items = {
         Shirt = { ShirtConstants.Items.Pink_Diver_Tank.Name },

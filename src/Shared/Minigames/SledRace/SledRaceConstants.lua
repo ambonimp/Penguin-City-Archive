@@ -73,6 +73,6 @@ SledRaceConstants.Collectables = {
 }
 
 SledRaceConstants.CoinsPerCollectable = 12
-SledRaceConstants.CoinValue = 4
+SledRaceConstants.CoinValue = 1
 
 return SledRaceConstants
