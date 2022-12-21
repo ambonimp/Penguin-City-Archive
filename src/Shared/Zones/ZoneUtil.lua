@@ -255,6 +255,8 @@ end
 
     Returns true if all descendants under this instance is loaded!
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
+
+    Retrusn `isLoaded: boolean`, `percentageLoaded: number`, `partsMissing: number`
 ]]
 function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     -- ERROR: Client Only
@@ -285,6 +287,7 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
         end
     end
 
+    local partsMissing = countedServerTotal - countedClientTotal
     Output.doDebug(
         ZoneConstants.DoDebug,
         "ZoneUtil.areAllBasePartsLoaded",
@@ -293,7 +296,7 @@ function ZoneUtil.areAllBasePartsLoaded(instance: Instance)
     )
 
     local percentageLoaded = countedClientTotal / countedServerTotal
-    return isLoaded, percentageLoaded
+    return isLoaded, percentageLoaded, partsMissing
 end
 
 --[[
@@ -302,7 +305,7 @@ end
     Returns true if success; false otherwise
     - Will not work as intended if `ZoneUtil.writeBasepartTotals` has not been invoked on this structure.
 ]]
-function ZoneUtil.waitForInstanceToLoad(instance: Instance)
+function ZoneUtil.waitForInstanceToLoad(instance: Instance, allowMissingParts: number?)
     -- ERROR: Client Only
     if not RunService:IsClient() then
         return
@@ -311,7 +314,7 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
     local endTick = tick() + MAX_YIELD_TIME_INSTANCE_LOADING
     local lastPercentageLoaded = -1
     while tick() < endTick do
-        local isLoaded, percentageLoaded = ZoneUtil.areAllBasePartsLoaded(instance)
+        local isLoaded, percentageLoaded, missingParts = ZoneUtil.areAllBasePartsLoaded(instance)
         Output.doDebug(
             ZoneConstants.DoDebug,
             "ZoneUtil.waitForInstanceToLoad",
@@ -319,6 +322,11 @@ function ZoneUtil.waitForInstanceToLoad(instance: Instance)
             " percent loaded:",
             percentageLoaded
         )
+
+        -- EDGE CASE: Declare loaded if we allow missing parts
+        if allowMissingParts and (missingParts <= allowMissingParts) then
+            isLoaded = true
+        end
 
         -- Loaded!
         if isLoaded then

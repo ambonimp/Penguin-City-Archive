@@ -134,6 +134,7 @@ function CharacterPreview.preview(config: {
     -- Destroy function
     maid:GiveTask(function()
         viewportSizeChanged:Disconnect()
+        ContextActionService:UnbindAction("Rotate")
         ContextActionService:UnbindAction("ToggleRotation")
         CameraController.setPlayerControl()
     end)

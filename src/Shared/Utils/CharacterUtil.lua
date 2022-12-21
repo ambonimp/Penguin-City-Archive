@@ -186,11 +186,11 @@ end
 -------------------------------------------------------------------------------
 
 function CharacterUtil.freeze(character: Model)
-    character.Humanoid.WalkSpeed = 0
+    PropertyStack.setProperties(character.Humanoid, { WalkSpeed = 0 }, "CharacterUtil.freeze")
 end
 
 function CharacterUtil.unfreeze(character: Model)
-    character.Humanoid.WalkSpeed = CharacterConstants.WalkSpeed
+    PropertyStack.clearProperties(character.Humanoid, { WalkSpeed = true }, "CharacterUtil.freeze")
 end
 
 function CharacterUtil.anchor(character: Model)

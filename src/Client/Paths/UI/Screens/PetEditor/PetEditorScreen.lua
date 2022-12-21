@@ -58,7 +58,7 @@ local function filterAndUpdateNameFromTextbox()
 
     unfocus()
 
-    local newDirtyName = textBox.Text
+    local newDirtyName = textBox.Text:sub(0, PetConstants.PetNameCharacterLimit)
 
     local filteredName = TextFilterUtil.filter(newDirtyName, Players.LocalPlayer.UserId)
     local wasFiltered = (filteredName == nil) or TextFilterUtil.wasFiltered(newDirtyName, filteredName)

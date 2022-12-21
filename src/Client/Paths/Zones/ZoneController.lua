@@ -93,13 +93,6 @@ function ZoneController.Start()
 
             local isLost = distance > ZoneConstants.StreamingTargetRadius
             if isLost then
-                print("Zone Distance:", distance)
-                print(
-                    "Current Zone:",
-                    currentZone.ZoneType,
-                    "  Transitioning to zone:",
-                    transitioningToZone and transitioningToZone.ZoneType
-                )
                 beenLostSinceTick = beenLostSinceTick or tick()
                 local beenLostFor = tick() - beenLostSinceTick
                 local timeSinceLastSave = tick() - lastSaveAtTick
@@ -241,10 +234,14 @@ function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, teleportRes
 
     -- Ensure player is not sitting
     local character = Players.LocalPlayer.Character
-    local humanoid = character and character:FindFirstChild("Humanoid")
-    local seatPart = humanoid and humanoid.SeatPart :: Seat
-    if seatPart then
+    local humanoid: Humanoid = character and character:FindFirstChild("Humanoid")
+    local seatPart = humanoid and humanoid.SeatPart
+    local isSitting = seatPart and true or false
+    local oldSeatedState = humanoid:GetStateEnabled(Enum.HumanoidStateType.Seated)
+    if isSitting then
         humanoid.Sit = false
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        task.wait() -- Let these changes catch up to ensure we don't teleport with a seat
     end
 
     local function resetCharacter(cframeData: {
@@ -262,6 +259,7 @@ function ZoneController.transitionToZone(toZone: ZoneConstants.Zone, teleportRes
         end
 
         CharacterUtil.unanchor(character)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, oldSeatedState)
     end
 
     -- Blink!
@@ -380,12 +378,15 @@ function ZoneController.teleportToRoomRequest(roomZone: ZoneConstants.Zone, tele
 
     -- ERROR: Not a room!
     if roomZone.ZoneCategory ~= ZoneConstants.ZoneCategory.Room then
+        nextteleportToRoomRequestPlease()
         error("Not passed a room zone!")
     end
 
     -- WARN: Locked out!
     if lockedToRoomZone and not ZoneUtil.zonesMatch(lockedToRoomZone, roomZone) then
         warn(("Cannot teleport; currently locked to room %s"):format(lockedToRoomZone.ZoneType))
+
+        nextteleportToRoomRequestPlease()
         return
     end
 
@@ -510,9 +511,14 @@ function ZoneController.isZoneLoaded(zone: ZoneConstants.Zone)
     return ZoneUtil.areAllBasePartsLoaded(zoneModel)
 end
 
+--[[
+    Takes into account `ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts` for room zones
+]]
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
-    return ZoneUtil.waitForInstanceToLoad(zoneModel)
+    local allowMissingParts = zone.ZoneCategory == ZoneConstants.ZoneCategory.Room
+        and ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts
+    return ZoneUtil.waitForInstanceToLoad(zoneModel, allowMissingParts)
 end
 
 -------------------------------------------------------------------------------

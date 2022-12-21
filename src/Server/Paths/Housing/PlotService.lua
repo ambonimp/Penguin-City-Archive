@@ -442,7 +442,7 @@ Remotes.bindEvents({
         local store = DataService.get(player, "House.Furniture." .. blueprint)
 
         -- RETURN: Object does not exist
-        if store[id] then
+        if store[id] and store[id].Name == metadata.Name then
             local lastData = store[id]
             local withinBounds = isPositionInBoundsOfPlayersPlot(player, metadata.Position)
             if withinBounds then

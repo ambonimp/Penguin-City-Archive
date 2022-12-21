@@ -14,6 +14,8 @@ local ToolController = require(Paths.Client.Tools.ToolController)
 local Maid = require(Paths.Shared.Maid)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
+local MobileScreen = require(Paths.Client.UI.Screens.MobileButtons.MobileActionButtons)
+local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local BUTTON_PROPERTIES = {
@@ -267,6 +269,8 @@ function HUDScreen.maximize()
     ScreenUtil.inUp(screenGui.Bottom)
     ScreenUtil.inLeft(screenGui.Right)
     screenGui.Enabled = true
+
+    MobileScreen.maximize()
 end
 
 function HUDScreen.minimize()
@@ -276,6 +280,8 @@ function HUDScreen.minimize()
 
     ScreenUtil.outDown(screenGui.Bottom)
     ScreenUtil.outRight(screenGui.Right)
+
+    MobileScreen.minimize()
 end
 
 -------------------------------------------------------------------------------

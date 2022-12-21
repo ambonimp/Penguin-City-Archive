@@ -542,7 +542,10 @@ function Widget.diverseWidget()
         iconImageLabel.Visible = false
         viewportFrame.Visible = true
 
-        CameraUtil.lookAtModelInViewport(viewportFrame, model, rotation)
+        CameraUtil.lookAtModelInViewport(viewportFrame, model, {
+            Rotation = rotation,
+            DoCloneModel = true,
+        })
     end
 
     function widget:SetBackgroundColor(color: Color3?)
