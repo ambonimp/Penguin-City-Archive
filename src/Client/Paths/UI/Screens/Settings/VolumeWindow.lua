@@ -16,6 +16,7 @@ local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Maid = require(Paths.Shared.Maid)
 local Signal = require(Paths.Shared.Signal)
 local InputController = require(Paths.Client.Input.InputController)
+local SettingsController = require(Paths.Client.Settings.SettingsController)
 
 local SLIDER_DECIMALS = 2
 
@@ -172,8 +173,8 @@ function VolumeWindow.new()
     local musicVolumeFrame = createSettingLine("Music Volume")
     musicVolumeFrame.Parent = settingsWindow
     local musicVolumeSliderSignal = createInteractionSlider(musicVolumeFrame.interaction, 0.5)
-    musicVolumeSliderSignal:Connect(function(value)
-        print(value)
+    musicVolumeSliderSignal:Connect(function(volume: any)
+        SettingsController.updateSettingValue("Volume", "Music", volume)
     end)
 
     -------------------------------------------------------------------------------
