@@ -375,7 +375,7 @@ do
 end
 
 -- Write to handlersByTypeAndId and consumersByTypeAndId
-do
+function ProductService.Init()
     -- Handlers
     do
         local productHandlers: Folder = Paths.Server.Products:FindFirstChild("ProductHandlers")

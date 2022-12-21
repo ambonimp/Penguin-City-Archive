@@ -7,6 +7,7 @@ export type Item = {
     Price: number,
     Icon: string,
     Color: Color3,
+    ForSale: boolean,
 }
 
 local items: { [string]: Item } = {}
@@ -15,48 +16,70 @@ items["Black"] = {
     Price = 0,
     Icon = Images.Icons.Paint,
     Color = Color3.fromRGB(27, 42, 53),
+    ForSale = true,
 }
 items["Red"] = {
     Name = "Red",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(197, 41, 41),
+    Color = Color3.fromRGB(162, 0, 0),
+    ForSale = true,
+}
+items["Purple"] = {
+    Name = "Purple",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(119, 46, 247),
+    ForSale = true,
 }
 items["Blue"] = {
     Name = "Blue",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(44, 44, 185),
+    Color = Color3.fromRGB(19, 150, 244),
+    ForSale = true,
 }
 items["Green"] = {
     Name = "Green",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(51, 207, 51),
+    Color = Color3.fromRGB(37, 150, 52),
+    ForSale = true,
 }
 items["Yellow"] = {
     Name = "Yellow",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(226, 226, 56),
+    Color = Color3.fromRGB(228, 228, 40),
+    ForSale = true,
 }
 items["White"] = {
     Name = "White",
     Price = 0,
     Icon = Images.Icons.Paint,
     Color = Color3.fromRGB(235, 235, 235),
+    ForSale = true,
 }
 items["Orange"] = {
     Name = "Orange",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(248, 182, 40),
+    Color = Color3.fromRGB(218, 108, 49),
+    ForSale = true,
 }
 items["Pink"] = {
     Name = "Pink",
     Price = 0,
     Icon = Images.Icons.Paint,
-    Color = Color3.fromRGB(200, 34, 233),
+    Color = Color3.fromRGB(255, 102, 204),
+    ForSale = true,
+}
+items["Brown"] = {
+    Name = "Brown",
+    Price = 0,
+    Icon = Images.Icons.Paint,
+    Color = Color3.fromRGB(86, 66, 54),
+    ForSale = true,
 }
 
 FurColorConstants.TabOrder = 8

@@ -61,8 +61,6 @@ local PET_EGG_HSV_RANGE = {
     },
 }
 local HATCH_BACKGROUND_COLOR = Color3.fromRGB(202, 235, 188)
-local COLOR_WHITE = Color3.fromRGB(251, 252, 255)
-local SELECTED_COLOR = Color3.fromRGB(255, 245, 154)
 local EQUIPPED_COLOR = Color3.fromRGB(55, 151, 0)
 local TOOL_OUTLINE_COLOR = Color3.fromRGB(0, 25, 95)
 local TOOL_OUTLINE_THICKNESS = 4
@@ -408,7 +406,7 @@ function Widget.diverseWidget()
     local imageButton = widget:GetButtonObject()
     imageButton.Name = "imageButton"
     imageButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    imageButton.BackgroundColor3 = COLOR_WHITE
+    imageButton.BackgroundColor3 = UIConstants.Colors.Buttons.White
     imageButton.BorderSizePixel = 0
     imageButton.Position = UDim2.fromScale(0.5, 0.5)
     imageButton.Size = UDim2.fromScale(0.9, 0.9)
@@ -461,6 +459,8 @@ function Widget.diverseWidget()
     local viewportFrame = Instance.new("ViewportFrame")
     viewportFrame.Name = "viewportFrame"
     viewportFrame.BackgroundTransparency = 1
+    viewportFrame.BackgroundColor3 = UIConstants.Colors.Buttons.White
+    viewportFrame.Ambient = Color3.fromRGB(255, 255, 255)
     viewportFrame.Size = UDim2.fromScale(1, 1)
     viewportFrame.Parent = icon
 
@@ -549,7 +549,9 @@ function Widget.diverseWidget()
     end
 
     function widget:SetBackgroundColor(color: Color3?)
-        imageButton.BackgroundColor3 = color or COLOR_WHITE
+        color = color or UIConstants.Colors.Buttons.White
+        imageButton.BackgroundColor3 = color
+        viewportFrame.BackgroundColor3 = color
     end
 
     function widget:SetOutline(color: Color3?, thickness: number?)
@@ -664,7 +666,7 @@ function Widget.diverseWidget()
             local numberTagFrame = Instance.new("Frame")
             numberTagFrame.Name = "numberTagFrame"
             numberTagFrame.AnchorPoint = anchorPoint
-            numberTagFrame.BackgroundColor3 = COLOR_WHITE
+            numberTagFrame.BackgroundColor3 = UIConstants.Colors.Buttons.White
             numberTagFrame.Position = position
             numberTagFrame.Size = size
             numberTagFrame.Visible = false
@@ -726,7 +728,7 @@ function Widget.diverseWidget()
     end
 
     function widget:SetSelected(toggle: boolean)
-        widget:SetBackgroundColor(toggle and SELECTED_COLOR)
+        widget:SetBackgroundColor(toggle and UIConstants.Colors.Buttons.SelectedYellow)
 
         if selected ~= toggle then
             widget.SelectedChanged:Fire(toggle)

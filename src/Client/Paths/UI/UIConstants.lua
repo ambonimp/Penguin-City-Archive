@@ -88,6 +88,8 @@ UIConstants.Colors = {
         NextTeal = Color3.fromRGB(50, 195, 185),
         WaitOrange = Color3.fromRGB(255, 151, 32),
         EditOrange = Color3.fromRGB(255, 158, 46),
+        SelectedYellow = Color3.fromRGB(255, 245, 154),
+        White = Color3.fromRGB(251, 252, 255),
     },
 }
 
