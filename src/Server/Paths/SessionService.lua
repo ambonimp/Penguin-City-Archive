@@ -7,17 +7,24 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
 local Session = require(Paths.Shared.Session)
 local PlayerService = require(Paths.Server.PlayerService)
-local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
-local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
-local ZoneService = require(Paths.Server.Zones.ZoneService)
-local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local DataService = require(Paths.Server.Data.DataService)
 
 local DATA_ADDRESS_TOTAL_PLAY_SESSIONS = "Sessions.TotalSessions"
 
 local sessionByPlayer: { [Player]: typeof(Session.new(game.Players:GetPlayers()[1])) } = {}
+local loadCallbacks: { (player: Player) -> any } = {}
 
 function SessionService.Start()
+    -- Dependencies only needed in this scope
+    local MinigameSession = require(Paths.Server.Minigames.MinigameSession)
+    local MinigameConstants = require(Paths.Shared.Minigames.MinigameConstants)
+    local ZoneService = require(Paths.Server.Zones.ZoneService)
+    local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+    local CharacterItemService = require(Paths.Server.Characters.CharacterItemService)
+    local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+    local ProductService = require(Paths.Server.Products.ProductService)
+    local Products = require(Paths.Shared.Products.Products)
+
     -- Populate minigame time sessions
     do
         MinigameSession.MinigameFinished:Connect(
@@ -44,6 +51,53 @@ function SessionService.Start()
             end
         )
     end
+
+    -- Product Purchasing
+    do
+        ProductService.ProductAdded:Connect(function(player: Player, product: Products.Product, amount: number)
+            local session = SessionService.getSession(player)
+            if session then
+                local amountOwnedBefore = ProductService.getProductCount(player, product) - amount
+                local isFreshlyOwned = amountOwnedBefore == 0
+
+                if isFreshlyOwned then
+                    session:ProductPurchased(product)
+                end
+            end
+        end)
+    end
+
+    -- Clothing Equipping
+    do
+        CharacterItemService.ItemEquipped:Connect(function(player: Player, categoryName: string, itemName: string)
+            local session = SessionService.getSession(player)
+            local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+            if session and product then
+                session:ProductEquipped(product)
+            end
+        end)
+        CharacterItemService.ItemUnequipped:Connect(function(player: Player, categoryName: string, itemName: string)
+            local session = SessionService.getSession(player)
+            local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+            if session and product then
+                session:ProductUnequipped(product)
+            end
+        end)
+        SessionService.addLoadCallback(function(player: Player)
+            local session = SessionService.getSession(player)
+            if session then
+                local equippedItems = CharacterItemService.getEquippedCharacterItems(player)
+                for categoryName, itemNames in pairs(equippedItems) do
+                    for _, itemName in pairs(itemNames) do
+                        local product = ProductUtil.getCharacterItemProduct(categoryName, itemName)
+                        if product then
+                            session:ProductEquipped(product)
+                        end
+                    end
+                end
+            end
+        end)
+    end
 end
 
 function SessionService.loadPlayer(player: Player)
@@ -55,6 +109,15 @@ function SessionService.loadPlayer(player: Player)
 
     -- Add to total play sessions
     DataService.increment(player, DATA_ADDRESS_TOTAL_PLAY_SESSIONS, 1)
+
+    -- Callbacks
+    for _, callback in pairs(loadCallbacks) do
+        callback(player)
+    end
+end
+
+function SessionService.addLoadCallback(callback: (player: Player) -> any)
+    table.insert(loadCallbacks, callback)
 end
 
 function SessionService.getSession(player: Player)

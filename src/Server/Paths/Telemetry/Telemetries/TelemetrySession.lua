@@ -23,6 +23,27 @@ local function getZoneSummary(session: Session.Session)
     return zoneSummary
 end
 
+local function getItemSummary(session: Session.Session)
+    local dateTime = DateTime.now()
+
+    local productDatas = session:GetProductData()
+    local itemSummary = {}
+    for productType, productIdsDatas in pairs(productDatas) do
+        local productIds = {}
+        for productId, productData in pairs(productIdsDatas) do
+            if productData.TimeEquipped or productData.WasPurchased then
+                productIds[StringUtil.toCamelCase(productId)] = {
+                    timeEquipped = productData.TimeEquipped and math.round(productData.TimeEquipped),
+                    dateFirstOwned = productData.WasPurchased and dateTime:FormatUniversalTime("YYYY-MM-DD", "en-us"),
+                }
+            end
+        end
+        itemSummary[StringUtil.toCamelCase(productType)] = productIds
+    end
+
+    return itemSummary
+end
+
 -- sessionSummary
 TelemetryService.addUnloadCallback(function(player: Player)
     -- WARN: No session?
@@ -37,6 +58,7 @@ TelemetryService.addUnloadCallback(function(player: Player)
         minigameTime = math.round(session:GetMinigameTimeSeconds()),
         coinsBankroll = CurrencyService.getCoins(player),
         zoneSummary = getZoneSummary(session),
+        itemSummary = getItemSummary(session),
     })
 end)
 

@@ -16,7 +16,7 @@ for categoryName, tools in pairs(ToolConstants.Tools) do
             Type = ProductConstants.ProductType.Tool,
             DisplayName = tool.DisplayName,
             CoinData = {
-                Cost = tool.Price, --!! Temp
+                Cost = tool.Price,
             },
             Metadata = {
                 CategoryName = categoryName,
