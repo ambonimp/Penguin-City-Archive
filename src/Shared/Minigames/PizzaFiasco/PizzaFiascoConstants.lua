@@ -31,8 +31,8 @@ PizzaFiascoConstants.SessionConfig = sessionConfig
 
 PizzaFiascoConstants.Reward = {
     Base = 2, -- Base coins to reward for 1 correct pizza
-    IncreaseEvery = 5, -- Increase the coin reward every x pizzas
-    IncreaseBy = 2, -- How much to increase the coin reward by
+    IncreaseEvery = 4, -- Increase the coin reward every x pizzas
+    IncreaseBy = 1, -- How much to increase the coin reward by
 }
 
 PizzaFiascoConstants.Conveyor = {
