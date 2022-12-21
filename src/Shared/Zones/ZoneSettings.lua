@@ -47,6 +47,7 @@ local ZoneSettings: { [string]: { [string]: ZoneSettings } } = {
             },
             DisableCollisions = true,
             Music = false,
+            DisableCoreGui = true,
         },
         -- IceCreamExtravaganza
         IceCreamExtravaganza = {
@@ -72,6 +73,7 @@ export type ZoneSettings = {
     Music: boolean | string?, -- Set to false to disable music. nil/true for MainTheme.
     Ambience: { string }?, -- Names of Sounds to play
     IsWindy: boolean?,
+    DisableCoreGui: boolean?,
 }
 
 return ZoneSettings

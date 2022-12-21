@@ -312,7 +312,7 @@ function Widget.diverseWidgetFromEgg(petEggName: string, petEggDataIndex: string
             end
 
             -- Update color based on progress (red to green)
-            local hatchProgress = 1 - math.clamp(hatchesIn / PetConstants.PetEggs[petEggName].HatchTime, 0, 1)
+            local hatchProgress = 1 - math.clamp(hatchesIn / PetConstants.DefaultHatchTime, 0, 1)
             local strokeColor = Color3.fromHSV(
                 MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.H / 255, PET_EGG_HSV_RANGE.READY.H / 255, hatchProgress),
                 MathUtil.lerp(PET_EGG_HSV_RANGE.INCUBATING.S / 255, PET_EGG_HSV_RANGE.READY.S / 255, hatchProgress),
@@ -542,7 +542,10 @@ function Widget.diverseWidget()
         iconImageLabel.Visible = false
         viewportFrame.Visible = true
 
-        CameraUtil.lookAtModelInViewport(viewportFrame, model, rotation)
+        CameraUtil.lookAtModelInViewport(viewportFrame, model, {
+            Rotation = rotation,
+            DoCloneModel = true,
+        })
     end
 
     function widget:SetBackgroundColor(color: Color3?)

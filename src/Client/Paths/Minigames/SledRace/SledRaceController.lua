@@ -94,10 +94,12 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
 
     raceMaid:GiveTask(ProgressLineController.setup())
     SharedMinigameScreen.setStatusText("Race to the bottom")
+    SharedMinigameScreen.toggleExitButton(true)
 
     MinigameController.startCountdownAsync(SledRaceConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
     SharedMinigameScreen.hideStatus()
+    SharedMinigameScreen.toggleExitButton(false)
     raceMaid:Cleanup()
 end)
 

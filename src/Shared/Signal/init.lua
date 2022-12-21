@@ -41,12 +41,14 @@ function Signal.new()
     --[[
         Same as :Connect, but will disconnect itself after the first time `handler` is ran
     ]]
-    function Signal:Once(handler: (...any) -> nil)
+    function signal:Once(handler: (...any) -> nil)
         local connection: Connection
-        return Connection.new(function()
+        connection = Connection.new(function()
             connection:Disconnect()
             handler()
         end, connections)
+
+        return connection
     end
 
     --[[

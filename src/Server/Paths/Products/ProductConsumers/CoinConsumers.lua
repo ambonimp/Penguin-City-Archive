@@ -4,6 +4,8 @@ local Products = require(Paths.Shared.Products.Products)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Output = require(Paths.Shared.Output)
+local CurrencyConstants = require(Paths.Shared.Currency.CurrencyConstants)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
 
 local coinProducts = Products.Products.Coin
 local consumersById: { [string]: (player: Player) -> nil } = {}
@@ -18,7 +20,11 @@ for productId, product in pairs(coinProducts) do
 
     -- Write callback
     consumersById[productId] = function(player: Player)
-        CurrencyService.addCoins(player, addCoins, true)
+        CurrencyService.injectCoins(player, addCoins, {
+            OverrideClient = true,
+            InjectCategory = CurrencyUtil.injectCategoryFromCoinProduct(product),
+            IsFromRobux = true,
+        })
         Output.doDebug(ProductConstants.DoDebug, ("Consumed Coin Product %q (%s +%d Coins)"):format(productId, player.Name, addCoins))
     end
 end

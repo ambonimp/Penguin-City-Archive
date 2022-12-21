@@ -123,12 +123,12 @@ do
 
         for _, enableState in pairs(UIConstants.EnableCoreGuiInStates) do
             if UIController.isStateMaximized(enableState) then
-                CoreGui.enable()
+                CoreGui.enable("UIConstants.EnableCoreGuiInStates")
                 return
             end
         end
 
-        CoreGui.disable()
+        CoreGui.disable("UIConstants.EnableCoreGuiInStates")
     end)
 end
 

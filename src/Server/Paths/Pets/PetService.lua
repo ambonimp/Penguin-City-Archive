@@ -22,11 +22,14 @@ local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
 local Signal = require(Paths.Shared.Signal)
+local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 local QUICK_HATCH_TIME = -10
 
 PetService.PetNameChanged = Signal.new() -- { player: Player, petDataIndex: string, petName: string }
+PetService.PetEquipped = Signal.new() -- { player: Player, petDataIndex: string }
+PetService.PetUnequipped = Signal.new() -- { player: Player, petDataIndex: string }
 
 local petsByPlayer: { [Player]: ServerPet.ServerPet } = {}
 
@@ -45,14 +48,28 @@ end
 
 -- Returns the PetDataIndex
 function PetService.addPet(player: Player, petData: PetConstants.PetData)
+    -- Data
     local appendKey = DataService.getAppendageKey(player, "Pets.Pets")
     DataService.append(player, "Pets.Pets", TableUtil.deepClone(petData), "PetUpdated", {
         PetDataIndex = appendKey,
     })
+
+    -- Add product representation
+    local product = ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+    ProductService.addProduct(player, product, 1)
+
     return appendKey
 end
 
 function PetService.removePet(player: Player, petDataIndex: string)
+    -- Remove product representation
+    local petData = PetService.getPet(player, petDataIndex)
+    if petData then
+        local product = ProductUtil.getPetProduct(petData.PetTuple.PetType, petData.PetTuple.PetVariant)
+        ProductService.addProduct(player, product, -1)
+    end
+
+    -- Data
     local address = ("Pets.Pets.%s"):format(petDataIndex)
     DataService.set(player, address, nil, "PetUpdated", {
         PetDataIndex = petDataIndex,
@@ -150,6 +167,7 @@ function PetService.equipPet(player: Player, petDataIndex: string)
 
     DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, petDataIndex, "EquippedPetUpdated")
     updatePlayerPet(player)
+    PetService.PetEquipped:Fire(player, petDataIndex)
 end
 
 -- Returns PetDataIndex (if it exists)
@@ -162,8 +180,12 @@ function PetService.getEquippedPet(player: Player)
 end
 
 function PetService.unequipPet(player: Player)
-    DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
-    updatePlayerPet(player)
+    local petDataIndex = PetService.getEquippedPetDataIndex(player)
+    if petDataIndex then
+        DataService.set(player, EQUIPPED_PET_DATA_ADDRESS, nil, "EquippedPetUpdated")
+        updatePlayerPet(player)
+        PetService.PetUnequipped:Fire(player, petDataIndex)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -177,7 +199,7 @@ end
 -- Returns PetEggDataIndex
 function PetService.addPetEgg(player: Player, petEggName: string, hatchTime: number?)
     local playtime = SessionService.getSession(player):GetPlayTime()
-    hatchTime = (hatchTime or PetConstants.PetEggs[petEggName].HatchTime) + playtime
+    hatchTime = (hatchTime or PetConstants.DefaultHatchTime) + playtime
 
     local address = PetUtils.getPetEggDataAddress(petEggName)
     local appendKey = DataService.getAppendageKey(player, address)

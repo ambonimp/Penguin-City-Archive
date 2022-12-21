@@ -4,7 +4,8 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local StarterGui = game:GetService("StarterGui")
-local ZoneController = require(Paths.Client.Zones.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Toggle = require(Paths.Shared.Toggle)
 
 local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Health,
@@ -12,28 +13,16 @@ local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Backpack,
 }
 
-local isEnabled = true
+local enabledToggle = Toggle.new(true, function(isEnabled)
+    GuiService.TouchControlsEnabled = isEnabled
+end)
 
-function CoreGui.enable()
-    -- RETURN: Already enabled
-    if isEnabled then
-        return
-    end
-    isEnabled = true
-
-    -- Mobile Controls
-    GuiService.TouchControlsEnabled = true
+function CoreGui.enable(scope: string)
+    enabledToggle:Set(true, scope)
 end
 
-function CoreGui.disable()
-    -- RETURN: Already disabled
-    if not isEnabled then
-        return
-    end
-    isEnabled = false
-
-    -- Mobile Controls
-    GuiService.TouchControlsEnabled = false
+function CoreGui.disable(scope: string)
+    enabledToggle:Set(false, scope)
 end
 
 -- Global disables
@@ -52,7 +41,10 @@ end
 do
     local resetBindable = Instance.new("BindableEvent")
     resetBindable.Event:Connect(function()
-        ZoneController.teleportToDefaultZone()
+        -- Circular Dependencies
+        local ZoneController = require(Paths.Client.Zones.ZoneController)
+
+        ZoneController.teleportToDefaultZone(ZoneConstants.TravelMethod.RobloxReset)
     end)
 
     task.spawn(function()

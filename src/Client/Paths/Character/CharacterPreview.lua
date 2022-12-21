@@ -110,11 +110,11 @@ function CharacterPreview.preview(config: {
     maid:GiveTask(previewCharacter)
 
     -- Disable Core Systems
-    CoreGui.disable()
+    CoreGui.disable("CharacterPreview.preview")
     InteractionUtil.hideInteractions(script.Name)
     CharacterUtil.hideCharacters(script.Name)
     maid:GiveTask(function()
-        CoreGui.enable()
+        CoreGui.enable("CharacterPreview.preview")
         InteractionUtil.showInteractions(script.Name)
         CharacterUtil.showCharacters(script.Name)
     end)

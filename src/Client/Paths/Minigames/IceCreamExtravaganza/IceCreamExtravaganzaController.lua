@@ -100,9 +100,11 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     MinigameController.playMusic("Core")
 
     SharedMinigameScreen.setStatusText("Collect scoops!")
+    SharedMinigameScreen.toggleExitButton(true)
     MinigameController.startCountdownAsync(IceCreamExtravaganzaConstants.SessionConfig.CoreLength, SharedMinigameScreen.setStatusCounter)
 end, function()
     SharedMinigameScreen.hideStatus()
+    SharedMinigameScreen.toggleExitButton(false)
     coreMaid:Cleanup()
 end)
 

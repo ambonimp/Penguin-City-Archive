@@ -3,6 +3,7 @@ export type ToolItem = {
     Id: string,
     DisplayName: string,
     Price: number,
+    Rotation: CFrame?,
 }
 
 local items: { [string]: ToolItem } = {}
@@ -29,6 +30,63 @@ items.Medkit = {
 items.Pizza = {
     Id = "Pizza",
     DisplayName = "Pizza",
+    Price = 0,
+}
+items.CottonCandy = {
+    Id = "CottonCandy",
+    DisplayName = "Cotton Candy",
+    Price = 0,
+    Rotation = CFrame.new(0, 0, 0.5),
+}
+items.CoconutDrink = {
+    Id = "CoconutDrink",
+    DisplayName = "Coconut Drink",
+    Price = 0,
+}
+
+items.IceCream = {
+    Id = "IceCream",
+    DisplayName = "Ice Cream",
+    Price = 0,
+}
+items.Lemonade = {
+    Id = "Lemonade",
+    DisplayName = "Lemonade",
+    Price = 0,
+}
+items.Balloons = {
+    Id = "Balloons",
+    DisplayName = "Balloons",
+    Price = 0,
+}
+items.Bone = {
+    Id = "Bone",
+    DisplayName = "Bone",
+    Price = 0,
+}
+items.Book = {
+    Id = "Book",
+    DisplayName = "Book",
+    Price = 0,
+}
+items.CheeseburgerPlate = {
+    Id = "CheeseburgerPlate",
+    DisplayName = "Cheeseburger Plate",
+    Price = 0,
+}
+items.GrapeJuice = {
+    Id = "GrapeJuice",
+    DisplayName = "Grape Juice",
+    Price = 0,
+}
+items.HotDog = {
+    Id = "HotDog",
+    DisplayName = "HotDog",
+    Price = 0,
+}
+items.Notebook = {
+    Id = "Notebook",
+    DisplayName = "Notebook",
     Price = 0,
 }
 
