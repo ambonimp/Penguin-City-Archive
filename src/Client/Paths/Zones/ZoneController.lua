@@ -24,6 +24,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController: typeof(require(Paths.Client.UI.UIController))
 local Scope = require(Paths.Shared.Scope)
 local Queue = require(Paths.Shared.Queue)
+local CoreGui = require(Paths.Client.UI.CoreGui)
 
 local DEFAULT_ZONE_HITBOX_DEBOUNCE = 2
 local DEFAULT_ZONE_TELEPORT_DEBOUNCE = 5
@@ -482,6 +483,11 @@ function ZoneController.applySettings(zone: ZoneConstants.Zone)
         if zoneSettings.IsWindy then
             WindController.startWind()
         end
+
+        -- CoreGui
+        if zoneSettings.DisableCoreGui then
+            CoreGui.disable(ZoneUtil.toString(Players.LocalPlayer, zone))
+        end
     end
 end
 
@@ -498,6 +504,11 @@ function ZoneController.revertSettings(zone: ZoneConstants.Zone)
         -- Wind
         if zoneSettings.IsWindy then
             WindController.stopWind()
+        end
+
+        -- CoreGui
+        if zoneSettings.DisableCoreGui then
+            CoreGui.enable(ZoneUtil.toString(Players.LocalPlayer, zone))
         end
     end
 end
