@@ -3,6 +3,7 @@ export type ToolItem = {
     Id: string,
     DisplayName: string,
     Price: number,
+    Rotation: CFrame?,
 }
 
 local items: { [string]: ToolItem } = {}
@@ -35,6 +36,7 @@ items.CottonCandy = {
     Id = "CottonCandy",
     DisplayName = "Cotton Candy",
     Price = 0,
+    Rotation = CFrame.new(0, 0, 0.5),
 }
 items.CoconutDrink = {
     Id = "CoconutDrink",

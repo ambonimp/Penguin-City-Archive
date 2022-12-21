@@ -7,6 +7,7 @@ export type ToolItem = {
     Id: string,
     DisplayName: string,
     Price: number,
+    Rotation: CFrame?,
 }
 
 local categoryNames: { [string]: string } = {}

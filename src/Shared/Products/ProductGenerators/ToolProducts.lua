@@ -22,6 +22,7 @@ for categoryName, tools in pairs(ToolConstants.Tools) do
                 CategoryName = categoryName,
                 ToolId = tool.Id,
                 Model = ToolUtil.getModel(ToolUtil.tool(categoryName, tool.Id)),
+                Rotation = tool.Rotation or CFrame.new(),
             },
         }
 
