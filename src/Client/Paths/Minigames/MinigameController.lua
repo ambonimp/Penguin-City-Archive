@@ -73,7 +73,7 @@ function MinigameController.stopMusic(name: Music)
 end
 
 local function setState(newState: State)
-    task.spawn(function()
+    maid:GiveTask(task.spawn(function()
         local newName: string = newState.Name
         local newData: StateData = newState.Data
 
@@ -95,7 +95,7 @@ local function setState(newState: State)
         if callbacks and callbacks.Open then
             callbacks.Open(newData)
         end
-    end)
+    end))
 end
 
 local function assertActiveMinigame()
@@ -180,20 +180,21 @@ function MinigameController.startCountdownAsync(length: number, onChanged: (valu
 
     local initialState = currentState
     length = math.max(0, currentState.Data.StartTime + length - Workspace:GetServerTimeNow()) -- Syncs with server
-
-    if onChanged then
-        onChanged(math.ceil(length))
-    end
-
-    task.wait(length % 1)
-    length = math.floor(length)
-    while length > 0 and initialState == currentState do
+    if length > 0 then
         if onChanged then
-            onChanged(length)
+            onChanged(math.ceil(length))
         end
 
-        task.wait(1)
-        length -= 1
+        task.wait(length % 1)
+        length = math.floor(length)
+        while length > 0 and initialState == currentState do
+            if onChanged then
+                onChanged(length)
+            end
+
+            task.wait(1)
+            length -= 1
+        end
     end
 
     return length == 0

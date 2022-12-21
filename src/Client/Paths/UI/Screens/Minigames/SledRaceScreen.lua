@@ -7,6 +7,8 @@ local ScreenUtil = require(Paths.Client.UI.Utils.ScreenUtil)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 local SharedMinigameScreen = require(Paths.Client.UI.Screens.Minigames.SharedMinigameScreen)
 local PlayerIcon = require(Paths.Client.UI.Elements.PlayerIcon)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIController = require(Paths.Client.UI.UIController)
 
 local PROGRESS_LINE_STROKE_COLOR = Color3.fromRGB(26, 26, 26)
 
@@ -22,6 +24,8 @@ local progressLine: Frame = screen.ProgressLine
 local progressIndicators: { [Player]: Frame }?
 
 local coinCount: TextLabel = screen.Coins
+
+local uiStateMachine = UIController.getStateMachine()
 
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
@@ -58,10 +62,12 @@ end
 function SledRaceScreen.closeProgressLine()
     progressLine.Visible = false
 
-    for _, frame in pairs(progressIndicators) do
-        frame:Destroy()
+    if progressIndicators then
+        for _, frame in pairs(progressIndicators) do
+            frame:Destroy()
+        end
+        progressIndicators = nil
     end
-    progressIndicators = nil
 end
 
 function SledRaceScreen.setCoins(coins: number)
@@ -83,6 +89,14 @@ do
         SharedMinigameScreen.openStartMenu()
     end)
     exitButton:Mount(instructionsFrame.Exit, true)
+end
+
+-- Register ui states
+do
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, nil, function()
+        SledRaceScreen.closeProgressLine()
+        SledRaceScreen.closeCoins()
+    end)
 end
 
 return SledRaceScreen
