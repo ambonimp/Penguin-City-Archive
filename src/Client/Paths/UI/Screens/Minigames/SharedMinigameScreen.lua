@@ -53,6 +53,7 @@ local multiplayerMenu = startMenus.Multiplayer
 
 local standingsFrame: Frame = sharedScreens.Standings
 local resultsFrame: Frame = sharedScreens.Results
+local gameplayExitButtonFrame: Frame = sharedScreens.GameplayExitButton
 
 local statusFrame: Frame = sharedScreens.Status
 local statusText: TextLabel = statusFrame.Text
@@ -64,6 +65,7 @@ local playTween: Tween?
 
 local startInstructionButton = KeyboardButton.new()
 local startExitButton = KeyboardButton.new()
+local gameplayExitButton = KeyboardButton.new()
 
 local standingsClose = KeyboardButton.new()
 local resultsClose = KeyboardButton.new()
@@ -136,6 +138,10 @@ end
 function SharedMinigameScreen.hideStatus()
     statusText.Visible = false
     statusCounter.Visible = false
+end
+
+function SharedMinigameScreen.toggleExitButton(isVisible: boolean)
+    gameplayExitButtonFrame.Visible = isVisible
 end
 
 function SharedMinigameScreen.openStartMenu()
@@ -356,24 +362,31 @@ do
         Remotes.fireServer("MinigameStarted")
     end)
 
-    startExitButton = KeyboardButton.new()
     startExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
     startExitButton:SetText(EXIT_BUTTON_TEXT, true)
     startExitButton:SetIcon(Images.Icons.Exit)
     startExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
-    startExitButton.InternalRelease:Connect(function()
+    startExitButton.Pressed:Connect(function()
         Remotes.fireServer("MinigameExited")
     end)
 
-    startInstructionButton = KeyboardButton.new()
     startInstructionButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
     startInstructionButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
     startInstructionButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     startInstructionButton:SetIcon(Images.Icons.Instructions)
-    startInstructionButton.InternalRelease:Connect(function()
+    startInstructionButton.Pressed:Connect(function()
         SharedMinigameScreen.closeStartMenu(true)
         ScreenUtil.inUp(getScreenGui().Instructions)
     end)
+
+    gameplayExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
+    gameplayExitButton:SetText(EXIT_BUTTON_TEXT, true)
+    gameplayExitButton:SetIcon(Images.Icons.Exit)
+    gameplayExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
+    gameplayExitButton.Pressed:Connect(function()
+        Remotes.fireServer("MinigameExited")
+    end)
+    gameplayExitButton:Mount(gameplayExitButtonFrame, true)
 end
 
 -- Register ui states
