@@ -1,7 +1,7 @@
 local GameConstants = {}
 
 GameConstants.BranchName = nil :: string | nil -- Feel free to place the name of your branch here for more specific versioning
-GameConstants.Version = "v0.0.0"
+GameConstants.Version = "v1.0.0"
 GameConstants.GameName = "penguin-city" --!! Used in our Telemetry Scope
 GameConstants.PrettyGameName = "Penguin City"
 
@@ -17,9 +17,9 @@ GameConstants.GameId = {
 }
 
 GameConstants.DataIds = {
-    Dev = 48,
-    QA = 7,
-    Live = 1, --!! Dangerous. Past nums: (1: Alpha)
+    Dev = 50,
+    QA = 8,
+    Live = 2, --!! Dangerous. Past nums: (1: Alpha)
 }
 
 return GameConstants
