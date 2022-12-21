@@ -58,10 +58,12 @@ end
 function SledRaceScreen.closeProgressLine()
     progressLine.Visible = false
 
-    for _, frame in pairs(progressIndicators) do
-        frame:Destroy()
+    if progressIndicators then
+        for _, frame in pairs(progressIndicators) do
+            frame:Destroy()
+        end
+        progressIndicators = nil
     end
-    progressIndicators = nil
 end
 
 function SledRaceScreen.setCoins(coins: number)

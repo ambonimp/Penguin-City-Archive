@@ -28,11 +28,8 @@ local RESTART_DELAY = 0.2
 -------------------------------------------------------------------------------
 local player = Players.LocalPlayer
 
-local raceMaid = Maid.new()
+local raceMaid
 local minigameMaid = MinigameController.getMinigameMaid()
-minigameMaid:GiveTask(function()
-    raceMaid:Cleanup()
-end)
 
 -------------------------------------------------------------------------------
 -- State handler
@@ -51,6 +48,9 @@ MinigameController.registerStateCallback(MINIGAME_NAME, MinigameConstants.States
     minigameMaid:GiveTask(function()
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
     end)
+
+    raceMaid = Maid.new()
+    minigameMaid:GiveTask(raceMaid)
 
     MinigameController.playMusic("Intermission")
     SharedMinigameScreen.openStartMenu()

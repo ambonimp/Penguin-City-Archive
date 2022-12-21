@@ -23,6 +23,7 @@ local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.Easi
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
 local BLINK_OPTIONS: BlinkTransition.Options = {
     DoShowVoldexLoading = true,
+    Scope = "Minigames",
 }
 
 local START_MENU_BACKGROUND_TRANSPARENCY = 0.3
@@ -182,6 +183,8 @@ function SharedMinigameScreen.openStartMenu()
 
     startInstructionButton:Mount(actions.Instructions, true)
     startExitButton:Mount(actions.Exit, true)
+
+    BlinkTransition.close(BLINK_OPTIONS)
 end
 
 function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -> ()?)
@@ -213,7 +216,7 @@ function SharedMinigameScreen.closeStartMenu(temporary: boolean?, callback: () -
     startMenus.Visible = false
     menu.Visible = false
 
-    BlinkTransition.close()
+    BlinkTransition.close(BLINK_OPTIONS)
 end
 
 function SharedMinigameScreen.openStandings(scores: MinigameConstants.SortedScores)

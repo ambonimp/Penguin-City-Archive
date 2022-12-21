@@ -39,23 +39,21 @@ function MinigameService.requestToPlay(player: Player, minigame: string, multipl
         return
     end
 
-    -- RETURN: Player is already in a queue
-    if multiplayer then
-        for _, queues in pairs(activeQueues) do
-            for _, queue in pairs(queues) do
-                if queue:IsParticipant(player) then
-                    return
-                end
-            end
-        end
-    end
-
     local sessionConfig = MinigameUtil.getsessionConfig(minigame)
     if multiplayer then
         -- RETURN: No multiplayer support
         if not sessionConfig.Multiplayer then
             warn(("%s minigame doesn't support multiplayer play"):format(minigame))
             return
+        end
+
+        -- RETURN: Player is already in a queue
+        for _, queues in pairs(activeQueues) do
+            for _, queue in pairs(queues) do
+                if queue:IsParticipant(player) then
+                    return
+                end
+            end
         end
 
         -- Search for existing session
