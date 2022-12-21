@@ -5,12 +5,14 @@ local SettingsConstants = require(ReplicatedStorage.Shared.Settings.SettingsCons
 return function()
     local issues: { string } = {}
 
-    -- Volume
-    do
-        -- Enum-like
-        TestUtil.enum(SettingsConstants.Settings.Volume, issues)
+    for settingType, settingNames in pairs(SettingsConstants.Settings) do
+        -- Enum-like names
+        TestUtil.enum(settingNames, issues)
 
-        --todo matching soundservice folder
+        -- Default value
+        if not SettingsConstants.Default[settingType] then
+            table.insert(issues, (("Missing default value for setting type %q"):format(settingType)))
+        end
     end
 
     return issues

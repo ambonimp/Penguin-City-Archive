@@ -6,4 +6,8 @@ SettingsConstants.Settings = {
     },
 }
 
+SettingsConstants.Default = {
+    Volume = 0.5,
+}
+
 return SettingsConstants

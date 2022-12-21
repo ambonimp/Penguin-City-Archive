@@ -6,10 +6,12 @@ local Signal = require(Paths.Shared.Signal)
 local SettingsConstants = require(Paths.Shared.Settings.SettingsConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local DataController = require(Paths.Client.DataController)
+local Limiter = require(Paths.Shared.Limiter)
 
 SettingsController.SettingUpdated = Signal.new() -- { settingType: string, settingName: string, settingValue: any }
 
 local INFORM_OF_INITIAL_SETTINGS_AFTER = 2
+local UPDATE_SERVER_AFTER = 1
 
 local function assertSetting(settingType: string, settingName: string)
     -- RETURN: Bad setting
@@ -22,7 +24,7 @@ function SettingsController.getSettingValue(settingType: string, settingName: st
     assertSetting(settingType, settingName)
 
     local dataAddress = ("Settings.%s.%s"):format(settingType, settingName)
-    return DataController.get(dataAddress) :: any
+    return DataController.get(dataAddress) or SettingsConstants.Default[settingType]
 end
 
 function SettingsController.updateSettingValue(settingType: string, settingName: string, settingValue)
@@ -31,8 +33,10 @@ function SettingsController.updateSettingValue(settingType: string, settingName:
     -- Inform Client
     SettingsController.SettingUpdated:Fire(settingType, settingName, settingValue)
 
-    -- Inform Server
-    Remotes.fireServer("UpdateSettingValue", settingType, settingName, settingValue)
+    -- Inform Server (no spam)
+    Limiter.indecisive("SettingsController.updateSettingValue", UPDATE_SERVER_AFTER, function()
+        Remotes.fireServer("UpdateSettingValue", settingType, settingName, settingValue)
+    end)
 end
 
 function SettingsController.Start()
@@ -47,11 +51,8 @@ function SettingsController.Start()
     task.delay(INFORM_OF_INITIAL_SETTINGS_AFTER, function()
         for settingType, settingNames in pairs(SettingsConstants.Settings) do
             for _, settingName in pairs(settingNames) do
-                SettingsController.SettingUpdated:Fire(
-                    settingType,
-                    settingName,
-                    SettingsController.getSettingValue(settingType, settingName)
-                )
+                local settingValue = SettingsController.getSettingValue(settingType, settingName)
+                SettingsController.SettingUpdated:Fire(settingType, settingName, settingValue)
             end
         end
     end)

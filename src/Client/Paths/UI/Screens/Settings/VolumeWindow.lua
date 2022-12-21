@@ -20,12 +20,13 @@ local SettingsController = require(Paths.Client.Settings.SettingsController)
 
 local SLIDER_DECIMALS = 2
 
-local function createSettingLine(name: string)
+local function createSettingLine(maid: typeof(Maid.new()), name: string)
     local settingFrame = Instance.new("Frame")
     settingFrame.Name = name
     settingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     settingFrame.BackgroundTransparency = 1
     settingFrame.Size = UDim2.fromScale(1, 0.2)
+    maid:GiveTask(settingFrame)
 
     local textLabel = Instance.new("TextLabel")
     textLabel.Name = "textLabel"
@@ -69,13 +70,14 @@ end
 
     Returns a Signal that is fired with a new value whenever value is updated
 ]]
-local function createInteractionSlider(parent: GuiObject, startValue: number)
+local function createInteractionSlider(maid: typeof(Maid.new()), parent: GuiObject, startValue: number)
     --#region Create UI
     local slider = Instance.new("Frame")
     slider.Name = "slider"
     slider.BackgroundTransparency = 1
     slider.Size = UDim2.fromScale(1, 1)
     slider.Parent = parent
+    maid:GiveTask(slider)
 
     local uIPadding = Instance.new("UIPadding")
     uIPadding.Name = "uIPadding"
@@ -111,14 +113,18 @@ local function createInteractionSlider(parent: GuiObject, startValue: number)
     knobButton:SetColor(Color3.fromRGB(50, 195, 185))
     knobButton:Outline(4, Color3.fromRGB(255, 255, 255))
     knobButton:Mount(knobFrame, true)
+    maid:GiveTask(knobButton)
 
     -- Sliding Logic
     local slidingMaid = Maid.new()
+    maid:GiveTask(slidingMaid)
     local updateSignal = Signal.new()
+    maid:GiveTask(updateSignal)
+
     local currentValue = MathUtil.round(startValue, SLIDER_DECIMALS)
 
     -- Sliding
-    knobButton.InternalPress:Connect(function()
+    maid:GiveTask(knobButton.InternalPress:Connect(function()
         slidingMaid:GiveTask(RunService.RenderStepped:Connect(function()
             -- Calculate where on the slider we have the knob
             local mousePosition = InputController.getMouseLocation(false)
@@ -133,12 +139,16 @@ local function createInteractionSlider(parent: GuiObject, startValue: number)
                 updateSignal:Fire(currentValue)
             end
         end))
-    end)
-    knobButton.InternalRelease:Connect(function()
+    end))
+    maid:GiveTask(knobButton.InternalRelease:Connect(function()
         slidingMaid:Cleanup()
-    end)
+    end))
 
-    return updateSignal
+    return updateSignal,
+        function(forceValue: number)
+            currentValue = forceValue
+            knobFrame.Position = UDim2.fromScale(currentValue, 0.5)
+        end
 end
 
 function VolumeWindow.new()
@@ -170,12 +180,20 @@ function VolumeWindow.new()
     --#endregion
 
     -- Music Volume
-    local musicVolumeFrame = createSettingLine("Music Volume")
-    musicVolumeFrame.Parent = settingsWindow
-    local musicVolumeSliderSignal = createInteractionSlider(musicVolumeFrame.interaction, 0.5)
-    musicVolumeSliderSignal:Connect(function(volume: any)
-        SettingsController.updateSettingValue("Volume", "Music", volume)
-    end)
+    do
+        -- Create UI
+        local musicVolumeFrame = createSettingLine(volumeWindow:GetMaid(), "Music Volume")
+        musicVolumeFrame.Parent = settingsWindow
+
+        -- Slider
+        local musicVolumeSliderSignal, forceValue = createInteractionSlider(volumeWindow:GetMaid(), musicVolumeFrame.interaction, 0.5)
+        forceValue(SettingsController.getSettingValue("Volume", "Music"))
+
+        -- Update setting when we slide
+        musicVolumeSliderSignal:Connect(function(volume: any)
+            SettingsController.updateSettingValue("Volume", "Music", volume)
+        end)
+    end
 
     -------------------------------------------------------------------------------
     -- Logic

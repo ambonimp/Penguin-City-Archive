@@ -7,8 +7,6 @@ local SettingsConstants = require(Paths.Shared.Settings.SettingsConstants)
 local Remotes = require(Paths.Shared.Remotes)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 
-local DEFAULT_VOLUME = 0.5
-
 Remotes.bindEvents({
     UpdateSettingValue = function(player: Player, dirtySettingType: any, dirtySettingName: any, dirtySettingValue: any)
         -- Clean type/name
@@ -26,7 +24,7 @@ Remotes.bindEvents({
                 return
             end
 
-            local volumeValue = math.clamp(TypeUtil.toNumber(dirtySettingValue, DEFAULT_VOLUME), 0, 1)
+            local volumeValue = math.clamp(TypeUtil.toNumber(dirtySettingValue, SettingsConstants.Default.Volume), 0, 1)
             local dataAddress = ("Settings.Volume.%s"):format(settingName)
 
             DataService.set(player, dataAddress, volumeValue)
