@@ -261,7 +261,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
         -- Character: Anchor + Rotate
         local directionVector = mouseRaycastResult.Position - character:GetPivot().Position
         CharacterUtil.faceDirection(character, directionVector, ROTATE_CHARACTER_TWEEN_INFO)
-        CharacterUtil.anchor(character)
+        CharacterUtil.freeze(character)
 
         -- Play animation
         local throwTrack = animator:LoadAnimation(ANIMATION_THROW_SNOWBALL)
@@ -278,7 +278,7 @@ function SnowballToolClientHandler.activatedLocally(tool: ToolUtil.Tool, modelGe
         -- Finished
         task.delay(throwTrack.Length, function()
             -- Unanchor
-            CharacterUtil.unanchor(character)
+            CharacterUtil.unfreeze(character)
 
             isThrowingSnowball = false
         end)

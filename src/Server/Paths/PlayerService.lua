@@ -27,6 +27,7 @@ function PlayerService.Start()
     local PetService = require(Paths.Server.Pets.PetService)
     local PlayerChatService = require(Paths.Server.PlayerChatService)
     local ToolService = require(Paths.Server.Tools.ToolService)
+    local TelemetryService = require(Paths.Server.Telemetry.TelemetryService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -50,6 +51,7 @@ function PlayerService.Start()
         PetService.loadPlayer(player)
         PlayerChatService.loadPlayer(player)
         ToolService.loadPlayer(player)
+        TelemetryService.loadPlayer(player)
     end
 
     Players.PlayerRemoving:Connect(function(player)
@@ -57,6 +59,7 @@ function PlayerService.Start()
         PlotService.unloadPlayer(player)
         RewardsService.unloadPlayer(player)
         PetService.unloadPlayer(player)
+        TelemetryService.unloadPlayer(player)
 
         -- Destroy Maid
         maidByPlayer[player]:Destroy()

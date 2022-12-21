@@ -17,7 +17,6 @@ local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local Output = require(Paths.Shared.Output)
 local Sound = require(Paths.Shared.Sound)
-local ToolController = require(Paths.Client.Tools.ToolController)
 
 type Music = "Core" | "Intermission"
 type StateData = { [string]: any }
@@ -229,8 +228,6 @@ Remotes.bindEvents({
                 ZoneController.ZoneChanged:Wait()
             end
 
-            ToolController.unequip()
-
             if state.Name ~= INITIALIZATION_STATE.Name then
                 setState(INITIALIZATION_STATE)
             end
@@ -248,12 +245,17 @@ Remotes.bindEvents({
             MinigameController.stopMusic("Core")
             MinigameController.stopMusic("Intermission")
 
+            -- Try catch at the peak of the transition to hide its removal
+            maid:GiveTask(ZoneController.ZoneChanged:Connect(function()
+                uiStateMachine:Remove(UIConstants.States.Minigame)
+            end))
+
             if ZoneUtil.zonesMatch(ZoneController.getCurrentZone(), currentZone) then
                 ZoneController.ZoneChanged:Wait()
             end
 
             maid:Cleanup()
-            uiStateMachine:Pop()
+            uiStateMachine:Remove(UIConstants.States.Minigame) -- Security incase ZoneChanged block doesn't run
 
             task.defer(function()
                 currentMinigame = nil

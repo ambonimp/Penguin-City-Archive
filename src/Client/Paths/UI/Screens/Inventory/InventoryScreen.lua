@@ -105,7 +105,9 @@ function InventoryScreen.Init()
             local inventoryWindow = InventoryPetsWindow.new(Images.Icons.Pets, "Pets", {
                 AddCallback = function()
                     UIController.getStateMachine():Remove(UIConstants.States.Inventory)
-                    ZoneController.teleportToRoomRequest(petShopZone)
+                    ZoneController.teleportToRoomRequest(petShopZone, {
+                        TravelMethod = ZoneConstants.TravelMethod.Inventory,
+                    })
                 end,
             })
 

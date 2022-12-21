@@ -10,11 +10,12 @@ local DataService = require(Paths.Server.Data.DataService)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
 local Remotes = require(Paths.Shared.Remotes)
-local CurrencySevice = require(Paths.Server.CurrencyService)
+local CurrencyService = require(Paths.Server.CurrencyService)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local ProductService = require(Paths.Server.Products.ProductService)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local Signal = require(Paths.Shared.Signal)
+local CurrencyConstants = require(Paths.Shared.Currency.CurrencyConstants)
 
 local UPDATE_DAILY_REWARD_EVERY = 5 * 60
 
@@ -68,7 +69,10 @@ function RewardsService.givePaycheck(player: Player)
         0,
         RewardsConstants.Paycheck.Coins.Max
     )
-    CurrencySevice.addCoins(player, paycheckAmount)
+    CurrencyService.injectCoins(player, paycheckAmount, {
+        OverrideClient = true,
+        InjectCategory = CurrencyConstants.InjectCategory.Paycheck,
+    })
 
     -- Inform
     RewardsService.GavePaycheck:Fire(player, totalPaychecks)
@@ -118,7 +122,10 @@ function RewardsService.giveReward(player: Player, reward: RewardsConstants.Dail
     if coins then
         coins *= amount
 
-        CurrencySevice.addCoins(player, coins)
+        CurrencyService.injectCoins(player, coins, {
+            OverrideClient = true,
+            InjectCategory = CurrencyConstants.InjectCategory.DailyReward,
+        })
         return
     end
 

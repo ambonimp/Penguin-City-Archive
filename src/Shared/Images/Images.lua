@@ -16,6 +16,7 @@ Images.ButtonIcons = {
     Map = "rbxassetid://11152371075",
     Party = "rbxassetid://11152370136",
     Pencil = "rbxassetid://11374218958",
+    Settings = "rbxassetid://11878841419",
     StampBook = "rbxassetid://11152369533",
     Toolbox = "rbxassetid://11152369313",
     Rewards = "rbxassetid://11390824777",
@@ -35,6 +36,7 @@ Images.Icons = {
     CoinWhite = "rbxassetid://11374896378",
     DecorationTab = "rbxassetid://11834522980",
     Egg = "rbxassetid://11563573619",
+    Emote = "rbxassetid://11873092720",
     Events = "rbxassetid://11152372332",
     Exit = "rbxassetid://11152372250",
     Face = "rbxassetid://11152372168",
@@ -52,6 +54,7 @@ Images.Icons = {
     LeftArrow = "rbxassetid://6583639670",
     Message = "rbxassetid://11152371010",
     Minigame = "rbxassetid://11152370898",
+    MobileButton = "rbxassetid://11871493568",
     Move = "rbxassetid://11152370757",
     Okay = "rbxassetid://11152370624",
     Outfit = "rbxassetid://11152370509",
@@ -68,6 +71,7 @@ Images.Icons = {
     RoomTab = "rbxassetid://11834522821",
     RightArrow = "rbxassetid://6583638192",
     Seal = "rbxassetid://11152369785",
+    Sprint = "rbxassetid://11871272373",
     Search = "rbxassetid://11152369702",
     Shirt = "rbxassetid://11152369627",
     Stamp = "rbxassetid://11250982379",
@@ -75,7 +79,6 @@ Images.Icons = {
     TrashCan = "rbxassetid://11826396510",
     Text = "rbxassetid://11152369398",
     Toy = "rbxassetid://11505042821",
-    VoldexLogo = "rbxassetid://11250982454",
     Wallpaper = "rbxassetid://11152369233",
     WindowDoor = "rbxassetid://11152369143",
     Wrench = "rbxassetid://11152369091",
@@ -83,6 +86,23 @@ Images.Icons = {
     Click = "rbxassetid://11637103411",
 }
 --#endregion
+--#region Voldex
+Images.Voldex = {
+    V = "rbxassetid://11860915108",
+    O = "rbxassetid://11860915201",
+    L = "rbxassetid://11860914811",
+    D = "rbxassetid://11860915029",
+    E = "rbxassetid://11860914900",
+    X = "rbxassetid://11860914744",
+}
+--#endregion
+Images.EmoteWheel = {
+    SelectedLine = "rbxasset://textures/ui/Emotes/Large/SelectedLine.png",
+    SelectionGradient = "rbxasset://textures/ui/Emotes/Large/SelectedGradient.png",
+    CircleBackground = "rbxasset://textures/ui/Emotes/Large/CircleBackground.png",
+    SegmentedCircle = "rbxasset://textures/ui/Emotes/Large/SegmentedCircle.png",
+    EmoteButton = "rbxassetid://11872973316",
+}
 --#region Coins
 Images.Coins = {
     Bundle1 = "rbxassetid://11152356128",
@@ -340,11 +360,20 @@ Images.Map = {
     },
 }
 --#endregion
+--#region Tutorial
 Images.Tutorial = {
     FocalPoint = "rbxassetid://11825341688",
     Arrow = "rbxassetid://11832252404",
     ArrowPadded = "rbxassetid://11832262566",
 }
+--#endregion
+--#region Settings
+Images.Settings = {
+    VolumeOff = "rbxassetid://11878841117",
+    VolumeOn = "rbxassetid://11878841264",
+    SliderKnob = "rbxassetid://11878841582",
+}
+--#endregion
 
 --!! ImageViewer assumes all keys of `Image`s are a table of ImageIds!
 

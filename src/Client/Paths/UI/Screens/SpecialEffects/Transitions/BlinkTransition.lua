@@ -4,32 +4,29 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CameraController = require(Paths.Client.CameraController)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local ArrayUtil = require(Paths.Shared.Utils.ArrayUtil)
+local VoldexLoading = require(Paths.Client.UI.Screens.SpecialEffects.VoldexLoading)
 
 export type Options = {
     TweenInfo: TweenInfo?,
     TweenTime: number?, -- Always overrides
     DoAlignCamera: boolean?,
+    DoShowVoldexLoading: boolean?,
 }
 
--------------------------------------------------------------------------------
--- PRIVATE MEMBERS
--------------------------------------------------------------------------------
-local frame = Paths.UI:WaitForChild("SpecialEffects").Bloom
-local isOpen: boolean
-local tween: Tween?
+BlinkTransition.TweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
--------------------------------------------------------------------------------
--- PUBLIC MEMBERS
--------------------------------------------------------------------------------
-BlinkTransition.TWEEN_INFO = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local frame: Frame = Paths.UI:WaitForChild("SpecialEffects").Bloom
+local hideShowInstances: { Instance } = ArrayUtil.merge({ frame }, frame:GetDescendants())
 
--------------------------------------------------------------------------------
--- PRIVATE METHODS
--------------------------------------------------------------------------------
-local function getTweenInfo(options: Options?)
+local isOpen = false
+local isVoldexLoadingOpen = false
+
+local function getTweenInfoFromOptions(options: Options?)
     -- Read blink options
     options = options or {}
-    local tweenInfo = options.TweenInfo or BlinkTransition.TWEEN_INFO
+    local tweenInfo = options.TweenInfo or BlinkTransition.TweenInfo
     if options.TweenTime then
         tweenInfo = TweenInfo.new(options.TweenTime, tweenInfo.EasingStyle, tweenInfo.EasingDirection)
     end
@@ -37,57 +34,41 @@ local function getTweenInfo(options: Options?)
     return tweenInfo
 end
 
--------------------------------------------------------------------------------
--- PUBLIC METHODS
--------------------------------------------------------------------------------
+-- Yields
 function BlinkTransition.open(options: Options?)
     -- RETURN: Already opening
     if isOpen then
-        if tween then
-            tween.Completed:Wait()
-        end
-
         return
     end
+    isOpen = true
 
-    if tween then
-        tween:Cancel()
+    local tweenInfo = getTweenInfoFromOptions(options)
+    InstanceUtil.show(hideShowInstances, tweenInfo)
+
+    if options and options.DoShowVoldexLoading then
+        isVoldexLoadingOpen = true
+        VoldexLoading.open(tweenInfo)
     end
 
-    isOpen = true
-    tween = TweenService:Create(frame, getTweenInfo(options), { BackgroundTransparency = 0 })
-    tween.Completed:Connect(function(playbackState)
-        if playbackState == Enum.PlaybackState.Completed then
-            tween = nil
-        end
-    end)
-
-    tween:Play()
-    tween.Completed:Wait()
+    task.wait(tweenInfo.Time)
 end
 
+-- Yields
 function BlinkTransition.close(options: Options?)
     -- RETURN: Blink is already closed
     if not isOpen then
-        if tween then
-            tween.Completed:Wait()
-        end
         return
     end
+    isOpen = false
 
-    if tween then
-        tween:Cancel()
+    local tweenInfo = getTweenInfoFromOptions(options)
+    InstanceUtil.hide(hideShowInstances, tweenInfo)
+
+    if isVoldexLoadingOpen then
+        VoldexLoading.close(tweenInfo)
     end
 
-    isOpen = false
-    tween = TweenService:Create(frame, getTweenInfo(options), { BackgroundTransparency = 1 })
-    tween.Completed:Connect(function(playbackState)
-        if playbackState == Enum.PlaybackState.Completed then
-            tween = nil
-        end
-    end)
-    tween:Play()
-    tween.Completed:Wait()
+    task.wait(tweenInfo.Time)
 end
 
 -- Yields
@@ -105,5 +86,12 @@ function BlinkTransition.play(onHalfPoint: (...any) -> nil, options: Options?)
     -- Tween Out
     BlinkTransition.close(options)
 end
+
+-------------------------------------------------------------------------------
+-- Logic; initial setup
+-------------------------------------------------------------------------------
+
+frame.BackgroundTransparency = 0
+InstanceUtil.hide(hideShowInstances)
 
 return BlinkTransition

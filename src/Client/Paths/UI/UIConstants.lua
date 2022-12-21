@@ -27,6 +27,8 @@ UIConstants.States = {
     Map = "Map",
     Tutorial = "Tutorial",
     FocalPoint = "FocalPoint",
+    Emotes = "Emotes",
+    Settings = "Settings",
 }
 
 -- If `key` is in the stack, but `value` is on the top, we will still treat as `key` being at the top of the stack (see UIUtil.getPseudoState)
@@ -40,6 +42,7 @@ UIConstants.PseudoStates = {
 }
 
 UIConstants.InteractionPermissiveStates = { UIConstants.States.HUD, UIConstants.States.Tutorial }
+UIConstants.ActivateToolPermissiveStates = { UIConstants.States.HUD }
 
 UIConstants.RemoveStatesOnZoneTeleport = {
     UIConstants.States.HouseEditor,
@@ -62,6 +65,7 @@ UIConstants.Keybinds = {
 UIConstants.EnableCoreGuiInStates = {
     UIConstants.States.Loading,
     UIConstants.States.HUD,
+    UIConstants.States.Minigame,
 }
 
 UIConstants.Font = Enum.Font.GothamBold

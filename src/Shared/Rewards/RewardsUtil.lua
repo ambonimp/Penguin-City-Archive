@@ -136,7 +136,7 @@ function RewardsUtil.getDailyRewardReward(day: number)
 end
 
 --[[
-    - `productBlacklist` `productIds: amount`
+    - `productBlacklist` `productIds: amount`; banned products (for whatever reason! e.g., already owned)
     - `streakNumber` and `seedContribution` helps keep gifts random between players and playtime
 ]]
 function RewardsUtil.getDailyRewardGift(
@@ -231,6 +231,14 @@ function RewardsUtil.getDailyRewardGift(
                     reward.Gift.Data.ProductType = product.Type
                     break
                 end
+            end
+        elseif gift.Type == "PetEgg" then
+            local petEggName = gift.Data.PetEgg
+            local product = ProductUtil.getPetEggProduct(petEggName)
+
+            if isProductAllowed(product) then
+                reward.Gift.Data.ProductId = product.Id
+                reward.Gift.Data.ProductType = product.Type
             end
         else
             error(("Missing case for gift type %q"):format(gift.Type))

@@ -12,6 +12,10 @@ local BlinkTransition = require(Paths.Client.UI.Screens.SpecialEffects.Transitio
 local InteractionUtil = require(Paths.Shared.Utils.InteractionUtil)
 local MinigameController = require(Paths.Client.Minigames.MinigameController)
 
+local BLINK_OPTIONS: BlinkTransition.Options = {
+    DoShowVoldexLoading = true,
+}
+
 local uiStateMachine = UIController.getStateMachine()
 
 InteractionController.registerInteraction("MinigamePrompt", function(instance)
@@ -34,7 +38,7 @@ InteractionController.registerInteraction("MinigamePrompt", function(instance)
         end))
     else
         -- Mask latency
-        BlinkTransition.open()
+        BlinkTransition.open(BLINK_OPTIONS)
 
         --[[
         task.wait(0.2)

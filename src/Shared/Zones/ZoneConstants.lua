@@ -20,6 +20,13 @@ export type PlayerZoneState = {
     TotalTeleports: number,
 }
 
+export type TeleportData = {
+    IsClientRequest: boolean?, -- Dictates whether to inform client of teleport
+    IgnoreFromZone: boolean?, -- Helps choose what spawnpoint to send the player to
+    TravelMethod: string?,
+    IsInitialTeleport: boolean?,
+}
+
 -------------------------------------------------------------------------------
 -- Internal Methods
 -------------------------------------------------------------------------------
@@ -86,7 +93,29 @@ ZoneConstants.AttributeBasePartTotal = "_ZoneTotalBaseParts"
 ZoneConstants.AttributeIsProcessed = "_ZoneIsProcessed"
 -- How long between informing client they're being teleported, and actually teleporting (be duration of fade in on transition)
 ZoneConstants.TeleportBuffer = 0.5
-ZoneConstants.DoDebug = true
+ZoneConstants.DoDebug = false
+
+-- Some zones (famously Boardwalk) will regularly be waiting on 1 part to load. We *do* assume that all parts are loaded before declaring a zone loaded,
+-- but it affects the user experience when we have long loading times. We allow a small buffer for Rooms to offset this. We have *not* enabled
+-- this behaviour for minigames, as minigames are much more likely to need to run routines based off the existence of specific instances
+ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts = 3
+
+ZoneConstants.TravelMethod = {
+    Map = "Map",
+    Walking = "Walking",
+    Cmdr = "Cmdr",
+    ZoneDestroyed = "ZoneDestroyed",
+    JoinedMinigame = "JoinedMinigame",
+    LeftMinigame = "LeftMinigame",
+    Unknown = "Unknown",
+    PlayerMenu = "PlayerMenu",
+    HUD = "HUD",
+    Inventory = "Inventory",
+    StampBook = "StampBook",
+    Tutorial = "Tutorial",
+    RobloxReset = "RobloxReset",
+    TooFarFromZoneSOS = "TooFarFromZoneSOS",
+}
 
 -------------------------------------------------------------------------------
 -- Cosmetics

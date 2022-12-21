@@ -21,6 +21,9 @@ local Sound = require(Paths.Shared.Sound)
 
 local COUNTDOWN_TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local COUNTDOWN_BIND_KEY = "CountingDown:D"
+local BLINK_OPTIONS: BlinkTransition.Options = {
+    DoShowVoldexLoading = true,
+}
 
 local START_MENU_BACKGROUND_TRANSPARENCY = 0.3
 local EXIT_BUTTON_TEXT = "Go Back"
@@ -50,6 +53,7 @@ local multiplayerMenu = startMenus.Multiplayer
 
 local standingsFrame: Frame = sharedScreens.Standings
 local resultsFrame: Frame = sharedScreens.Results
+local gameplayExitButtonFrame: Frame = sharedScreens.GameplayExitButton
 
 local statusFrame: Frame = sharedScreens.Status
 local statusText: TextLabel = statusFrame.Text
@@ -61,6 +65,7 @@ local playTween: Tween?
 
 local startInstructionButton = KeyboardButton.new()
 local startExitButton = KeyboardButton.new()
+local gameplayExitButton = KeyboardButton.new()
 
 local standingsClose = KeyboardButton.new()
 local resultsClose = KeyboardButton.new()
@@ -133,6 +138,10 @@ end
 function SharedMinigameScreen.hideStatus()
     statusText.Visible = false
     statusCounter.Visible = false
+end
+
+function SharedMinigameScreen.toggleExitButton(isVisible: boolean)
+    gameplayExitButtonFrame.Visible = isVisible
 end
 
 function SharedMinigameScreen.openStartMenu()
@@ -347,35 +356,43 @@ end
 do
     playButtonText.Text = ("%s TO PLAY"):format(DeviceUtil.isMobile() and "TAP" or "CLICK")
     playButton.MouseButton1Down:Connect(function()
-        BlinkTransition.open()
+        BlinkTransition.open(BLINK_OPTIONS)
 
         task.wait(math.max(0, PLAY_DELAY - (player:GetNetworkPing() * 2)))
         Remotes.fireServer("MinigameStarted")
     end)
 
-    startExitButton = KeyboardButton.new()
     startExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
     startExitButton:SetText(EXIT_BUTTON_TEXT, true)
     startExitButton:SetIcon(Images.Icons.Exit)
     startExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
-    startExitButton.InternalRelease:Connect(function()
+    startExitButton.Pressed:Connect(function()
         Remotes.fireServer("MinigameExited")
     end)
 
-    startInstructionButton = KeyboardButton.new()
     startInstructionButton:SetColor(UIConstants.Colors.Buttons.InstructionsOrange, true)
     startInstructionButton:SetText(INSTRUCTIONS_BUTTON_TEXT, true)
     startInstructionButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
     startInstructionButton:SetIcon(Images.Icons.Instructions)
-    startInstructionButton.InternalRelease:Connect(function()
+    startInstructionButton.Pressed:Connect(function()
         SharedMinigameScreen.closeStartMenu(true)
         ScreenUtil.inUp(getScreenGui().Instructions)
     end)
+
+    gameplayExitButton:SetColor(UIConstants.Colors.Buttons.CloseRed, true)
+    gameplayExitButton:SetText(EXIT_BUTTON_TEXT, true)
+    gameplayExitButton:SetIcon(Images.Icons.Exit)
+    gameplayExitButton:SetPressedDebounce(UIConstants.DefaultButtonDebounce)
+    gameplayExitButton.Pressed:Connect(function()
+        Remotes.fireServer("MinigameExited")
+    end)
+    gameplayExitButton:Mount(gameplayExitButtonFrame, true)
 end
 
 -- Register ui states
 do
     uiStateMachine:RegisterStateCallbacks(UIConstants.States.Minigame, nil, function()
+        SharedMinigameScreen.toggleExitButton(false)
         SharedMinigameScreen.closeStartMenu()
         SharedMinigameScreen.hideStatus()
     end)
