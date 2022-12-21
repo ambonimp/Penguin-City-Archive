@@ -19,6 +19,7 @@ local MinigameUtil = require(Paths.Shared.Minigames.MinigameUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CurrencyService = require(Paths.Server.CurrencyService)
 local Signal = require(Paths.Shared.Signal)
+local CurrencyUtil = require(Paths.Shared.Currency.CurrencyUtil)
 
 export type SledRaceSession = typeof(SledRaceSession.new())
 
@@ -210,7 +211,10 @@ function SledRaceSession.new(...: any)
         for participant, data in pairs(participantData) do
             local coins = data.Coins
             if coins then
-                CurrencyService.addCoins(participant, coins, true)
+                CurrencyService.injectCoins(participant, coins, {
+                    OverrideClient = true,
+                    InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameSession:GetMinigameName(), true),
+                })
             end
         end
         stateMaid:Cleanup()

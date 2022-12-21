@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local StarterGui = game:GetService("StarterGui")
 local ZoneController = require(Paths.Client.Zones.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
 local DISABLE_CORE_GUI_TYPES = {
     Enum.CoreGuiType.Health,
@@ -52,7 +53,7 @@ end
 do
     local resetBindable = Instance.new("BindableEvent")
     resetBindable.Event:Connect(function()
-        ZoneController.teleportToDefaultZone()
+        ZoneController.teleportToDefaultZone(ZoneConstants.TravelMethod.RobloxReset)
     end)
 
     task.spawn(function()

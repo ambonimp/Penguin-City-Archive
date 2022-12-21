@@ -13,6 +13,7 @@ ProductConstants.ProductType = {
     PetEgg = "PetEgg",
     Misc = "Misc",
     Tool = "Tool",
+    Pet = "Pet",
 }
 
 return ProductConstants

@@ -10,15 +10,18 @@ local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 
 local COINS_DIFF_SCREEN_PERCENTAGE = 1 / 4
 local COINS_DIFF_TWEEN_INFO_POSITION = TweenInfo.new(3.5)
 local COINS_DIFF_TWEEN_INFO_TRANSPARENCY = TweenInfo.new(0.6)
-local CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET = 48
+local CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET = 6
 
-local container: Frame = Paths.UI.TopBar.Container
-local coinImageButton: ImageButton = container.Coin
+local screenGui: ScreenGui = Paths.UI.TopBar
+local container: Frame = screenGui.Container
+local coinImageButton: ImageButton = screenGui.Coin
 local coinTextLabel: TextLabel = coinImageButton.Container.Coins
+local coinIcon: ImageLabel = coinImageButton.Container.Icon
 local emoteImageButton: ImageButton = container.Emote
 
 function TopBarScreen.displayCoinsDiff(addCoins: number)
@@ -63,9 +66,9 @@ do
         coinTextLabel.Size = UDim2.new(0, 1234, 1, 0) -- Make it big for TextBounds to be properly calculated
         coinTextLabel.Text = StringUtil.commaValue(CurrencyController.getCoins())
 
-        local widthOffset = coinTextLabel.TextBounds.X + CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET
+        local widthOffset = coinTextLabel.TextBounds.X + coinIcon.AbsoluteSize.X + CONTAINER_WIDTH_TEXT_BOUNDS_OFFSET
 
-        coinImageButton.Size = UDim2.new(0, widthOffset, 1, 0)
+        coinImageButton.Size = UDim2.new(0, widthOffset, coinImageButton.Size.Y.Scale, coinImageButton.Size.Y.Offset)
         coinTextLabel.Size = cachedSize
     end
 
@@ -75,6 +78,7 @@ do
             TopBarScreen.displayCoinsDiff(addCoins)
         end
     end)
+    UIScaleController.ScaleChanged:Connect(updateCoins)
     updateCoins()
 
     local coinButton = AnimatedButton.new(coinImageButton)
