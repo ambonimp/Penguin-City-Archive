@@ -287,6 +287,8 @@ function ProductService.readProducts(player: Player)
                     end
                 end
             else
+                -- Remove items that are no longer supported
+                DataService.set(player, address, nil)
                 warn(("%s has an unknown product %s.%s"):format(player.Name, productType, productId))
             end
         end

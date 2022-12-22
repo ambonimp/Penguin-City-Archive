@@ -14,6 +14,7 @@ local ProductService = require(Paths.Server.Products.ProductService)
 local Signal = require(Paths.Shared.Signal)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local CharacterItemConstants = require(Paths.Shared.CharacterItems.CharacterItemConstants)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 
@@ -177,16 +178,29 @@ function CharacterItemService.loadCharacter(character: Model)
     CharacterItemUtil.applyAppearance(character, appearance)
 end
 
--- Clean up previously corruped data wheere you would have duplicate items equipped
 function CharacterItemService.loadPlayer(player: Player)
     for itemCategory, itemKeys in pairs(DataService.get(player, "CharacterAppearance")) do
         local found = {}
+
         for i, itemKey in pairs(itemKeys) do
+            local address = ("CharacterAppearance.%s.%s"):format(itemCategory, i)
+
+            -- Unequip any deprecated items
+            local productId = ProductUtil.getCharacterItemProductId(itemCategory, itemKey)
+            local success = pcall(ProductUtil.getProduct, ProductConstants.ProductType.CharacterItem, productId)
+
+            if not success then
+                warn(("unequipped removed %s %s on %s"):format(itemCategory, itemKey, player.Name))
+                DataService.set(player, address, nil)
+                continue
+            end
+
             if not table.find(found, itemKey) then
+                -- Clean up previously corruped data wheere you would have duplicate items equipped
                 table.insert(found, itemKey)
             else
-                DataService.set(player, ("CharacterAppearance.%s.%s"):format(itemCategory, i), nil)
-                warn(("Cleaned up corruped character appearance data, %s item %s was unequipped"):format(itemCategory, itemKey))
+                DataService.set(player, address, nil)
+                warn(("clean up corruped character appearance data, %s %s was unequipped on %s"):format(itemCategory, itemKey, player.Name))
             end
         end
     end

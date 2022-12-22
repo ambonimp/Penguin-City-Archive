@@ -44,10 +44,10 @@ function PlayerService.Start()
         CharacterItemService.loadPlayer(player)
 
         -- Load routines
-        SessionService.loadPlayer(player)
         CharacterService.loadPlayer(player)
         ProductService.loadPlayer(player)
         PlotService.loadPlayer(player)
+        SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
         ZoneService.loadPlayer(player)
         RewardsService.loadPlayer(player)
         PetService.loadPlayer(player)
