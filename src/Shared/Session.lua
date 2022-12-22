@@ -65,7 +65,7 @@ function Session.new(player: Player)
     function session:ReportZoneTeleport(fromZone: ZoneConstants.Zone, toZone: ZoneConstants.Zone, teleportData: ZoneConstants.TeleportData)
         -- EDGE CASE: Initial teleport, begin population
         if teleportData.IsInitialTeleport then
-            warn("initial teleport", toZone)
+            --[[ warn("initial teleport", toZone) *]]
             updateCurrentZone(toZone)
             return
         end
@@ -79,12 +79,12 @@ function Session.new(player: Player)
 
         -- WARN: `fromZone` does not match current zone
         if not ZoneUtil.zonesMatch(fromZone, currentZone) then
-            warn(
+            --[[ warn(
                 ("Internal currentZone %q does not match fromZone %q"):format(
                     ZoneUtil.toString(player, currentZone),
                     ZoneUtil.toString(player, fromZone)
                 )
-            )
+            ) *]]
             updateCurrentZone(toZone)
         end
 
@@ -106,12 +106,12 @@ function Session.new(player: Player)
     function session:ProductEquipped(product: Products.Product)
         local productData = getProductData(product)
         if productData.EquippedAtTick then
-            warn(
+            --[[ warn(
                 ("Inform product %q %q was equipped, but it was already equipped! Internall unequipping then will reequip."):format(
                     product.Type,
                     product.Id
                 )
-            )
+            ) *]]
             session:ProductUnequipped(product)
         end
 
@@ -121,7 +121,7 @@ function Session.new(player: Player)
     function session:ProductUnequipped(product: Products.Product)
         local productData = getProductData(product)
         if not productData.EquippedAtTick then
-            warn(("Inform product %q %q was unequipped, but was never equipped! Aborting."):format(product.Type, product.Id))
+            --[[ warn(("Inform product %q %q was unequipped, but was never equipped! Aborting."):format(product.Type, product.Id)) *]]
             return
         end
 

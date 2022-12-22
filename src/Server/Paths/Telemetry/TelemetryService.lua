@@ -78,7 +78,7 @@ function TelemetryService.postPlayerEvent(player: Player, eventName: string, eve
         error(("EventName %q not registered to VoldexAnalytics"):format(eventName))
     end
 
-    warn(("Posting Player Event %q %q"):format(player.Name, eventName), eventData)
+    -- warn(("Posting Player Event %q %q"):format(player.Name, eventName), eventData)
 
     -- -- RETURN: Not on live game
     -- if not (GameUtil.isLiveGame() and not RunService:IsStudio()) then
