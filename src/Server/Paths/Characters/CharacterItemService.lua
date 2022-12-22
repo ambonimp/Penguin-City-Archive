@@ -177,6 +177,21 @@ function CharacterItemService.loadCharacter(character: Model)
     CharacterItemUtil.applyAppearance(character, appearance)
 end
 
+-- Clean up previously corruped data wheere you would have duplicate items equipped
+function CharacterItemService.loadPlayer(player: Player)
+    for itemCategory, itemKeys in pairs(DataService.get(player, "CharacterAppearance")) do
+        local found = {}
+        for i, itemKey in pairs(itemKeys) do
+            if not table.find(found, itemKey) then
+                table.insert(found, itemKey)
+            else
+                DataService.set(player, ("CharacterAppearance.%s.%s"):format(itemCategory, i), nil)
+                warn(("Cleaned up corruped character appearance data, %s item %s was unequipped"):format(itemCategory, itemKey))
+            end
+        end
+    end
+end
+
 -------------------------------------------------------------------------------
 -- LOGIC
 -------------------------------------------------------------------------------

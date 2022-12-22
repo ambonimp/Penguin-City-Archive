@@ -238,6 +238,10 @@ do
             if canEquip then
                 equippedItems[categoryName] = {}
                 table.insert(bootCallbacks, function()
+                    for i = #equippedItems[categoryName], 1, -1 do
+                        unequipItem(equippedItems[categoryName][i], true)
+                    end
+
                     bulkEquip(DataController.get("CharacterAppearance." .. categoryName) :: EquippedItems, true)
                 end)
             end

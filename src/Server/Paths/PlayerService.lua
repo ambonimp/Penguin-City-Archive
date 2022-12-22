@@ -28,6 +28,7 @@ function PlayerService.Start()
     local PlayerChatService = require(Paths.Server.PlayerChatService)
     local ToolService = require(Paths.Server.Tools.ToolService)
     local TelemetryService = require(Paths.Server.Telemetry.TelemetryService)
+    local CharacterItemService = require(Paths.Server.Characters.CharacterItemService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -40,6 +41,7 @@ function PlayerService.Start()
 
         -- Data
         DataService.loadPlayer(player)
+        CharacterItemService.loadPlayer(player)
 
         -- Load routines
         SessionService.loadPlayer(player)
