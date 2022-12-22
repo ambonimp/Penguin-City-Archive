@@ -20,6 +20,7 @@ local UIConstants = require(Paths.Client.UI.UIConstants)
 local ProductController = require(Paths.Client.ProductController)
 local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local Products = require(Paths.Shared.Products.Products)
+local Snackbar = require(Paths.Client.UI.Elements.Snackbar)
 
 export type EquippedItems = { string }
 
@@ -124,6 +125,7 @@ do
             local function equipItem(itemKey: string, doNotUpdateAppearance: true?)
                 if canMultiEquip then
                     if #equippedItems[categoryName] == maxEquippables then
+                        Snackbar.info(("Can't equip more than %s %ss"):format(maxEquippables, categoryName))
                         return
                     end
                 else
@@ -341,7 +343,7 @@ do
         local characterStatus = characterIsReady:getStatus()
 
         -- RETURN: Player no longer wants to open the editor
-        if characterIsReady and characterStatus ~= Promise.Status.Resolved then
+        if characterStatus ~= Promise.Status.Resolved then
             characterIsReady:Cancel()
             characterIsReady:Destroy()
         else
