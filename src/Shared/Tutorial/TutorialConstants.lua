@@ -29,7 +29,6 @@ TutorialConstants.TaskOrder = {
 TutorialConstants.StartingAppearance = {
     Colors = { "Black", "Red", "Yellow", "Green", "Orange" },
     Outfits = {
-        {},
         {
             BodyType = { "Kid" },
             Shirt = { ShirtConstants.Items.Classic_Teal_Sweater.Name },
