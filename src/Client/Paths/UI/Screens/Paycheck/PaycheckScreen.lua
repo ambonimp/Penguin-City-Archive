@@ -27,7 +27,6 @@ local screenGui: ScreenGui = Ui.Paycheck
 local container: Frame = screenGui.Container
 local uiScale: UIScale = container.UIScale
 local cashoutButton = KeyboardButton.new()
-local closeScope = Scope.new()
 
 local openMaid = Maid.new()
 
@@ -40,13 +39,7 @@ local numberValue: TextLabel = fields.NumberValue
 local playerName: TextLabel = fields.PlayerName
 local stringValue: TextLabel = fields.StringValue
 
--- When we claim, or after a timeout
-local function closePaycheck()
-    closeScope:NewScope()
-
-    UIController.getStateMachine():PopIfStateOnTop(UIConstants.States.Paycheck)
-    Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION)
-end
+local uiStateMachine = UIController.getStateMachine()
 
 function PaycheckScreen.Init()
     -- Buttons
@@ -54,77 +47,71 @@ function PaycheckScreen.Init()
         cashoutButton:Mount(container.CashoutButton, true)
         cashoutButton:SetColor(UIConstants.Colors.Buttons.NextGreen)
         cashoutButton:SetText("Cashout!")
-        cashoutButton.Pressed:Connect(closePaycheck)
+        cashoutButton.Pressed:Connect(function()
+            uiStateMachine:Pop()
+        end)
     end
 
-    -- Closing
-    UIController.registerStateCloseCallback(UIConstants.States.Paycheck, closePaycheck)
+    local function open(data)
+        -- Read Data
+        local amount: number = data.Amount
+        local totalPaychecks: number = data.TotalPaychecks
+        if not (amount and totalPaychecks) then
+            error("Bad Data")
+        end
+
+        -- Populate Paycheck
+        contextDescription.Text = ""
+        contextTitle.Text = "Citizen Reward"
+        nextPaycheck.Text = ("Next Paycheck in: <b>%s</b>"):format(TimeUtil.formatRelativeTime(RewardsConstants.Paycheck.EverySeconds - 1))
+        numberValue.Text = StringUtil.commaValue(amount)
+        playerName.Text = Players.LocalPlayer.DisplayName
+        stringValue.Text = ("%s"):format(StringUtil.writtenNumber(amount))
+
+        -- Stacked Paychecks
+        for _, paycheckNumFrame: Frame in pairs(stackedPaychecks:GetChildren()) do
+            local num = tonumber(paycheckNumFrame.Name)
+            paycheckNumFrame.Visible = num < data.TotalPaychecks
+        end
+
+        -- Grow + Spin in
+        UIScaleController.updateUIScale(uiScale, 0)
+        container.Rotation = ENTER_ROTATE
+
+        openMaid:GiveTask(TweenUtil.run(function(alpha)
+            UIScaleController.updateUIScale(uiScale, UIScaleController.getScale() * alpha)
+        end, ENTER_TWEEN_INFO_SCALE))
+        openMaid:GiveTask(TweenUtil.run(function(alpha)
+            container.Rotation = ENTER_ROTATE - (ENTER_ROTATE * alpha)
+        end, ENTER_TWEEN_INFO_ROTATION))
+
+        Sound.play("OpenGift")
+
+        -- Closing
+        openMaid:GiveTask(task.delay(AUTO_CLOSE_AFTER, function()
+            uiStateMachine:Pop()
+        end))
+
+        ScreenUtil.inDown(container)
+        screenGui.Enabled = true
+    end
+
+    local function close()
+        if uiStateMachine:HasState(UIConstants.States.Paycheck) then
+            uiStateMachine:Remove(UIConstants.States.Paycheck)
+        end
+
+        uiStateMachine:Remove(UIConstants.States.Paycheck)
+        Effects.coins(Effects.getCharacterAdornee(Players.LocalPlayer), COIN_EFFECT_DURATION)
+
+        ScreenUtil.outUp(container)
+
+        openMaid:Cleanup()
+        Sound.play("CashRegister")
+    end
 
     -- Register UIState
-    UIController.registerStateScreenCallbacks(UIConstants.States.Paycheck, {
-        Boot = PaycheckScreen.boot,
-        Shutdown = PaycheckScreen.shutdown,
-        Maximize = PaycheckScreen.maximize,
-        Minimize = PaycheckScreen.minimize,
-    })
-end
-
-function PaycheckScreen.boot(data: table)
-    -- Read Data
-    local amount: number = data.Amount
-    local totalPaychecks: number = data.TotalPaychecks
-    if not (amount and totalPaychecks) then
-        error("Bad Data")
-    end
-
-    -- Populate Paycheck
-    contextDescription.Text = ""
-    contextTitle.Text = "Citizen Reward"
-    nextPaycheck.Text = ("Next Paycheck in: <b>%s</b>"):format(TimeUtil.formatRelativeTime(RewardsConstants.Paycheck.EverySeconds - 1))
-    numberValue.Text = StringUtil.commaValue(amount)
-    playerName.Text = Players.LocalPlayer.DisplayName
-    stringValue.Text = ("%s"):format(StringUtil.writtenNumber(amount))
-
-    -- Stacked Paychecks
-    for _, paycheckNumFrame: Frame in pairs(stackedPaychecks:GetChildren()) do
-        local num = tonumber(paycheckNumFrame.Name)
-        paycheckNumFrame.Visible = num < data.TotalPaychecks
-    end
-
-    -- Grow + Spin in
-    UIScaleController.updateUIScale(uiScale, 0)
-    container.Rotation = ENTER_ROTATE
-
-    openMaid:GiveTask(TweenUtil.run(function(alpha)
-        UIScaleController.updateUIScale(uiScale, UIScaleController.getScale() * alpha)
-    end, ENTER_TWEEN_INFO_SCALE))
-    openMaid:GiveTask(TweenUtil.run(function(alpha)
-        container.Rotation = ENTER_ROTATE - (ENTER_ROTATE * alpha)
-    end, ENTER_TWEEN_INFO_ROTATION))
-
-    Sound.play("OpenGift")
-
-    -- Closing
-    local closeScopeId = closeScope:GetId()
-    task.delay(AUTO_CLOSE_AFTER, function()
-        if closeScope:Matches(closeScopeId) then
-            closePaycheck()
-        end
-    end)
-end
-
-function PaycheckScreen.shutdown()
-    openMaid:Cleanup()
-    Sound.play("CashRegister")
-end
-
-function PaycheckScreen.maximize()
-    ScreenUtil.inDown(container)
-    screenGui.Enabled = true
-end
-
-function PaycheckScreen.minimize()
-    ScreenUtil.outUp(container)
+    uiStateMachine:RegisterStateCallbacks(UIConstants.States.Paycheck, open, close)
 end
 
 return PaycheckScreen
