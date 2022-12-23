@@ -67,7 +67,6 @@ function MinigameSession.new(
     queueStation: Model?
 )
     local minigameSession = {}
-    Output.doDebug(MinigameConstants.DoDebug, ("%s minigame session create joined ( %s )"):format(minigameName, id))
 
     -------------------------------------------------------------------------------
     -- PRIVATE MEMBERS
@@ -95,6 +94,7 @@ function MinigameSession.new(
     local started: boolean = false
     local startedAtTick: number?
 
+    local debugCode: string = minigameName .. "_" .. id
     local random = Random.new()
 
     -------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ function MinigameSession.new(
         minigameSession.ParticipantAdded:Fire(player)
         minigameSession:RelayToOtherParticipants(player, "MinigameParticipantAdded", player)
 
-        Output.doDebug(MinigameConstants.DoDebug, ("%s joined minigame (%s)"):format(player.Name, id))
+        Output.doDebug(MinigameConstants.DoDebug, ("%s joined minigame (%s)"):format(player.Name, debugCode))
 
         Remotes.fireClient(
             player,
@@ -252,7 +252,7 @@ function MinigameSession.new(
         if stillInGame then
             Remotes.fireClient(player, "MinigameExited", id)
 
-            Output.doDebug(MinigameConstants.DoDebug, ("%s left minigame (%s)"):format(player.Name, id))
+            Output.doDebug(MinigameConstants.DoDebug, ("%s left minigame (%s)"):format(player.Name, debugCode))
 
             if TableUtil.shallowEquals(zone, ZoneService.getPlayerMinigame(player)) then
                 ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerRoom(player), {
@@ -266,7 +266,7 @@ function MinigameSession.new(
 
         local remainingParticipants = #participants
         if remainingParticipants == 0 then
-            Output.doDebug(MinigameConstants.DoDebug, ("Minigame session ended (%s)"):format(id))
+            Output.doDebug(MinigameConstants.DoDebug, ("Minigame session ended (%s)"):format(debugCode))
             maid:Destroy()
         else
             if remainingParticipants == config.MinParticipants - 1 and config.StrictlyEnforcePlayerCount then
@@ -364,6 +364,8 @@ function MinigameSession.new(
             error(minigameName .. " minigame doesn't have a default default score set")
         end
 
+        Output.doDebug(MinigameConstants.DoDebug, ("%s minigame session create ( %s )"):format(minigameName, debugCode))
+
         for _, player in pairs(startingParticipants) do
             minigameSession:AddParticipant(player)
         end
@@ -375,7 +377,7 @@ function MinigameSession.new(
                 return
             end
 
-            Output.doDebug(MinigameConstants.DoDebug, ("Minigame state changed  to %s (%s)"):format(toState, id))
+            Output.doDebug(MinigameConstants.DoDebug, ("Minigame state changed  to %s (%s)"):format(toState, debugCode))
 
             local data = stateMachine:GetData()
             data.StartTime = Workspace:GetServerTimeNow()
@@ -465,9 +467,7 @@ function MinigameSession.new(
                 end
             end
 
-            warn(scores)
             local sortedScores = minigameSession:SortScores()
-            warn(sortedScores)
 
             -- Reward + Minigame Records
             for placement, scoreInfo in pairs(sortedScores) do
@@ -537,7 +537,7 @@ function MinigameSession.new(
     -- Leaving
     do
         maid:GiveTask(Remotes.bindEventTemp("MinigameExited", function(player)
-            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame exit (%s)"):format(player.Name, id))
+            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame exit (%s)"):format(player.Name, debugCode))
             minigameSession:RemoveParticipant(player)
         end))
 
@@ -546,7 +546,7 @@ function MinigameSession.new(
                 return
             end
 
-            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame gameplay exited(%s)"):format(player.Name, id))
+            Output.doDebug(MinigameConstants.DoDebug, ("%s requested minigame gameplay exited(%s)"):format(player.Name, debugCode))
             if isMultiplayer then
                 minigameSession:RemoveParticipant(player)
             else
