@@ -108,7 +108,7 @@ items["White_Pants"] = {
 }
 items["Dark_Grey_Slacks"] = {
     Name = "Dark_Grey_Slacks",
-    Price = 60,
+    Price = 0,
     Icon = nil, --"Dark_Grey_Slacks"
     ForSale = true,
 }
@@ -144,13 +144,13 @@ items["Yellow_Skirt"] = {
 }
 items["Fluffy_Pink_Skirt"] = {
     Name = "Fluffy_Pink_Skirt",
-    Price = 60,
+    Price = 0,
     Icon = nil, --"Fluffy_Pink_Skirt"
     ForSale = true,
 }
 items["Bright_Green_Pants"] = {
     Name = "Bright_Green_Pants",
-    Price = 60,
+    Price = 0,
     Icon = nil, --"Bright_Green_Pants"
     ForSale = true,
 }

@@ -384,7 +384,7 @@ items["Nurse_Hat"] = {
 }
 items["Pink_Bunny_Ears"] = {
     Name = "Pink_Bunny_Ears",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Pink_Bunny_Ears"
     ForSale = true,
 }
@@ -426,13 +426,13 @@ items["Popcorn_Hat"] = {
 }
 items["Pot"] = {
     Name = "Pot",
-    Price = 25,
+    Price = 0,
     Icon = nil, --"Pot"
     ForSale = true,
 }
 items["Propeller_Hat"] = {
     Name = "Propeller_Hat",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Propeller_Hat"
     ForSale = true,
 }
@@ -486,7 +486,7 @@ items["Steampunk_Hat"] = {
 }
 items["Straw_Hat"] = {
     Name = "Straw_Hat",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Straw_Hat"
     ForSale = true,
 }
