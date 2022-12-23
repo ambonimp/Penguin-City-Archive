@@ -163,6 +163,11 @@ function Session.new(player: Player)
     function session:GetZoneData()
         local currentZoneDataByZoneString = TableUtil.deepClone(zoneDataByZoneString) :: typeof(zoneDataByZoneString)
 
+        -- Player left before they could be loaded into a zone
+        if not currentZone then
+            return
+        end
+
         -- We need to add the current playtime for the current zone..
         local currentZoneString = ZoneUtil.toString(player, currentZone)
         local zoneData: ZoneData = currentZoneDataByZoneString[currentZoneString]
