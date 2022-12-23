@@ -42,6 +42,7 @@ task.delay(0, function()
         require(server.SessionService),
         require(server.Telemetry.TelemetryService),
         require(server.SettingsService),
+        require(server.SoftShutdownService),
 
         -- Client/Server Utils
         require(shared.Utils.TextFilterUtil),

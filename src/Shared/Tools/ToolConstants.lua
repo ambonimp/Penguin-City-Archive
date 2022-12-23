@@ -32,8 +32,6 @@ end
 ToolConstants.Tools = tools
 ToolConstants.CategoryNames = categoryNames
 
-warn(tools)
-
 ToolConstants.MaxHolsteredTools = 4
 
 return ToolConstants

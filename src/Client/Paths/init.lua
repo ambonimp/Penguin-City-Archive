@@ -33,6 +33,7 @@ task.delay(0, function()
         Loader,
 
         -- Systems
+        require(client.SoftShutdownController),
         require(client.Cmdr.CmdrController),
         require(client.UI.UIController),
         require(client.UI.Scaling.UIScaleController),
