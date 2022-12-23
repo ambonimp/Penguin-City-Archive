@@ -70,7 +70,7 @@ function RewardsService.givePaycheck(player: Player)
         RewardsConstants.Paycheck.Coins.Max
     )
     CurrencyService.injectCoins(player, paycheckAmount, {
-        OverrideClient = true,
+        IsClientOblivious = false,
         InjectCategory = CurrencyConstants.InjectCategory.Paycheck,
     })
 
@@ -123,7 +123,7 @@ function RewardsService.giveReward(player: Player, reward: RewardsConstants.Dail
         coins *= amount
 
         CurrencyService.injectCoins(player, coins, {
-            OverrideClient = true,
+            IsClientOblivious = false,
             InjectCategory = CurrencyConstants.InjectCategory.DailyReward,
         })
         return

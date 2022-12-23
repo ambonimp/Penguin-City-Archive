@@ -294,6 +294,7 @@ Images.Stamps = {
         }, --TODO Verify this is correct (Location/Pets)
     },
     Icons = {
+        Emoji = "rbxassetid://1264180053",
         WelcomeBack = "rbxassetid://11457313651",
         Weeeee = "rbxassetid://11457313830",
         Twins = "rbxassetid://11457313985",

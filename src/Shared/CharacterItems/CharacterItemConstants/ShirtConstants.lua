@@ -1,5 +1,4 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local ShirtConstants = {}
@@ -13,7 +12,7 @@ export type Item = {
 local items: { [string]: Item } = {}
 items["Purple_Shirt"] = {
     Name = "Purple_Shirt",
-    Price = 75,
+    Price = 0,
     Icon = Images.Shirts["Purple_Shirt"],
     ForSale = true,
 }
@@ -205,7 +204,7 @@ items["Pink_Diver_Tank"] = {
 }
 items["Pink_Dotted_Shirt"] = {
     Name = "Pink_Dotted_Shirt",
-    Price = 50,
+    Price = 0,
     Icon = nil, --"Pink_Dotted_Shirt"
     ForSale = true,
 }
@@ -355,7 +354,7 @@ items["Teal_Pentagon_Shirt"] = {
 }
 items["Pink_Pentagon_Shirt"] = {
     Name = "Pink_Pentagon_Shirt",
-    Price = 75,
+    Price = 0,
     Icon = nil, --"Pink_Pentagon_Shirt"
     ForSale = true,
 }
@@ -367,7 +366,7 @@ items["Red_Pentagon_Shirt"] = {
 }
 items["Yellow_Snooker_Shirt"] = {
     Name = "Yellow_Snooker_Shirt",
-    Price = 50,
+    Price = 0,
     Icon = nil, --"Yellow_Snooker_Shirt"
     ForSale = true,
 }
@@ -421,7 +420,7 @@ items["Student_Shirt"] = {
 }
 items["Red_Lined_Tee"] = {
     Name = "Red_Lined_Tee",
-    Price = 75,
+    Price = 0,
     Icon = nil, --"Red_Lined_Tee"
     ForSale = true,
 }

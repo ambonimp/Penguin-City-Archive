@@ -1,7 +1,6 @@
 local FurnitureConstants = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local HousingConstants = require(ReplicatedStorage.Shared.Constants.HousingConstants)
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 export type Object = {

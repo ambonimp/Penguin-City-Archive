@@ -327,7 +327,7 @@ end
     Returns a string in camelCase.
 ]]
 function StringUtil.toCamelCase(str: string)
-    str = str:gsub("[%-_]+([^%-_])", function(s)
+    str = str:gsub("%s+", ""):gsub("[%-_]+([^%-_])", function(s)
         return s:upper()
     end)
     return str:sub(1, 1):lower() .. str:sub(2)

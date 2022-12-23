@@ -24,7 +24,7 @@ type Tab = {
             WidgetName: string,
             Selected: boolean,
             Instance: Widget.Widget?,
-            Constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget,
+            Constructor: (parent: GuiObject, maid: Maid.Maid) -> Widget.Widget,
         }
     },
     Button: Button.Button | nil,
@@ -529,7 +529,7 @@ function SelectionPanel.new()
         tabName: string,
         widgetName: string,
         selected: boolean,
-        constructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> Widget.Widget)
+        constructor: ((parent: GuiObject, maid: Maid.Maid) -> Widget.Widget)
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -673,6 +673,10 @@ function SelectionPanel.new()
 
     function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
         closeButtonFrame.Visible = isVisible
+    end
+
+    function selectionPanel:GetCloseButtonFrame()
+        return closeButtonFrame
     end
 
     function selectionPanel:SetTabIndex(index: number)

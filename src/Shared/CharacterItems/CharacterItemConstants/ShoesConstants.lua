@@ -12,7 +12,7 @@ export type Item = {
 local items: { [string]: Item } = {}
 items["Black_Sneakers"] = {
     Name = "Black_Sneakers",
-    Price = 50,
+    Price = 0,
     Icon = nil, --"Black_Sneakers"
     ForSale = true,
 }

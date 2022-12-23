@@ -15,7 +15,6 @@ local Remotes = require(Paths.Shared.Remotes)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
 local DataController = require(Paths.Client.DataController)
 local TutorialUtil = require(Paths.Shared.Tutorial.TutorialUtil)
-local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local UIController = require(Paths.Client.UI.UIController)
 local CharacterItemUtil = require(Paths.Shared.CharacterItems.CharacterItemUtil)
@@ -62,7 +61,7 @@ function TutorialController.Start()
     -- Hook up TaskRunners
     do
         -- Get task runner callbacks
-        local taskRunners: { [string]: (taskMaid: typeof(Maid.new())) -> typeof(currentTaskPromise) } = {}
+        local taskRunners: { [string]: (taskMaid: Maid.Maid) -> typeof(currentTaskPromise) } = {}
         for _, moduleScript in pairs(Paths.Client.Tutorial.TaskRunners:GetChildren()) do
             -- ERROR: Bad naming
             local taskName = StringUtil.chopStart(moduleScript.Name, "TutorialTask")

@@ -4,9 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CharacterItemConstants = ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants
 local ShirtConstants = require(CharacterItemConstants.ShirtConstants)
 local PantsConstants = require(CharacterItemConstants.PantsConstants)
-local HatConstants = require(CharacterItemConstants.HatConstants)
-local ShoesConstants = require(CharacterItemConstants.ShoesConstants)
-local OutfitConstants = require(CharacterItemConstants.OutfitConstants)
 
 TutorialConstants.Tasks = {
     StartingAppearance = "StartingAppearance",
@@ -19,17 +16,16 @@ TutorialConstants.Tasks = {
 
 TutorialConstants.TaskOrder = {
     TutorialConstants.Tasks.StartingAppearance,
-    TutorialConstants.Tasks.ContinueTutorial,
+    --[[     TutorialConstants.Tasks.ContinueTutorial,
     TutorialConstants.Tasks.CustomiseIgloo,
     TutorialConstants.Tasks.PlayMinigame,
     TutorialConstants.Tasks.StarterPetEgg,
-    TutorialConstants.Tasks.TutorialCompleted,
+    TutorialConstants.Tasks.TutorialCompleted, *]]
 }
 
 TutorialConstants.StartingAppearance = {
     Colors = { "Black", "Red", "Yellow", "Green", "Orange" },
     Outfits = {
-        {},
         {
             BodyType = { "Kid" },
             Shirt = { ShirtConstants.Items.Classic_Teal_Sweater.Name },

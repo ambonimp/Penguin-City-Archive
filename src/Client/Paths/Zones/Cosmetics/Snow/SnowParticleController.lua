@@ -32,7 +32,7 @@ local SNOW_PARTICLE_PROPERTIES = {
 
 local camera = Workspace.CurrentCamera
 
-function SnowParticleController.onZoneUpdate(maid: typeof(Maid.new()), zone: ZoneConstants.Zone, _zoneModel: Model)
+function SnowParticleController.onZoneUpdate(maid: Maid.Maid, zone: ZoneConstants.Zone, _zoneModel: Model)
     -- RETURN: Not a snowy zone!
     local isZoneSnowy = false
     for _, snowyZone in pairs(SNOWY_ZONES) do

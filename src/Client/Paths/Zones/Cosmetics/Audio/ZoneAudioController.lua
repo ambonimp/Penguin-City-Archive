@@ -19,7 +19,7 @@ local currentMusic: {
     Name: string?,
 } = {}
 
-function ZoneAudioController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, _zoneModel: Model)
+function ZoneAudioController.onZoneUpdate(maid: Maid.Maid, _zone: ZoneConstants.Zone, _zoneModel: Model)
     local currentZone = ZoneController.getCurrentZone()
     local zoneSettings = ZoneUtil.getSettings(currentZone)
 

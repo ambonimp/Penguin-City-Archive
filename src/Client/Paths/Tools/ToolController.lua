@@ -18,9 +18,10 @@ local TableUtil = require(Paths.Shared.Utils.TableUtil)
 local UIController = require(Paths.Client.UI.UIController)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local Snackbar = require(Paths.Client.UI.Elements.Snackbar)
 
 type ToolClientHandler = {
-    equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
+    equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: Maid.Maid) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
     activatedLocally: ((tool: ToolUtil.Tool, modelGetter: () -> Model?) -> any),
     activatedRemotely: ((player: Player, tool: ToolUtil.Tool, model: Model?, data: table?) -> any),
@@ -50,12 +51,13 @@ local equippedTool: ToolUtil.Tool | nil
 local equippedToolModel: Model | nil
 local unequipCallback: (() -> any) | nil
 
+local uiStateMachine = UIController.getStateMachine()
 -------------------------------------------------------------------------------
 -- Tool Handlers
 -------------------------------------------------------------------------------
 
 local function getDefaultToolClientHandler(): ToolClientHandler
-    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler)
+    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler) :: ToolClientHandler
 end
 
 local function getToolClientHandler(tool: ToolUtil.Tool): ToolClientHandler | {}
@@ -92,11 +94,6 @@ function ToolController.Start()
                 return
             end
 
-            -- RETURN: Not in a permissive UI State
-            if not UIUtil.isStateActivateToolPermissive(UIController.getStateMachine():GetState()) then
-                return
-            end
-
             local toolClientHandler = getToolClientHandler(equippedTool)
             local activatedLocally = toolClientHandler and toolClientHandler.activatedLocally
                 or getDefaultToolClientHandler().activatedLocally
@@ -121,6 +118,13 @@ function ToolController.Start()
                 activatedRemotely(player, tool, toolModel, data)
             end,
         })
+
+        uiStateMachine:RegisterGlobalCallback(function(_, toState)
+            -- RETURN: Not in a permissive UI State
+            if not UIUtil.isStateActivateToolPermissive(toState) then
+                ToolController.unequip()
+            end
+        end)
     end
 
     -- Start with some default tools
@@ -281,6 +285,11 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
         return
     end
 
+    -- RETURN: Not in a permissive UI State
+    if not UIUtil.isStateActivateToolPermissive(uiStateMachine:GetState()) then
+        return
+    end
+
     -- RETURN: Already equipped!
     if ToolController.isEquipped(tool) then
         return
@@ -288,7 +297,7 @@ function ToolController.equipRequest(tool: ToolUtil.Tool)
 
     -- RETURN: Not already holstered and too many holstered tools!
     if not ToolController.isHolstered(tool) and #holsteredTools >= ToolConstants.MaxHolsteredTools then
-        warn("Max holstered tools")
+        Snackbar.info("Max holstered tools")
         return
     end
 

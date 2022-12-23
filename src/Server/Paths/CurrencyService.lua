@@ -8,12 +8,18 @@ local Signal = require(Paths.Shared.Signal)
 local Products = require(Paths.Shared.Products.Products)
 
 export type SunkConfig = {
-    OverrideClient: boolean?,
+    IsClientOblivious: boolean?,
     Product: Products.Product,
 }
 
+--[[
+    IsClientOblivious : Whether or not the client is aware of the injection.
+        The client may perform it's own injection in an effort to latency, IsClientObvlious should then be disabled.
+        In instances whether IsClientOblivious is false, ideally the client will verify the operation's validity and revert if the server deems it invalid.
+]]
 export type InjectConfig = {
-    OverrideClient: boolean?,
+    IsClientOblivious: boolean?,
+    OverideClient: boolean?,
     InjectCategory: string,
     IsFromRobux: boolean?,
 }
@@ -26,9 +32,9 @@ function CurrencyService.getCoins(player: Player)
     return DataService.get(player, CurrencyConstants.DataAddress) :: number
 end
 
-function CurrencyService.setCoins(player: Player, coins: number, overrideClient: boolean?)
+function CurrencyService.setCoins(player: Player, coins: number)
     DataService.set(player, CurrencyConstants.DataAddress, coins, CurrencyConstants.DataUpdatedEvent, {
-        OverrideClient = overrideClient,
+        OverideClient = true,
     })
 end
 
@@ -36,7 +42,8 @@ function CurrencyService.injectCoins(player: Player, injectCoins: number, config
     local oldCoins = CurrencyService.getCoins(player)
 
     DataService.increment(player, CurrencyConstants.DataAddress, injectCoins, CurrencyConstants.DataUpdatedEvent, {
-        OverrideClient = config.OverrideClient,
+        IsClientOblivious = config.IsClientOblivious,
+        Change = injectCoins,
     })
 
     CurrencyService.CoinsUpdated:Fire(player, oldCoins, CurrencyService.getCoins(player))
@@ -47,7 +54,8 @@ function CurrencyService.sinkCoins(player: Player, sinkCoins: number, config: Su
     local oldCoins = CurrencyService.getCoins(player)
 
     DataService.increment(player, CurrencyConstants.DataAddress, -sinkCoins, CurrencyConstants.DataUpdatedEvent, {
-        OverrideClient = config.OverrideClient,
+        IsClientOblivious = config.IsClientOblivious,
+        Change = -sinkCoins,
     })
 
     CurrencyService.CoinsUpdated:Fire(player, oldCoins, CurrencyService.getCoins(player))

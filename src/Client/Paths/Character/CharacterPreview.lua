@@ -18,6 +18,7 @@ local Signal = require(Paths.Shared.Signal)
 local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local CameraController = require(Paths.Client.CameraController)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
+local Effects = require(Paths.Shared.Effects)
 
 local IDLE_ANIMATION = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
 local ROTATE_SPEED_FACTOR = 0.3
@@ -28,6 +29,7 @@ CharacterPreview.Defaults = {
     RotationalOffset = Vector2.new(-15, 10),
 }
 
+local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 local subject: Model
@@ -97,10 +99,13 @@ function CharacterPreview.preview(config: {
     local maid = Maid.new()
 
     -- Get a previewCharacter
-    local character = Players.LocalPlayer.Character
+    local character = player.Character
     if not character then
         error("No Player Character!")
     end
+
+    -- Cleanup any effects inside the character
+    Effects.clear(Effects.getCharacterAdornee(player))
 
     local previewCharacter = character:Clone()
     previewCharacter:WaitForChild("HumanoidRootPart").Anchored = true

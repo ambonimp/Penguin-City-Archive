@@ -1,5 +1,5 @@
 --[[
-    Welcome to the world of products! Anything that the user can purchase (robux, coins, etc..) goes through here. 
+    Welcome to the world of products! Anything that the user can purchase (robux, coins, etc..) goes through here.
 
     When a user purchases a product, this is what happens:
     1) We add this product to their data profile
@@ -220,7 +220,7 @@ function ProductService.purchaseInCoins(player: Player, product: Products.Produc
 
     -- Exchange coins for product
     CurrencyService.sinkCoins(player, product.CoinData.Cost, {
-        OverrideClient = true,
+        IsClientOblivious = false,
         Product = product,
     })
     ProductService.addProduct(player, product)
@@ -287,6 +287,8 @@ function ProductService.readProducts(player: Player)
                     end
                 end
             else
+                -- Remove items that are no longer supported
+                DataService.set(player, address, nil)
                 warn(("%s has an unknown product %s.%s"):format(player.Name, productType, productId))
             end
         end

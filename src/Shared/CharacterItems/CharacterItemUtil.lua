@@ -1,7 +1,6 @@
 local CharacterItemUtil = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
 local Shared = ReplicatedStorage.Shared
 local CharacterItemConstants = require(Shared.CharacterItems.CharacterItemConstants)
 local TableUtil = require(Shared.Utils.TableUtil)
