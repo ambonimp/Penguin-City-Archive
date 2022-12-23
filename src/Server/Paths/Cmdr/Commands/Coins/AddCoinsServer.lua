@@ -9,7 +9,7 @@ return function(_context, players: { Player }, addCoins: number)
 
     for _, player in pairs(players) do
         CurrencyService.injectCoins(player, addCoins, {
-            OverrideClient = true,
+            IsClientOblivious = true,
             InjectCategory = CurrencyConstants.InjectCategory.Cmdr,
         })
         output ..= (" > %s +%s Coins (%s total)\n"):format(

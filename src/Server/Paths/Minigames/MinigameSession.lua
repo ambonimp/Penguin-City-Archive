@@ -476,7 +476,7 @@ function MinigameSession.new(
 
                 -- Reward
                 CurrencyService.injectCoins(player, scoreInfo.CoinsEarned, {
-                    OverrideClient = true,
+                    IsClientOblivious = true,
                     InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameName, false),
                 })
 

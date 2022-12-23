@@ -10,6 +10,11 @@ CurrencyController.CoinsUpdated = Signal.new() -- {coins: number, addCoins: numb
 
 local cachedCoins: number = 0
 
+local function setCoins(coins: number)
+    local addCoins = coins - cachedCoins
+    return CurrencyController.addCoins(addCoins)
+end
+
 function CurrencyController.Init()
     -- Possible future circular Dependencies
     local UIController = require(Paths.Client.UI.UIController)
@@ -24,8 +29,12 @@ function CurrencyController.Init()
     -- Listen to server override
     DataController.Updated:Connect(function(event: string, _newValue: any, eventMeta: table?)
         if event == CurrencyConstants.DataUpdatedEvent then
-            if eventMeta and eventMeta.OverrideClient then
-                CurrencyController.readData()
+            if eventMeta then
+                if eventMeta.OverideClient then
+                    setCoins(_newValue)
+                elseif eventMeta.IsClientOblivious then
+                    CurrencyController.addCoins(eventMeta.Change)
+                end
             end
         end
     end)
@@ -33,11 +42,6 @@ end
 
 function CurrencyController.getCoins()
     return cachedCoins
-end
-
-function CurrencyController.setCoins(coins: number)
-    local addCoins = coins - cachedCoins
-    return CurrencyController.addCoins(addCoins)
 end
 
 --[[
@@ -68,7 +72,7 @@ end
 
 -- Will update our clientside coins to match that of the server
 function CurrencyController.readData()
-    CurrencyController.setCoins(DataController.get(CurrencyConstants.DataAddress) :: number)
+    setCoins(DataController.get(CurrencyConstants.DataAddress) :: number)
 end
 
 return CurrencyController

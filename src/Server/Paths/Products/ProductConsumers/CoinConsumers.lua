@@ -21,7 +21,7 @@ for productId, product in pairs(coinProducts) do
     -- Write callback
     consumersById[productId] = function(player: Player)
         CurrencyService.injectCoins(player, addCoins, {
-            OverrideClient = true,
+            IsClientOblivious = true,
             InjectCategory = CurrencyUtil.injectCategoryFromCoinProduct(product),
             IsFromRobux = true,
         })
