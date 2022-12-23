@@ -6,12 +6,7 @@ local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local UIConstants = require(Paths.Client.UI.UIConstants)
 local TitledWindow = require(Paths.Client.UI.Elements.TitledWindow)
 local Images = require(Paths.Shared.Images.Images)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
-local ProductConstants = require(Paths.Shared.Products.ProductConstants)
-local Products = require(Paths.Shared.Products.Products)
-local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
-local ProductController = require(Paths.Client.ProductController)
 local MathUtil = require(Paths.Shared.Utils.MathUtil)
 local Maid = require(Paths.Shared.Maid)
 local Signal = require(Paths.Shared.Signal)
@@ -20,7 +15,7 @@ local SettingsController = require(Paths.Client.Settings.SettingsController)
 
 local SLIDER_DECIMALS = 2
 
-local function createSettingLine(maid: typeof(Maid.new()), name: string)
+local function createSettingLine(maid: Maid.Maid, name: string)
     local settingFrame = Instance.new("Frame")
     settingFrame.Name = name
     settingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -70,7 +65,7 @@ end
 
     Returns a Signal that is fired with a new value whenever value is updated
 ]]
-local function createInteractionSlider(maid: typeof(Maid.new()), parent: GuiObject, startValue: number)
+local function createInteractionSlider(maid: Maid.Maid, parent: GuiObject, startValue: number)
     --#region Create UI
     local slider = Instance.new("Frame")
     slider.Name = "slider"

@@ -15,7 +15,7 @@ local Maid = require(Paths.Shared.Maid)
 --[[
     `modelSignal` is fired twice; once with our locally created model and once with the server created model
 ]]
-function DefaultToolServerHandler.equipped(_player: Player, _tool: ToolUtil.Tool, _model: Model, _equipMaid: typeof(Maid.new()))
+function DefaultToolServerHandler.equipped(_player: Player, _tool: ToolUtil.Tool, _model: Model, _equipMaid: Maid.Maid)
     --
 end
 

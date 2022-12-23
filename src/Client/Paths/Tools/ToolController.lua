@@ -21,7 +21,7 @@ local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local Snackbar = require(Paths.Client.UI.Elements.Snackbar)
 
 type ToolClientHandler = {
-    equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new())) -> any),
+    equipped: ((tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: Maid.Maid) -> any),
     unequipped: ((tool: ToolUtil.Tool) -> any),
     activatedLocally: ((tool: ToolUtil.Tool, modelGetter: () -> Model?) -> any),
     activatedRemotely: ((player: Player, tool: ToolUtil.Tool, model: Model?, data: table?) -> any),
@@ -57,7 +57,7 @@ local uiStateMachine = UIController.getStateMachine()
 -------------------------------------------------------------------------------
 
 local function getDefaultToolClientHandler(): ToolClientHandler
-    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler)
+    return require(Paths.Client.Tools.ToolClientHandlers.DefaultToolClientHandler) :: ToolClientHandler
 end
 
 local function getToolClientHandler(tool: ToolUtil.Tool): ToolClientHandler | {}

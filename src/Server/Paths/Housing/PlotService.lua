@@ -65,7 +65,6 @@ local plots: { [string]: { [Player]: Model } } = {
 local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
-local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
 -------------------------------------------------------------------------------
 -- Querying

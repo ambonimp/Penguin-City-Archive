@@ -15,7 +15,6 @@ local UIScaleController = require(Paths.Client.UI.Scaling.UIScaleController)
 local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
 local Sound = require(Paths.Shared.Sound)
 local Effects = require(Paths.Shared.Effects)
-local Scope = require(Paths.Shared.Scope)
 
 local ENTER_TWEEN_INFO_ROTATION = TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local ENTER_TWEEN_INFO_SCALE = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)

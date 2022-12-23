@@ -22,7 +22,7 @@ local ZoneController = require(Paths.Client.Zones.ZoneController)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local WideButton = require(Paths.Client.UI.Elements.WideButton)
-local PlacementScreen = require(Paths.Client.UI.Screens.Housing.Editing.PlacementScreen)
+
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------

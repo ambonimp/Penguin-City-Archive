@@ -4,9 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CharacterItemConstants = ReplicatedStorage.Shared.CharacterItems.CharacterItemConstants
 local ShirtConstants = require(CharacterItemConstants.ShirtConstants)
 local PantsConstants = require(CharacterItemConstants.PantsConstants)
-local HatConstants = require(CharacterItemConstants.HatConstants)
-local ShoesConstants = require(CharacterItemConstants.ShoesConstants)
-local OutfitConstants = require(CharacterItemConstants.OutfitConstants)
 
 TutorialConstants.Tasks = {
     StartingAppearance = "StartingAppearance",

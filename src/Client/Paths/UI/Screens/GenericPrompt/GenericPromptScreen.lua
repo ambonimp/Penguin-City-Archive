@@ -70,7 +70,7 @@ end
 function GenericPromptScreen.boot(data: table)
     local title: string? = data.Title
     local description: string? = data.Description
-    local middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)? = data.MiddleMounter
+    local middleMounter: ((parent: GuiObject, maid: Maid.Maid) -> nil)? = data.MiddleMounter
     local leftButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.LeftButton
     local rightButtonData: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }? = data.RightButton
     local background: { Blur: boolean?, Image: string?, DoRotate: boolean? }? = data.Background

@@ -8,7 +8,6 @@ local ZoneConstants = require(ReplicatedStorage.Shared.Zones.ZoneConstants)
 local ZoneUtil = require(ReplicatedStorage.Shared.Zones.ZoneUtil)
 local TableUtil = require(ReplicatedStorage.Shared.Utils.TableUtil)
 local Products = require(ReplicatedStorage.Shared.Products.Products)
-local PetConstants = require(ReplicatedStorage.Shared.Pets.PetConstants)
 local Stamps = require(ReplicatedStorage.Shared.Stamps.Stamps)
 
 type ZoneData = {

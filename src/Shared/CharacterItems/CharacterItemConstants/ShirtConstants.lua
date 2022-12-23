@@ -1,5 +1,4 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local Images = require(ReplicatedStorage.Shared.Images.Images)
 
 local ShirtConstants = {}

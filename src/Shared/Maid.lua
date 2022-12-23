@@ -44,6 +44,8 @@
 local Maid = {}
 Maid.__index = Maid
 
+export type Maid = typeof(Maid.new())
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Promise = require(ReplicatedStorage.Packages.promise)
@@ -93,7 +95,7 @@ end
 --[=[
 	A constructor method which creates a new maid.
 
-	@return Maid 
+	@return Maid
 ]=]
 
 function Maid.new()
@@ -105,8 +107,8 @@ end
 --[=[
 	A method which is used to check if the given argument is a maid or not.
 
-	@param self any 
-	@return boolean 
+	@param self any
+	@return boolean
 ]=]
 
 function Maid.IsMaid(self)
@@ -166,10 +168,10 @@ function Maid:GiveTask(task)
 end
 
 --[=[
-	Removes the task so that it will not be cleaned up. 
+	Removes the task so that it will not be cleaned up.
 
 	@tag Maid
-	@param task function | RBXScriptConnection | table | Instance 
+	@param task function | RBXScriptConnection | table | Instance
 ]=]
 
 function Maid:RemoveTask(task)
@@ -289,7 +291,7 @@ end
 	Note that the maid will still unlink to the given instance if it has been cleaned up!
 
 	@param instance Instance
-	@return Connection 
+	@return Connection
 ]=]
 
 function Maid:LinkToInstance(instance: Instance)

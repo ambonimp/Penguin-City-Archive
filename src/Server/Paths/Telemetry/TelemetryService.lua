@@ -3,14 +3,12 @@
 ]]
 local TelemetryService = {}
 
-local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Paths = require(ServerScriptService.Paths)
 local VoldexAnalytics = require(ServerStorage.VoldexAnalytics)
 local Output = require(Paths.Shared.Output)
 local GameConstants = require(Paths.Shared.Constants.GameConstants)
-local GameUtil = require(Paths.Shared.Utils.GameUtil)
 
 --!! Be careful with changing any existing values!
 -- https://docs.google.com/document/d/1GgXv97M3vKuzEhwAOloIaYwfWVWoJBdgZRtfC9u5US0/edit#

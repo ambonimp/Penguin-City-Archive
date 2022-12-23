@@ -3,27 +3,10 @@ local DefaultToolClientHandler = {}
 local Players = game:GetService("Players")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Signal = require(Paths.Shared.Signal)
-local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
-local Assume = require(Paths.Shared.Assume)
-local Remotes = require(Paths.Shared.Remotes)
-local Scope = require(Paths.Shared.Scope)
-local Products = require(Paths.Shared.Products.Products)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Shared.Maid)
-local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
-local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
-local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
-local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
-local VectorUtil = require(Paths.Shared.Utils.VectorUtil)
-local TweenUtil = require(Paths.Shared.Utils.TweenUtil)
-local MathUtil = require(Paths.Shared.Utils.MathUtil)
-local ModelUtil = require(Paths.Shared.Utils.ModelUtil)
-local Particles = require(Paths.Shared.Particles)
-local Sound = require(Paths.Shared.Sound)
-local ToolController = require(Paths.Client.Tools.ToolController)
 
 local ANIMATION_USE = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.UseGenericTool[1].Id })
 local ANIMATION_HOLD = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.HoldGenericTool[1].Id })
@@ -33,7 +16,7 @@ local ANIMATION_HOLD = InstanceUtil.tree("Animation", { AnimationId = CharacterC
 
     Returns a function that will be invoked when this tool gets unequipped
 ]]
-function DefaultToolClientHandler.equipped(_tool: ToolUtil.Tool, _modelSignal: Signal.Signal, _equipMaid: typeof(Maid.new()))
+function DefaultToolClientHandler.equipped(_tool: ToolUtil.Tool, _modelSignal: Signal.Signal, _equipMaid: Maid.Maid)
     -- RETURN: No character!
     local character = Players.LocalPlayer.Character
     if not character then

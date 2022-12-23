@@ -74,7 +74,7 @@ local function simulatePushEquipment(sportsEquipment: BasePart | Model, sportsEq
     end, TWEEN_INFO_LOCAL_TO_SERVER)
 end
 
-local function setupSportsEquipment(sportsEquipment: BasePart | Model, sportsEquipmentType: string, maid: typeof(Maid.new()))
+local function setupSportsEquipment(sportsEquipment: BasePart | Model, sportsEquipmentType: string, maid: Maid.Maid)
     -- Kick it when we touch it
     maid:GiveTask(sportsEquipment.Touched:Connect(function(otherPart)
         -- RETURN: Not our local player
@@ -102,7 +102,7 @@ local function setupSportsEquipment(sportsEquipment: BasePart | Model, sportsEqu
     end))
 end
 
-function SportsGameController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
+function SportsGameController.onZoneUpdate(maid: Maid.Maid, _zone: ZoneConstants.Zone, zoneModel: Model)
     local sportsEquipments = CollectionService:GetTagged(SportsGamesConstants.Tag.SportsEquipment)
     for _, sportsEquipment in pairs(sportsEquipments) do
         local sportsEquipmentType = sportsEquipment:GetAttribute(SportsGamesConstants.Attribute.SportsEquipmentType)

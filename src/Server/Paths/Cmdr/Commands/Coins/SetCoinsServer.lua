@@ -7,7 +7,7 @@ return function(_context, players: { Player }, coins: number)
     local output = ""
 
     for _, player in pairs(players) do
-        CurrencyService.setCoins(player, coins, true)
+        CurrencyService.setCoins(player, coins)
         output ..= (" > %s now has %s Coins\n"):format(player.Name, StringUtil.commaValue(coins))
     end
 

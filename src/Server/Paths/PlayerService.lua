@@ -8,7 +8,7 @@ local Maid = require(Paths.Shared.Maid)
 local GroupUtil = require(Paths.Shared.Utils.GroupUtil)
 local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
 
-local maidByPlayer: { [Player]: typeof(Maid.new()) } = {}
+local maidByPlayer: { [Player]: Maid.Maid } = {}
 
 -- Gives a maid that gets destroyed on the PlayerLeaving event; useful for cleaning up caches!
 function PlayerService.getPlayerMaid(player: Player)

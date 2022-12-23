@@ -31,7 +31,7 @@ local function tickVehicleSeat(humanoid: Humanoid, hingeConstraint: HingeConstra
     hingeConstraint.AngularVelocity = throttle * MAX_SPEED * angleFactor
 end
 
-local function setupSwingObject(swingObject: Model, maid: typeof(Maid.new()))
+local function setupSwingObject(swingObject: Model, maid: Maid.Maid)
     -- RETURN: Couldn't get everything :c
     local top: BasePart = swingObject:FindFirstChild("Top")
     local seat = swingObject:FindFirstChildWhichIsA("Seat", true)
@@ -58,7 +58,7 @@ local function setupSwingObject(swingObject: Model, maid: typeof(Maid.new()))
     end))
 end
 
-function SwingsController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
+function SwingsController.onZoneUpdate(maid: Maid.Maid, _zone: ZoneConstants.Zone, zoneModel: Model)
     local swingObjects = CollectionService:GetTagged(ZoneConstants.Cosmetics.Tags.Swing)
     for _, swingObject in pairs(swingObjects) do
         if swingObject:IsDescendantOf(zoneModel) then
