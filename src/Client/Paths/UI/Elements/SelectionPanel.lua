@@ -675,6 +675,10 @@ function SelectionPanel.new()
         closeButtonFrame.Visible = isVisible
     end
 
+    function selectionPanel:GetCloseButtonFrame()
+        return closeButtonFrame
+    end
+
     function selectionPanel:SetTabIndex(index: number)
         setTabIndex(index)
     end
