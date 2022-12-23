@@ -12,11 +12,11 @@ local Signal = require(Paths.Shared.Signal)
 type EquippedData = {
     Tool: ToolUtil.Tool | nil,
     Model: Model | nil,
-    EquipMaid: typeof(Maid.new()),
+    EquipMaid: Maid.Maid,
 }
 
 type ToolServerHandler = {
-    equipped: ((player: Player, tool: ToolUtil.Tool, model: Model, equipMaid: typeof(Maid.new())) -> any),
+    equipped: ((player: Player, tool: ToolUtil.Tool, model: Model, equipMaid: Maid.Maid) -> any),
     unequipped: ((player: Player, tool: ToolUtil.Tool) -> any),
     activated: ((player: Player, tool: ToolUtil.Tool, model: Model, dirtyData: table) -> any),
 }

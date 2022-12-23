@@ -37,7 +37,7 @@ end
 function UIActions.prompt(
     title: string?,
     description: string?,
-    middleMounter: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
+    middleMounter: ((parent: GuiObject, maid: Maid.Maid) -> nil)?,
     leftButton: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
     rightButton: { Text: string?, Icon: string?, Color: Color3?, Callback: (() -> nil)? }?,
     background: { Blur: boolean?, Image: string?, DoRotate: boolean? }?

@@ -6,7 +6,7 @@ local Maid = require(Paths.Shared.Maid)
 local WaterAnimator = require(Paths.Client.Zones.Cosmetics.Water.WaterAnimator)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 
-function WaterController.onZoneUpdate(maid: typeof(Maid.new()), _zone: ZoneConstants.Zone, zoneModel: Model)
+function WaterController.onZoneUpdate(maid: Maid.Maid, _zone: ZoneConstants.Zone, zoneModel: Model)
     local waterAnimator = WaterAnimator.scanZoneModel(zoneModel)
     if waterAnimator then
         maid:GiveTask(waterAnimator)

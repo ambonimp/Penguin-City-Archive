@@ -15,7 +15,7 @@ local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local ZoneService = require(Paths.Server.Zones.ZoneService)
 
-function SnowballToolServerHandler.equipped(player: Player, tool: ToolUtil.Tool, snowballModel: Model, equipMaid: typeof(Maid.new()))
+function SnowballToolServerHandler.equipped(player: Player, tool: ToolUtil.Tool, snowballModel: Model, equipMaid: Maid.Maid)
     -- Hide snowball by default
     SnowballToolUtil.hideSnowball(snowballModel)
 end

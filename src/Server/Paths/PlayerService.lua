@@ -8,7 +8,7 @@ local Maid = require(Paths.Shared.Maid)
 local GroupUtil = require(Paths.Shared.Utils.GroupUtil)
 local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
 
-local maidByPlayer: { [Player]: typeof(Maid.new()) } = {}
+local maidByPlayer: { [Player]: Maid.Maid } = {}
 
 -- Gives a maid that gets destroyed on the PlayerLeaving event; useful for cleaning up caches!
 function PlayerService.getPlayerMaid(player: Player)
@@ -28,6 +28,7 @@ function PlayerService.Start()
     local PlayerChatService = require(Paths.Server.PlayerChatService)
     local ToolService = require(Paths.Server.Tools.ToolService)
     local TelemetryService = require(Paths.Server.Telemetry.TelemetryService)
+    local CharacterItemService = require(Paths.Server.Characters.CharacterItemService)
 
     local function loadPlayer(player)
         -- RETURN: Already loaded (rare studio bug)
@@ -40,12 +41,13 @@ function PlayerService.Start()
 
         -- Data
         DataService.loadPlayer(player)
+        CharacterItemService.loadPlayer(player)
 
         -- Load routines
-        SessionService.loadPlayer(player)
         CharacterService.loadPlayer(player)
         ProductService.loadPlayer(player)
         PlotService.loadPlayer(player)
+        SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
         ZoneService.loadPlayer(player)
         RewardsService.loadPlayer(player)
         PetService.loadPlayer(player)

@@ -20,8 +20,9 @@ local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
 local UIUtil = require(Paths.Client.UI.Utils.UIUtil)
+local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
 local WideButton = require(Paths.Client.UI.Elements.WideButton)
-local PlacementScreen = require(Paths.Client.UI.Screens.Housing.Editing.PlacementScreen)
+
 -------------------------------------------------------------------------------
 -- PUBLIC MEMBERS
 -------------------------------------------------------------------------------
@@ -142,31 +143,33 @@ do
             uiStateMachine:Remove(UIConstants.States.HouseEditor)
         end)
 
-        local button: Frame = templates.BackButton:Clone()
-        button.Parent = furniturePanel:GetContainer().Background
+        local backButtonContainer = Instance.new("Frame")
+        backButtonContainer.Size = UDim2.fromScale(1, 1)
+        backButtonContainer.Position = UDim2.fromOffset(0, -15)
+        backButtonContainer.AnchorPoint = Vector2.new(0, 1)
+        backButtonContainer.Parent = furniturePanel:GetCloseButtonFrame()
 
-        local BackButton = KeyboardButton.new()
-        local ObjectsFrame: ScrollingFrame = templates.ObjectFrame:Clone()
+        local backButton = ExitButton.new()
+        backButton:Mount(backButtonContainer, true)
+        backButton:SetIcon(Images.Icons.BackArrow)
+        backButton:SetColor(UIConstants.Colors.Buttons.EditOrange)
+        backButton:GetButtonObject().Position = UDim2.new(-1, -10, 0, 0)
 
-        BackButton:Mount(button, true)
-        BackButton:SetIcon(Images.Icons.BackArrow)
-        BackButton:GetButtonObject().Parent.Visible = false
-        BackButton:GetButtonObject().Parent.Size = furniturePanel:GetContainer().Background.Side.ForwardArrow.Size
-
-        ObjectsFrame.Parent = furniturePanel:GetContainer().Background.Back
+        local objectsFrame: ScrollingFrame = templates.ObjectFrame:Clone()
+        objectsFrame.Parent = furniturePanel:GetContainer().Background.Back
 
         local function setCategoryVisible(on: boolean, tag: string?)
-            ObjectsFrame.Visible = on
+            objectsFrame.Visible = on
             if tag == "Owned" then
-                BackButton:GetButtonObject().Parent.Visible = false
+                backButtonContainer.Visible = false
             else
-                BackButton:GetButtonObject().Parent.Visible = on
+                backButtonContainer.Visible = on
             end
             furniturePanel:GetContainer().Background.Back.ScrollingFrame.Visible = not on
         end
 
         local function loadNewItems(tag: string, objects: { [string]: FurnitureConstants.Object })
-            for _, v in pairs(ObjectsFrame:GetChildren()) do
+            for _, v in pairs(objectsFrame:GetChildren()) do
                 if not v:IsA("UIListLayout") then
                     v:Destroy()
                 end
@@ -182,7 +185,7 @@ do
                 end
                 if add then
                     local objectWidget = Widget.diverseWidgetFromHouseObject("Furniture", objectKey)
-                    objectWidget:GetGuiObject().Parent = ObjectsFrame
+                    objectWidget:GetGuiObject().Parent = objectsFrame
                 end
             end
 
@@ -242,7 +245,7 @@ do
         end
         furniturePanel:AddTab("Owned", Images.Icons.StorageBox)
 
-        BackButton.Pressed:Connect(function()
+        backButton.Pressed:Connect(function()
             setCategoryVisible(false)
         end)
 

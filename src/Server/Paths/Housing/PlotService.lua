@@ -19,6 +19,7 @@ local HousingUtil = require(Paths.Shared.Utils.HousingUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local ProductConstants = require(Paths.Shared.Products.ProductConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
@@ -64,7 +65,6 @@ local plots: { [string]: { [Player]: Model } } = {
 local newSpawnTable: { [Player]: ((newSpawn: BasePart) -> ()) } = {}
 
 local exteriorPlots = workspace.Rooms.Neighborhood:WaitForChild(HousingConstants.ExteriorFolderName)
-local neighborhoodZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Neighborhood)
 
 -------------------------------------------------------------------------------
 -- Querying
@@ -238,27 +238,35 @@ local function loadHouse(player: Player, plot: Model, type: string, firstLoad: b
         end
 
         -- Load objects in the house
-        for id, store in pairs(DataService.get(player, "House.Furniture." .. blueprint)) do
+        local address = "House.Furniture." .. blueprint
+        for id, store in pairs(DataService.get(player, address)) do
             local name = store.Name
             local objectTemplate = assets.Furniture:FindFirstChild(name)
 
-            if objectTemplate then
-                local object = objectTemplate:Clone()
-                object.Name = id
-                local data = {
-                    Name = store.Name,
-                    Position = DataUtil.deserializeValue(store.Position, Vector3),
-                    Rotation = DataUtil.deserializeValue(store.Rotation, Vector3),
-                    Color = {},
-                    Normal = DataUtil.deserializeValue(store.Normal, Vector3),
-                }
-                for _, color in pairs(store.Color) do
-                    table.insert(data.Color, DataUtil.deserializeValue(color, Color3))
-                end
-                placeFurniture(player, object, data)
-            else
-                warn(("Furniture %s did not load because model no longer exists"):format(name))
+            -- Unequip any deprecated/removed items
+            local productId = ProductUtil.getHouseObjectProductId("Furniture", name)
+            local success = pcall(ProductUtil.getProduct, ProductConstants.ProductType.HouseObject, productId)
+            if not success then
+                warn(("unequipped %s furniture from %s's %s home"):format(name, player.Name, blueprint))
+                DataService.set(player, ("%s.%s"):format(address, id), nil)
+                continue
             end
+
+            local object = objectTemplate:Clone()
+            object.Name = id
+            local data = {
+                Name = store.Name,
+                Position = DataUtil.deserializeValue(store.Position, Vector3),
+                Rotation = DataUtil.deserializeValue(store.Rotation, Vector3),
+                Color = {},
+                Normal = DataUtil.deserializeValue(store.Normal, Vector3),
+            }
+
+            for _, color in pairs(store.Color) do
+                table.insert(data.Color, DataUtil.deserializeValue(color, Color3))
+            end
+
+            placeFurniture(player, object, data)
         end
     elseif type == HousingConstants.ExteriorType then
         --Handle entering and exiting houses

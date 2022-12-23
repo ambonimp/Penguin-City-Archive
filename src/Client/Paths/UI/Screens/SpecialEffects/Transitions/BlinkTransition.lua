@@ -1,7 +1,6 @@
 local BlinkTransition = {}
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local CameraController = require(Paths.Client.CameraController)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)

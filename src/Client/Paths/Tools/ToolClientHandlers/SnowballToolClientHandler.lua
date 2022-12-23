@@ -5,18 +5,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Signal = require(Paths.Shared.Signal)
-local ToolConstants = require(Paths.Shared.Tools.ToolConstants)
 local ToolUtil = require(Paths.Shared.Tools.ToolUtil)
-local Assume = require(Paths.Shared.Assume)
 local Remotes = require(Paths.Shared.Remotes)
-local Scope = require(Paths.Shared.Scope)
-local Products = require(Paths.Shared.Products.Products)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
 local Maid = require(Paths.Shared.Maid)
 local SnowballToolUtil = require(Paths.Shared.Tools.Utils.SnowballToolUtil)
 local RaycastUtil = require(Paths.Shared.Utils.RaycastUtil)
-local DebugUtil = require(Paths.Shared.Utils.DebugUtil)
 local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
 local CharacterUtil = require(Paths.Shared.Utils.CharacterUtil)
 local Vector3Util = require(Paths.Shared.Utils.Vector3Util)
@@ -185,7 +179,7 @@ end
 -- API
 -------------------------------------------------------------------------------
 
-function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: typeof(Maid.new()))
+function SnowballToolClientHandler.equipped(_tool: ToolUtil.Tool, modelSignal: Signal.Signal, equipMaid: Maid.Maid)
     -- Hide snowball by default
     equipMaid:GiveTask(modelSignal:Connect(function(snowballModel: Model, oldLocalSnowballModel: Model?)
         SnowballToolUtil.hideSnowball(snowballModel)

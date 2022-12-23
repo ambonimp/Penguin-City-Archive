@@ -226,7 +226,7 @@ function SledRaceSession.new(...: any)
             local coins = data.Coins
             if coins then
                 CurrencyService.injectCoins(participant, coins, {
-                    OverrideClient = true,
+                    IsClientOblivious = true,
                     InjectCategory = CurrencyUtil.injectCategoryFromMinigame(minigameSession:GetMinigameName(), true),
                 })
             end

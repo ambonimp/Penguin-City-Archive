@@ -31,7 +31,7 @@ local DISCO_BALL_ROTATION_PER_SECOND = 45
 local colorParts: { [BasePart]: number } = {} -- Values are index offset
 local boardwalkZone = ZoneUtil.zone(ZoneConstants.ZoneCategory.Room, ZoneConstants.ZoneType.Room.Boardwalk)
 
-function DiscoController.onZoneUpdate(maid: typeof(Maid.new()), zone: ZoneConstants.Zone, zoneModel: Model)
+function DiscoController.onZoneUpdate(maid: Maid.Maid, zone: ZoneConstants.Zone, zoneModel: Model)
     -- ColorParts
     do
         -- Cache Cleanup

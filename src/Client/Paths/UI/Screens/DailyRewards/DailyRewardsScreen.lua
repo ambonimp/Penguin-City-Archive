@@ -51,7 +51,7 @@ function DailyRewardsScreen.Init()
     end)
 end
 
-function DailyRewardsScreen.setup(background: ImageLabel, maid: typeof(Maid.new()), isUi: boolean)
+function DailyRewardsScreen.setup(background: ImageLabel, maid: Maid.Maid, isUi: boolean)
     -- Hoist
     local update: () -> ()
     local displayDays: (days: number?) -> ()

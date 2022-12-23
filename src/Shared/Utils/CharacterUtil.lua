@@ -7,13 +7,11 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Toggle = require(Shared.Toggle)
 local Maid = require(ReplicatedStorage.Shared.Maid)
-local CharacterConstants = require(Shared.Constants.CharacterConstants)
 local PropertyStack = require(ReplicatedStorage.Shared.PropertyStack)
 local InstanceUtil = require(ReplicatedStorage.Shared.Utils.InstanceUtil)
 local CollisionsConstants = require(ReplicatedStorage.Shared.Constants.CollisionsConstants)
 local MathUtil = require(ReplicatedStorage.Shared.Utils.MathUtil)
 local Vector3Util = require(ReplicatedStorage.Shared.Utils.Vector3Util)
-local CFrameUtil = require(ReplicatedStorage.Shared.Utils.CFrameUtil)
 local TweenUtil = require(ReplicatedStorage.Shared.Utils.TweenUtil)
 
 export type CharacterAppearance = {
@@ -42,7 +40,7 @@ local DEFAULT_SCOPE = "Default"
 local hidingSession = Maid.new()
 local areCharactersHidden: typeof(Toggle.new(true, function() end))
 local etherealToggles: { [Player]: typeof(Toggle.new(true, function() end)) } = {}
-local etherealMaids: { [Player]: typeof(Maid.new()) } = {}
+local etherealMaids: { [Player]: Maid.Maid } = {}
 local etherealCollisionGroupId = PhysicsService:GetCollisionGroupId(CollisionsConstants.Groups.EtherealCharacters)
 local isCollidingWithOtherCharacterOverlapParams = OverlapParams.new()
 

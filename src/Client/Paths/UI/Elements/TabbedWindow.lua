@@ -20,7 +20,7 @@ type Tab = {
     ImageId: string,
     Button: Button.Button | nil,
     WindowFrame: Frame?,
-    WindowConstructor: ((parent: GuiObject, maid: typeof(Maid.new())) -> nil)?,
+    WindowConstructor: ((parent: GuiObject, maid: Maid.Maid) -> nil)?,
 }
 
 local TABS_PER_VIEW = 5
@@ -302,7 +302,7 @@ function TabbedWindow.new(closeCallbackState: string?)
     end
 
     -- Sets a function that will create our window when we need it
-    function tabbedWindow:SetWindowConstructor(tabName: string, constructor: (parent: GuiObject, maid: typeof(Maid.new())) -> nil)
+    function tabbedWindow:SetWindowConstructor(tabName: string, constructor: (parent: GuiObject, maid: Maid.Maid) -> nil)
         -- WARN: Bad tab
         local tab = getTab(tabName)
         if not tab then

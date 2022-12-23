@@ -80,7 +80,7 @@ local function setState(newState: State)
         local lastState = currentState
         currentState = newState
 
-        Output.doDebug(MinigameConstants.DoDebug, "Minigame state changed:", newName)
+        Output.doDebug(MinigameConstants.DoDebug, ("Minigame state changed to %s (%s)"):format(newName, currentZone.ZoneId))
 
         -- Close previously opened
         if lastState then

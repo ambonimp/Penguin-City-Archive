@@ -214,12 +214,6 @@ items["Conical_Straw_Hat"] = {
     Icon = nil, --"Conical_Straw_Hat"
     ForSale = true,
 }
-items["Cow_Bucket_Hat"] = {
-    Name = "Cow_Bucket_Hat",
-    Price = 50,
-    Icon = nil, --"Cow_Bucket_Hat"
-    ForSale = true,
-}
 items["Cowboy"] = {
     Name = "Cowboy",
     Price = 100,
@@ -230,12 +224,6 @@ items["Crown"] = {
     Name = "Crown",
     Price = 450,
     Icon = nil, --"Crown"
-    ForSale = true,
-}
-items["Deely_Bopper"] = {
-    Name = "Deely_Bopper",
-    Price = 30,
-    Icon = nil, --"Deely_Bopper"
     ForSale = true,
 }
 items["Detective_Hat"] = {
@@ -396,7 +384,7 @@ items["Nurse_Hat"] = {
 }
 items["Pink_Bunny_Ears"] = {
     Name = "Pink_Bunny_Ears",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Pink_Bunny_Ears"
     ForSale = true,
 }
@@ -438,20 +426,14 @@ items["Popcorn_Hat"] = {
 }
 items["Pot"] = {
     Name = "Pot",
-    Price = 25,
+    Price = 0,
     Icon = nil, --"Pot"
     ForSale = true,
 }
 items["Propeller_Hat"] = {
     Name = "Propeller_Hat",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Propeller_Hat"
-    ForSale = true,
-}
-items["Rainbow_Deely_Bopper"] = {
-    Name = "Rainbow_Deely_Bopper",
-    Price = 45,
-    Icon = nil, --"Rainbow_Deely_Bopper"
     ForSale = true,
 }
 items["Robin_Hood"] = {
@@ -504,7 +486,7 @@ items["Steampunk_Hat"] = {
 }
 items["Straw_Hat"] = {
     Name = "Straw_Hat",
-    Price = 30,
+    Price = 0,
     Icon = nil, --"Straw_Hat"
     ForSale = true,
 }
