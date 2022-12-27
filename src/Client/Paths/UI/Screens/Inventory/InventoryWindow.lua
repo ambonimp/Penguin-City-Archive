@@ -59,12 +59,16 @@ function InventoryWindow.new(
 
     widgets.Parent = inventoryWindowFrame
 
+    local arrowPadding = Instance.new("UIPadding")
+    arrowPadding.Parent = inventoryWindowFrame
+
     local leftArrowFrame = Instance.new("Frame")
     leftArrowFrame.Name = "leftArrowFrame"
     leftArrowFrame.AnchorPoint = Vector2.new(0, 0.5)
     leftArrowFrame.BackgroundTransparency = 1
-    leftArrowFrame.Position = UDim2.fromScale(0, 0.5)
+    leftArrowFrame.Position = UDim2.fromScale(0, 0.475)
     leftArrowFrame.Size = UDim2.fromOffset(60, 100)
+    leftArrowFrame.Parent = inventoryWindowFrame
 
     local leftArrowButton = Instance.new("ImageButton")
     leftArrowButton.Name = "leftArrowButton"
@@ -72,16 +76,14 @@ function InventoryWindow.new(
     leftArrowButton.ScaleType = Enum.ScaleType.Fit
     leftArrowButton.BackgroundTransparency = 1
     leftArrowButton.Size = UDim2.fromScale(1, 1)
-    leftArrowButton.Parent = leftArrowFrame
-
-    leftArrowFrame.Parent = inventoryWindowFrame
 
     local rightArrowFrame = Instance.new("Frame")
     rightArrowFrame.Name = "rightArrowFrame"
     rightArrowFrame.AnchorPoint = Vector2.new(1, 0.5)
     rightArrowFrame.BackgroundTransparency = 1
-    rightArrowFrame.Position = UDim2.fromScale(1, 0.5)
+    rightArrowFrame.Position = UDim2.fromScale(1, 0.475)
     rightArrowFrame.Size = UDim2.fromOffset(60, 100)
+    rightArrowFrame.Parent = inventoryWindowFrame
 
     local rightArrowButton = Instance.new("ImageButton")
     rightArrowButton.Name = "rightArrowButton"
@@ -89,9 +91,7 @@ function InventoryWindow.new(
     rightArrowButton.ScaleType = Enum.ScaleType.Fit
     rightArrowButton.BackgroundTransparency = 1
     rightArrowButton.Size = UDim2.fromScale(1, 1)
-    rightArrowButton.Parent = rightArrowFrame
 
-    rightArrowFrame.Parent = inventoryWindowFrame
     --#endregion
 
     local drawMaid = Maid.new()
@@ -100,14 +100,18 @@ function InventoryWindow.new(
     local pageNumber = 1
 
     local leftArrow = AnimatedButton.new(leftArrowButton)
+    leftArrow:Mount(leftArrowFrame)
     maid:GiveTask(leftArrow)
     local rightArrow = AnimatedButton.new(rightArrowButton)
+    rightArrow:Mount(rightArrowFrame)
     maid:GiveTask(rightArrow)
 
-    local currentPopulateData: { {
-        WidgetConstructor: () -> typeof(Widget.diverseWidget()),
-        EquipValue: any | nil,
-    } } =
+    local currentPopulateData: {
+        {
+            WidgetConstructor: () -> typeof(Widget.diverseWidget()),
+            EquipValue: any | nil,
+        }
+    } =
         {}
 
     local addCallback = data.AddCallback
@@ -231,18 +235,24 @@ function InventoryWindow.new(
         inventoryWindow:SetSubText(("Page %d/%d"):format(pageNumber, getMaxPageNumber()))
 
         -- Arrows
-        leftArrowButton.Visible = pageNumber > 1
-        rightArrowButton.Visible = pageNumber < getMaxPageNumber()
+        local showLeftArrow = pageNumber > 1
+        local showRightArrow = pageNumber < getMaxPageNumber()
+        leftArrowButton.Visible = showLeftArrow
+        rightArrowButton.Visible = showRightArrow
+        arrowPadding.PaddingRight = if showRightArrow then UDim.new(0, 20) else UDim.new()
+        arrowPadding.PaddingLeft = if showLeftArrow then UDim.new(0, 20) else UDim.new()
     end
 
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
 
-    function inventoryWindow:Populate(populateData: { {
-        WidgetConstructor: () -> typeof(Widget.diverseWidget()),
-        EquipValue: any | nil,
-    } })
+    function inventoryWindow:Populate(populateData: {
+        {
+            WidgetConstructor: () -> typeof(Widget.diverseWidget()),
+            EquipValue: any | nil,
+        }
+    })
         -- Ensure unique EquipValue (if equipping is enabled)
         if equipping then
             local equipValuesCache: { [any]: true } = {}
