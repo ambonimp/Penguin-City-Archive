@@ -390,14 +390,15 @@ function MinigameSession.new(
         else
             maid:GiveTask(Remotes.bindEventTemp("MinigameStarted", function(player)
                 local state = stateMachine:GetState()
-
                 if minigameSession:IsPlayerParticipant(player) and (state == STATES.AwardShow or state == STATES.Nothing) then
                     minigameSession:ChangeState(STATES.Intermission)
                 end
             end))
 
-            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function()
-                minigameSession:ChangeState(STATES.Nothing)
+            maid:GiveTask(Remotes.bindEventTemp("MinigameRestarted", function(player)
+                if minigameSession:IsPlayerParticipant(player) then
+                    minigameSession:ChangeState(STATES.Nothing)
+                end
             end))
         end
 
