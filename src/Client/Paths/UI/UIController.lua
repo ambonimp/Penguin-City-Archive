@@ -95,7 +95,7 @@ do
             end
 
             -- Boot and maximize
-            if isOnTop then
+            if isOnTop and _fromState ~= _toState then
                 if not screenData.Meta.IsBooted then
                     screenData.Meta.IsBooted = true
                     if screenData.Callbacks.Boot then

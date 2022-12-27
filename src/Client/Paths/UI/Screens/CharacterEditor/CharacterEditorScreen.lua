@@ -24,7 +24,6 @@ local Snackbar = require(Paths.Client.UI.Elements.Snackbar)
 
 export type EquippedItems = { string }
 
-local STANDUP_TIME = 0.1
 local CHARACTER_PREVIEW_CONFIG = {
     SubjectScale = 7,
     SubjectPosition = -0.2,
@@ -275,31 +274,23 @@ do
             return
         end
 
-        -- Callbacks
-        for _, bootCallback in pairs(bootCallbacks) do
-            bootCallback()
-        end
-
         -- Only open character editor when the player is on the floor
         local stateUpdateConnection: RBXScriptConnection
         characterIsReady = Promise.new(function(resolve, reject)
             local humanoid: Humanoid = character.Humanoid
             local function checkState()
                 local state = humanoid:GetState()
-
                 if state == Enum.HumanoidStateType.Seated then
                     humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
                     humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
-                    task.wait(STANDUP_TIME) -- Give it time to stand up
+                    state = humanoid:GetState()
                 end
 
                 if state == Enum.HumanoidStateType.Dead then
                     uiStateMachine:PopIfStateOnTop(UIConstants.States.CharacterEditor)
                     reject()
-                    return
                 elseif state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running then
                     resolve()
-                    return
                 end
             end
 
@@ -310,7 +301,6 @@ do
             if character then
                 character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
             end
-
             stateUpdateConnection:Disconnect()
         end)
 
@@ -321,6 +311,11 @@ do
         end
 
         previewCharacter, previewMaid = CharacterPreview.preview(CHARACTER_PREVIEW_CONFIG)
+
+        -- Callbacks
+        for _, bootCallback in pairs(bootCallbacks) do
+            bootCallback()
+        end
 
         if data.Tab then
             panel:OpenTab(data.Tab)
