@@ -15,12 +15,10 @@ TutorialConstants.Tasks = {
 }
 
 TutorialConstants.TaskOrder = {
-    TutorialConstants.Tasks.StartingAppearance,
-    --[[     TutorialConstants.Tasks.ContinueTutorial,
     TutorialConstants.Tasks.CustomiseIgloo,
     TutorialConstants.Tasks.PlayMinigame,
     TutorialConstants.Tasks.StarterPetEgg,
-    TutorialConstants.Tasks.TutorialCompleted, *]]
+    TutorialConstants.Tasks.TutorialCompleted,
 }
 
 TutorialConstants.StartingAppearance = {

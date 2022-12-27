@@ -25,7 +25,6 @@ return function(taskMaid: Maid.Maid)
         :andThen(function()
             return Promise.new(function(resolve)
                 -- Prompts
-                TutorialController.prompt("Looking Good!")
                 TutorialController.prompt("In Penguin City, you have your own igloo! Let's go there now..")
 
                 resolve()
