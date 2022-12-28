@@ -10,6 +10,7 @@
 local TutorialController = {}
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local Remotes = require(Paths.Shared.Remotes)
 local TutorialConstants = require(Paths.Shared.Tutorial.TutorialConstants)
@@ -23,6 +24,15 @@ local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Maid = require(Paths.Shared.Maid)
 local Promise = require(Paths.Packages.promise)
 local Loader = require(Paths.Client.Loader)
+local InteractionController = require(Paths.Client.Interactions.InteractionController)
+local ZoneController = require(Paths.Client.Zones.ZoneController)
+local ZoneConstants = require(Paths.Shared.Zones.ZoneConstants)
+local CharacterConstants = require(Paths.Shared.Constants.CharacterConstants)
+local InstanceUtil = require(Paths.Shared.Utils.InstanceUtil)
+local Snackbar = require(Paths.Client.UI.Elements.Snackbar)
+local UIController = require(Paths.Client.UI.UIController)
+local UIConstants = require(Paths.Client.UI.UIConstants)
+local UIActions = require(Paths.Client.UI.UIActions)
 
 TutorialController.StartTask = Signal.new() -- { task: string } used to kickstart the next tutorial task
 TutorialController.TutorialSkipped = Signal.new()
@@ -31,14 +41,28 @@ local locallyCompletedTasks: { [string]: true } = {}
 local taskMaid = Maid.new()
 local currentTaskPromise: typeof(Promise.new(function() end)) | nil
 
+local tutorialBooth: Model = Workspace.Rooms.Town.TutorialBooth
+
+local idleAnimation = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Idle[1].Id })
+local waveAnimation = InstanceUtil.tree("Animation", { AnimationId = CharacterConstants.Animations.Wave[1].Id })
+
 -------------------------------------------------------------------------------
 -- Private Methods
 -------------------------------------------------------------------------------
-
 local function assertTask(task: string)
     if not TutorialConstants.Tasks[task] then
         error(("Bad task %q"):format(task))
     end
+end
+
+local function areAllTasksCompleted()
+    for _, someTask in pairs(TutorialConstants.TaskOrder) do
+        if not TutorialController.isTaskCompleted(someTask) then
+            return false
+        end
+    end
+
+    return true
 end
 
 -- Returns true if started next task
@@ -51,6 +75,23 @@ local function startNextTask()
     end
 
     return false
+end
+
+local function loadTourGuide()
+    if ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room.Town then
+        local animator: Animator = tutorialBooth.NPC.AnimationController.Animator
+        local idleTrack = animator:LoadAnimation(idleAnimation)
+        local waveTrack = animator:LoadAnimation(waveAnimation)
+
+        task.spawn(function()
+            while ZoneController.getCurrentZone().ZoneType == ZoneConstants.ZoneType.Room.Town do
+                waveTrack:Play(nil, 2)
+                task.wait(10)
+            end
+
+            idleTrack:Play(nil, 1)
+        end)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -130,7 +171,11 @@ function TutorialController.Start()
     end
 
     -- Kickstart Tutorial (when loaded)
-    Loader.ClientLoaded:Connect(startNextTask)
+    Loader.ClientLoaded:Connect(function()
+        if not TutorialController.isTaskCompleted(TutorialConstants.Tasks.StartingAppearance) then
+            TutorialController.StartTask:Fire(TutorialConstants.Tasks.StartingAppearance)
+        end
+    end)
 end
 
 function TutorialController.skipTutorial()
@@ -237,5 +282,37 @@ function TutorialController.setStartingAppearance(colorIndex: number, outfitInde
     -- Inform Server
     Remotes.fireServer("SetStartingAppearance", colorIndex, outfitIndex)
 end
+
+-------------------------------------------------------------------------------
+-- Tutorial Booth Logic
+-------------------------------------------------------------------------------
+loadTourGuide()
+ZoneController.ZoneChanged:Connect(loadTourGuide)
+
+InteractionController.registerInteraction("TutorialPrompt", function(_, prompt)
+    if areAllTasksCompleted() then
+        Snackbar.info("Tutorial has already been completed")
+        prompt.Enabled = false
+    else
+        UIActions.prompt("Tutorial", "Would you like to play the tutorial? (Recommended)", nil, {
+            Text = "No",
+            Callback = function()
+                prompt.Enabled = true
+            end,
+        }, {
+            Text = "Yes!",
+            Callback = function()
+                startNextTask()
+                prompt.Enabled = false
+
+                local connection
+                connection = UIController.getStateMachine():RegisterStateCallbacks(UIConstants.States.Tutorial, nil, function()
+                    connection:Disconnect()
+                    prompt.Enabled = true
+                end)
+            end,
+        })
+    end
+end, "Play Tutorial")
 
 return TutorialController

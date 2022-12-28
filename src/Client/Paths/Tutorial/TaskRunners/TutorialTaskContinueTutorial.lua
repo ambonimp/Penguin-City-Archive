@@ -15,14 +15,14 @@ return function(_taskMaid: Maid.Maid)
     end):andThen(function()
         return Promise.new(function(resolve)
             -- Prompt asking to continue or not
-            UIActions.prompt("Tutorial", "Would you like to continue with the tutorial? (Recommended)", nil, {
-                Text = "Skip",
+            UIActions.prompt("Tutorial", "Would you like to play the tutorial? (Recommended)", nil, {
+                Text = "No",
                 Callback = function()
                     TutorialController.skipTutorial()
                     resolve()
                 end,
             }, {
-                Text = "Continue",
+                Text = "Yes!",
                 Callback = resolve,
             })
         end)
