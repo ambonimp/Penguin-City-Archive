@@ -310,6 +310,7 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
     if type == HousingConstants.ExteriorType then
         plot:SetAttribute(HousingConstants.PlotOwner, nil)
         if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
+            -- print("Exterior: Found old blueprint to delete", player, oldBlueprint)
             plot:FindFirstChild(oldBlueprint):Destroy()
         end
         CollectionService:RemoveTag(plot.Mailbox, tostring(player.UserId))
@@ -318,15 +319,19 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
 
         if plot.Mailbox:FindFirstChild("PlayerName") then
             plot.Mailbox:FindFirstChild("PlayerName"):Destroy()
+            -- print("Exterior: Found PlayerName to delete", player)
         end
     else
         if plot:FindFirstChild("Furniture") then
+            -- print("Interior: Found old blueprint to delete Furniture", player, oldBlueprint)
             plot.Furniture:ClearAllChildren()
         end
         if oldBlueprint and plot:FindFirstChild(oldBlueprint) then
+            -- print("Interior: Found old blueprint to delete", player, oldBlueprint)
             plot:FindFirstChild(oldBlueprint):Destroy()
         end
         if plot.Parent.ZoneInstances.RoomDepartures:FindFirstChild("Neighborhood") then --remove exit part
+            -- print("Interior: Delete exit part", player)
             plot.Parent.ZoneInstances.RoomDepartures:FindFirstChild("Neighborhood"):Destroy()
         end
     end
