@@ -30,6 +30,8 @@ CharacterPreview.Defaults = {
 }
 
 local player = Players.LocalPlayer
+local playerControls = require(player.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
+
 local camera = workspace.CurrentCamera
 
 local subject: Model
@@ -135,6 +137,7 @@ function CharacterPreview.preview(config: {
     lookAtSubject()
 
     ContextActionService:BindAction("ToggleRotation", onRotationToggled, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
+    playerControls:Disable()
 
     -- Destroy function
     maid:GiveTask(function()
@@ -142,6 +145,7 @@ function CharacterPreview.preview(config: {
         ContextActionService:UnbindAction("Rotate")
         ContextActionService:UnbindAction("ToggleRotation")
         CameraController.setPlayerControl()
+        playerControls:Enable()
     end)
 
     return previewCharacter, maid
