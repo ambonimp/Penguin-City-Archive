@@ -203,15 +203,12 @@ function readStampData()
                     local tier = stamp.IsTiered and StampUtil.getTierFromProgress(stamp, progress) or "Bronze"
                     local imageId = stamp.IsTiered and stamp.ImageId[tier] or stamp.ImageId
 
-                    editPanel:AddWidgetConstructor(TABS.Stamps, stampId, false, function(parent, maid)
+                    editPanel:AddWidgetConstructor(TABS.Stamps, stampId, false, function()
                         local widget = Widget.diverseWidget()
                         widget:SetIcon(imageId)
                         widget.Pressed:Connect(function()
                             removeCoverStamp(stamp)
                         end)
-
-                        widget:Mount(parent)
-                        maid:GiveTask(widget)
 
                         return widget
                     end)
@@ -219,14 +216,11 @@ function readStampData()
             end
         end
 
-        editPanel:AddWidgetConstructor(TABS.Stamps, "Add", false, function(parent, maid)
+        editPanel:AddWidgetConstructor(TABS.Stamps, "Add", false, function()
             local widget = Widget.addWidget()
             widget.Pressed:Connect(function()
                 StampBookScreen.openInside()
             end)
-
-            widget:Mount(parent)
-            maid:GiveTask(widget)
 
             return widget
         end)

@@ -23,7 +23,6 @@ local HousingController = require(Paths.Client.HousingController)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local ZoneUtil = require(Paths.Shared.Zones.ZoneUtil)
 local ZoneController = require(Paths.Client.Zones.ZoneController)
-local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
 local PetUtils = require(Paths.Shared.Pets.PetUtils)
 local KeyboardButton = require(Paths.Client.UI.Elements.KeyboardButton)
 local ExitButton = require(Paths.Client.UI.Elements.ExitButton)
@@ -171,10 +170,16 @@ function Widget.diverseWidgetFromProduct(
     -- Handle widget being used for purchases + showing if owned
     if state.VerifyOwnership then
         local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-        if isOwned then
+
+        local _onItemOwned = function()
+            widget:SetLayoutOrder(-1)
             if onItemOwned then
                 onItemOwned(widget)
             end
+        end
+
+        if isOwned then
+            _onItemOwned()
         else
             widget:SetFade(true)
             widget:SetPrice(product.CoinData and product.CoinData.Cost)
@@ -193,9 +198,7 @@ function Widget.diverseWidgetFromProduct(
                     widget:SetPrice()
                     purchaseMaid:Cleanup()
 
-                    if onItemOwned then
-                        onItemOwned(widget)
-                    end
+                    _onItemOwned()
                 end
             end))
         end
@@ -395,7 +398,8 @@ function Widget.diverseWidget()
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
-    local selected: boolean = false
+    local selected = false
+    local layoutOrder = 0
 
     --#region Create UI
     local diverseWidget = Instance.new("Frame")
@@ -503,6 +507,15 @@ function Widget.diverseWidget()
     -------------------------------------------------------------------------------
     -- Public Methods
     -------------------------------------------------------------------------------
+
+    function widget:GetLayoutOrder()
+        return layoutOrder
+    end
+
+    function widget:SetLayoutOrder(newLayoutOrder: number)
+        imageButton.LayoutOrder = newLayoutOrder
+        layoutOrder = newLayoutOrder
+    end
 
     function widget:SetText(text: string?)
         textLabel.Text = text or ""

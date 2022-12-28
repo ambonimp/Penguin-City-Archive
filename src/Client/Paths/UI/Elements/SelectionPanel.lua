@@ -24,7 +24,7 @@ type Tab = {
             WidgetName: string,
             Selected: boolean,
             Instance: Widget.Widget?,
-            Constructor: (parent: GuiObject, maid: Maid.Maid) -> Widget.Widget,
+            Constructor: (maid: Maid.Maid) -> Widget.Widget,
         }
     },
     Button: Button.Button | nil,
@@ -308,25 +308,36 @@ function SelectionPanel.new()
 
         -- Widgets
         if openTab then
-            for i, widgetInfo in pairs(openTab.WidgetConstructors) do
-                local section = getSection(i)
+            local widgets = {}
 
-                local widgetFrame: Frame = section.template:Clone()
-                widgetFrame.Name = widgetInfo.WidgetName
-                widgetFrame.LayoutOrder = i
-                widgetFrame.Visible = true
-                widgetFrame.Parent = section
-                drawMaid:GiveTask(widgetFrame)
-
-                widgetFrame.Background:Destroy()
-
-                local widget = widgetInfo.Constructor(widgetFrame, drawMaid)
+            for _, widgetInfo in pairs(openTab.WidgetConstructors) do
+                local widget = widgetInfo.Constructor()
                 if not widget then
                     error(("WidgetConstructor not return a Widget! TabName: %q WidgetName: %q"):format(openTabName, widgetInfo.WidgetName))
                 end
 
                 widget:SetSelected(widgetInfo.Selected)
                 widgetInfo.Instance = widget
+
+                table.insert(widgets, widget)
+                drawMaid:GiveTask(widget)
+            end
+
+            table.sort(widgets, function(widget1, widget2)
+                return widget1:GetLayoutOrder() < widget2:GetLayoutOrder()
+            end)
+
+            for i, widget in pairs(widgets) do
+                local section = getSection(i)
+
+                local widgetFrame: Frame = section.template:Clone()
+                widgetFrame.LayoutOrder = i
+                widgetFrame.Visible = true
+                widgetFrame.Parent = section
+                drawMaid:GiveTask(widgetFrame)
+                widgetFrame.Background:Destroy()
+
+                widget:Mount(widgetFrame, true)
             end
         end
 
@@ -529,7 +540,7 @@ function SelectionPanel.new()
         tabName: string,
         widgetName: string,
         selected: boolean,
-        constructor: ((parent: GuiObject, maid: Maid.Maid) -> Widget.Widget)
+        constructor: ((maid: Maid.Maid) -> Widget.Widget)
     )
         -- WARN: Bad tab
         local tab = getTab(tabName)
@@ -568,7 +579,7 @@ function SelectionPanel.new()
         onClicked: (() -> ())?,
         onCreated: ((Widget.Widget) -> ())?
     )
-        selectionPanel:AddWidgetConstructor(tabName, widgetName, selected, function(widgetParent, maid)
+        selectionPanel:AddWidgetConstructor(tabName, widgetName, selected, function()
             local widget = Widget.diverseWidgetFromProduct(product, state, function(button)
                 button.Pressed:Connect(function()
                     if onClicked then
@@ -588,9 +599,6 @@ function SelectionPanel.new()
             if onCreated then
                 onCreated(widget)
             end
-
-            widget:Mount(widgetParent)
-            maid:GiveTask(widget)
 
             return widget
         end)

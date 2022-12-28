@@ -216,7 +216,7 @@ do
             if count == 0 then
                 return
             end
-            furniturePanel:AddWidgetConstructor(tabName, tag, false, function(parent, maid)
+            furniturePanel:AddWidgetConstructor(tabName, tag, false, function()
                 local widget = Widget.diverseWidget()
                 widget:DisableIcon()
                 widget:SetText(tag)
@@ -225,8 +225,6 @@ do
                     loadNewItems(tag, objects)
                 end)
 
-                widget:Mount(parent)
-                maid:GiveTask(widget)
                 return widget
             end)
         end
