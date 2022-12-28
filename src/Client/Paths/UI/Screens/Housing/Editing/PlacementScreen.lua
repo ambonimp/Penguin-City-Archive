@@ -176,9 +176,11 @@ do
             resetModel()
         end
 
+        character = player.Character
+        character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
         local blueprint = DataController.get("House.Blueprint")
         confirmChanged = false
-        character = player.Character
         plot = data.Plot
         plotCFrame = data.PlotCFrame
         local isNewObject = data.IsNewObject
@@ -384,7 +386,6 @@ do
         end
 
         --ColorWidget handle
-
         if colorWidgetSelected then
             colorWidgetSelected:SetSelected(false)
         end
@@ -412,6 +413,8 @@ do
     end
 
     local function shutdown()
+        character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+
         placementSession:Cleanup()
         ScreenUtil.outLeft(colorPanel:GetContainer())
     end
