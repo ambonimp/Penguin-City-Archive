@@ -16,19 +16,20 @@ local InputController = require(Paths.Client.Input.InputController)
 local MouseUtil = require(Paths.Client.Utils.MouseUtil)
 local DeviceUtil = require(Paths.Client.Utils.DeviceUtil)
 local CameraUtil = require(Paths.Client.Utils.CameraUtil)
-local ProductUtil = require(Paths.Shared.Products.ProductUtil)
 local SelectionPanel = require(Paths.Client.UI.Elements.SelectionPanel)
 local Widget = require(Paths.Client.UI.Elements.Widget)
 local Button = require(Paths.Client.UI.Elements.Button)
 local Images = require(Paths.Shared.Images.Images)
 local FurnitureConstants = require(Paths.Shared.Constants.HouseObjects.FurnitureConstants)
-local ProductController = require(Paths.Client.ProductController)
 local BasePartUtil = require(Paths.Shared.Utils.BasePartUtil)
 local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local StringUtil = require(Paths.Shared.Utils.StringUtil)
 local Binder = require(Paths.Shared.Binder)
 local HousingConstants = require(Paths.Shared.Constants.HousingConstants)
 local ATTTRIBUTE_MODEL_INITALIZED = "Initialized"
+
+local UP_VECTOR = Vector3.new(0, 1, 0)
+local COLLISION_PREVENTING_OFFSET = 0.1
 
 local CFRAME_TWEEN_INFO = TweenInfo.new(0.001, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 local ROTATION_ADDEND = math.rad(45)
@@ -133,13 +134,13 @@ local function isPartNotCollideable(part: BasePart)
     return part.Name == "Hitbox" or part.Name == "Spawn" or part.Transparency == 1
 end
 
-local function isModelColliding(model1: Model)
-    for _, part: BasePart in pairs(model1:GetDescendants()) do
+local function isModelColliding(checking: Model)
+    for _, part: BasePart in pairs(checking:GetDescendants()) do
         if part:IsA("BasePart") and not isPartNotCollideable(part) then
             for _, collidingPart: BasePart in pairs(workspace:GetPartsInPart(part)) do
                 if
-                    not collidingPart:IsDescendantOf(model1)
-                    and collidingPart:IsDescendantOf(plot.Furniture)
+                    not collidingPart:IsDescendantOf(checking)
+                    and collidingPart:IsDescendantOf(plot)
                     and not isPartNotCollideable(collidingPart)
                 then
                     return true
@@ -175,20 +176,23 @@ do
         if model and not confirmChanged then
             resetModel()
         end
+        confirmChanged = false
 
         character = player.Character
-        character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        local humanoid: Humanoid = character.Humanoid
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        if humanoid:GetState() == Enum.HumanoidStateType.Seated then
+            humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
+        end
 
         local blueprint = DataController.get("House.Blueprint")
-        confirmChanged = false
         plot = data.Plot
         plotCFrame = data.PlotCFrame
-        local isNewObject = data.IsNewObject
         model = data.Object
 
-        local UP_VECTOR = Vector3.new(0, 1, 0)
-        local modelData = FurnitureConstants.Objects[model.Name]
+        local isNewObject = data.IsNewObject
 
+        local modelData = FurnitureConstants.Objects[model.Name]
         if modelData == nil then
             local store = DataController.get("House.Furniture." .. blueprint .. "." .. model.Name)
             modelData = FurnitureConstants.Objects[store.Name]
@@ -196,7 +200,7 @@ do
 
         --wall objects are rotated different depending on the normal, thus requiring some height adjustments depending on normal rotation
         local isWallObject: boolean = table.find(modelData.Tags, FurnitureConstants.Tags.Wall) and true or false
-        local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2, 0)
+        local heightOffset: CFrame = CFrame.new(0, model:GetExtentsSize().Y / 2 + COLLISION_PREVENTING_OFFSET, 0)
             * (not isWallObject and CFrame.new(0, 0.05, 0) or CFrame.new(0, 0, -0.05))
 
         local selectionBox: SelectionBox = Instance.new("SelectionBox")
