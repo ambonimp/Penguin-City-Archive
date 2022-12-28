@@ -248,6 +248,7 @@ do
         end)
 
         setCategoryVisible(false)
+        furniturePanel:Start()
     end
 
     ScreenUtil.outDown(furniturePanel:GetContainer())

@@ -496,6 +496,7 @@ do
         end
     end)
 
+    colorPanel:Start()
     ScreenUtil.outLeft(colorPanel:GetContainer())
 end
 

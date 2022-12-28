@@ -144,6 +144,7 @@ function StartingAppearanceScreen.Init()
             end)
         end
 
+        colorPanel:Start()
         ScreenUtil.outLeft(colorPanel:GetContainer())
     end
 

@@ -252,6 +252,8 @@ do
     panel.TabChanged:Connect(function()
         tabMaid:Cleanup()
     end)
+
+    panel:Start()
 end
 
 -- Register UIState

@@ -50,6 +50,7 @@ function SelectionPanel.new()
     -------------------------------------------------------------------------------
     -- Private Members
     -------------------------------------------------------------------------------
+    local started = false
 
     local alignment: "Left" | "Right" | "Bottom" = SelectionPanel.Defaults.Alignment
     local size = SelectionPanel.Defaults.Size
@@ -241,6 +242,11 @@ function SelectionPanel.new()
             createContainer()
         end
         drawMaid:Cleanup()
+
+        if not started then
+            queueNext()
+            return
+        end
 
         -- Tabs
         local openTab: Tab
@@ -700,11 +706,11 @@ function SelectionPanel.new()
         end
     end
 
-    -------------------------------------------------------------------------------
-    -- Logic
-    -------------------------------------------------------------------------------
+    function selectionPanel:Start()
+        started = true
+        draw()
+    end
 
-    -- Setup
     draw(true)
     selectionPanel:SetSize(size)
 

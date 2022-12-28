@@ -355,6 +355,7 @@ function StampBookScreen.Init()
             end)
         end
 
+        editPanel:Start()
         ScreenUtil.outLeft(editPanel:GetContainer())
     end
 
