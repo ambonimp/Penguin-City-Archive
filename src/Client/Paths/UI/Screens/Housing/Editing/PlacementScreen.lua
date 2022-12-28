@@ -397,7 +397,7 @@ do
 
         for i = 1, HousingConstants.MaxColors do
             if model:FindFirstChild("Color" .. i) then
-                colorPanel:AddTab("Color" .. i, Images.Icons.Paint)
+                colorPanel:AddTab("Color" .. i, Images.Icons.Paint, color[i])
             end
         end
 
@@ -467,6 +467,13 @@ do
                     colorWidgetSelected = widget
                     color[colorNum] = colorValue
                     paintModel(model, colorNameSelected, color[colorNum])
+                end
+            end)
+
+            widget.SelectedChanged:Connect(function(selected)
+                if selected then
+                    local tabName = colorPanel:GetOpenTabName()
+                    colorPanel:SetTabColor(tabName, colorValue)
                 end
             end)
         end)

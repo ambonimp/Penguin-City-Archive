@@ -19,6 +19,7 @@ local Widget = require(Paths.Client.UI.Elements.Widget)
 type Tab = {
     Name: string,
     ImageId: string,
+    Color: Color3,
     WidgetConstructors: {
         {
             WidgetName: string,
@@ -266,6 +267,7 @@ function SelectionPanel.new()
                     textButton.Name = visibleTab.Name
                     textButton.Visible = true
                     textButton.Icon.Image = visibleTab.ImageId
+                    textButton.Icon.ImageColor3 = visibleTab.Color or Color3.fromRGB(255, 255, 255)
                     textButton.Parent = tabsFrame
 
                     button = Button.new(textButton)
@@ -290,6 +292,7 @@ function SelectionPanel.new()
                     tabsFrame.Selected.Visible = true
                     tabsFrame.Selected.LayoutOrder = index
                     tabsFrame.Selected.Icon.Image = visibleTab.ImageId
+                    tabsFrame.Selected.Icon.ImageColor3 = visibleTab.Color or Color3.fromRGB(255, 255, 255)
                 end
             end
 
@@ -392,10 +395,13 @@ function SelectionPanel.new()
                 widgetInfo.Instance = nil
             end
         end
-        selectionPanel.TabChanged:Fire(openTabName, tabName)
+
+        local lastOpenTabName = openTabName
 
         openTabName = tabName
         openTabNameByTabIndex[tabsIndex] = tabName or openTabNameByTabIndex[tabsIndex]
+
+        selectionPanel.TabChanged:Fire(lastOpenTabName, tabName)
 
         draw()
     end
@@ -473,7 +479,7 @@ function SelectionPanel.new()
         end
     end
 
-    function selectionPanel:AddTab(tabName: string, imageId: string)
+    function selectionPanel:AddTab(tabName: string, imageId: string, color: Color3?)
         -- WARN: Already exists
         if getTab(tabName) then
             warn(("%q already exists!"):format(tabName))
@@ -484,6 +490,7 @@ function SelectionPanel.new()
             Name = tabName,
             ImageId = imageId,
             WidgetConstructors = {},
+            Color = color,
         }
         table.insert(tabs, tab)
 
@@ -539,6 +546,21 @@ function SelectionPanel.new()
 
         if redraw == nil or redraw then
             draw()
+        end
+    end
+
+    function selectionPanel:SetTabColor(tabName: string, color: Color3)
+        if openTabName == tabName then
+            tabsFrame.Selected.Icon.ImageColor3 = color
+        end
+
+        for _, tab in pairs(tabs) do
+            if tab.Name == tabName then
+                tab.Color = color
+                tab.Button:GetButtonObject().Icon.ImageColor3 = color
+
+                return
+            end
         end
     end
 
@@ -687,10 +709,6 @@ function SelectionPanel.new()
 
     function selectionPanel:SetCloseButtonVisibility(isVisible: boolean)
         closeButtonFrame.Visible = isVisible
-    end
-
-    function selectionPanel:GetCloseButtonFrame()
-        return closeButtonFrame
     end
 
     function selectionPanel:SetTabIndex(index: number)

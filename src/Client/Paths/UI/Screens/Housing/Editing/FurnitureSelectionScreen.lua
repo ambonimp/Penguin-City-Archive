@@ -147,7 +147,7 @@ do
         backButtonContainer.Size = UDim2.fromScale(1, 1)
         backButtonContainer.Position = UDim2.fromOffset(0, -15)
         backButtonContainer.AnchorPoint = Vector2.new(0, 1)
-        backButtonContainer.Parent = furniturePanel:GetCloseButtonFrame()
+        backButtonContainer.Parent = furniturePanel:GetContainer().Background.Side.CloseButton
 
         local backButton = ExitButton.new()
         backButton:Mount(backButtonContainer, true)
