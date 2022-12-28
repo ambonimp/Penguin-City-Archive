@@ -453,33 +453,30 @@ do
     colorToWidget = {} :: { [string]: Widget.Widget }
 
     for colorName, colorData in pairs(FurnitureConstants.Colors) do
-        local product = ProductUtil.getHouseColorProduct(colorName, colorData.ImageColor)
-        local ColorWidget = Widget.diverseWidgetFromHouseColor(colorName, colorData.ImageColor)
-        local ui = ColorWidget:GetGuiObject()
-        ui.Name = colorName
-        ui.Parent = template.Colors
-        ui:SetAttribute("ColorValue", colorData.ImageColor)
-
-        colorToWidget[tostring(colorData.ImageColor)] = ColorWidget
-
-        local button = ui.imageButton
         local colorValue = colorData.ImageColor
-        button.MouseButton1Down:Connect(function()
-            local isOwned = ProductController.hasProduct(product) or ProductUtil.isFree(product)
-            if isOwned then
+
+        local widget = Widget.diverseWidgetFromHouseColor(colorName, colorData.ImageColor, function(widget)
+            widget.Pressed:Connect(function()
                 if colorWidgetSelected then
                     colorWidgetSelected:SetSelected(false)
                 end
                 colorNameSelected = colorPanel:GetOpenTabName()
                 colorNum = tonumber(StringUtil.chopStart(colorNameSelected, "Color"))
                 if color ~= colorName then
-                    ColorWidget:SetSelected(true)
-                    colorWidgetSelected = ColorWidget
+                    widget:SetSelected(true)
+                    colorWidgetSelected = widget
                     color[colorNum] = colorValue
                     paintModel(model, colorNameSelected, color[colorNum])
                 end
-            end
+            end)
         end)
+
+        local guiObject = widget:GetGuiObject()
+        guiObject.Name = colorName
+        guiObject.Parent = template.Colors
+        guiObject:SetAttribute("ColorValue", colorData.ImageColor)
+
+        colorToWidget[tostring(colorData.ImageColor)] = widget
     end
 
     colorPanel.TabChanged:Connect(function(_old: string, tabName: string)

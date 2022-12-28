@@ -358,9 +358,9 @@ function Widget.diverseWidgetFromHouseObject(category: string, objectKey: string
     return widget
 end
 
-function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3)
+function Widget.diverseWidgetFromHouseColor(colorName: string, color: Color3, onOwned: (Widget.Widget) -> ())
     local product = ProductUtil.getHouseColorProduct(colorName, color)
-    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true })
+    local widget = Widget.diverseWidgetFromProduct(product, { VerifyOwnership = true }, onOwned)
 
     local ui = widget:GetGuiObject()
     ui.ZIndex = 50
@@ -514,6 +514,7 @@ function Widget.diverseWidget()
 
     function widget:SetLayoutOrder(newLayoutOrder: number)
         imageButton.LayoutOrder = newLayoutOrder
+        diverseWidget.LayoutOrder = newLayoutOrder
         layoutOrder = newLayoutOrder
     end
 
