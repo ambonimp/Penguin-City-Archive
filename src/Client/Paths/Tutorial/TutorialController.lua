@@ -165,7 +165,7 @@ function TutorialController.Start()
 
             currentTaskPromise = returnedPromise:andThen(function()
                 taskMaid:Cleanup()
-                TutorialController.taskCompleted(task)
+                TutorialController.taskCompleted(task, task == TutorialConstants.Tasks.StartingAppearance)
             end)
         end)
     end
