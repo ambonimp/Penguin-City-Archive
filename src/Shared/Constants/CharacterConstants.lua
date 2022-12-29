@@ -28,6 +28,7 @@ CharacterConstants.Animations = {
     -- Tools
     HoldGenericTool = { { Id = "rbxassetid://11762343672", Weight = 14 } },
     UseGenericTool = { { Id = "rbxassetid://11713443688", Weight = 15 } },
+    Eat = { { Id = "rbxassetid://11962817009", Weight = 16 } },
     UseSnowballTool = { { Id = "rbxassetid://11713444981", Weight = 15 } },
 }
 

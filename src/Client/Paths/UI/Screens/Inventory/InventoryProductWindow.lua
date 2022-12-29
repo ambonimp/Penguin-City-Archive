@@ -80,10 +80,13 @@ function InventoryProductWindow.new(
     -- Populate
     sortProducts()
 
-    local populateData: { {
-        WidgetConstructor: () -> typeof(Widget.diverseWidget()),
-        EquipValue: any | nil,
-    } } = {}
+    local populateData: {
+        {
+            WidgetConstructor: () -> typeof(Widget.diverseWidget()),
+            EquipValue: any | nil,
+        }
+    } =
+        {}
     for _, product in pairs(products) do
         local entry = {
             WidgetConstructor = function()
