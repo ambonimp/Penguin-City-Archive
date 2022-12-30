@@ -7,8 +7,10 @@ local Paths = require(ServerScriptService.Paths)
 local Maid = require(Paths.Shared.Maid)
 local GroupUtil = require(Paths.Shared.Utils.GroupUtil)
 local PlayerConstants = require(Paths.Shared.Constants.PlayerConstants)
+local Promise = require(Paths.Packages.promise)
 
 local maidByPlayer: { [Player]: Maid.Maid } = {}
+local loadedPlayers = {}
 
 -- Gives a maid that gets destroyed on the PlayerLeaving event; useful for cleaning up caches!
 function PlayerService.getPlayerMaid(player: Player)
@@ -36,39 +38,47 @@ function PlayerService.Start()
             return
         end
 
-        -- Create Maid
-        maidByPlayer[player] = Maid.new()
+        loadedPlayers[player] = Promise.new(function(resolve)
+            -- Create Maid
+            maidByPlayer[player] = Maid.new()
 
-        -- Data
-        DataService.loadPlayer(player)
-        CharacterItemService.loadPlayer(player)
+            -- Data
+            DataService.loadPlayer(player)
+            CharacterItemService.loadPlayer(player)
 
-        -- Load routines
-        CharacterService.loadPlayer(player)
-        ProductService.loadPlayer(player)
-        PlotService.loadPlayer(player)
-        SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
-        ZoneService.loadPlayer(player)
-        RewardsService.loadPlayer(player)
-        PetService.loadPlayer(player)
-        PlayerChatService.loadPlayer(player)
-        ToolService.loadPlayer(player)
-        TelemetryService.loadPlayer(player)
+            -- Load routines
+            CharacterService.loadPlayer(player)
+            ProductService.loadPlayer(player)
+            PlotService.loadPlayer(player)
+            SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
+            ZoneService.loadPlayer(player)
+            RewardsService.loadPlayer(player)
+            PetService.loadPlayer(player)
+            PlayerChatService.loadPlayer(player)
+            ToolService.loadPlayer(player)
+            TelemetryService.loadPlayer(player)
+
+            resolve()
+        end)
     end
 
     Players.PlayerRemoving:Connect(function(player)
-        -- Unload routines
-        PlotService.unloadPlayer(player)
-        RewardsService.unloadPlayer(player)
-        PetService.unloadPlayer(player)
-        TelemetryService.unloadPlayer(player)
+        loadedPlayers[player]:finally(function()
+            -- Unload routines
+            PlotService.unloadPlayer(player)
+            RewardsService.unloadPlayer(player)
+            PetService.unloadPlayer(player)
+            TelemetryService.unloadPlayer(player)
 
-        -- Destroy Maid
-        maidByPlayer[player]:Destroy()
-        maidByPlayer[player] = nil
+            -- Destroy Maid
+            maidByPlayer[player]:Destroy()
+            maidByPlayer[player] = nil
 
-        -- Unload Data Last
-        DataService.unloadPlayer(player)
+            -- Unload Data Last
+            DataService.unloadPlayer(player)
+
+            loadedPlayers[player] = nil
+        end)
     end)
 
     Players.PlayerAdded:Connect(loadPlayer)
