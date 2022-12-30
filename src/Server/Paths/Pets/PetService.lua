@@ -23,6 +23,7 @@ local TextFilterUtil = require(Paths.Shared.Utils.TextFilterUtil)
 local ServerPet = require(Paths.Server.Pets.ServerPet)
 local Signal = require(Paths.Shared.Signal)
 local ProductUtil = require(Paths.Shared.Products.ProductUtil)
+local PlayerService = require(Paths.Server.PlayerService)
 
 local EQUIPPED_PET_DATA_ADDRESS = "Pets.EquippedPetDataIndex"
 local QUICK_HATCH_TIME = -10
@@ -281,13 +282,12 @@ end
 
 function PetService.loadPlayer(player: Player)
     updatePlayerPet(player)
-end
 
-function PetService.unloadPlayer(player: Player)
-    updatePlayerPet(player, true)
-
-    -- Deduct playtime from egg hatch times data
-    DataService.set(player, "Pets.Eggs", PetService.getHatchTimes(player))
+    PlayerService.getPlayerMaid(player):GiveTask(function()
+        updatePlayerPet(player, true)
+        -- Deduct playtime from egg hatch times data
+        DataService.set(player, "Pets.Eggs", PetService.getHatchTimes(player))
+    end)
 end
 
 -------------------------------------------------------------------------------

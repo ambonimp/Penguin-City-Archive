@@ -9,6 +9,7 @@ local Paths = require(ServerScriptService.Paths)
 local VoldexAnalytics = require(ServerStorage.VoldexAnalytics)
 local Output = require(Paths.Shared.Output)
 local GameConstants = require(Paths.Shared.Constants.GameConstants)
+local PlayerService = require(Paths.Server.PlayerService)
 
 --!! Be careful with changing any existing values!
 -- https://docs.google.com/document/d/1GgXv97M3vKuzEhwAOloIaYwfWVWoJBdgZRtfC9u5US0/edit#
@@ -51,11 +52,7 @@ function TelemetryService.addUnloadCallback(callback: (player: Player) -> any)
     table.insert(unloadCallbacks, callback)
 end
 
-function TelemetryService.unloadPlayer(player: Player)
-    for _, callback in pairs(unloadCallbacks) do
-        task.spawn(callback, player)
-    end
-end
+function TelemetryService.unloadPlayer(player: Player) end
 
 function TelemetryService.addLoadCallback(callback: (player: Player) -> any)
     table.insert(loadCallbacks, callback)
@@ -65,6 +62,12 @@ function TelemetryService.loadPlayer(player: Player)
     for _, callback in pairs(loadCallbacks) do
         task.spawn(callback, player)
     end
+
+    PlayerService.getPlayerMaid(player):GiveTask(function()
+        for _, callback in pairs(unloadCallbacks) do
+            task.spawn(callback, player)
+        end
+    end)
 end
 
 --[[

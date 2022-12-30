@@ -6,6 +6,7 @@ local RewardsService = {}
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Paths = require(ServerScriptService.Paths)
+local PlayerService = require(Paths.Server.PlayerService)
 local DataService = require(Paths.Server.Data.DataService)
 local RewardsUtil = require(Paths.Shared.Rewards.RewardsUtil)
 local RewardsConstants = require(Paths.Shared.Rewards.RewardsConstants)
@@ -102,6 +103,9 @@ function RewardsService.loadPlayer(player: Player)
 
     -- Paycheck
     totalPaychecksByPlayer[player] = 0
+    PlayerService.getPlayerMaid(player):GiveTask(function()
+        totalPaychecksByPlayer[player] = nil
+    end)
 
     task.spawn(function()
         while task.wait(RewardsConstants.Paycheck.EverySeconds) do
@@ -110,10 +114,6 @@ function RewardsService.loadPlayer(player: Player)
             end
         end
     end)
-end
-
-function RewardsService.unloadPlayer(player: Player)
-    totalPaychecksByPlayer[player] = nil
 end
 
 -- Gives a reward on the server - assumes client knows this is happening

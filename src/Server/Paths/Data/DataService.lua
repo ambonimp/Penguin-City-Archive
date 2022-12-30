@@ -139,11 +139,15 @@ function DataService.loadPlayer(player)
         if player:IsDescendantOf(Players) then
             DataService.Profiles[player] = profile
             Remotes.fireClient(player, "DataInitialized", profile.Data)
+
+            return true
         else
             profile:Release()
+            return false
         end
     else
         player:Kick("Data profile does not exist " .. player.Name)
+        return false
     end
 end
 

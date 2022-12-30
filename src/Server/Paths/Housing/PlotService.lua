@@ -344,11 +344,30 @@ end
 -------------------------------------------------------------------------------
 --Runs once per player on join
 function PlotService.loadPlayer(player: Player)
+    local playerMaid = PlayerService.getPlayerMaid(player)
+
     local exteriorPlot: Model = findEmptyPlot(HousingConstants.ExteriorType)
     local interiorPlot: Model = findEmptyPlot(HousingConstants.InteriorType)
 
     loadHouse(player, exteriorPlot, HousingConstants.ExteriorType, true)
+    playerMaid:GiveTask(function()
+        unloadHouse(
+            player,
+            getPlot(player, HousingConstants.ExteriorType),
+            HousingConstants.ExteriorType,
+            DataService.get(player, "House.Blueprint")
+        )
+    end)
+
     loadHouse(player, interiorPlot, HousingConstants.InteriorType, true)
+    playerMaid:GiveTask(function()
+        unloadHouse(
+            player,
+            getPlot(player, HousingConstants.InteriorType),
+            HousingConstants.InteriorType,
+            DataService.get(player, "House.Blueprint")
+        )
+    end)
 
     -- Create zone for interior
     local houseInteriorZone = ZoneUtil.houseInteriorZone(player)
@@ -356,13 +375,16 @@ function PlotService.loadPlayer(player: Player)
     local spawnPart = interiorPlot:FindFirstChildOfClass("Model").Spawn
 
     local destroyFunction, _, changeSpawn = ZoneService.createZone(houseInteriorZone, { interiorPlot }, spawnPart)
-    PlayerService.getPlayerMaid(player):GiveTask(destroyFunction)
+    playerMaid:GiveTask(destroyFunction)
 
     local exitPart = interiorPlot:FindFirstChildOfClass("Model").Exit
     exitPart.Name = ZoneConstants.ZoneType.Room.Neighborhood
     exitPart.Parent = ZoneUtil.getZoneInstances(houseInteriorZone).RoomDepartures
 
     newSpawnTable[player] = changeSpawn
+    playerMaid:GiveTask(function()
+        newSpawnTable[player] = nil
+    end)
 
     local didStartingObjects = DataService.get(player, "House.DidStartingObjects")
     if didStartingObjects == nil then
@@ -372,18 +394,6 @@ function PlotService.loadPlayer(player: Player)
             ProductService.addProduct(player, product, amount)
         end
     end
-end
-
---Handles removing models and resetting plots on leave
-function PlotService.unloadPlayer(player: Player)
-    local exteriorPlot: Model = getPlot(player, HousingConstants.ExteriorType)
-    local interiorPlot: Model = getPlot(player, HousingConstants.InteriorType)
-    local bprint = DataService.get(player, "House.Blueprint")
-
-    unloadHouse(player, exteriorPlot, HousingConstants.ExteriorType, bprint)
-    unloadHouse(player, interiorPlot, HousingConstants.InteriorType, bprint)
-
-    newSpawnTable[player] = nil
 end
 
 -------------------------------------------------------------------------------

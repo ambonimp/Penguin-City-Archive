@@ -43,20 +43,21 @@ function PlayerService.Start()
             maidByPlayer[player] = Maid.new()
 
             -- Data
-            DataService.loadPlayer(player)
-            CharacterItemService.loadPlayer(player)
+            if DataService.loadPlayer(player) then
+                CharacterItemService.loadPlayer(player)
 
-            -- Load routines
-            CharacterService.loadPlayer(player)
-            ProductService.loadPlayer(player)
-            PlotService.loadPlayer(player)
-            SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
-            ZoneService.loadPlayer(player)
-            RewardsService.loadPlayer(player)
-            PetService.loadPlayer(player)
-            PlayerChatService.loadPlayer(player)
-            ToolService.loadPlayer(player)
-            TelemetryService.loadPlayer(player)
+                -- Load routines
+                CharacterService.loadPlayer(player)
+                ProductService.loadPlayer(player)
+                PlotService.loadPlayer(player)
+                SessionService.loadPlayer(player) -- SessionService relies on the above Services, they must clean up data first
+                ZoneService.loadPlayer(player)
+                RewardsService.loadPlayer(player)
+                PetService.loadPlayer(player)
+                PlayerChatService.loadPlayer(player)
+                ToolService.loadPlayer(player)
+                TelemetryService.loadPlayer(player)
+            end
 
             resolve()
         end)
@@ -64,13 +65,7 @@ function PlayerService.Start()
 
     Players.PlayerRemoving:Connect(function(player)
         loadedPlayers[player]:finally(function()
-            -- Unload routines
-            PlotService.unloadPlayer(player)
-            RewardsService.unloadPlayer(player)
-            PetService.unloadPlayer(player)
-            TelemetryService.unloadPlayer(player)
-
-            -- Destroy Maid
+            -- Destroy player maid, aka invoke any unload callbacks
             maidByPlayer[player]:Destroy()
             maidByPlayer[player] = nil
 
