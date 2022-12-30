@@ -1,7 +1,6 @@
 local VersionFPSScreen = {}
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Paths = require(Players.LocalPlayer.PlayerScripts.Paths)
 local GameConstants = require(Paths.Shared.Constants.GameConstants)
@@ -20,7 +19,7 @@ branchLabel.Visible = not GameUtil.isLiveGame()
 branchLabel.Text = GameUtil.getPlaceName()
 
 -- Version
-versionLabel.Text = GameUtil:isQAGame() and ("qa.%d"):format(GameConstants.DataIds.QA) or GameConstants.Version
+versionLabel.Text = GameConstants.Version
 
 -- FPS
 do

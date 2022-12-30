@@ -227,6 +227,10 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     -- Get spawnpoint + content Streaming
     local spawnpoint = ignoreFromZone and ZoneUtil.getZoneInstances(zone).Spawnpoint or ZoneUtil.getSpawnpoint(oldZone, zone)
     player:RequestStreamAroundAsync(spawnpoint.Position)
+    if not player:IsDescendantOf(Players) then
+        return
+    end
+
     local newCharacterCFrame = CharacterUtil.getStandOnCFrame(character, spawnpoint, true)
     Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", "requested streaming")
 
@@ -300,10 +304,13 @@ function ZoneService.loadPlayer(player: Player)
         TotalTeleports = 0,
     }
 
-    -- Send to zone
-    ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
-        IsInitialTeleport = true,
-    })
+    -- Functions yields and we don't want it to prevent unloading
+    task.spawn(function()
+        -- Send to zone
+        ZoneService.teleportPlayerToZone(player, ZoneService.getPlayerZone(player), {
+            IsInitialTeleport = true,
+        })
+    end)
 
     -- Clear Cache
     PlayerService.getPlayerMaid(player):GiveTask(function()

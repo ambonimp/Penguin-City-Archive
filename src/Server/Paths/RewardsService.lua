@@ -93,7 +93,9 @@ function RewardsService.loadPlayer(player: Player)
             local timeUntilNextDailyRewardRenew = RewardsUtil.getTimeUntilNextDailyRewardRenew(getDailyRewardData(player))
             if timeUntilNextDailyRewardRenew < UPDATE_DAILY_REWARD_EVERY then
                 task.delay(timeUntilNextDailyRewardRenew + 1, function() -- +1 for extra leeway
-                    RewardsService.updateDailyReward(player)
+                    if player:IsDescendantOf(Players) then
+                        RewardsService.updateDailyReward(player)
+                    end
                 end)
             end
 

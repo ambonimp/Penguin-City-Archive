@@ -60,7 +60,7 @@ function PlayerService.Start()
             end
 
             resolve()
-        end)
+        end):catch(warn)
     end
 
     Players.PlayerRemoving:Connect(function(player)
