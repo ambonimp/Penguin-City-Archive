@@ -26,7 +26,7 @@ DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: 
 local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     for k, v in pairs(default) do
         if not tonumber(k) and data[k] == nil then
-            data[k] = if typeof(v) == "table" then TableUtil.clone(v) else v
+            data[k] = if typeof(v) == "table" then TableUtil.deepClone(v) else v
         elseif not tonumber(k) and typeof(v) == "table" then
             reconcile(data[k], v)
         end
