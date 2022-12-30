@@ -137,27 +137,6 @@ function SledRaceSession.new(...: any)
         local startTime = os.clock()
         local finished: { Player } = {}
 
-        local function onFinishLineReached(player: Player)
-            if not minigameSession:IsPlayerParticipant(player) or table.find(finished, player) then
-                return
-            end
-
-            table.insert(finished, player)
-            minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
-
-            warn("FINISH LINE REACHED")
-
-            if #finished == #minigameSession:GetParticipants() then
-                if minigameSession:GetState() == MinigameConstants.States.Core then
-                    minigameSession:ChangeState(MinigameConstants.States.AwardShow)
-                else
-                    warn("WHHSHSHSHSH")
-                end
-            else
-                warn("WHAHAHAHAH")
-            end
-        end
-
         for _, partipant in pairs(minigameSession:GetParticipants()) do
             SledRaceUtil.unanchorSled(partipant)
         end
@@ -213,8 +192,15 @@ function SledRaceSession.new(...: any)
 
         stateMaid:GiveTask(map.Course.Finish.FinishLine.PrimaryPart.Touched:Connect(function(hit)
             local player = Players:GetPlayerFromCharacter(hit.Parent)
-            if player then
-                onFinishLineReached(player)
+            if player and minigameSession:IsPlayerParticipant(player) and not table.find(finished, player) then
+                table.insert(finished, player)
+                minigameSession:IncrementScore(player, math.floor((os.clock() - startTime) * 10 ^ 2))
+
+                if #finished == #minigameSession:GetParticipants() then
+                    if minigameSession:GetState() == MinigameConstants.States.Core then
+                        minigameSession:ChangeState(MinigameConstants.States.AwardShow)
+                    end
+                end
             end
         end))
     end, function()
