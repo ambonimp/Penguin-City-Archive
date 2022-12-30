@@ -173,15 +173,6 @@ local function verifyStreamingRadius()
     return largestDiameter
 end
 
-local function doubleCheckIsIndexLocked(cframe: CFrame)
-    for _, Model: Model in pairs(rooms:GetChildren()) do
-        if (Model:GetPivot().Position - cframe.Position).Magnitude <= GRID_PADDING * 2 then
-            return true
-        end
-    end
-    return false
-end
-
 local function placeModelOnGrid(model: Model, _index: number?)
     -- Find next available index
     local index = _index or 1
@@ -200,16 +191,12 @@ local function placeModelOnGrid(model: Model, _index: number?)
     local position = Vector3.new(gridSideLength * spiralPosition.X, gridSideLength * vertical, gridSideLength * spiralPosition.Y)
     local cframe = model:GetPivot() - model:GetPivot().Position + position -- retain rotation
 
-    if not doubleCheckIsIndexLocked(cframe) then
-        model:PivotTo(cframe)
+    model:PivotTo(cframe)
 
-        -- Listen for release index
-        InstanceUtil.onDestroyed(model, function()
-            usedGridIndexes[index] = nil
-        end)
-    else
-        placeModelOnGrid(model, index + 1)
-    end
+    -- Listen for release index
+    InstanceUtil.onDestroyed(model, function()
+        usedGridIndexes[index] = nil
+    end)
 end
 
 --[[
