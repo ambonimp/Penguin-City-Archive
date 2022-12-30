@@ -17,11 +17,57 @@ local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
 local TableUtil = require(Paths.Shared.Utils.TableUtil)
+local GameConstants = require(Paths.Shared.Constants.GameConstants)
 
 local DONT_SAVE_DATA = false -- Studio Only for testing
 
 DataService.Profiles = {}
 DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: any, eventMeta: table?}
+
+-------------------------------------------------------------------------------
+-- PRIVATE METHODS
+-------------------------------------------------------------------------------
+local function getMaxKey(store: DataUtil.Store)
+    local length = 0
+    for index, _ in pairs(store) do
+        length = math.max(tonumber(index), length)
+    end
+
+    return length
+end
+
+--[[
+    When we corrupt data, we upse the cleanup version to identify any old data that requires fixing
+]]
+local function cleanup(player: Player, data: DataUtil.Store)
+    local cleanupVersion = data.CleanupVersion
+
+    if not cleanupVersion and data.House then
+        -- Fix corruption issue where a lot of random funiture would get spammed into your data
+        for blueprint, objects in pairs(data.House.Furniture) do
+            local cleanedUp = false
+            local count = 0
+
+            for i = 1, getMaxKey(objects) do
+                local key = tostring(i)
+                local object = objects[key]
+                if object then
+                    if count > 15 then
+                        objects[key] = nil
+                        cleanedUp = true
+                    end
+                    count += 1
+                end
+            end
+
+            if cleanedUp then
+                warn(("[CLEANUP] %s furniture data was reduced for blueprint %s"):format(player.Name, blueprint))
+            end
+        end
+    end
+
+    data.CleanupVersion = GameConstants.DataCleanupVersion
+end
 
 local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     for k, v in pairs(default) do
@@ -33,6 +79,9 @@ local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     end
 end
 
+-------------------------------------------------------------------------------
+-- PUBLIC METHODS
+-------------------------------------------------------------------------------
 -- Gets
 function DataService.get(player: Player, address: string): DataUtil.Data
     local profile = DataService.Profiles[player]
@@ -75,12 +124,7 @@ function DataService.getAppendageKey(player: Player, address: string)
         return "1"
     end
 
-    local length = 0
-    for index, _ in pairs(iterate) do
-        length = math.max(tonumber(index), length)
-    end
-
-    return tostring(length + 1)
+    return tostring(getMaxKey(iterate) + 1)
 end
 
 -- Mimicks table.insert but for a store aka a dictionary, meaning it accounts for gaps
@@ -124,12 +168,12 @@ function DataService.wipe(player: Player)
 end
 
 function DataService.loadPlayer(player)
-    local profile = ProfileService.GetProfileStore(Config.DataKey, Config.getDefaults(player))
-        :LoadProfileAsync(tostring(player.UserId), "ForceLoad")
+    local defaultData = Config.getDefaults(player)
+    local profile = ProfileService.GetProfileStore(Config.DataKey, defaultData):LoadProfileAsync(tostring(player.UserId), "ForceLoad")
 
     if profile then
-        reconcile(profile.Data, Config.getDefaults(player))
-        --profile:Reconcile()
+        cleanup(player, profile.Data)
+        reconcile(profile.Data, defaultData)
 
         profile:ListenToRelease(function()
             DataService.Profiles[player] = nil
