@@ -16,6 +16,7 @@ local DataUtil = require(Paths.Shared.Utils.DataUtil)
 local ProfileService = require(Paths.Server.Data.ProfileService)
 local Config = require(Paths.Server.Data.Config)
 local TypeUtil = require(Paths.Shared.Utils.TypeUtil)
+local TableUtil = require(Paths.Shared.Utils.TableUtil)
 
 local DONT_SAVE_DATA = false -- Studio Only for testing
 
@@ -25,7 +26,7 @@ DataService.Updated = Signal.new() -- {event: string, player: Player, newValue: 
 local function reconcile(data: DataUtil.Store, default: DataUtil.Store)
     for k, v in pairs(default) do
         if not tonumber(k) and data[k] == nil then
-            data[k] = v
+            data[k] = if typeof(v) == "table" then TableUtil.clone(v) else v
         elseif not tonumber(k) and typeof(v) == "table" then
             reconcile(data[k], v)
         end
