@@ -101,6 +101,7 @@ end
 function Maid.new()
     return setmetatable({
         _tasks = {},
+        _sequentialTasks = {},
     }, Maid)
 end
 
@@ -163,6 +164,7 @@ function Maid:GiveTask(task)
     end
 
     self._tasks[task] = task
+    table.insert(self._sequentialTasks, task)
 
     return task
 end
@@ -182,6 +184,7 @@ function Maid:RemoveTask(task)
     end
 
     self._tasks[task] = nil
+    table.remove(self._sequentialTasks, table.find(self._sequentialTasks, task))
 end
 
 --[=[
@@ -206,16 +209,12 @@ function Maid:Cleanup()
         return
     end
 
-    local tasks = self._tasks
-    local key, task = next(tasks)
-
-    while task do
-        tasks[key] = nil
-
+    for _, task in pairs(self._sequentialTasks) do
         DisconnectTask(task)
-
-        key, task = next(tasks)
     end
+
+    self._tasks = {}
+    self._sequentialTasks = {}
 end
 
 --[=[
@@ -233,7 +232,7 @@ function Maid:EndTask(task)
         return
     end
 
-    self._tasks[task] = nil
+    self:RemoveTask(task)
     DisconnectTask(task)
 end
 
