@@ -235,12 +235,12 @@ function ZoneService.teleportPlayerToZone(player: Player, zone: ZoneConstants.Zo
     Output.doDebug(ZoneConstants.DoDebug, "ZoneService.teleportPlayerToZone", "requested streaming")
 
     -- Request stream async a few more times for best loading possible
-    task.defer(function()
+    --[[     task.defer(function()
         for _ = 2, REQUEST_STREAM_ASYNC_COUNT do
             task.wait(1)
             player:RequestStreamAroundAsync(spawnpoint.Position)
         end
-    end)
+    end) *]]
 
     -- Signal for server detecting when character has been pivoted
     local characterPivotedSignal = Signal.new()

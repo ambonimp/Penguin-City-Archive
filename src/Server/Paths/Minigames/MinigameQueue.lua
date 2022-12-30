@@ -45,7 +45,7 @@ function MinigameQueue.new(minigameName: string, station: Model?)
 
         if not closing then
             table.remove(participants, table.find(participants, player))
-            if #participants <= sessionConfig.MinParticipants and minigameStartThread then
+            if #participants < sessionConfig.MinParticipants and minigameStartThread then
                 task.cancel(minigameStartThread)
                 minigameStartThread = nil
                 countdown = nil
