@@ -527,8 +527,8 @@ end
 ]]
 function ZoneController.waitForZoneToLoad(zone: ZoneConstants.Zone)
     local zoneModel = ZoneUtil.getZoneModel(zone)
-    local allowMissingParts = zone.ZoneCategory == ZoneConstants.ZoneCategory.Room
-        and ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts
+    local allowMissingParts = zone.ZoneCategory == ZoneConstants.ZoneCategory.Room and ZoneConstants.AllowedMissingParts[zone.ZoneType] --ZoneConstants.DeclareRoomZonesAsLoadedWithMissingParts
+
     return ZoneUtil.waitForInstanceToLoad(zoneModel, allowMissingParts)
 end
 

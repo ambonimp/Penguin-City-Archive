@@ -9,6 +9,7 @@
 local PlotService = {}
 
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Paths = require(ServerScriptService.Paths)
@@ -105,13 +106,44 @@ end
 -------------------------------------------------------------------------------
 -- PLOT METHODS
 -------------------------------------------------------------------------------
+local function clearExtreriorPlotsWithoutPlayersIngame()
+    for i, plot in exteriorPlots:GetChildren() do
+        if plot:GetAttribute(HousingConstants.PlotOwner) then
+            local id = plot:GetAttribute(HousingConstants.PlotOwner)
+            local player = Players:GetPlayerByUserId(id)
+            if player == nil then
+                CollectionService:RemoveTag(plot.Mailbox, id)
+                CollectionService:RemoveTag(plot.Mailbox, "Plot")
+                CollectionService:RemoveTag(plot.Mailbox, "House")
+
+                if plot.Mailbox:FindFirstChild("PlayerName") then
+                    plot.Mailbox:FindFirstChild("PlayerName"):Destroy()
+                end
+                for _, child in pairs(plot:GetChildren()) do
+                    if child:IsA("Model") and child.Name ~= "MailboxModel" then
+                        child:Destroy()
+                    end
+                end
+                plot:SetAttribute(HousingConstants.PlotOwner, nil)
+            end
+        end
+    end
+end
+
 --Finds an empty plot for exterior/interior
 local function findEmptyPlot(type: string)
     if type == HousingConstants.ExteriorType then
+        local plotModel: Model = nil
         for _, model: Model in exteriorPlots:GetChildren() do
             if not model:GetAttribute(HousingConstants.PlotOwner) then
-                return model
+                plotModel = model
             end
+        end
+        if plotModel == nil then
+            clearExtreriorPlotsWithoutPlayersIngame()
+            return findEmptyPlot(type)
+        else
+            return plotModel
         end
     elseif type == HousingConstants.InteriorType then
         local interiorModel = assets.InteriorPlot:Clone()
@@ -320,6 +352,11 @@ local function unloadHouse(player: Player, plot: Model, type: string, oldBluepri
         if plot.Mailbox:FindFirstChild("PlayerName") then
             plot.Mailbox:FindFirstChild("PlayerName"):Destroy()
             -- print("Exterior: Found PlayerName to delete", player)
+        end
+        for _, child in pairs(plot:GetChildren()) do
+            if child:IsA("Model") and child.Name ~= "MailboxModel" then
+                child:Destroy()
+            end
         end
     else
         if plot:FindFirstChild("Furniture") then

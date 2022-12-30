@@ -116,7 +116,15 @@ ZoneConstants.TravelMethod = {
     RobloxReset = "RobloxReset",
     TooFarFromZoneSOS = "TooFarFromZoneSOS",
 }
-
+ZoneConstants.AllowedMissingParts = {
+    ["Town"] = 100,
+    ["Boardwalk"] = 100,
+    ["SkiHill"] = 100,
+    ["School"] = 100,
+    ["Hospital"] = 100,
+    ["SchoolBuilding"] = 100,
+    ["Neighborhood"] = 40,
+}
 -------------------------------------------------------------------------------
 -- Cosmetics
 -------------------------------------------------------------------------------
